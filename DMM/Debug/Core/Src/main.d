@@ -30,7 +30,7 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_spi.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h \
  ../Core/Inc/eth.h ../Core/Inc/main.h ../Core/Inc/spi.h \
- ../Core/Inc/gpio.h ../Core/Inc/fsmc.h \
+ ../Core/Inc/usart.h ../Core/Inc/gpio.h ../Core/Inc/fsmc.h \
  D:/STM/stm32f407_Wspc/PublicDrivers/AD7190/bsp_AD7190.h \
  D:/STM/stm32f407_Wspc/PublicDrivers/usart/bsp_debug_usart.h \
  D:/STM/stm32f407_Wspc/PublicDrivers/LCD/lcd.h
@@ -68,6 +68,7 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Core/Inc/eth.h:
 ../Core/Inc/main.h:
 ../Core/Inc/spi.h:
+../Core/Inc/usart.h:
 ../Core/Inc/gpio.h:
 ../Core/Inc/fsmc.h:
 D:/STM/stm32f407_Wspc/PublicDrivers/AD7190/bsp_AD7190.h:
