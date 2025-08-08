@@ -31,6 +31,7 @@
 #include "bsp_AD7190.h"
 #include "bsp_debug_usart.h"
 #include "lcd.h"
+#include "tcp_client.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -138,6 +139,7 @@ int main(void)
   //MX_UART4_Init();
   MX_DEBUG_USART_Init();
   MX_SPI1_Init();
+  tcp_client_init();
   /* USER CODE BEGIN 2 */
   if(AD7190_Init()==0)
   {
