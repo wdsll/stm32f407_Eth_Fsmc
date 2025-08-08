@@ -30,6 +30,7 @@
 #include "bsp_AD7190.h"
 #include "bsp_debug_usart.h"
 #include "lcd.h"
+#include "ad7190_filter.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -63,6 +64,7 @@ __IO int32_t bias_data[4];   // 零点电压的AD转换结果
 __IO double voltage_data[4]; // 电压值（单位：mV）
 __IO uint8_t flag=0;         // 启动采集标志
 __IO int8_t number;          // 当前处理的通道
+__IO int32_t filtered_data[4]; // 滤波后的转换结果
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -145,11 +147,13 @@ int main(void)
 	    {
 	#if ZERO_MODE==1
 	     // printf("IN%d. 0x%05X\n",number,bias_data[number]);
-	#else
-	      voltage_data[number]=ad7190_data[number]>>4;
-	      voltage_data[number]=voltage_data[number]*REFERENCE_VOLTAGE/OPA_RES_R2*OPA_RES_R1/0xFFFFF;
-	      //printf("IN%d. 0x%05X->%0.3fV\n",number,ad7190_data[number],voltage_data[number]/1000);
-	#endif
+        #else
+              int32_t raw = ad7190_data[number]>>4;
+              filtered_data[number] = AD7190_Filter(number, raw);
+              voltage_data[number]=filtered_data[number];
+              voltage_data[number]=voltage_data[number]*REFERENCE_VOLTAGE/OPA_RES_R2*OPA_RES_R1/0xFFFFF;
+              //printf("IN%d. 0x%05X->%0.3fV\n",number,filtered_data[number],voltage_data[number]/1000);
+        #endif
 
 	      flag=1;
 	    }
