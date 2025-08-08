@@ -27,6 +27,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "string.h"
+#include <stdio.h>
 #include "bsp_AD7190.h"
 #include "bsp_debug_usart.h"
 #include "lcd.h"
@@ -63,7 +64,7 @@ __IO int32_t ad7190_data[4]; // AD7190原始转换结果
 __IO int32_t bias_data[4];   // 零点电压的AD转换结果
 __IO double voltage_data[4]; // 电压值（单位：mV）
 __IO uint8_t flag=0;         // 启动采集标志
-__IO int8_t number;          // 当前处理的通道
+__IO int8_t number = 0;      // 当前处理的通道
 __IO int32_t filtered_data[4]; // 滤波后的转换结果
 /* USER CODE END PV */
 
@@ -143,21 +144,28 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	    if(flag==2)
-	    {
-	#if ZERO_MODE==1
-	     // printf("IN%d. 0x%05X\n",number,bias_data[number]);
+            if(flag==2)
+            {
+        #if ZERO_MODE==1
+             // printf("IN%d. 0x%05X\n",number,bias_data[number]);
         #else
-              int32_t raw = ad7190_data[number]>>4;
-              filtered_data[number] = AD7190_Filter(number, raw);
-              voltage_data[number]=filtered_data[number];
-              voltage_data[number]=voltage_data[number]*REFERENCE_VOLTAGE/OPA_RES_R2*OPA_RES_R1/0xFFFFF;
+              if(number >= 0 && number < 4)
+              {
+                  int32_t raw = ad7190_data[number]>>4;
+                  filtered_data[number] = AD7190_Filter(number, raw);
+                  voltage_data[number]=filtered_data[number];
+                  voltage_data[number]=voltage_data[number]*REFERENCE_VOLTAGE/OPA_RES_R2*OPA_RES_R1/0xFFFFF;
+
+                  char disp[20];
+                  sprintf(disp, "CH%d:%6.3fV", number+1, voltage_data[number]/1000.0);
+                  lcd_show_str(10, (number + 1) * 20 + 10, 16, disp, RED);
+              }
               //printf("IN%d. 0x%05X->%0.3fV\n",number,filtered_data[number],voltage_data[number]/1000);
         #endif
 
-	      flag=1;
-	    }
-	    HAL_Delay(10);
+              flag=1;
+            }
+            HAL_Delay(10);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
