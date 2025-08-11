@@ -1,1 +1,12 @@
 /.cproject
+Debug/
+Release/
+*.elf
+*.map
+*.bin
+*.hex
+*.o
+*.d
+*.su
+*.cyclo
+*.list
