@@ -21,6 +21,28 @@
 #include "spi.h"
 
 /* USER CODE BEGIN 0 */
+uint8_t W5500_ReadByte(void)
+{
+  uint8_t rx = 0, tx = 0xFF;
+  HAL_SPI_TransmitReceive(&hspi1, &tx, &rx, 1, HAL_MAX_DELAY);
+  return rx;
+}
+
+void W5500_WriteByte(uint8_t byte)
+{
+  uint8_t rx;
+  HAL_SPI_TransmitReceive(&hspi1, &byte, &rx, 1, HAL_MAX_DELAY);
+}
+
+void W5500_Select(void)
+{
+  HAL_GPIO_WritePin(SPI1_CS_GPIO_Port, SPI1_CS_Pin, GPIO_PIN_RESET);
+}
+
+void W5500_Deselect(void)
+{
+  HAL_GPIO_WritePin(SPI1_CS_GPIO_Port, SPI1_CS_Pin, GPIO_PIN_SET);
+}
 
 /* USER CODE END 0 */
 

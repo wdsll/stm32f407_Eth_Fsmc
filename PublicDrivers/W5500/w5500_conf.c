@@ -22,6 +22,7 @@
 #include "utility.h"
 #include "w5500.h"
 #include "dhcp.h"
+#include "spi.h"
 //#include "SysTick.h"
 //#include "timer.h"
 //#include "SEGGER_RTT.h"
@@ -41,60 +42,21 @@ u8 rxsize[MAX_SOCK_NUM] = {2,2,2,2,2,2,2,2};//rx buffet set  K bits
 
 extern SPI_HandleTypeDef hspi1;
 
-#if 0
-/*定义默认IP信息*/
-u8 local_ip[4]  ={192,168,1,70};										/*定义W5500默认IP地址*/
-u8 subnet[4]    ={255,255,255,0};										/*定义W5500默认子网掩码*/
-u8 gateway[4]   ={192,168,1,1};											/*定义W5500默认网关*/
-u8 dns_server[4]={114,114,114,114};									/*定义W5500默认DNS*/
-u8 IO_number = 0x00;	//IO控制器编号
-/*定义MAC地址,如果多块W5500网络适配板在同一现场工作，请使用不同的MAC地址*/
-u8 mac[6]={0,8,220,17,17,70};
+/*网络配置*/
+u8 local_ip[4]  ={192,168,0,2};
+u8 subnet[4]    ={255,255,255,0};
+u8 gateway[4]   ={192,168,0,3};
+u8 dns_server[4]={192,168,0,3};
+u8 IO_number = 0x00;    //IO控制器编号
+u8 mac[6]={0x00,0x08,0xdc,0x01,0x02,0x03};
 
-//本来是5000 待测试
-u16 local_port=9999;	                       					/*定义本地端口 8080*/
+u16 local_port=8080;                                                            /*定义本地端口 8080*/
+u16 local_port_setIP=9999;              //设置IP使用
 
 /*定义远端IP信息*/
-//在程序中，都会被修改
-//u8  remote_ip[4]={192,168,100,231};			  				/*远端IP地址*/
-u8  remote_ip[4]={192,168,1,1};			  						/*远端IP地址，表示接收这个网段的所有IP，如果路由器相应配置后，局域网内其他网段也可以互相通信*/
-u16 remote_port=9999;																/*远端端口号*/
+u8  remote_ip[4]={192,168,0,3};
+u16 remote_port=5000;                                                                                                          /*远端端口号*/
 
-u16 guangbo_port=9999;								/*广播端口号*/
-u8  guangbo_ip[4]={192,168,1,255};		//广播用
-u8  ZH1_IP[4]={192,168,1,70};
-u16 ZH1_port=9999;
-u8  CJ2_IP[4]={192,168,1,77};
-//u8  PC_IP[4]={192,168,1,105};
-
-#else
-/*定义默认IP信息*/
-u8 local_ip[4]  ={192,168,106,245};										/*定义W5500默认IP地址*/
-u8 subnet[4]    ={255,255,255,0};										/*定义W5500默认子网掩码*/
-u8 gateway[4]   ={192,168,106,1};											/*定义W5500默认网关*/
-u8 dns_server[4]={114,114,114,114};									/*定义W5500默认DNS*/
-u8 IO_number = 0x00;	//IO控制器编号
-/*定义MAC地址,如果多块W5500网络适配板在同一现场工作，请使用不同的MAC地址*/
-u8 mac[6]={0,8,220,17,17,70};
-
-//本来是5000 待测试
-u16 local_port=8080;	                       					/*定义本地端口 8080*/
-u16 local_port_setIP=9999;		//设置IP使用
-
-/*定义远端IP信息*/
-//在程序中，都会被修改
-//u8  remote_ip[4]={192,168,100,231};			  				/*远端IP地址*/
-u8  remote_ip[4]={192,168,106,1};			  						/*远端IP地址，表示接收这个网段的所有IP，如果路由器相应配置后，局域网内其他网段也可以互相通信*/
-u16 remote_port=9999;																/*远端端口号*/
-
-//u16 guangbo_port=9999;								/*广播端口号*/
-//u8  guangbo_ip[4]={192,168,1,255};		//广播用
-//u8  ZH1_IP[4]={192,168,1,70};
-//u16 ZH1_port=9999;
-//u8  CJ2_IP[4]={192,168,1,77};
-////u8  PC_IP[4]={192,168,1,105};
-
-#endif
 
 
 /*IP配置方法选择，请自行选择*/
@@ -139,29 +101,7 @@ void set_w5500_ip(void)
 	memcpy(ConfigMsg.dns,dns_server,4);
 	if(ip_from==IP_FROM_DEFINE)
 		SEGGER_RTT_printf(0,"Use the defined IP information configuration W5500\r\n"); //使用定义的IP信息配置W5500
-	#if 0
-	/*使用EEPROM存储的IP参数*/
-	if(ip_from==IP_FROM_EEPROM)
-	{
-		/*从EEPROM中读取IP配置信息*/
-		read_config_from_eeprom();
 
-		/*如果读取EEPROM中MAC信息,如果已配置，则可使用*/
-		if( *(EEPROM_MSG.mac)==0x00&& *(EEPROM_MSG.mac+1)==0x08&&*(EEPROM_MSG.mac+2)==0xdc)
-		{
-			SEGGER_RTT_printf(0," IP from EEPROM\r\n");
-			/*复制EEPROM配置信息到配置的结构体变量*/
-			memcpy(ConfigMsg.lip,EEPROM_MSG.lip, 4);
-			memcpy(ConfigMsg.sub,EEPROM_MSG.sub, 4);
-			memcpy(ConfigMsg.gw, EEPROM_MSG.gw, 4);
-		}
-		else
-		{
-			SEGGER_RTT_printf(0," EEPROM未配置,使用定义的IP信息配置W5500,并写入EEPROM\r\n");
-			write_config_to_eeprom();	/*使用默认的IP信息，并初始化EEPROM中数据*/
-		}
-	}
-	#endif
 
 	/*使用DHCP获取IP参数，需调用DHCP子函数*/
 	if(ip_from==IP_FROM_DHCP)
@@ -197,6 +137,14 @@ void set_w5500_ip(void)
 	SEGGER_RTT_printf(0," W5500 subnet : %d.%d.%d.%d\r\n", subnet[0],subnet[1],subnet[2],subnet[3]);					//子网掩码
 	getGAR(gateway);
 	SEGGER_RTT_printf(0," W5500 gateway     : %d.%d.%d.%d\r\n", gateway[0],gateway[1],gateway[2],gateway[3]);	//网关
+}
+
+void W5500_Init(void)
+{
+    reset_w5500();
+    reg_wizchip_cs_cbfunc(W5500_Select, W5500_Deselect);
+    reg_wizchip_spi_cbfunc(W5500_ReadByte, W5500_WriteByte);
+    set_w5500_ip();
 }
 
 /**
@@ -607,8 +555,3 @@ void timer4_isr(void)
 //  Jump_To_Application = (pFunction) JumpAddress;
 //  Jump_To_Application();
 //}
-
-
-
-
-
