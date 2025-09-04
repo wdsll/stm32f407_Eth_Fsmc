@@ -137,7 +137,7 @@ int main(void)
   MX_ETH_Init();
   //MX_UART4_Init();
   MX_DEBUG_USART_Init();
-  MX_SPI1_Init();
+  //MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
   if(AD7190_Init()==0)
   {
@@ -325,6 +325,7 @@ void Error_Handler(void)
   * @brief  Reports the name of the source file and the source line number
   *         where the assert_param error has occurred.
   * @param  file: pointer to the source file name
+  *
   * @param  line: assert_param error line source number
   * @retval None
   */
