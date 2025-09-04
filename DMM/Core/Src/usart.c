@@ -20,6 +20,13 @@
 /* Includes ------------------------------------------------------------------*/
 #include "usart.h"
 
+/* USER CODE BEGIN 0 */
+
+/* USER CODE END 0 */
+
+UART_HandleTypeDef huart4;
+
+/* UART4 init function */
 
 /* USER CODE BEGIN 1 */
 
