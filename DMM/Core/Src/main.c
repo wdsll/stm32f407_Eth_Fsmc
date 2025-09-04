@@ -31,6 +31,8 @@
 #include "bsp_AD7190.h"
 #include "bsp_debug_usart.h"
 #include "lcd.h"
+#include "w5500_conf.h"
+#include "tcp_client.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -137,8 +139,11 @@ int main(void)
   MX_ETH_Init();
   //MX_UART4_Init();
   MX_DEBUG_USART_Init();
-  //MX_SPI1_Init();
+  MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
+  W5500_Init();
+  tcp_client_init();
+  tcp_client_run();
   if(AD7190_Init()==0)
   {
    // printf("获取不到 AD7190 !\n");

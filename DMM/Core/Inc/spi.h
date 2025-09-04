@@ -41,6 +41,10 @@ extern SPI_HandleTypeDef hspi1;
 void MX_SPI1_Init(void);
 
 /* USER CODE BEGIN Prototypes */
+uint8_t W5500_ReadByte(void);
+void W5500_WriteByte(uint8_t byte);
+void W5500_Select(void);
+void W5500_Deselect(void);
 
 /* USER CODE END Prototypes */
 

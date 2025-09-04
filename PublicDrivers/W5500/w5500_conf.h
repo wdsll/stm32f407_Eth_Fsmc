@@ -98,6 +98,14 @@ extern u8 rxsize[];
 #define WIZ_RESET_PORT          GPIOB									  	  /* GPIO端口                     */
 #define WIZ_RESET_CLK           RCC_APB2Periph_GPIOB		    /* GPIO端口时钟                 */
 
+#undef WIZ_SPIx_SCS_PORT
+#define WIZ_SPIx_SCS_PORT SPI1_CS_GPIO_Port
+#undef WIZ_SPIx_SCS
+#define WIZ_SPIx_SCS SPI1_CS_Pin
+#undef WIZ_RESET_PORT
+#define WIZ_RESET_PORT ETH_RESET_GPIO_Port
+#undef WIZ_RESET
+#define WIZ_RESET ETH_RESET_Pin
 #define FW_VER_HIGH  						1
 #define FW_VER_LOW    					0
 #define ON	                 		1
@@ -166,6 +174,7 @@ u16 wiz_read_buf(uint32 addrbsb, u8* buf,u16 len);	/*从W5500读出len字节数�
 void reset_w5500(void);																			/*硬复位W5500*/
 void set_w5500_mac(void);																		/*配置W5500的MAC地址*/
 void set_w5500_ip(void);																		/*配置W5500的IP地址*/
+void W5500_Init(void);
 
 /*需要用定时的的应用函数*/
 void dhcp_timer_init(void);																	/*dhcp用到的定时器初始化*/
