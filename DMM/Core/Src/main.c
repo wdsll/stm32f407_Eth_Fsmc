@@ -47,24 +47,28 @@
 /* USER CODE BEGIN PM */
 #define ZERO_MODE  0
 #define AD7190_FILTER_DEPTH 8
-// 放大倍数=R2/R1=1500/40200
-#define OPA_RES_R1              40200  // 40.2k 运放输入端电阻
-#define OPA_RES_R2              1500  // 1.5k 运放反馈电阻
+
+// 放大倍数=R2/R1=2000/6800倍
+#define OPA_RES_R1              6800  // 6.8k 运放输入端电阻
+#define OPA_RES_R2              2000  // 2k 运放反馈电阻
 #define REFERENCE_VOLTAGE       3297  // 参考电压（放大1000倍）
-#define BIAS_VOLTAGE_IN1        0x39CF8C  // 输入1偏置电压，即把IN1和GND短接时AD7190转换结果
-#define BIAS_VOLTAGE_IN2        0x39CF52  // 输入2偏置电压，即把IN2和GND短接时AD7190转换结果
-#define BIAS_VOLTAGE_IN3        0x39CF4D  // 输入3偏置电压，即把IN3和GND短接时AD7190转换结果
-#define BIAS_VOLTAGE_IN4        0x39D027  // 输入4偏置电压，即把IN4和GND短接时AD7190转换结果
+#define BIAS_VOLTAGE_IN1        0xFAB3E  // 输入1偏置电压，即把IN1和GND短接时AD7190转换结果
+#define BIAS_VOLTAGE_IN2        0xF9DCA  // 输入2偏置电压，即把IN2和GND短接时AD7190转换结果
+#define BIAS_VOLTAGE_IN3        0xFA8A4  // 输入3偏置电压，即把IN3和GND短接时AD7190转换结果
+#define BIAS_VOLTAGE_IN4        0xFA9EB  // 输入4偏置电压，即把IN4和GND短接时AD7190转换结果
+
+/* 私有变量 ------------------------------------------------------------------*/
+__IO int32_t ad7190_data[4]; // AD7190原始转换结果
+__IO int32_t bias_data[4];   // 零点电压的AD转换结果
+__IO double voltage_data[4]; // 电压值（单位：mV）
+__IO uint8_t flag=0;         // 启动采集标志
+__IO int8_t number;          // 当前处理的通道
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-__IO int32_t ad7190_data[4]; // AD7190原始转换结果
-__IO int32_t bias_data[4];   // 零点电压的AD转换结果
-__IO double voltage_data[4]; // 电压值（单位：mV）
-__IO uint8_t flag=0;         // 启动采集标志
-__IO int8_t number = 0;          // 当前处理的通道
+
 __IO int32_t filtered_data[4]; // 滤波后的转换结果
 
 static int32_t filter_buf[4][AD7190_FILTER_DEPTH];
@@ -99,6 +103,7 @@ int32_t AD7190_Filter(int channel, int32_t sample)
 
     return (int32_t)(sum / AD7190_FILTER_DEPTH);
 }
+
 /* USER CODE END 0 */
 
 /**
@@ -134,9 +139,10 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_FSMC_Init();
-  MX_ETH_Init();
+  //MX_ETH_Init();
   //MX_UART4_Init();
   MX_DEBUG_USART_Init();
+  lcd_init();
   //MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
   if(AD7190_Init()==0)
@@ -165,17 +171,26 @@ int main(void)
 	  if(flag == 2)
 	  {
 #if ZERO_MODE==1
-		  // printf("IN%d. 0x%05X\n",number,bias_data[number]);
+		  //voltage = MovingAverageFilter(voltage); // 调用滤波函数
+		  //printf("IN%d. 0x%05X\n",number,bias_data[number]);
+		  int32_t filtered_bias = AD7190_Filter(number, bias_data[number]);
+		     char disp[20];
+		     sprintf(disp, "IN%d. 0x%05X", number, filtered_bias);
+		     lcd_show_str(10, (number + 1) * 20 + 10, 16, disp, RED);
 #else
 		if(number >= 0 && number < 4)
 		{
-			int32_t raw = ad7190_data[number]>>4;
-			filtered_data[number] = AD7190_Filter(number, raw);
-			voltage_data[number]=filtered_data[number];
-			voltage_data[number]=voltage_data[number]*REFERENCE_VOLTAGE/OPA_RES_R2*OPA_RES_R1/0xFFFFF;
+			//int32_t raw = ad7190_data[number]>>4;
+		    //filtered_data[number] = AD7190_Filter(number, raw);
+			//voltage_data[number]=filtered_data[number];
+			//voltage_data[number]=voltage_data[number]*REFERENCE_VOLTAGE/OPA_RES_R2*OPA_RES_R1/0xFFFFF;
 
-			char disp[20];
-			sprintf(disp, "CH%d:%6.3fV", number+1, voltage_data[number]/1000.0);
+		   voltage_data[number]=ad7190_data[number]>>4;
+		   voltage_data[number]=voltage_data[number]*REFERENCE_VOLTAGE/OPA_RES_R2*OPA_RES_R1/0xFFFFF;
+		   //printf("IN%d. 0x%05X->%0.3fV\n",number,ad7190_data[number],voltage_data[number]/1000);
+
+			char disp[40];
+			sprintf(disp, "CH%d:%6.6fV", number+1, voltage_data[number]/1000.0);
 			lcd_show_str(10, (number + 1) * 20 + 10, 16, disp, RED);
 		}
 #endif
@@ -188,7 +203,6 @@ int main(void)
   }
   /* USER CODE END 3 */
 }
-
 
 void HAL_SYSTICK_Callback(void)
 {
@@ -227,6 +241,7 @@ void HAL_SYSTICK_Callback(void)
     }
   }
 }
+
 /**
   * @brief System Clock Configuration
   * @retval None
@@ -251,7 +266,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLM = 8;
   RCC_OscInitStruct.PLL.PLLN = 336;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = 4;
+  RCC_OscInitStruct.PLL.PLLQ = 7;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -272,15 +287,12 @@ void SystemClock_Config(void)
   }
   HAL_RCC_MCOConfig(RCC_MCO2, RCC_MCO2SOURCE_PLLI2SCLK, RCC_MCODIV_2);
 
-  HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);                // 配置并启动系统滴答定时器
-  /* 系统滴答定时器时钟源 */
-  HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
-
-  /* 系统滴答定时器中断优先级配置 */
-  HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
   /** Enables the Clock Security System
   */
   HAL_RCC_EnableCSS();
+  HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/100);
+  HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
+  HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
 
 /**
@@ -325,7 +337,6 @@ void Error_Handler(void)
   * @brief  Reports the name of the source file and the source line number
   *         where the assert_param error has occurred.
   * @param  file: pointer to the source file name
-  *
   * @param  line: assert_param error line source number
   * @retval None
   */
