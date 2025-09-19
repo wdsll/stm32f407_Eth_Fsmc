@@ -10,6 +10,12 @@ typedef struct {
     uint16_t t_llc_raw;   /* PB1 */
 } adc_multi_frame_t;
 
+enum { 
+	ADC_MULTI_CHANNEL_COUNT = 6U 
+};
+static uint16_t s_buf[ADC_MULTI_CHANNEL_COUNT * 2U];
+static volatile adc_multi_frame_t s_latched;
+
 extern volatile adc_multi_frame_t g_adc_multi;
 
 void adc_multi_init_dma(uint32_t trig_src /* e.g. ADC_EXTTRIG_REGULAR_T0_CH0 */);

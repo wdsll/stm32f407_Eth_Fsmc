@@ -70,6 +70,8 @@ void llc_pwm_init(const llc_pwm_cfg_t* cfg){
 
     timer_break_config(TIMER0, &bk);
 
+		timer_master_output_trigger_source_select(TIMER0, TIMER_TRI_OUT_SRC_CC0);
+		
     timer_auto_reload_shadow_enable(TIMER0);
     timer_primary_output_config(TIMER0, ENABLE);
     timer_enable(TIMER0);
