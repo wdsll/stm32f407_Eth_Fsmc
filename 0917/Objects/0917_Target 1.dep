@@ -1,0 +1,1247 @@
+Dependencies for Project '0917', Target 'Target 1': (DO NOT MODIFY !)
+F (.\APP\src\main.c)(0x68CB8A1C)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\main.o --omf_browse .\objects\main.crf --depend .\objects\main.d)
+I (.\APP\include\main.h)(0x68CB74EE)
+I (.\ARM\include\gd32f30x_conf.h)(0x68CB52F4)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_enet.h)(0x68BFF37A)
+I (C:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x599ECD2C)
+I (.\HW\include\add_dma.h)(0x68CA7C98)
+I (.\HW\include\pwm_llc.h)(0x68CA7C51)
+I (.\HW\include\RCU.h)(0x68BFF377)
+I (.\HW\include\ICU.h)(0x68CB737D)
+I (.\HW\include\pwm.h)(0x68CB7B93)
+I (.\HW\include\protect_exti.h)(0x68CB7E6F)
+F (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Source\gd32f30x_adc.c)(0x68BFF37A)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\gd32f30x_adc.o --omf_browse .\objects\gd32f30x_adc.crf --depend .\objects\gd32f30x_adc.d)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+F (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Source\gd32f30x_bkp.c)(0x68BFF379)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\gd32f30x_bkp.o --omf_browse .\objects\gd32f30x_bkp.crf --depend .\objects\gd32f30x_bkp.d)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+F (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Source\gd32f30x_can.c)(0x68BFF37A)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\gd32f30x_can.o --omf_browse .\objects\gd32f30x_can.crf --depend .\objects\gd32f30x_can.d)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+F (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Source\gd32f30x_crc.c)(0x68BFF37A)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\gd32f30x_crc.o --omf_browse .\objects\gd32f30x_crc.crf --depend .\objects\gd32f30x_crc.d)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+F (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Source\gd32f30x_ctc.c)(0x68BFF37A)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\gd32f30x_ctc.o --omf_browse .\objects\gd32f30x_ctc.crf --depend .\objects\gd32f30x_ctc.d)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+F (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Source\gd32f30x_dac.c)(0x68BFF37A)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\gd32f30x_dac.o --omf_browse .\objects\gd32f30x_dac.crf --depend .\objects\gd32f30x_dac.d)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+F (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Source\gd32f30x_dbg.c)(0x68BFF37A)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\gd32f30x_dbg.o --omf_browse .\objects\gd32f30x_dbg.crf --depend .\objects\gd32f30x_dbg.d)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+F (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Source\gd32f30x_dma.c)(0x68BFF37A)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\gd32f30x_dma.o --omf_browse .\objects\gd32f30x_dma.crf --depend .\objects\gd32f30x_dma.d)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+F (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Source\gd32f30x_enet.c)(0x68BFF37A)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\gd32f30x_enet.o --omf_browse .\objects\gd32f30x_enet.crf --depend .\objects\gd32f30x_enet.d)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_enet.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+I (C:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x599ECD2C)
+F (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Source\gd32f30x_exmc.c)(0x68BFF37A)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\gd32f30x_exmc.o --omf_browse .\objects\gd32f30x_exmc.crf --depend .\objects\gd32f30x_exmc.d)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+F (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Source\gd32f30x_exti.c)(0x68BFF37A)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\gd32f30x_exti.o --omf_browse .\objects\gd32f30x_exti.crf --depend .\objects\gd32f30x_exti.d)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+F (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Source\gd32f30x_fmc.c)(0x68BFF37A)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\gd32f30x_fmc.o --omf_browse .\objects\gd32f30x_fmc.crf --depend .\objects\gd32f30x_fmc.d)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+F (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Source\gd32f30x_fwdgt.c)(0x68BFF37A)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\gd32f30x_fwdgt.o --omf_browse .\objects\gd32f30x_fwdgt.crf --depend .\objects\gd32f30x_fwdgt.d)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+F (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Source\gd32f30x_gpio.c)(0x68BFF37A)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\gd32f30x_gpio.o --omf_browse .\objects\gd32f30x_gpio.crf --depend .\objects\gd32f30x_gpio.d)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+F (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Source\gd32f30x_i2c.c)(0x68BFF37A)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\gd32f30x_i2c.o --omf_browse .\objects\gd32f30x_i2c.crf --depend .\objects\gd32f30x_i2c.d)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+F (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Source\gd32f30x_misc.c)(0x68BFF37A)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\gd32f30x_misc.o --omf_browse .\objects\gd32f30x_misc.crf --depend .\objects\gd32f30x_misc.d)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+F (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Source\gd32f30x_pmu.c)(0x68BFF37A)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\gd32f30x_pmu.o --omf_browse .\objects\gd32f30x_pmu.crf --depend .\objects\gd32f30x_pmu.d)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+F (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Source\gd32f30x_rcu.c)(0x68BFF37A)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\gd32f30x_rcu.o --omf_browse .\objects\gd32f30x_rcu.crf --depend .\objects\gd32f30x_rcu.d)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+F (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Source\gd32f30x_rtc.c)(0x68BFF37A)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\gd32f30x_rtc.o --omf_browse .\objects\gd32f30x_rtc.crf --depend .\objects\gd32f30x_rtc.d)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+F (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Source\gd32f30x_sdio.c)(0x68BFF37A)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\gd32f30x_sdio.o --omf_browse .\objects\gd32f30x_sdio.crf --depend .\objects\gd32f30x_sdio.d)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+F (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Source\gd32f30x_spi.c)(0x68BFF37A)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\gd32f30x_spi.o --omf_browse .\objects\gd32f30x_spi.crf --depend .\objects\gd32f30x_spi.d)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+F (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Source\gd32f30x_timer.c)(0x68CB76FD)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\gd32f30x_timer.o --omf_browse .\objects\gd32f30x_timer.crf --depend .\objects\gd32f30x_timer.d)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+F (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Source\gd32f30x_usart.c)(0x68BFF37A)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\gd32f30x_usart.o --omf_browse .\objects\gd32f30x_usart.crf --depend .\objects\gd32f30x_usart.d)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+F (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Source\gd32f30x_wwdgt.c)(0x68BFF37B)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\gd32f30x_wwdgt.o --omf_browse .\objects\gd32f30x_wwdgt.crf --depend .\objects\gd32f30x_wwdgt.d)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+F (.\HW\src\NVIC.c)(0x68BFF377)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\nvic.o --omf_browse .\objects\nvic.crf --depend .\objects\nvic.d)
+I (.\HW\include\NVIC.h)(0x68BFF377)
+I (.\ARM\include\gd32f30x_conf.h)(0x68CB52F4)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_enet.h)(0x68BFF37A)
+I (C:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x599ECD2C)
+F (.\HW\src\RCU.c)(0x68CB67EE)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\rcu.o --omf_browse .\objects\rcu.crf --depend .\objects\rcu.d)
+I (.\HW\include\RCU.h)(0x68BFF377)
+I (.\ARM\include\gd32f30x_conf.h)(0x68CB52F4)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_enet.h)(0x68BFF37A)
+I (C:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x599ECD2C)
+F (.\HW\src\Timer.c)(0x68CB76B7)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\timer.o --omf_browse .\objects\timer.crf --depend .\objects\timer.d)
+I (.\HW\include\Timer.h)(0x68BFF377)
+I (.\ARM\include\gd32f30x_conf.h)(0x68CB52F4)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_enet.h)(0x68BFF37A)
+I (C:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x599ECD2C)
+F (.\HW\src\adc_dma.c)(0x68CA7DA0)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\adc_dma.o --omf_browse .\objects\adc_dma.crf --depend .\objects\adc_dma.d)
+I (.\HW\include\add_dma.h)(0x68CA7C98)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+I (.\APP\include\main.h)(0x68CB74EE)
+I (.\ARM\include\gd32f30x_conf.h)(0x68CB52F4)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_enet.h)(0x68BFF37A)
+I (C:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x599ECD2C)
+F (.\HW\include\add_dma.h)(0x68CA7C98)()
+F (.\HW\src\pwm_llc.c)(0x68CA918A)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\pwm_llc.o --omf_browse .\objects\pwm_llc.crf --depend .\objects\pwm_llc.d)
+I (.\HW\include\pwm_llc.h)(0x68CA7C51)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+I (.\APP\include\main.h)(0x68CB74EE)
+I (.\ARM\include\gd32f30x_conf.h)(0x68CB52F4)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_enet.h)(0x68BFF37A)
+I (C:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x599ECD2C)
+F (.\HW\include\pwm_llc.h)(0x68CA7C51)()
+F (.\HW\src\ICU.c)(0x68CB73D0)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\icu.o --omf_browse .\objects\icu.crf --depend .\objects\icu.d)
+I (.\HW\include\ICU.h)(0x68CB737D)
+I (.\APP\include\main.h)(0x68CB74EE)
+I (.\ARM\include\gd32f30x_conf.h)(0x68CB52F4)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_enet.h)(0x68BFF37A)
+I (C:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x599ECD2C)
+F (.\HW\include\ICU.h)(0x68CB737D)()
+F (.\HW\src\pwm.c)(0x68CB7C33)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\pwm.o --omf_browse .\objects\pwm.crf --depend .\objects\pwm.d)
+I (.\HW\include\pwm.h)(0x68CB7B93)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+I (.\APP\include\main.h)(0x68CB74EE)
+I (.\ARM\include\gd32f30x_conf.h)(0x68CB52F4)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_enet.h)(0x68BFF37A)
+I (C:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x599ECD2C)
+F (.\HW\include\pwm.h)(0x68CB7B93)()
+F (.\HW\src\protect_exti.c)(0x68CB7E62)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\protect_exti.o --omf_browse .\objects\protect_exti.crf --depend .\objects\protect_exti.d)
+I (.\HW\include\protect_exti.h)(0x68CB7E6F)
+I (.\APP\include\main.h)(0x68CB74EE)
+I (.\ARM\include\gd32f30x_conf.h)(0x68CB52F4)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_enet.h)(0x68BFF37A)
+I (C:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x599ECD2C)
+F (.\HW\include\protect_exti.h)(0x68CB7E6F)()
+F (.\ARM\src\gd32f30x_it.c)(0x68BFF365)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\gd32f30x_it.o --omf_browse .\objects\gd32f30x_it.crf --depend .\objects\gd32f30x_it.d)
+I (.\ARM\include\gd32f30x_it.h)(0x68BFF366)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+I (.\ARM\include\systick.h)(0x68CA4CA9)
+F (.\ARM\src\systick.c)(0x68CA4C88)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\systick.o --omf_browse .\objects\systick.crf --depend .\objects\systick.d)
+I (.\ARM\include\systick.h)(0x68CA4CA9)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
+F (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Source\ARM\startup_gd32f30x_hd.s)(0x68BFF37C)(--cpu Cortex-M4.fp -g --apcs=interwork -I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include--pd "__UVISION_VERSION SETA 525" --pd "_RTE_ SETA 1" --pd "GD32F30X_HD SETA 1"--list .\listings\startup_gd32f30x_hd.lst --xref -o .\objects\startup_gd32f30x_hd.o --depend .\objects\startup_gd32f30x_hd.d)
+F (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Source\system_gd32f30x.c)(0x68BFF37C)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\APP\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\HW\include -I .\GD32_SYSTEM\Firmware\CMSIS-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\system_gd32f30x.o --omf_browse .\objects\system_gd32f30x.crf --depend .\objects\system_gd32f30x.d)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h)(0x68CA7390)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h)(0x626F4ADE)
+I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h)(0x626F4ADE)
+I (C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h)(0x626F4ADE)
+I (.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h)(0x68BFF37C)
+I (.\APP\include\gd32f30x_libopt.h)(0x68BFF365)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h)(0x68BFF37A)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h)(0x68BFF379)
+I (.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h)(0x68BFF379)
