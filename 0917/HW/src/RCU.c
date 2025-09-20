@@ -85,7 +85,7 @@ static void ConfigRCU(void)
 		
 		rcu_pllpresel_config(RCU_PLLPRESRC_HXTAL);
 		rcu_predv0_config(RCU_PREDV0_DIV1);
-		rcu_pll_config(RCU_PLLSRC_HXTAL_IRC48M,RCU_PLL_MUL9);  //8*9
+		rcu_pll_config(RCU_PLLSRC_HXTAL_IRC48M,RCU_PLL_MUL15);  //8*9
 		rcu_osci_on(RCU_PLL_CK);
 		while(0U == rcu_flag_get(RCU_FLAG_PLLSTB))
 		{

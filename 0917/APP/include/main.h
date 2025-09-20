@@ -95,10 +95,7 @@
 #define CAP1_IRQN      TIMER1_IRQn
 #define CAP1_INT_CH    TIMER_INT_CH1
 
-//add PA0 AC_VOL_SAMPLE 
-//PA1 作BUS_VOL_SAMPLE 为捕获功能
-//PB0 配置成pwm输出
-/* ADC channel map */
+
 
 /* ADC channel map (PA0/PA1 removed) */
 #define VOUT_SENSE_CH      ADC_CHANNEL_5   /* PA5 */
