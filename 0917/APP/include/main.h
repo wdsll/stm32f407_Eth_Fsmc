@@ -80,13 +80,13 @@
 #define PB0_PIN        GPIO_PIN_0
 #define PB0_PWM_BASE_HZ     (20000U)
 
-/* ===== PA0 & PA1 BOTH as timer input capture (no ADC on these) ===== */
+/* ===== PA3 & PA1 BOTH as timer input capture (no ADC on these) ===== */
 #define CAP0_TIMER     TIMER1
-#define CAP0_CH        TIMER_CH_0     /* PA0 ¡ú CH0 (adjust if needed) */
+#define CAP0_CH        TIMER_CH_3     /* PA0 ¡ú CH0 (adjust if needed) */
 #define CAP0_PORT      GPIOA
-#define CAP0_PIN       GPIO_PIN_0
+#define CAP0_PIN       GPIO_PIN_3
 #define CAP0_IRQN      TIMER1_IRQn
-#define CAP0_INT_CH    TIMER_INT_CH0
+#define CAP0_INT_CH    TIMER_INT_CH3
 
 #define CAP1_TIMER     TIMER1
 #define CAP1_CH        TIMER_CH_1     /* PA1 ¡ú CH1 (adjust if needed) */

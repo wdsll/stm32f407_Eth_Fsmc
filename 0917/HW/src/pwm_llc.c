@@ -16,11 +16,11 @@ static inline float clampf(float x,float a,float b)
 { 
 	return x<a?a:(x>b?b:x); 
 }
-static uint8_t dt_ticks(uint32_t ns, uint32_t clk)
-{ 
+//static uint8_t dt_ticks(uint32_t ns, uint32_t clk)
+//{ 
 	//unsigned long long t=(unsigned long long)ns*clk/1000000000ULL; 
 	//return (t>255)?255:(uint8_t)t;
-}
+//}
 
 static uint8_t bdtr_deadtime_code_ns(uint32_t dead_ns, uint32_t clk)
 {
@@ -41,7 +41,6 @@ static uint8_t bdtr_deadtime_code_ns(uint32_t dead_ns, uint32_t clk)
 	uint32_t c16= (uint32_t)(dead_ns/(16.0*t)+0.5);
 	if (c16>=32U && c16<=63U) 
 		return 224U+(uint8_t)(c16-32U); 
-
 }
 static void pins_init(void){
     rcu_periph_clock_enable(RCU_GPIOA); 

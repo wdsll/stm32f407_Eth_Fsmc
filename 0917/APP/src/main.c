@@ -16,7 +16,14 @@ void systick_1ms_init(void){
 	  if (reload == 0U || reload > SysTick_LOAD_RELOAD_Msk) {
                                            // 失败：频率异常或超出24位
     }
+		reload -= 1U;
+		if (reload > SysTick_LOAD_RELOAD_Msk) {
+			reload = SysTick_LOAD_RELOAD_Msk;
+		}
 		
+		SysTick->CTRL = 0U;
+		SysTick->LOAD = reload;
+		SysTick->VAL  = 0U;
     NVIC_SetPriority(SysTick_IRQn, 0x0F);
 		SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk |
 								SysTick_CTRL_TICKINT_Msk   |
@@ -71,7 +78,7 @@ int main(void){
 	
 	  InitRCU();
 	//RCU_Config_72M();
-    //systick_1ms_init();
+    systick_1ms_init();
 
     /* LLC complementary PWM 配置LLC的PWM频率、死区时间和占空比，并初始化PWM模块*/
     llc_pwm_cfg_t lcfg = { .pwm_hz=LLC_PWM_BASE_HZ, .deadtime_ns=LLC_PWM_DEAD_NS, .duty=LLC_PWM_DUTY };
@@ -98,7 +105,7 @@ int main(void){
 		};
 
     while(1){
-				uint32_t t0, t1; //PA0 PA1捕获的值
+				uint32_t t0, t1; //PA3 PA1捕获的值
         if(cap_pa0_read_period(&t0)){
             (void)t0; /* TODO: convert ticks->Hz using TIMER1 clock if需要 */
         }

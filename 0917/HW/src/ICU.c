@@ -33,7 +33,7 @@ void cap_pa01_init()
 	timer_input_capture_config(CAP1_TIMER, CAP1_CH, &ic);
 
  /* 先清标志再开中断，再开 NVIC，最后启动计数器 */
-	timer_interrupt_flag_clear(CAP0_TIMER, TIMER_INT_CH0 | TIMER_INT_CH1 | TIMER_INT_UP);
+	timer_interrupt_flag_clear(CAP0_TIMER, CAP0_INT_CH | CAP1_INT_CH  | TIMER_INT_UP);
 	nvic_irq_enable(CAP0_IRQN, 2, 0); /* same as CAP1_IRQN */
 	timer_interrupt_enable(CAP0_TIMER, CAP0_INT_CH);
 	timer_interrupt_enable(CAP1_TIMER, CAP1_INT_CH);

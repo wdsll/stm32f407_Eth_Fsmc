@@ -1,3 +1,6 @@
+#ifndef PWM_LLC_H
+#define PWM_LLC_H
+
 #include "gd32f30x.h"
 #include <stdint.h>
 //#include <stdbool.h>
@@ -14,3 +17,5 @@ void llc_pwm_set_duty(float duty);
 void llc_pwm_outputs_enable(bool en);
 void llc_pwm_break(bool en);
 void llc_pwm_set_freq(uint32_t f_hz);
+	
+#endif

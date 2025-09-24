@@ -1,4 +1,5 @@
-
+#ifndef ADD_DMA_H
+#define ADD_DMA_H
 #include "gd32f30x.h"
 
 typedef struct {
@@ -21,3 +22,6 @@ extern volatile adc_multi_frame_t g_adc_multi;
 void adc_multi_init_dma(uint32_t trig_src /* e.g. ADC_EXTTRIG_REGULAR_T0_CH0 */);
 void adc_multi_start(void);
 void adc_multi_copy(void);
+
+
+#endif

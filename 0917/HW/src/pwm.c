@@ -52,3 +52,4 @@ void pb0_pwm_set_duty(float d){
     d = clampf(d,0.0f,0.99f);
     timer_channel_output_pulse_value_config(PB0_PWM_TIMER, PB0_PWM_CH, (uint16_t)(d*s_period));
 }
+
