@@ -1,3 +1,23 @@
+
+/*********************************************************************************************************
+* 模块名称：main.c
+* 摘    要：
+* 当前版本：1.0.0
+* 作    者：Rengar
+* 完成日期：2025年09月24日  
+* 内    容：
+* 注    意：                                                                  
+**********************************************************************************************************
+* 取代版本：
+* 作    者：
+* 完成日期：
+* 修改内容：
+* 修改文件：
+*********************************************************************************************************/
+
+/*********************************************************************************************************
+*                                              包含头文件
+*********************************************************************************************************/
 #include "main.h"
 #include "add_dma.h"
 #include "pwm_llc.h"
@@ -6,10 +26,40 @@
 #include "pwm.h"
 #include "protect_exti.h"
 
+/*********************************************************************************************************
+*                                              宏定义
+*********************************************************************************************************/
+
+
+/*********************************************************************************************************
+*                                              枚举结构体
+*********************************************************************************************************/
+
+enum{
+	LLC_START_DELAY_MS = 100
+};
+
+typedef struct
+{
+	llc_state_t state;
+	uint32_t entry_ms;
+}llc_app_ctx_t;
+/*********************************************************************************************************
+*                                              内部变量定义
+*********************************************************************************************************/
+
+/*********************************************************************************************************
+*                                              内部函数声明
+*********************************************************************************************************/
+static llc_app_ctx_t s_llc_app;
+static void llc_state_enter(llc_state_t next);
+void systick_1ms_init(void);
+/*********************************************************************************************************
+*                                              内部函数实现
+*********************************************************************************************************/
+
 static llc_t s_llc;
 volatile uint32_t g_ms=0;
-
-
 void systick_1ms_init(void){
 		SystemCoreClockUpdate();    
      uint32_t reload  = SystemCoreClock / 1000U;
@@ -43,15 +93,7 @@ static inline float f_minf(float a,float b){ return a < b ? a : b; }
 static inline float f_maxf(float a,float b){ return a > b ? a : b; }
 static inline float f_clampf(float x,float lo,float hi)
 { return x<lo?lo:(x>hi?hi:x); }
-void SysTick_Handler(void){
-    g_ms++;
-    /* 1 kHz control */
-    adc_multi_copy();
-    float vout = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
-    s_llc.vmeas = vout;
-    llc_step(&s_llc);
-    llc_pwm_set_freq((uint32_t)s_llc.f_cmd);
-}
+
 
 void llc_step(llc_t* l){
 	/* 1) 误差：目标电压 - 实测电压（单位V） */
@@ -74,11 +116,92 @@ void llc_step(llc_t* l){
 			l->f_cmd = f_req; // 否则一步到位：直接把下发频率设为目标
 }
 
+
+
+
+static void llc_state_enter(llc_state_t next)
+{
+	s_llc_app.state = next;
+	s_llc_app.entry_ms = g_ms;
+	
+	switch(next)
+	{
+		case ST_IDLE:
+		case ST_WAIT_VBUS:
+			llc_pwm_outputs_enable(0);
+			s_llc.integ = 0.0f;
+			s_llc.f_cmd = s_llc.f_min;
+			break;
+		case ST_LLC_RUN:
+			s_llc.integ = 0.0f;
+			s_llc.f_cmd = f_clampf(LLC_F_INIT_HZ, s_llc.f_min, s_llc.f_max);
+			llc_pwm_outputs_enable(1);
+			break;
+		case ST_FAULT:
+		default:
+			llc_pwm_outputs_enable(0);
+			s_llc.f_cmd = s_llc.f_min;
+			break;
+	}
+}
+
+void llc_app_init()
+{
+	llc_state_enter(ST_WAIT_VBUS);
+}
+
+void llc_app_tick_1khz(void)
+{
+	switch(s_llc_app.state)
+	{
+		case ST_IDLE:
+			llc_state_enter(ST_WAIT_VBUS);
+			break;
+		case ST_WAIT_VBUS:
+			if(protect_fault_latched())
+			{
+				llc_state_enter(ST_FAULT);
+			}
+			else if((uint32_t)(g_ms - s_llc_app.entry_ms)>=LLC_START_DELAY_MS)
+			{
+				llc_state_enter(ST_LLC_RUN);
+			}
+		case ST_LLC_RUN:
+			if(protect_fault_latched())
+			{
+				llc_state_enter(ST_FAULT);
+			}
+			break;
+		case ST_FAULT:
+		default:
+			break;
+	}	
+}
+
+llc_state_t llc_app_state(void)
+{
+	return s_llc_app.state;
+}
+
+void SysTick_Handler(void){
+    g_ms++;
+    /* 1 kHz control */
+    adc_multi_copy();
+    float vout = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
+    s_llc.vmeas = vout;
+    //llc_step(&s_llc);
+		llc_app_tick_1khz();
+		if(llc_app_state() == ST_LLC_RUN)
+		{
+			llc_step(&s_llc);
+		}
+    llc_pwm_set_freq((uint32_t)s_llc.f_cmd);
+}
 int main(void){
 	
 	  InitRCU();
 	//RCU_Config_72M();
-    systick_1ms_init();
+    //systick_1ms_init();
 
     /* LLC complementary PWM 配置LLC的PWM频率、死区时间和占空比，并初始化PWM模块*/
     llc_pwm_cfg_t lcfg = { .pwm_hz=LLC_PWM_BASE_HZ, .deadtime_ns=LLC_PWM_DEAD_NS, .duty=LLC_PWM_DUTY };
@@ -104,6 +227,8 @@ int main(void){
       .f_min=LLC_F_MIN_HZ, .f_max=LLC_F_MAX_HZ, .f_cmd=LLC_F_INIT_HZ, .f_slew=LLC_F_SLEW_HZ 
 		};
 
+		llc_app_init();
+		systick_1ms_init();
     while(1){
 				uint32_t t0, t1; //PA3 PA1捕获的值
         if(cap_pa0_read_period(&t0)){
@@ -112,11 +237,15 @@ int main(void){
         if(cap_pa1_read_period(&t1)){
             (void)t1;
         }
-        if(protect_fault_latched()){
+        //if(protect_fault_latched()){
 					//检测到故障（通过PC11中断），则关闭LLC的PWM输出，并标记需要进一步处理故障。
-            llc_pwm_outputs_enable(0);
+          //  llc_pwm_outputs_enable(0);
             /* TODO: fault handling */
-        }
+        //}
+				if(llc_app_state() == ST_FAULT)
+				{
+					llc_pwm_outputs_enable(0);
+				}
         __NOP();
     }
 }

@@ -26,21 +26,34 @@ static uint8_t bdtr_deadtime_code_ns(uint32_t dead_ns, uint32_t clk)
 {
 	double t = 1e9 / (double)clk;
 
+	if(clk == 0)
+	{
+		return 0;
+	}
 	uint32_t c = (uint32_t)(dead_ns / t + 0.5);
 	if (c <= 127U) 
+	{
 		return (uint8_t)c;
+	}
+
+
 	
 	uint32_t c2 = (uint32_t)(dead_ns/(2.0*t)+0.5); 
 	if (c2>=64U && c2<=127U) 
+	{
 		return 128U+(uint8_t)(c2-64U);
-	
+	}
 	uint32_t c8 = (uint32_t)(dead_ns/(8.0*t)+0.5); 
 	if (c8>=32U && c8<=63U)  
+	{
 		return 192U+(uint8_t)(c8-32U);
-	
+	}
 	uint32_t c16= (uint32_t)(dead_ns/(16.0*t)+0.5);
 	if (c16>=32U && c16<=63U) 
+	{
 		return 224U+(uint8_t)(c16-32U); 
+	}
+	return 0;
 }
 static void pins_init(void){
     rcu_periph_clock_enable(RCU_GPIOA); 
