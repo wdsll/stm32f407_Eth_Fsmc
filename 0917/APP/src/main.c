@@ -200,16 +200,16 @@ void SysTick_Handler(void){
 int main(void){
 	
 	  InitRCU();
-	//RCU_Config_72M();
+	  //RCU_Config_72M();
     //systick_1ms_init();
 
-    /* LLC complementary PWM 配置LLC的PWM频率、死区时间和占空比，并初始化PWM模块*/
+    /* LLC complementary PWM 配置LLC的PWM频率 、死区时间和占空比，并初始化PWM模块*/
     llc_pwm_cfg_t lcfg = { .pwm_hz=LLC_PWM_BASE_HZ, .deadtime_ns=LLC_PWM_DEAD_NS, .duty=LLC_PWM_DUTY };
     llc_pwm_init(&lcfg);
 
     /* Aux PWM on PB0 */
-      pb0_pwm_init(PB0_PWM_BASE_HZ);
-      pb0_pwm_set_duty(0.5f);
+		pb0_pwm_init(PB0_PWM_BASE_HZ);
+		pb0_pwm_set_duty(0.5f);
 
     /* ADC multi (PA0/PA1 removed) triggered by TIMER0 CH0 for coherence */
     adc_multi_init_dma(ADC0_1_EXTTRIG_REGULAR_T0_CH0); 
@@ -230,12 +230,14 @@ int main(void){
 		llc_app_init();
 		systick_1ms_init();
     while(1){
-				uint32_t t0, t1; //PA3 PA1捕获的值
-        if(cap_pa0_read_period(&t0)){
-            (void)t0; /* TODO: convert ticks->Hz using TIMER1 clock if需要 */
+			
+			
+				float  duty0, duty1; //PA3 PA1捕获的值
+        if(cap_pa0_read_duty(&duty0)){
+            (void)duty0; /* TODO: convert ticks->Hz using TIMER1 clock if? */
         }
-        if(cap_pa1_read_period(&t1)){
-            (void)t1;
+         if(cap_pa1_read_duty(&duty1)){
+            (void)duty1;
         }
         //if(protect_fault_latched()){
 					//检测到故障（通过PC11中断），则关闭LLC的PWM输出，并标记需要进一步处理故障。

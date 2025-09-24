@@ -66,7 +66,8 @@ void adc_multi_init_dma(uint32_t trig_src){
     adc_external_trigger_source_config(ADC0, ADC_REGULAR_CHANNEL, trig_src);
     adc_external_trigger_config(ADC0, ADC_REGULAR_CHANNEL, ENABLE);
 
-    adc_enable(ADC0); adc_calibration_enable(ADC0);
+    adc_enable(ADC0); 
+		adc_calibration_enable(ADC0);
     adc_dma_mode_enable(ADC0);
 		dma_channel_enable(DMA0, DMA_CH0);
 }

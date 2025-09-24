@@ -2,12 +2,17 @@
 #define ICU_H
 
 #include "main.h"
-
+#ifdef __cplusplus
+extern "C" { 
+#endif
 void cap_pa01_init(void);
-int cap_pa0_read_period(uint32_t* ticks);
-int cap_pa1_read_period(uint32_t* ticks);
+//int cap_pa0_read_period(uint32_t* ticks);
+//int cap_pa1_read_period(uint32_t* ticks);
 
-
-
+int cap_pa0_read_duty(float* duty);  
+int cap_pa1_read_duty(float* duty);
+#ifdef __cplusplus
+}
+#endif
 #endif
 

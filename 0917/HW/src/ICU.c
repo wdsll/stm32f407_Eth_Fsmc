@@ -1,9 +1,83 @@
+/*********************************************************************************************************
+* 模块名称：main.c
+* 摘    要：
+* 当前版本：1.0.0
+* 作    者：ICU.c
+* 完成日期：2025年09月24日  
+* 内    容：
+* 注    意：                                                                  
+**********************************************************************************************************
+* 取代版本：
+* 作    者：
+* 完成日期：
+* 修改内容：
+* 修改文件：
+*********************************************************************************************************/
+
+/*********************************************************************************************************
+*                                              包含头文件
+*********************************************************************************************************/
 #include "ICU.h"
+/*********************************************************************************************************
+*                                              宏定义
+*********************************************************************************************************/
 
 
+/*********************************************************************************************************
+*                                              枚举结构体
+*********************************************************************************************************/
+
+/*********************************************************************************************************
+*                                              内部变量定义
+*********************************************************************************************************/
+static volatile uint32_t rise0 = 0, rise1 = 0;
+static volatile uint32_t period0 = 0U, period1 = 0U;
+static volatile float duty0 = 0.0f, duty1 = 0.0f;
+static volatile uint8_t expect_fall0 = 0U, expect_fall1 = 0U;
+static volatile uint8_t have_rise0 = 0U, have_rise1 = 0U;
+static volatile uint8_t upd0 = 0U, upd1 = 0U;
 static volatile uint32_t last0=0, last1=0, per0=0, per1=0;
-static volatile uint8_t upd0=0, upd1=0;
+//static volatile uint8_t upd0=0, upd1=0;
+/*********************************************************************************************************
+*                                              内部函数声明
+*********************************************************************************************************/
 
+/*********************************************************************************************************
+*                                              内部函数实现
+*********************************************************************************************************/
+
+
+static inline uint32_t cap_plority_bit(uint16_t ch)
+{
+	switch(ch)
+	{
+		case TIMER_CH_0:
+			return TIMER_CHCTL2_CH0P;
+		case TIMER_CH_1:
+			return TIMER_CHCTL2_CH1P;
+		case TIMER_CH_2:
+			return TIMER_CHCTL2_CH2P;
+		case TIMER_CH_3:
+			return TIMER_CHCTL2_CH3P;
+		default:
+			return 0;
+	}
+}
+static inline void cap_set_polarity(uint32_t timer,uint16_t channel,uint16_t polarity)
+{
+	uint32_t bit = cap_plority_bit(channel);
+	if(bit == 0)
+	{
+		return ;
+	}
+	if(polarity == TIMER_IC_POLARITY_FALLING)
+	{
+		TIMER_CHCTL2(timer) |= bit;
+	}
+	else{
+		 TIMER_CHCTL2(timer) &= ~bit;
+	}
+}
 void cap_pa01_init()
 {
 	rcu_periph_clock_enable(RCU_GPIOA);
@@ -38,11 +112,23 @@ void cap_pa01_init()
 	timer_interrupt_enable(CAP0_TIMER, CAP0_INT_CH);
 	timer_interrupt_enable(CAP1_TIMER, CAP1_INT_CH);
 	timer_enable(CAP0_TIMER);
+	
+	rise0 = 0U;
+	rise1 = 0U;
+	period0 = 0U;
+	period1 = 0U;
+	expect_fall0 = 0U;
+	expect_fall1 = 0U;
+	have_rise0 = 0U;
+	have_rise1 = 0U;
+	upd0 = 0U;
+	upd1 = 0U;
 }
 
 
 void TIMER1_IRQHandler()
 {
+	/*
 	if(SET == timer_interrupt_flag_get(CAP0_TIMER,CAP0_INT_CH))
 	{
 		uint32_t now0 = timer_channel_capture_value_register_read(CAP0_TIMER, CAP0_CH); //读取当前捕获值
@@ -58,24 +144,100 @@ void TIMER1_IRQHandler()
 		upd1 = 1;
 		timer_interrupt_flag_clear(CAP1_TIMER, CAP1_INT_CH);
 	}
+	*/
+	uint32_t now0 = 0;
+	if(SET == timer_interrupt_flag_get(CAP0_TIMER,CAP0_INT_CH))
+	{
+		now0 = timer_channel_capture_value_register_read(CAP0_TIMER, CAP0_CH);
+		if(expect_fall0)
+		{
+			uint32_t high_ticks = (now0 - rise0) & 0xFFFFU;
+			expect_fall0 = 0U;
+			cap_set_polarity(CAP0_TIMER, CAP0_CH, TIMER_IC_POLARITY_RISING);
+			if(period0 != 0U)
+			{
+				float duty = (float)high_ticks / (float)period0;
+				if(duty<0.0f)
+				{
+					duty = 0.0f;
+				}
+				if(duty<0.0f)
+				{
+					duty = 1.0f;
+				}
+			}
+			duty0 = duty0;
+			upd0 = 1U;
+		}
+
+	else{
+		if(have_rise0)
+		{
+			period0 = (now0 - rise0)&0xFFFFU;
+		}
+		rise0 = now0;
+		have_rise0 = 1U;
+		expect_fall0 = 1U;
+		cap_set_polarity(CAP0_TIMER, CAP0_CH, TIMER_IC_POLARITY_FALLING);
+	}
+	timer_interrupt_flag_clear(CAP0_TIMER, CAP0_INT_CH);
+	}
+	if(SET == timer_interrupt_flag_get(CAP1_TIMER, CAP1_INT_CH))
+	{
+			uint32_t now1 = timer_channel_capture_value_register_read(CAP1_TIMER, CAP1_CH);
+
+			if(expect_fall1)
+			{
+					uint32_t high_ticks = (now1 - rise1) & 0xFFFFU;
+					expect_fall1 = 0U;
+					cap_set_polarity(CAP1_TIMER, CAP1_CH, TIMER_IC_POLARITY_RISING);
+					if(period1 != 0U)
+					{
+							float duty = (float)high_ticks / (float)period1;
+							if(duty < 0.0f)
+							{
+									duty = 0.0f;
+							}
+							if(duty > 1.0f)
+							{
+									duty = 1.0f;
+							}
+							duty1 = duty;
+							upd1 = 1U;
+					}
+				}
+			else
+			{
+					if(have_rise1)
+					{
+							period1 = (now1 - rise1) & 0xFFFFU;
+					}
+					rise1 = now1;
+					have_rise1 = 1U;
+					expect_fall1 = 1U;
+					cap_set_polarity(CAP1_TIMER, CAP1_CH, TIMER_IC_POLARITY_FALLING);
+			}
+
+			timer_interrupt_flag_clear(CAP1_TIMER, CAP1_INT_CH);
+	}
 }
+				
 
-
-int cap_pa0_read_period(uint32_t* ticks){
+int cap_pa0_read_duty(float* duty){
 	if(upd0)
 	{ 
 		upd0=0;
-		*ticks = per0; 
+		*duty = duty0;
 		return 1; 
 	}
 	return 0;
 }
 
-int cap_pa1_read_period(uint32_t* ticks){
+int cap_pa1_read_duty(float* duty){
 	if(upd1)
 	{ 
 		upd1=0;
-	  *ticks = per1;
+	  *duty = duty1;
 		return 1; 
 	}
 	return 0;
