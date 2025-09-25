@@ -10,8 +10,9 @@
       <TargetName>Target 1</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
-      <pCCUsed>5060750::V5.06 update 6 (build 750)::ARMCC</pCCUsed>
-      <uAC6>0</uAC6>
+      <pArmCC>6090000::V6.9::.\ARMCLANG</pArmCC>
+      <pCCUsed>6090000::V6.9::.\ARMCLANG</pCCUsed>
+      <uAC6>1</uAC6>
       <TargetOption>
         <TargetCommonOption>
           <Device>GD32F303RE</Device>
@@ -311,7 +312,7 @@
           </ArmAdsMisc>
           <Cads>
             <interw>1</interw>
-            <Optim>1</Optim>
+            <Optim>7</Optim>
             <oTime>0</oTime>
             <SplitLS>0</SplitLS>
             <OneElfS>1</OneElfS>
@@ -320,7 +321,7 @@
             <PlainCh>0</PlainCh>
             <Ropi>0</Ropi>
             <Rwpi>0</Rwpi>
-            <wLevel>2</wLevel>
+            <wLevel>3</wLevel>
             <uThumb>0</uThumb>
             <uSurpInc>0</uSurpInc>
             <uC99>1</uC99>
@@ -580,6 +581,11 @@
               <FileName>protect_exti.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\HW\include\protect_exti.h</FilePath>
+            </File>
+            <File>
+              <FileName>llc_open_loop.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\HW\src\llc_open_loop.c</FilePath>
             </File>
           </Files>
         </Group>

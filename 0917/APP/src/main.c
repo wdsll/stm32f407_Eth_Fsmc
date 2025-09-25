@@ -25,12 +25,12 @@
 #include "ICU.h"
 #include "pwm.h"
 #include "protect_exti.h"
-
+#include "llc_open_loop.h"
 /*********************************************************************************************************
 *                                              宏定义
 *********************************************************************************************************/
 
-
+#define LLC_USE_OPEN_LOOP 1
 /*********************************************************************************************************
 *                                              枚举结构体
 *********************************************************************************************************/
@@ -54,11 +54,22 @@ typedef struct
 static llc_app_ctx_t s_llc_app;
 static void llc_state_enter(llc_state_t next);
 void systick_1ms_init(void);
+
 /*********************************************************************************************************
 *                                              内部函数实现
 *********************************************************************************************************/
 
 static llc_t s_llc;
+
+#if LLC_USE_OPEN_LOOP
+static llc_open_loop_ctrl_t s_llc_open_loop;
+static const llc_open_loop_segment_t s_llc_open_loop_profile[] = {
+	{ .start_hz = LLC_F_MIN_HZ, .stop_hz = LLC_F_INIT_HZ, .slew_hz_per_ms = LLC_F_SLEW_HZ, .hold_time_ms = 200U },
+	{ .start_hz = LLC_F_INIT_HZ, .stop_hz = LLC_F_MAX_HZ, .slew_hz_per_ms = 500.0f, .hold_time_ms = 200U },
+	{ .start_hz = LLC_F_MAX_HZ, .stop_hz = LLC_F_INIT_HZ, .slew_hz_per_ms = 500.0f, .hold_time_ms = 0U },
+};
+#endif
+
 volatile uint32_t g_ms=0;
 void systick_1ms_init(void){
 		SystemCoreClockUpdate();    
@@ -128,13 +139,21 @@ static void llc_state_enter(llc_state_t next)
 	{
 		case ST_IDLE:
 		case ST_WAIT_VBUS:
+#if LLC_USE_OPEN_LOOP
+			llc_open_loop_stop(&s_llc_open_loop);
+#endif
 			llc_pwm_outputs_enable(0);
 			s_llc.integ = 0.0f;
 			s_llc.f_cmd = s_llc.f_min;
 			break;
 		case ST_LLC_RUN:
 			s_llc.integ = 0.0f;
+#if LLC_USE_OPEN_LOOP
+			llc_open_loop_start(&s_llc_open_loop);
+			s_llc.f_cmd = f_clampf(llc_open_loop_get_freq(&s_llc_open_loop), s_llc.f_min, s_llc.f_max);
+#else
 			s_llc.f_cmd = f_clampf(LLC_F_INIT_HZ, s_llc.f_min, s_llc.f_max);
+#endif
 			llc_pwm_outputs_enable(1);
 			break;
 		case ST_FAULT:
@@ -193,7 +212,12 @@ void SysTick_Handler(void){
 		llc_app_tick_1khz();
 		if(llc_app_state() == ST_LLC_RUN)
 		{
+#if LLC_USE_OPEN_LOOP
+		llc_open_loop_tick(&s_llc_open_loop);
+		s_llc.f_cmd = f_clampf(llc_open_loop_get_freq(&s_llc_open_loop), s_llc.f_min, s_llc.f_max);
+#else
 			llc_step(&s_llc);
+#endif
 		}
     llc_pwm_set_freq((uint32_t)s_llc.f_cmd);
 }
@@ -226,7 +250,9 @@ int main(void){
 			.vref=VBUS_TARGET_V, .vmeas=0.0f, .kp=0.01f, .ki=0.0005f,
       .f_min=LLC_F_MIN_HZ, .f_max=LLC_F_MAX_HZ, .f_cmd=LLC_F_INIT_HZ, .f_slew=LLC_F_SLEW_HZ 
 		};
-
+#if LLC_USE_OPEN_LOOP
+		llc_open_loop_init(&s_llc_open_loop, s_llc_open_loop_profile, sizeof(s_llc_open_loop_profile)/sizeof(s_llc_open_loop_profile[0]));
+#endif
 		llc_app_init();
 		systick_1ms_init();
     while(1){

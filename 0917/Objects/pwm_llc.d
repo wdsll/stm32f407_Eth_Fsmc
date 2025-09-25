@@ -1,39 +1,36 @@
-.\objects\pwm_llc.o: HW\src\pwm_llc.c
-.\objects\pwm_llc.o: .\HW\include\pwm_llc.h
-.\objects\pwm_llc.o: .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h
-.\objects\pwm_llc.o: C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\core_cm4.h
-.\objects\pwm_llc.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
-.\objects\pwm_llc.o: C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_version.h
-.\objects\pwm_llc.o: C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_compiler.h
-.\objects\pwm_llc.o: C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\cmsis_armcc.h
-.\objects\pwm_llc.o: C:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include\mpu_armv7.h
-.\objects\pwm_llc.o: .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\system_gd32f30x.h
-.\objects\pwm_llc.o: .\APP\include\gd32f30x_libopt.h
-.\objects\pwm_llc.o: .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rcu.h
-.\objects\pwm_llc.o: .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include\gd32f30x.h
-.\objects\pwm_llc.o: .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h
-.\objects\pwm_llc.o: .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_can.h
-.\objects\pwm_llc.o: .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_crc.h
-.\objects\pwm_llc.o: .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_ctc.h
-.\objects\pwm_llc.o: .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dac.h
-.\objects\pwm_llc.o: .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dbg.h
-.\objects\pwm_llc.o: .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_dma.h
-.\objects\pwm_llc.o: .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exti.h
-.\objects\pwm_llc.o: .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fmc.h
-.\objects\pwm_llc.o: .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_fwdgt.h
-.\objects\pwm_llc.o: .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_gpio.h
-.\objects\pwm_llc.o: .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_i2c.h
-.\objects\pwm_llc.o: .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_pmu.h
-.\objects\pwm_llc.o: .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_bkp.h
-.\objects\pwm_llc.o: .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_rtc.h
-.\objects\pwm_llc.o: .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_sdio.h
-.\objects\pwm_llc.o: .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_spi.h
-.\objects\pwm_llc.o: .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_timer.h
-.\objects\pwm_llc.o: .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_usart.h
-.\objects\pwm_llc.o: .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_wwdgt.h
-.\objects\pwm_llc.o: .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_misc.h
-.\objects\pwm_llc.o: .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_exmc.h
-.\objects\pwm_llc.o: .\APP\include\main.h
-.\objects\pwm_llc.o: .\ARM\include\gd32f30x_conf.h
-.\objects\pwm_llc.o: .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_enet.h
-.\objects\pwm_llc.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+./objects/pwm_llc.o: HW/src/pwm_llc.c HW/include\pwm_llc.h \
+  GD32_SYSTEM/Firmware/CMSIS/GD/GD32F30x/Include\gd32f30x.h \
+  C:/Users/huyan/AppData/Local/Arm/Packs/ARM/CMSIS/5.9.0/CMSIS/Core/Include\core_cm4.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdint.h \
+  C:/Users/huyan/AppData/Local/Arm/Packs/ARM/CMSIS/5.9.0/CMSIS/Core/Include/cmsis_version.h \
+  C:/Users/huyan/AppData/Local/Arm/Packs/ARM/CMSIS/5.9.0/CMSIS/Core/Include/cmsis_compiler.h \
+  C:/Users/huyan/AppData/Local/Arm/Packs/ARM/CMSIS/5.9.0/CMSIS/Core/Include/cmsis_armclang_ltm.h \
+  C:/Users/huyan/AppData/Local/Arm/Packs/ARM/CMSIS/5.9.0/CMSIS/Core/Include/mpu_armv7.h \
+  GD32_SYSTEM/Firmware/CMSIS/GD/GD32F30x/Include/system_gd32f30x.h \
+  APP/include\gd32f30x_libopt.h \
+  GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_rcu.h \
+  GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_adc.h \
+  GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_can.h \
+  GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_crc.h \
+  GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_ctc.h \
+  GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_dac.h \
+  GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_dbg.h \
+  GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_dma.h \
+  GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_exti.h \
+  GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_fmc.h \
+  GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_fwdgt.h \
+  GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_gpio.h \
+  GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_i2c.h \
+  GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_pmu.h \
+  GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_bkp.h \
+  GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_rtc.h \
+  GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_sdio.h \
+  GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_spi.h \
+  GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_timer.h \
+  GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_usart.h \
+  GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_wwdgt.h \
+  GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_misc.h \
+  GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_exmc.h \
+  APP/include\main.h ARM/include\gd32f30x_conf.h \
+  GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_enet.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdlib.h
