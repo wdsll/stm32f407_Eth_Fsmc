@@ -146,6 +146,7 @@ void TIMER1_IRQHandler()
 	}
 	*/
 	uint32_t now0 = 0;
+	float duty = 0.0f; 
 	if(SET == timer_interrupt_flag_get(CAP0_TIMER,CAP0_INT_CH))
 	{
 		now0 = timer_channel_capture_value_register_read(CAP0_TIMER, CAP0_CH);
@@ -156,17 +157,17 @@ void TIMER1_IRQHandler()
 			cap_set_polarity(CAP0_TIMER, CAP0_CH, TIMER_IC_POLARITY_RISING);
 			if(period0 != 0U)
 			{
-				float duty = (float)high_ticks / (float)period0;
-				if(duty<0.0f)
+				duty = (float)high_ticks / (float)period0;
+				if(duty < 0.0f)
 				{
 					duty = 0.0f;
 				}
-				if(duty<0.0f)
+				if(duty > 1.0f)
 				{
 					duty = 1.0f;
 				}
 			}
-			duty0 = duty0;
+			duty0 = duty;
 			upd0 = 1U;
 		}
 
@@ -179,8 +180,8 @@ void TIMER1_IRQHandler()
 		have_rise0 = 1U;
 		expect_fall0 = 1U;
 		cap_set_polarity(CAP0_TIMER, CAP0_CH, TIMER_IC_POLARITY_FALLING);
-	}
-	timer_interrupt_flag_clear(CAP0_TIMER, CAP0_INT_CH);
+		}
+		timer_interrupt_flag_clear(CAP0_TIMER, CAP0_INT_CH);
 	}
 	if(SET == timer_interrupt_flag_get(CAP1_TIMER, CAP1_INT_CH))
 	{

@@ -37,7 +37,7 @@ void EXTI10_15_IRQHandler(void){
     }
 }
 
-void TIMER0_BRK_IRQHander_NAME(void)
+void TIMER0_BRK_IRQHandler_NAME(void)
 {
 	if(RESET != timer_interrupt_flag_get(TIMER0,TIMER_INT_FLAG_BRK))
 	{
