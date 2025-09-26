@@ -1,1 +1,8 @@
 ../Core/Src/gpio.c:43:6:MX_GPIO_Init	1
+../Core/Src/gpio.c:121:6:RELAY_AllOff	1
+../Core/Src/gpio.c:132:6:RELAY_Set	5
+../Core/Src/gpio.c:156:20:setpin	1
+../Core/Src/gpio.c:162:13:ensure_clk	1
+../Core/Src/gpio.c:168:6:MUX_FUN_Select	1
+../Core/Src/gpio.c:176:6:MUX_I_Select	1
+../Core/Src/gpio.c:184:6:MUX_R_Select	1

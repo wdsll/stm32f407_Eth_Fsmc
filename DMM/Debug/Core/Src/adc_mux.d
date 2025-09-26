@@ -1,5 +1,5 @@
-Core/Src/eth.o: ../Core/Src/eth.c ../Core/Inc/eth.h ../Core/Inc/main.h \
- ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h \
+Core/Src/adc_mux.o: ../Core/Src/adc_mux.c ../Core/Inc/adc_mux.h \
+ ../Core/Inc/main.h ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h \
  ../Core/Inc/stm32f4xx_hal_conf.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h \
@@ -30,7 +30,7 @@ Core/Src/eth.o: ../Core/Src/eth.c ../Core/Inc/eth.h ../Core/Inc/main.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_spi.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h \
  ../Core/Inc/gpio.h
-../Core/Inc/eth.h:
+../Core/Inc/adc_mux.h:
 ../Core/Inc/main.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:
 ../Core/Inc/stm32f4xx_hal_conf.h:

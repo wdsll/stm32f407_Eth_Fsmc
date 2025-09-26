@@ -118,5 +118,77 @@ void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 2 */
+void RELAY_AllOff(void)
+{
 
+	HAL_GPIO_WritePin(V_RELAY1_GPIO_Port,V_RELAY1_Pin,GPIO_PIN_RESET);
+
+    HAL_GPIO_WritePin(V_RELAY2_GPIO_Port,V_RELAY2_Pin,GPIO_PIN_RESET);
+
+    HAL_GPIO_WritePin(V_RELAY3_GPIO_Port,V_RELAY3_Pin,GPIO_PIN_RESET);
+
+}
+
+void RELAY_Set(int idx,int on)
+{
+    GPIO_TypeDef* p=V_RELAY1_GPIO_Port;
+    uint16_t pin=V_RELAY1_Pin;
+    switch(idx)
+    {
+    	case RELAY_ID_1:
+    		p = V_RELAY1_GPIO_Port;
+    		pin = V_RELAY1_Pin;
+    		break;
+    	case RELAY_ID_2:
+    		p = V_RELAY2_GPIO_Port;
+    		pin = V_RELAY2_Pin;
+    		break;
+    	case RELAY_ID_3:
+    		p = V_RELAY3_GPIO_Port;
+    		pin = V_RELAY2_Pin;
+    		break;
+    	default:
+    		return;
+    }
+    HAL_GPIO_WritePin(p,pin,on?GPIO_PIN_SET:GPIO_PIN_RESET);
+}
+
+static inline void setpin(GPIO_TypeDef* p,uint16_t pin,int on)
+{
+    HAL_GPIO_WritePin(p,pin,on?GPIO_PIN_SET:GPIO_PIN_RESET);
+}
+
+
+static void ensure_clk(void)
+{
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+    __HAL_RCC_GPIOC_CLK_ENABLE();
+}
+
+void MUX_FUN_Select(uint8_t ch)
+{
+    ensure_clk();
+    setpin(ADG_FUN_A0_GPIO_Port,ADG_FUN_A0_Pin, ch&1); //V
+    setpin(ADG_FUN_A1_GPIO_Port,ADG_FUN_A1_Pin, ch&2); //R
+    setpin(ADG_FUN_A2_GPIO_Port,ADG_FUN_A2_Pin, ch&4); //I
+}
+
+void MUX_I_Select(uint8_t ch)
+{
+    ensure_clk();
+    setpin(ADG_I_A0_GPIO_Port,ADG_I_A0_Pin, ch&1);
+    setpin(ADG_I_A1_GPIO_Port,ADG_I_A1_Pin, ch&2);
+    setpin(ADG_I_A2_GPIO_Port,ADG_I_A2_Pin, ch&4);
+}
+
+void MUX_R_Select(uint8_t ch)
+{
+    ensure_clk();
+    setpin(ADG_R_A0_GPIO_Port,ADG_R_A0_Pin, ch&1);
+    setpin(ADG_R_A1_GPIO_Port,ADG_R_A1_Pin, ch&2);
+    setpin(ADG_R_A2_GPIO_Port,ADG_R_A2_Pin, ch&4);
+    setpin(ADG_R_A3_GPIO_Port,ADG_R_A3_Pin, ch&8);
+    setpin(ADG_R_A4_GPIO_Port,ADG_R_A4_Pin, ch&16);
+    setpin(ADG_R_A5_GPIO_Port,ADG_R_A5_Pin, ch&32);
+}
 /* USER CODE END 2 */

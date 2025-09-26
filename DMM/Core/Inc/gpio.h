@@ -29,7 +29,12 @@ extern "C" {
 #include "main.h"
 
 /* USER CODE BEGIN Includes */
-
+typedef enum
+{
+	RELAY_ID_1 = 1,
+	RELAY_ID_2 = 2,
+	RELAY_ID_3 = 3,
+}RelayID;
 /* USER CODE END Includes */
 
 /* USER CODE BEGIN Private defines */
@@ -39,7 +44,10 @@ extern "C" {
 void MX_GPIO_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-
+//static void ensure_clk(void);
+void MUX_FUN_Select(uint8_t ch);
+void MUX_I_Select(uint8_t ch);
+void MUX_R_Select(uint8_t ch);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus
