@@ -1,0 +1,8 @@
+../Core/Src/test_adc_mux.c:20:6:MUX_FUN_Select_test	16	static
+../Core/Src/test_adc_mux.c:24:6:MUX_I_Select_test	16	static
+../Core/Src/test_adc_mux.c:28:6:MUX_R_Select_test	16	static
+../Core/Src/test_adc_mux.c:33:20:test_code_to_voltage	48	static
+../Core/Src/test_adc_mux.c:41:20:test_resistance_range_bounds	24	static
+../Core/Src/test_adc_mux.c:53:20:test_init_sets_defaults	8	static
+../Core/Src/test_adc_mux.c:63:20:all_tests	24	static
+../Core/Src/test_adc_mux.c:71:5:main_test	16	static

@@ -8,6 +8,8 @@
 #ifndef INC_ADC_MUX_H_
 #define INC_ADC_MUX_H_
 
+#include <stddef.h>
+#include <stdint.h>
 #ifndef CAL_AD7190_REF_V
 #define CAL_AD7190_REF_V     (2.500f)
 #endif
@@ -46,24 +48,16 @@ typedef struct
     float Rstd_ohm;
     const char* label;
 } RRangeCfg;
-
-
-static const RRangeCfg g_r_ranges[]=
-{
-    {1,0,250.0f,"U16.S1 250Ω"},
-    {2,0,2500.0f,"U16.S2 2.5kΩ"},
-    {3,0,25000.0f,"U16.S3 25kΩ"},
-    {4,0,250000.0f,"U16.S4 250kΩ"},
-    {5,0,2500000.0f,"U16.S5 2.5MΩ"},
-    {6,0,25000000.0f,"U16.S6 25MΩ"}
-};
-/* ---- Global calibration variables (runtime adjustable) ---- */
-static float g_VRange_Scale   = 1.0f; /* V-mode DUT/ADC scale */
-static float g_IPath_VperA    = 1.0f; /* current path V/A (ADC volts per 1A at amp output) */
-static float g_IRange_Gain    = 1.0f; /* current range gain (updated by i_range_apply or UI) */
-static float g_RV_Chain_Scale = 1.0f; /* resistance V chain recover (default = VRange_Scale) */
-static float g_RI_Path_VperA  = 1.0f; /* resistance current V/A */
-static float g_RI_Range_Gain  = 1.0f; /* resistance current range gain */
-
 static uint8_t s_i_range=1;
+static uint8_t s_r_idx=2;
+size_t MEAS_Range_R_Count(void);
+const RRangeCfg* MEAS_Range_R_Config(size_t index);
+
+void MEAS_Init(void);
+void MEAS_SetResistanceRangeIndex(uint8_t idx);
+uint8_t MEAS_GetResistanceRangeIndex(void);
+const char* MEAS_Range_R_Label(void);
+
+float MEAS_CodeToVoltage(uint32_t code, float vref, float gain);
+
 #endif /* INC_ADC_MUX_H_ */

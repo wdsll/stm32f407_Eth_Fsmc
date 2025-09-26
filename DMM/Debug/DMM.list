@@ -7,19 +7,19 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
   1 .text         0000a4a4  08000190  08000190  00001190  2**4
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .rodata       000033b4  0800a638  0800a638  0000b638  2**3
+  2 .rodata       00003354  0800a638  0800a638  0000b638  2**3
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  3 .ARM.extab    00000000  0800d9ec  0800d9ec  0000f1d8  2**0
+  3 .ARM.extab    00000000  0800d98c  0800d98c  0000f1d8  2**0
                   CONTENTS, READONLY
-  4 .ARM          00000008  0800d9ec  0800d9ec  0000e9ec  2**2
+  4 .ARM          00000008  0800d98c  0800d98c  0000e98c  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  5 .preinit_array 00000000  0800d9f4  0800d9f4  0000f1d8  2**0
+  5 .preinit_array 00000000  0800d994  0800d994  0000f1d8  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  6 .init_array   00000004  0800d9f4  0800d9f4  0000e9f4  2**2
+  6 .init_array   00000004  0800d994  0800d994  0000e994  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  7 .fini_array   00000004  0800d9f8  0800d9f8  0000e9f8  2**2
+  7 .fini_array   00000004  0800d998  0800d998  0000e998  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  8 .data         000001d8  20000000  0800d9fc  0000f000  2**2
+  8 .data         000001d8  20000000  0800d99c  0000f000  2**2
                   CONTENTS, ALLOC, LOAD, DATA
   9 .ccmram       00000000  10000000  10000000  0000f1d8  2**0
                   CONTENTS
@@ -29,25 +29,25 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   ALLOC
  12 .ARM.attributes 00000030  00000000  00000000  0000f1d8  2**0
                   CONTENTS, READONLY
- 13 .debug_info   00013960  00000000  00000000  0000f208  2**0
+ 13 .debug_info   00013891  00000000  00000000  0000f208  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 14 .debug_abbrev 0000333c  00000000  00000000  00022b68  2**0
+ 14 .debug_abbrev 0000333c  00000000  00000000  00022a99  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 15 .debug_aranges 00001010  00000000  00000000  00025ea8  2**3
+ 15 .debug_aranges 00001010  00000000  00000000  00025dd8  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .debug_rnglists 00000c3f  00000000  00000000  00026eb8  2**0
+ 16 .debug_rnglists 00000c3f  00000000  00000000  00026de8  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_macro  00024992  00000000  00000000  00027af7  2**0
+ 17 .debug_macro  00024946  00000000  00000000  00027a27  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_line   00013b63  00000000  00000000  0004c489  2**0
+ 18 .debug_line   00013b63  00000000  00000000  0004c36d  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .debug_str    000d262f  00000000  00000000  0005ffec  2**0
+ 19 .debug_str    000d25f7  00000000  00000000  0005fed0  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 20 .comment      00000043  00000000  00000000  0013261b  2**0
+ 20 .comment      00000043  00000000  00000000  001324c7  2**0
                   CONTENTS, READONLY
- 21 .debug_frame  000053a4  00000000  00000000  00132660  2**2
+ 21 .debug_frame  000053a4  00000000  00000000  0013250c  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 22 .debug_line_str 00000048  00000000  00000000  00137a04  2**0
+ 22 .debug_line_str 00000048  00000000  00000000  001378b0  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -3024,7 +3024,7 @@ int main(void)
  80019bc:	40ba9000 	.word	0x40ba9000
  80019c0:	00000000 	.word	0x00000000
  80019c4:	412ffffe 	.word	0x412ffffe
- 80019c8:	0800a6ac 	.word	0x0800a6ac
+ 80019c8:	0800a64c 	.word	0x0800a64c
  80019cc:	20000360 	.word	0x20000360
  80019d0:	000fab3e 	.word	0x000fab3e
  80019d4:	000f9dca 	.word	0x000f9dca
@@ -3036,7 +3036,7 @@ int main(void)
  80019ec:	20000370 	.word	0x20000370
  80019f0:	409f4000 	.word	0x409f4000
  80019f4:	408f4000 	.word	0x408f4000
- 80019f8:	0800a6c0 	.word	0x0800a6c0
+ 80019f8:	0800a660 	.word	0x0800a660
 
 080019fc <HAL_SYSTICK_Callback>:
   }
@@ -3154,7 +3154,7 @@ void HAL_SYSTICK_Callback(void)
  8001ab0:	20000360 	.word	0x20000360
  8001ab4:	20000350 	.word	0x20000350
  8001ab8:	20000391 	.word	0x20000391
- 8001abc:	0800a6cc 	.word	0x0800a6cc
+ 8001abc:	0800a66c 	.word	0x0800a66c
 
 08001ac0 <SystemClock_Config>:
 /**
@@ -4153,7 +4153,7 @@ LoopFillZerobss:
   ldr r1, =_edata
  8001f60:	200001d8 	.word	0x200001d8
   ldr r2, =_sidata
- 8001f64:	0800d9fc 	.word	0x0800d9fc
+ 8001f64:	0800d99c 	.word	0x0800d99c
   ldr r2, =_sbss
  8001f68:	200001d8 	.word	0x200001d8
   ldr r4, =_ebss
@@ -6916,7 +6916,7 @@ HAL_StatusTypeDef HAL_RCC_ClockConfig(const RCC_ClkInitTypeDef  *RCC_ClkInitStru
  8002e8a:	bf00      	nop
  8002e8c:	40023c00 	.word	0x40023c00
  8002e90:	40023800 	.word	0x40023800
- 8002e94:	0800a6dc 	.word	0x0800a6dc
+ 8002e94:	0800a67c 	.word	0x0800a67c
  8002e98:	20000000 	.word	0x20000000
  8002e9c:	20000004 	.word	0x20000004
 
@@ -7374,7 +7374,7 @@ uint32_t HAL_RCC_GetPCLK1Freq(void)
  80031c8:	4618      	mov	r0, r3
  80031ca:	bd80      	pop	{r7, pc}
  80031cc:	40023800 	.word	0x40023800
- 80031d0:	0800a6ec 	.word	0x0800a6ec
+ 80031d0:	0800a68c 	.word	0x0800a68c
 
 080031d4 <HAL_RCC_GetPCLK2Freq>:
   * @note   Each time PCLK2 changes, this function must be called to update the
@@ -7400,7 +7400,7 @@ uint32_t HAL_RCC_GetPCLK2Freq(void)
  80031f0:	4618      	mov	r0, r3
  80031f2:	bd80      	pop	{r7, pc}
  80031f4:	40023800 	.word	0x40023800
- 80031f8:	0800a6ec 	.word	0x0800a6ec
+ 80031f8:	0800a68c 	.word	0x0800a68c
 
 080031fc <HAL_RCC_NMI_IRQHandler>:
   * @brief This function handles the RCC CSS interrupt request.
@@ -17051,10 +17051,10 @@ void lcd_show_char(uint16_t x, uint16_t y, uint8_t chr, uint8_t size,
  80076f6:	46bd      	mov	sp, r7
  80076f8:	bd90      	pop	{r4, r7, pc}
  80076fa:	bf00      	nop
- 80076fc:	0800a6f4 	.word	0x0800a6f4
- 8007700:	0800ab68 	.word	0x0800ab68
- 8007704:	0800b158 	.word	0x0800b158
- 8007708:	0800beb4 	.word	0x0800beb4
+ 80076fc:	0800a694 	.word	0x0800a694
+ 8007700:	0800ab08 	.word	0x0800ab08
+ 8007704:	0800b0f8 	.word	0x0800b0f8
+ 8007708:	0800be54 	.word	0x0800be54
  800770c:	2000000c 	.word	0x2000000c
  8007710:	200003ec 	.word	0x200003ec
 
@@ -17739,11 +17739,11 @@ void MX_DEBUG_USART_Init(void)
  8007ca8:	e7ee      	b.n	8007c88 <_printf_float+0x2a4>
  8007caa:	bf00      	nop
  8007cac:	7fefffff 	.word	0x7fefffff
- 8007cb0:	0800d678 	.word	0x0800d678
- 8007cb4:	0800d674 	.word	0x0800d674
- 8007cb8:	0800d680 	.word	0x0800d680
- 8007cbc:	0800d67c 	.word	0x0800d67c
- 8007cc0:	0800d684 	.word	0x0800d684
+ 8007cb0:	0800d618 	.word	0x0800d618
+ 8007cb4:	0800d614 	.word	0x0800d614
+ 8007cb8:	0800d620 	.word	0x0800d620
+ 8007cbc:	0800d61c 	.word	0x0800d61c
+ 8007cc0:	0800d624 	.word	0x0800d624
  8007cc4:	6da3      	ldr	r3, [r4, #88]	@ 0x58
  8007cc6:	f8dd a028 	ldr.w	sl, [sp, #40]	@ 0x28
  8007cca:	4553      	cmp	r3, sl
@@ -18221,8 +18221,8 @@ void MX_DEBUG_USART_Init(void)
  8008140:	2500      	movs	r5, #0
  8008142:	f104 0619 	add.w	r6, r4, #25
  8008146:	e7f5      	b.n	8008134 <_printf_i+0x220>
- 8008148:	0800d686 	.word	0x0800d686
- 800814c:	0800d697 	.word	0x0800d697
+ 8008148:	0800d626 	.word	0x0800d626
+ 800814c:	0800d637 	.word	0x0800d637
 
 08008150 <std>:
  8008150:	2300      	movs	r3, #0
@@ -18830,10 +18830,10 @@ void MX_DEBUG_USART_Init(void)
  800868a:	4798      	blx	r3
  800868c:	3601      	adds	r6, #1
  800868e:	e7f2      	b.n	8008676 <__libc_init_array+0x1e>
- 8008690:	0800d9f4 	.word	0x0800d9f4
- 8008694:	0800d9f4 	.word	0x0800d9f4
- 8008698:	0800d9f4 	.word	0x0800d9f4
- 800869c:	0800d9f8 	.word	0x0800d9f8
+ 8008690:	0800d994 	.word	0x0800d994
+ 8008694:	0800d994 	.word	0x0800d994
+ 8008698:	0800d994 	.word	0x0800d994
+ 800869c:	0800d998 	.word	0x0800d998
 
 080086a0 <__retarget_lock_init_recursive>:
  80086a0:	4770      	bx	lr
@@ -19228,15 +19228,15 @@ void MX_DEBUG_USART_Init(void)
  8008a7c:	3fc68a28 	.word	0x3fc68a28
  8008a80:	509f79fb 	.word	0x509f79fb
  8008a84:	3fd34413 	.word	0x3fd34413
- 8008a88:	0800d6b5 	.word	0x0800d6b5
- 8008a8c:	0800d6cc 	.word	0x0800d6cc
+ 8008a88:	0800d655 	.word	0x0800d655
+ 8008a8c:	0800d66c 	.word	0x0800d66c
  8008a90:	7ff00000 	.word	0x7ff00000
- 8008a94:	0800d685 	.word	0x0800d685
+ 8008a94:	0800d625 	.word	0x0800d625
  8008a98:	3ff80000 	.word	0x3ff80000
- 8008a9c:	0800d820 	.word	0x0800d820
- 8008aa0:	0800d724 	.word	0x0800d724
- 8008aa4:	0800d6b1 	.word	0x0800d6b1
- 8008aa8:	0800d684 	.word	0x0800d684
+ 8008a9c:	0800d7c0 	.word	0x0800d7c0
+ 8008aa0:	0800d6c4 	.word	0x0800d6c4
+ 8008aa4:	0800d651 	.word	0x0800d651
+ 8008aa8:	0800d624 	.word	0x0800d624
  8008aac:	f8d9 301c 	ldr.w	r3, [r9, #28]
  8008ab0:	6018      	str	r0, [r3, #0]
  8008ab2:	9b03      	ldr	r3, [sp, #12]
@@ -19465,8 +19465,8 @@ void MX_DEBUG_USART_Init(void)
  8008d30:	e9cd 0104 	strd	r0, r1, [sp, #16]
  8008d34:	e7c4      	b.n	8008cc0 <_dtoa_r+0x508>
  8008d36:	bf00      	nop
- 8008d38:	0800d820 	.word	0x0800d820
- 8008d3c:	0800d7f8 	.word	0x0800d7f8
+ 8008d38:	0800d7c0 	.word	0x0800d7c0
+ 8008d3c:	0800d798 	.word	0x0800d798
  8008d40:	3ff00000 	.word	0x3ff00000
  8008d44:	40240000 	.word	0x40240000
  8008d48:	401c0000 	.word	0x401c0000
@@ -20095,8 +20095,8 @@ void MX_DEBUG_USART_Init(void)
  8009348:	f000 f968 	bl	800961c <__multadd>
  800934c:	9002      	str	r0, [sp, #8]
  800934e:	e7eb      	b.n	8009328 <_dtoa_r+0xb70>
- 8009350:	0800d724 	.word	0x0800d724
- 8009354:	0800d6a8 	.word	0x0800d6a8
+ 8009350:	0800d6c4 	.word	0x0800d6c4
+ 8009354:	0800d648 	.word	0x0800d648
 
 08009358 <_free_r>:
  8009358:	b538      	push	{r3, r4, r5, lr}
@@ -20380,8 +20380,8 @@ void MX_DEBUG_USART_Init(void)
  80095c8:	e9c0 3303 	strd	r3, r3, [r0, #12]
  80095cc:	e7f7      	b.n	80095be <_Balloc+0x66>
  80095ce:	bf00      	nop
- 80095d0:	0800d6b5 	.word	0x0800d6b5
- 80095d4:	0800d735 	.word	0x0800d735
+ 80095d0:	0800d655 	.word	0x0800d655
+ 80095d4:	0800d6d5 	.word	0x0800d6d5
 
 080095d8 <_Bfree>:
  80095d8:	b570      	push	{r4, r5, r6, lr}
@@ -20409,8 +20409,8 @@ void MX_DEBUG_USART_Init(void)
  800960c:	6021      	str	r1, [r4, #0]
  800960e:	f843 4022 	str.w	r4, [r3, r2, lsl #2]
  8009612:	bd70      	pop	{r4, r5, r6, pc}
- 8009614:	0800d6b5 	.word	0x0800d6b5
- 8009618:	0800d735 	.word	0x0800d735
+ 8009614:	0800d655 	.word	0x0800d655
+ 8009618:	0800d6d5 	.word	0x0800d6d5
 
 0800961c <__multadd>:
  800961c:	e92d 41f0 	stmdb	sp!, {r4, r5, r6, r7, r8, lr}
@@ -20464,8 +20464,8 @@ void MX_DEBUG_USART_Init(void)
  8009698:	6125      	str	r5, [r4, #16]
  800969a:	4620      	mov	r0, r4
  800969c:	e8bd 81f0 	ldmia.w	sp!, {r4, r5, r6, r7, r8, pc}
- 80096a0:	0800d724 	.word	0x0800d724
- 80096a4:	0800d735 	.word	0x0800d735
+ 80096a0:	0800d6c4 	.word	0x0800d6c4
+ 80096a4:	0800d6d5 	.word	0x0800d6d5
 
 080096a8 <__hi0bits>:
  80096a8:	f5b0 3f80 	cmp.w	r0, #65536	@ 0x10000
@@ -20555,8 +20555,8 @@ void MX_DEBUG_USART_Init(void)
  800975e:	6103      	str	r3, [r0, #16]
  8009760:	bd10      	pop	{r4, pc}
  8009762:	bf00      	nop
- 8009764:	0800d724 	.word	0x0800d724
- 8009768:	0800d735 	.word	0x0800d735
+ 8009764:	0800d6c4 	.word	0x0800d6c4
+ 8009768:	0800d6d5 	.word	0x0800d6d5
 
 0800976c <__multiply>:
  800976c:	e92d 4ff0 	stmdb	sp!, {r4, r5, r6, r7, r8, r9, sl, fp, lr}
@@ -20675,8 +20675,8 @@ void MX_DEBUG_USART_Init(void)
  80098a2:	e79f      	b.n	80097e4 <__multiply+0x78>
  80098a4:	3e01      	subs	r6, #1
  80098a6:	e7a1      	b.n	80097ec <__multiply+0x80>
- 80098a8:	0800d724 	.word	0x0800d724
- 80098ac:	0800d735 	.word	0x0800d735
+ 80098a8:	0800d6c4 	.word	0x0800d6c4
+ 80098ac:	0800d6d5 	.word	0x0800d6d5
 
 080098b0 <__pow5mult>:
  80098b0:	e92d 43f8 	stmdb	sp!, {r3, r4, r5, r6, r7, r8, r9, lr}
@@ -20744,9 +20744,9 @@ void MX_DEBUG_USART_Init(void)
  8009950:	4630      	mov	r0, r6
  8009952:	e8bd 83f8 	ldmia.w	sp!, {r3, r4, r5, r6, r7, r8, r9, pc}
  8009956:	bf00      	nop
- 8009958:	0800d7e8 	.word	0x0800d7e8
- 800995c:	0800d6b5 	.word	0x0800d6b5
- 8009960:	0800d735 	.word	0x0800d735
+ 8009958:	0800d788 	.word	0x0800d788
+ 800995c:	0800d655 	.word	0x0800d655
+ 8009960:	0800d6d5 	.word	0x0800d6d5
 
 08009964 <__lshift>:
  8009964:	e92d 47f0 	stmdb	sp!, {r4, r5, r6, r7, r8, r9, sl, lr}
@@ -20825,8 +20825,8 @@ void MX_DEBUG_USART_Init(void)
  8009a2e:	d8f9      	bhi.n	8009a24 <__lshift+0xc0>
  8009a30:	e7ea      	b.n	8009a08 <__lshift+0xa4>
  8009a32:	bf00      	nop
- 8009a34:	0800d724 	.word	0x0800d724
- 8009a38:	0800d735 	.word	0x0800d735
+ 8009a34:	0800d6c4 	.word	0x0800d6c4
+ 8009a38:	0800d6d5 	.word	0x0800d6d5
 
 08009a3c <__mcmp>:
  8009a3c:	690a      	ldr	r2, [r1, #16]
@@ -20962,8 +20962,8 @@ void MX_DEBUG_USART_Init(void)
  8009b8e:	3f01      	subs	r7, #1
  8009b90:	e7e7      	b.n	8009b62 <__mdiff+0xee>
  8009b92:	bf00      	nop
- 8009b94:	0800d724 	.word	0x0800d724
- 8009b98:	0800d735 	.word	0x0800d735
+ 8009b94:	0800d6c4 	.word	0x0800d6c4
+ 8009b98:	0800d6d5 	.word	0x0800d6d5
 
 08009b9c <__d2b>:
  8009b9c:	e92d 43f7 	stmdb	sp!, {r0, r1, r2, r4, r5, r6, r7, r8, r9, lr}
@@ -21029,8 +21029,8 @@ void MX_DEBUG_USART_Init(void)
  8009c3a:	f7ff fd35 	bl	80096a8 <__hi0bits>
  8009c3e:	ebc0 1042 	rsb	r0, r0, r2, lsl #5
  8009c42:	e7e5      	b.n	8009c10 <__d2b+0x74>
- 8009c44:	0800d724 	.word	0x0800d724
- 8009c48:	0800d735 	.word	0x0800d735
+ 8009c44:	0800d6c4 	.word	0x0800d6c4
+ 8009c48:	0800d6d5 	.word	0x0800d6d5
 
 08009c4c <__ssputs_r>:
  8009c4c:	e92d 47f0 	stmdb	sp!, {r4, r5, r6, r7, r8, r9, sl, lr}
@@ -21307,11 +21307,11 @@ void MX_DEBUG_USART_Init(void)
  8009ee0:	4638      	mov	r0, r7
  8009ee2:	f7fe f817 	bl	8007f14 <_printf_i>
  8009ee6:	e7ed      	b.n	8009ec4 <_svfiprintf_r+0x1c0>
- 8009ee8:	0800d78e 	.word	0x0800d78e
- 8009eec:	0800d798 	.word	0x0800d798
+ 8009ee8:	0800d72e 	.word	0x0800d72e
+ 8009eec:	0800d738 	.word	0x0800d738
  8009ef0:	080079e5 	.word	0x080079e5
  8009ef4:	08009c4d 	.word	0x08009c4d
- 8009ef8:	0800d794 	.word	0x0800d794
+ 8009ef8:	0800d734 	.word	0x0800d734
 
 08009efc <__sfputc_r>:
  8009efc:	6893      	ldr	r3, [r2, #8]
@@ -21577,11 +21577,11 @@ void MX_DEBUG_USART_Init(void)
  800a164:	4630      	mov	r0, r6
  800a166:	f7fd fed5 	bl	8007f14 <_printf_i>
  800a16a:	e7e4      	b.n	800a136 <_vfiprintf_r+0x1e6>
- 800a16c:	0800d78e 	.word	0x0800d78e
- 800a170:	0800d798 	.word	0x0800d798
+ 800a16c:	0800d72e 	.word	0x0800d72e
+ 800a170:	0800d738 	.word	0x0800d738
  800a174:	080079e5 	.word	0x080079e5
  800a178:	08009f2b 	.word	0x08009f2b
- 800a17c:	0800d794 	.word	0x0800d794
+ 800a17c:	0800d734 	.word	0x0800d734
 
 0800a180 <__sflush_r>:
  800a180:	f9b1 200c 	ldrsh.w	r2, [r1, #12]
@@ -21929,9 +21929,9 @@ void MX_DEBUG_USART_Init(void)
  800a478:	e7f3      	b.n	800a462 <__assert_func+0x12>
  800a47a:	bf00      	nop
  800a47c:	2000001c 	.word	0x2000001c
- 800a480:	0800d7a9 	.word	0x0800d7a9
- 800a484:	0800d7b6 	.word	0x0800d7b6
- 800a488:	0800d7e4 	.word	0x0800d7e4
+ 800a480:	0800d749 	.word	0x0800d749
+ 800a484:	0800d756 	.word	0x0800d756
+ 800a488:	0800d784 	.word	0x0800d784
 
 0800a48c <_calloc_r>:
  800a48c:	b570      	push	{r4, r5, r6, lr}

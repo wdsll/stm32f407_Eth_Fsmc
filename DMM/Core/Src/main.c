@@ -438,7 +438,7 @@ void HAL_SYSTICK_Callback(void)
         flag++;
         if(flag>=10)
         {
-          //flag=0;
+          flag=0;
           printf("失败！！！\n");
         }
       }
