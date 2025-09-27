@@ -30,6 +30,8 @@
 #include "lcd.h"
 #include "adc_mux.h"
 #include <math.h>
+#include "keyled.h"
+#include "mux_hw.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -57,6 +59,8 @@
 #define BIAS_VOLTAGE_IN4        0xFA9EB  // 输入4偏置电压，即把IN4和GND短接时AD7190转换结果
 
 #define ADC20_FULL_SCALE 0xFFFFF
+#define LCD_LINE_Y(n)     ((n) * 20U + 10U)
+
 
 /* 私有变量 ------------------------------------------------------------------*/
 __IO int32_t ad7190_data[4]; // AD7190原始转换结果
@@ -94,6 +98,291 @@ float DMM_ReadCurrent_FSratio(uint8_t use_filter); // ADC 满量程占比 0..1
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+/* 软硬联调 ---------------------------------------------------------*/
+
+static DMM_Mode s_activeMode = DMM_MODE_VOLTAGE;
+static uint32_t s_lastPrintTick = 0U;
+static uint32_t s_lastModeChangeTick = 0U;
+static float s_latestVoltage_V = 0.0f;
+static float s_latestCurrent_A = 0.0f;
+static float s_latestResistance_Ohm = 0.0f;
+static uint8_t s_keyLatch = 0U;
+static uint8_t s_i_ad_ch = 0U;
+//测量模式选择
+static void fun_select_v(void)  
+{
+    MUX_FUN_Select(0x01u); 
+}
+static void fun_select_i(void)
+{
+    MUX_FUN_Select(0x04u);
+}
+
+static void fun_select_r(void)
+{
+    MUX_FUN_Select(0x02u);
+}
+
+static int Debug_ReadCharNonBlocking(void)
+{
+    uint8_t ch = 0U;
+    if (HAL_UART_Receive(&husart_debug, &ch, 1U, 0U) == HAL_OK)
+    {
+        return (int)ch;
+    }
+    return -1;
+}
+//其目的是根据输入的 DMM_Mode 枚举值返回对应的模式标签字符串
+static const char* DMM_ModeLabel(DMM_Mode mode)
+{
+    switch (mode)
+    {
+        case DMM_MODE_VOLTAGE:
+            return "Voltage";
+        case DMM_MODE_CURRENT:
+            return "Current";
+        case DMM_MODE_RESISTANCE:
+            return "Resistance";
+        default:
+            break;
+    }
+    return "Unknown";
+}
+/**
+ * @brief      这段代码的主要目的是将一个浮点数 value 格式化为符合国际单位制（SI）的字符串表示形式，
+ * 并根据数值的大小自动选择合适的单位前缀（如 M 、 k 、 m 、 u 、 n 等）。
+ * @param       out : 用于存储格式化结果的字符缓冲区。
+ * \			size : 缓冲区的大小，防止溢出。
+ * 				value : 需要格式化的浮点数值。
+ * 				unit : 用户提供的单位符号（如 V 、 A 等）。
+ * @retval      读取到的数据
+ */
+static void format_si_value(char* out, size_t size, float value, const char* unit)
+{
+    const float abs_value = fabsf(value);
+    const char* prefix = "";
+    float scaled = value;
+
+    if (abs_value >= 1e6f)
+    {
+        prefix = "M";
+        scaled = value / 1e6f;
+    }
+    else if (abs_value >= 1e3f)
+    {
+        prefix = "k";
+        scaled = value / 1e3f;
+    }
+    else if (abs_value >= 1.0f)
+    {
+        prefix = "";
+        scaled = value;
+    }
+    else if (abs_value >= 1e-3f)
+    {
+        prefix = "m";
+        scaled = value * 1e3f;
+    }
+    else if (abs_value >= 1e-6f)
+    {
+        prefix = "u";
+        scaled = value * 1e6f;
+    }
+    else
+    {
+        prefix = "n";
+        scaled = value * 1e9f;
+    }
+
+    (void)snprintf(out, size, "%+8.3f %s%s", (double)scaled, prefix, unit);
+}
+//该函数 DMM_DrawText 的主要功能是在 LCD 屏幕上显示一段文本，并对文本进行格式化处理，确保其对齐方式符合要求
+static void DMM_DrawText(uint16_t line_index, const char* text)
+{
+    char buffer[32];
+    (void)snprintf(buffer, sizeof(buffer), "%-20s", text);
+    lcd_show_str(10, LCD_LINE_Y(line_index), 12, buffer, BLUE);
+}
+//用于在终端上显示当前数字万用表（DMM）的工作模式，并向用户提供可用的操作命令提示。
+static void DMM_AnnounceMode(DMM_Mode mode)
+{
+    printf("\r\n[MODE] %s\r\n", DMM_ModeLabel(mode));
+    printf("Commands: 'v','i','r' select mode, 'm' or KEY_UP cycles.\r\n");
+}
+ //函数的主要目的是根据当前数字万用表（DMM）的工作模式（电压、电流、电阻或默认模式），动态更新显示屏上的内容。
+ //它通过格式化测量值并将其显示在指定的行上，为用户提供实时的测量信息。
+static void DMM_UpdateDisplay(void)
+{
+    char value[32];
+    char line[32];
+
+    (void)snprintf(line, sizeof(line), "Mode: %s", DMM_ModeLabel(s_activeMode));
+    DMM_DrawText(0U, line);
+
+    switch (s_activeMode)
+    {
+        case DMM_MODE_VOLTAGE:
+            format_si_value(value, sizeof(value), s_latestVoltage_V, "V");
+            (void)snprintf(line, sizeof(line), "Voltage: %s", value);
+            DMM_DrawText(1U, line);
+            DMM_DrawText(2U, "Current: (n/a)");
+            DMM_DrawText(3U, "Resistance: (n/a)");
+            break;
+        case DMM_MODE_CURRENT:
+            DMM_DrawText(1U, "Voltage: (n/a)");
+            format_si_value(value, sizeof(value), s_latestCurrent_A, "A");
+            //(void)snprintf(line, sizeof(line), "Current: %s",(int)sizeof(line) - 1, value);
+            (void)snprintf(line, sizeof(line), "Current: %s", value);
+            DMM_DrawText(2U, line);
+            DMM_DrawText(3U, "Resistance: (n/a)");
+            break;
+        case DMM_MODE_RESISTANCE:
+            format_si_value(value, sizeof(value), s_latestVoltage_V, "V");
+            (void)snprintf(line, sizeof(line), "Voltage: %s", value);
+            DMM_DrawText(1U, line);
+
+            format_si_value(value, sizeof(value), s_latestCurrent_A, "A");
+            (void)snprintf(line, sizeof(line), "Current: %s", value);
+            DMM_DrawText(2U, line);
+
+            format_si_value(value, sizeof(value), s_latestResistance_Ohm, "Ohm");
+            (void)snprintf(line, sizeof(line), "Resistance: %s", value);
+            DMM_DrawText(3U, line);
+            break;
+        default:
+            DMM_DrawText(1U, "Voltage: (n/a)");
+            DMM_DrawText(2U, "Current: (n/a)");
+            DMM_DrawText(3U, "Resistance: (n/a)");
+            break;
+    }
+
+    DMM_DrawText(4U, "KEY_UP/m : next mode");
+    DMM_DrawText(5U, "UART v/i/r : select");
+}
+//这段代码的主要功能是定期打印数字万用表（DMM）的测量值（电压、电流或电阻），
+//并根据当前的工作模式（ s_activeMode ）选择性地输出对应的测量结果
+static void DMM_PrintMeasurements(void)
+{
+    const uint32_t now = HAL_GetTick();
+//定时控制：通过 HAL_GetTick() 获取当前时间戳，并与上一次打印时间 s_lastPrintTick 比较，
+//确保打印间隔至少为 250 毫秒（避免频繁输出）。
+    if ((now - s_lastPrintTick) < 250U)
+    {
+        return;
+    }
+    s_lastPrintTick = now;
+
+    char vbuf[24];
+    char ibuf[24];
+    char rbuf[24];
+    format_si_value(vbuf, sizeof(vbuf), s_latestVoltage_V, "V");
+    format_si_value(ibuf, sizeof(ibuf), s_latestCurrent_A, "A");
+    format_si_value(rbuf, sizeof(rbuf), s_latestResistance_Ohm, "Ohm");
+
+    switch (s_activeMode)
+    {
+        case DMM_MODE_VOLTAGE:
+            printf("[Voltage] %s\r\n", vbuf);
+            break;
+        case DMM_MODE_CURRENT:
+            printf("[Current] %s\r\n", ibuf);
+            break;
+        case DMM_MODE_RESISTANCE:
+            printf("[Resistance] %s, %s, %s\r\n", rbuf, vbuf, ibuf);
+            break;
+        default:
+            break;
+    }
+}
+// 函数的主要目的是根据传入的 DMM_Mode 参数（模式）切换数字万用表（DMM）的工作模式
+static void DMM_SelectMode(DMM_Mode mode)
+{
+    if (mode >= DMM_MODE_COUNT)
+    {
+        return;
+    }
+
+    DMM_Mode previous = s_activeMode;
+    s_activeMode = mode;
+
+    switch (mode)
+    {
+        case DMM_MODE_VOLTAGE:
+            fun_select_v();
+            s_latestCurrent_A = 0.0f;
+            s_latestResistance_Ohm = 0.0f;
+            break;
+        case DMM_MODE_CURRENT:
+            fun_select_i();
+            DMM_SetCurrentChannel(s_i_ad_ch);
+            s_latestVoltage_V = 0.0f;
+            s_latestResistance_Ohm = 0.0f;
+            break;
+        case DMM_MODE_RESISTANCE:
+            fun_select_r();
+            s_latestVoltage_V = 0.0f;
+            s_latestCurrent_A = 0.0f;
+            s_latestResistance_Ohm = 0.0f;
+            break;
+        default:
+            break;
+    }
+
+    if ((mode != previous) || (s_lastModeChangeTick == 0U))
+    {
+        s_lastModeChangeTick = HAL_GetTick();
+        DMM_AnnounceMode(mode);
+    }
+
+    DMM_UpdateDisplay();
+}
+
+//函数的主要目的是处理数字万用表（DMM）的模式切换逻辑。它通过两种方式触发模式切换
+static void DMM_HandleModeSwitch(void)
+{
+	//接收串口的cmd
+    int ch = Debug_ReadCharNonBlocking();
+    if (ch >= 0)
+    {
+        switch ((char)ch)
+        {
+            case 'v':
+            case 'V':
+                DMM_SelectMode(DMM_MODE_VOLTAGE);
+                break;
+            case 'i':
+            case 'I':
+                DMM_SelectMode(DMM_MODE_CURRENT);
+                break;
+            case 'r':
+            case 'R':
+                DMM_SelectMode(DMM_MODE_RESISTANCE);
+                break;
+            case 'm':
+            case 'M':
+                DMM_CycleMode(1);
+                break;
+            default:
+                break;
+        }
+    }
+
+    KEYS key = ScanPressedKey(1U);
+    if (key == KEY_UP)
+    {
+        if (!s_keyLatch) //同时使用 s_keyLatch 防止重复触发。
+        {
+            DMM_CycleMode(1);
+            s_keyLatch = 1U;
+        }
+    }
+    else if (key == KEY_NONE)
+    {
+        s_keyLatch = 0U;
+    }
+}
+
+/* 软硬联调 ---------------------------------------------------------*/
 //电压值读取
 __attribute__((weak)) float VRange_Scale(void) { return 1.0f; }
 int32_t AD7190_Filter(int channel, int32_t sample)
@@ -114,7 +403,7 @@ int32_t AD7190_Filter(int channel, int32_t sample)
 
     return (int32_t)(sum / AD7190_FILTER_DEPTH);
 }
-
+//这段代码的主要功能是读取并计算指定通道的电压值，并将其转换为实际电压值
 float MEAS_ReadVoltage_V(uint8_t ch, uint8_t use_filter)
 {
     fun_select_v();
@@ -180,7 +469,7 @@ float MEAS_ReadVoltage_V_Single(uint8_t ch, uint8_t use_filter)
 }
 
 //电流值读取
-static uint8_t s_i_ad_ch = 0;
+//static uint8_t s_i_ad_ch = 0;
 
 /* —— 当前量程的增益（例如分流/ADG 档位），缺省 1.0：你可在量程切换时更新 —— */
 //IPath_VperA()：把“1A 通过被测端 → ADC 端会产生多少伏”算出来（分流电阻×放大器增益×任何比例），
@@ -213,7 +502,7 @@ float DMM_ReadCurrent_FSratio(uint8_t use_filter)
     		fs = 1.0f;
     return fs;
 }
-
+//读取电流值（单位：安培），并将其转换为浮点数返回
 float DMM_ReadCurrent_A(uint8_t use_filter)
 {
     int32_t code24 = ad7190_data[s_i_ad_ch];
@@ -221,6 +510,7 @@ float DMM_ReadCurrent_A(uint8_t use_filter)
     if (use_filter) code20 = AD7190_Filter((int)s_i_ad_ch, code20);
 
     float v_adc = code20_to_v_adc(code20);        // ADC 端电压（V）
+    //这两个函数分别返回电流路径的电压-电流转换系数和增益系数。
     float I = v_adc / (IPath_VperA() * IRange_Gain());
     return I;
 }
@@ -258,7 +548,7 @@ __attribute__((weak)) float RI_Range_Gain(void) { return 1.0f; }
 /* ---- R 模式使用的 AD 通道号（默认 V=0, I=1；按你板子设置） ---- */
 static uint8_t s_r_v_adch = 0;
 static uint8_t s_r_i_adch = 1;
-
+//确保通道编号在有效范围内（0到3），并将有效的通道编号存储到全局变量中，供后续的采集逻辑使用。
 void DMM_R_SetChannels(uint8_t v_ad_ch, uint8_t i_ad_ch)
 {
     s_r_v_adch = (v_ad_ch <= 3) ? v_ad_ch : 0;
@@ -307,6 +597,50 @@ void MEAS_ReadResistance_Ohm(float* r,float* i,float* v)
 void MEAS_R_Autorange_1kHz(void)
 {
 
+}
+//这段代码的主要目的是根据当前数字万用表（DMM）的工作模式（电压、电流或电阻测量），处理测量数据并更新显示
+static void DMM_ProcessMeasurement(void)
+{
+	if(number)
+	{
+		return;
+	}
+	switch(s_activeMode)
+	{
+		case DMM_MODE_VOLTAGE:
+			if((uint8_t)number == 0U)
+			{
+			  s_latestVoltage_V = MEAS_ReadVoltage_V_Last(1);
+			  DMM_UpdateDisplay();
+			  DMM_PrintMeasurements();
+			}
+      break;
+		case DMM_MODE_CURRENT:
+			if((uint8_t)number == s_i_ad_ch)
+      {
+        s_latestCurrent_A = DMM_ReadCurrent_A(1);
+        DMM_UpdateDisplay();
+        DMM_PrintMeasurements();
+      }
+    case DMM_MODE_RESISTANCE:
+      //if((uint8_t)number == s_r_v_adch)||((uint8_t)number == s_r_i_adch)
+	  if (((uint8_t)number == s_r_v_adch) || ((uint8_t)number == s_r_i_adch))
+      {
+          float r = 0.0f;
+          float i = 0.0f;
+          float v = 0.0f;
+          
+          MEAS_ReadResistance_Ohm(&r, &i, &v);
+          s_latestResistance_Ohm = r;
+          s_latestCurrent_A = i;
+          s_latestVoltage_V = v;
+          DMM_UpdateDisplay();
+          DMM_PrintMeasurements();
+      }
+      break;
+    default:
+      break;
+	}
 }
 /* USER CODE END 0 */
 
@@ -366,6 +700,10 @@ int main(void)
   bias_data[2]=BIAS_VOLTAGE_IN3;
   bias_data[3]=BIAS_VOLTAGE_IN4;
   flag=1;
+  MEAS_Init();
+  DMM_R_SetChannels(0,1);
+  DMM_SetCurrentChannel(0);
+  DMM_SelectMode(DMM_MODE_VOLTAGE);
   /* USER CODE END 2 */
 
   /* Infinite loop */

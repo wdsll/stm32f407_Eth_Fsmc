@@ -99,6 +99,31 @@ void Error_Handler(void);
 #define ADC_SYNC_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
+typedef enum
+{
+    DMM_MODE_VOLTAGE = 0,
+    DMM_MODE_CURRENT,
+    DMM_MODE_RESISTANCE,
+    DMM_MODE_COUNT
+} DMM_Mode;
+
+//static void fun_select_v(void);
+//static void fun_select_i(void);
+//static void fun_select_r(void);
+
+//static void DDM_SelectMode(DMM_Mode mode);
+//static void DMM_HandleSwitch(void);
+//static void DMM_ProcessMesaurement(void);
+
+//static void DMM_UpdateDisplay(void);
+//static void DMM_PrintMeasurements(void);
+//static const char* DMM_ModeLabel(DMM_Mode mode);
+//static void DMM_CycleMode(int direction);
+//static void DMM_DrawText(uint16_t line_index, const char* text);
+//static void DMM_AnnounceMode(DMM_Mode mode);
+//static int Debug_ReadCharNonBlocking(void);
+//static void format_si_value(char* out, size_t size, float value, const char* unit);
+
 
 /* USER CODE END Private defines */
 

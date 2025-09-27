@@ -36,6 +36,11 @@
 			<location>D:/STM/stm32f407_Wspc/PublicDrivers/AD7190</location>
 		</link>
 		<link>
+			<name>KEY_LED</name>
+			<type>2</type>
+			<location>D:/STM/stm32f407_Wspc/PublicDrivers/KEY_LED</location>
+		</link>
+		<link>
 			<name>LCD</name>
 			<type>2</type>
 			<location>D:/STM/stm32f407_Wspc/PublicDrivers/LCD</location>

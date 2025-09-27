@@ -26,6 +26,7 @@ AD7190 \
 Core/Src \
 Core/Startup \
 Drivers/STM32F4xx_HAL_Driver/Src \
+KEY_LED \
 LCD \
 usart \
 
