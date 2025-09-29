@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\Objects\0917.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Objects\0917.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6090000: Last Updated: Thu Sep 25 09:54:59 2025
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6090000: Last Updated: Mon Sep 29 15:56:43 2025
 <BR><P>
 <H3>Maximum Stack Usage =        216 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -68,7 +68,7 @@ Function Pointers
  <LI><a href="#[9]">SysTick_Handler</a> from main.o(.text.SysTick_Handler) referenced from startup_gd32f30x_hd.o(RESET)
  <LI><a href="#[47]">SystemInit</a> from system_gd32f30x.o(.text.SystemInit) referenced from startup_gd32f30x_hd.o(.text)
  <LI><a href="#[c]">TAMPER_IRQHandler</a> from startup_gd32f30x_hd.o(.text) referenced from startup_gd32f30x_hd.o(RESET)
- <LI><a href="#[22]">TIMER0_BRK_IRQHandler</a> from startup_gd32f30x_hd.o(.text) referenced from startup_gd32f30x_hd.o(RESET)
+ <LI><a href="#[22]">TIMER0_BRK_IRQHandler</a> from protect_exti.o(.text.TIMER0_BRK_IRQHandler) referenced from startup_gd32f30x_hd.o(RESET)
  <LI><a href="#[25]">TIMER0_Channel_IRQHandler</a> from startup_gd32f30x_hd.o(.text) referenced from startup_gd32f30x_hd.o(RESET)
  <LI><a href="#[24]">TIMER0_TRG_CMT_IRQHandler</a> from startup_gd32f30x_hd.o(.text) referenced from startup_gd32f30x_hd.o(RESET)
  <LI><a href="#[23]">TIMER0_UP_IRQHandler</a> from startup_gd32f30x_hd.o(.text) referenced from startup_gd32f30x_hd.o(RESET)
@@ -237,9 +237,6 @@ Global Symbols
 <BR>[Address Reference Count : 1]<UL><LI> startup_gd32f30x_hd.o(RESET)
 </UL>
 <P><STRONG><a name="[c]"></a>TAMPER_IRQHandler</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, startup_gd32f30x_hd.o(.text))
-<BR>[Address Reference Count : 1]<UL><LI> startup_gd32f30x_hd.o(RESET)
-</UL>
-<P><STRONG><a name="[22]"></a>TIMER0_BRK_IRQHandler</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, startup_gd32f30x_hd.o(.text))
 <BR>[Address Reference Count : 1]<UL><LI> startup_gd32f30x_hd.o(RESET)
 </UL>
 <P><STRONG><a name="[25]"></a>TIMER0_Channel_IRQHandler</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, startup_gd32f30x_hd.o(.text))
@@ -493,12 +490,20 @@ Global Symbols
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> startup_gd32f30x_hd.o(.text)
 </UL>
-<P><STRONG><a name="[26]"></a>TIMER1_IRQHandler</STRONG> (Thumb, 260 bytes, Stack size 8 bytes, icu.o(.text.TIMER1_IRQHandler))
+<P><STRONG><a name="[22]"></a>TIMER0_BRK_IRQHandler</STRONG> (Thumb, 44 bytes, Stack size 8 bytes, protect_exti.o(.text.TIMER0_BRK_IRQHandler))
+<BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = TIMER0_BRK_IRQHandler
+</UL>
+<BR>[Calls]<UL><LI><a href="#[72]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_interrupt_flag_get
+<LI><a href="#[73]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_interrupt_flag_clear
+</UL>
+<BR>[Address Reference Count : 1]<UL><LI> startup_gd32f30x_hd.o(RESET)
+</UL>
+<P><STRONG><a name="[26]"></a>TIMER1_IRQHandler</STRONG> (Thumb, 308 bytes, Stack size 8 bytes, icu.o(.text.TIMER1_IRQHandler))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = TIMER1_IRQHandler
 </UL>
 <BR>[Calls]<UL><LI><a href="#[72]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_interrupt_flag_get
-<LI><a href="#[74]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_interrupt_flag_clear
-<LI><a href="#[73]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_capture_value_register_read
+<LI><a href="#[73]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_interrupt_flag_clear
+<LI><a href="#[74]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_capture_value_register_read
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> startup_gd32f30x_hd.o(RESET)
 </UL>
@@ -506,7 +511,7 @@ Global Symbols
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = TIMER5_IRQHandler
 </UL>
 <BR>[Calls]<UL><LI><a href="#[72]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_interrupt_flag_get
-<LI><a href="#[74]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_interrupt_flag_clear
+<LI><a href="#[73]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_interrupt_flag_clear
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> startup_gd32f30x_hd.o(RESET)
 </UL>
@@ -514,7 +519,7 @@ Global Symbols
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = TIMER6_IRQHandler
 </UL>
 <BR>[Calls]<UL><LI><a href="#[72]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_interrupt_flag_get
-<LI><a href="#[74]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_interrupt_flag_clear
+<LI><a href="#[73]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_interrupt_flag_clear
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> startup_gd32f30x_hd.o(RESET)
 </UL>
@@ -621,7 +626,7 @@ Global Symbols
 <LI><a href="#[7d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;nvic_irq_enable
 <LI><a href="#[4a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_init
 <LI><a href="#[8c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_struct_para_init
-<LI><a href="#[74]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_interrupt_flag_clear
+<LI><a href="#[73]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_interrupt_flag_clear
 <LI><a href="#[8f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_interrupt_enable
 <LI><a href="#[8e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_input_capture_config
 <LI><a href="#[8d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_init
@@ -723,11 +728,11 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SysTick_Handler
 </UL>
 
-<P><STRONG><a name="[a7]"></a>llc_open_loop_init</STRONG> (Thumb, 36 bytes, Stack size 0 bytes, llc_open_loop.o(.text.llc_open_loop_init))
+<P><STRONG><a name="[a7]"></a>llc_open_loop_init</STRONG> (Thumb, 40 bytes, Stack size 0 bytes, llc_open_loop.o(.text.llc_open_loop_init))
 <BR><BR>[Called By]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[a3]"></a>llc_open_loop_start</STRONG> (Thumb, 24 bytes, Stack size 0 bytes, llc_open_loop.o(.text.llc_open_loop_start))
+<P><STRONG><a name="[a3]"></a>llc_open_loop_start</STRONG> (Thumb, 26 bytes, Stack size 0 bytes, llc_open_loop.o(.text.llc_open_loop_start))
 <BR><BR>[Called By]<UL><LI><a href="#[92]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_state_enter
 </UL>
 
@@ -743,7 +748,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SysTick_Handler
 </UL>
 
-<P><STRONG><a name="[95]"></a>llc_pwm_init</STRONG> (Thumb, 584 bytes, Stack size 88 bytes, pwm_llc.o(.text.llc_pwm_init))
+<P><STRONG><a name="[95]"></a>llc_pwm_init</STRONG> (Thumb, 576 bytes, Stack size 88 bytes, pwm_llc.o(.text.llc_pwm_init))
 <BR><BR>[Stack]<UL><LI>Max Depth = 176<LI>Call Chain = llc_pwm_init &rArr; __aeabi_dmul &rArr; _double_epilogue &rArr; _double_round
 </UL>
 <BR>[Calls]<UL><LI><a href="#[8c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_struct_para_init
@@ -854,7 +859,7 @@ Global Symbols
 <LI><a href="#[7d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;nvic_irq_enable
 <LI><a href="#[4a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_init
 <LI><a href="#[ac]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_exti_source_select
-<LI><a href="#[74]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_interrupt_flag_clear
+<LI><a href="#[73]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_interrupt_flag_clear
 <LI><a href="#[8f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_interrupt_enable
 </UL>
 <BR>[Called By]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
@@ -971,7 +976,7 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[95]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
 </UL>
 
-<P><STRONG><a name="[73]"></a>timer_channel_capture_value_register_read</STRONG> (Thumb, 14 bytes, Stack size 0 bytes, gd32f30x_timer.o(.text.timer_channel_capture_value_register_read))
+<P><STRONG><a name="[74]"></a>timer_channel_capture_value_register_read</STRONG> (Thumb, 14 bytes, Stack size 0 bytes, gd32f30x_timer.o(.text.timer_channel_capture_value_register_read))
 <BR><BR>[Called By]<UL><LI><a href="#[26]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TIMER1_IRQHandler
 </UL>
 
@@ -1029,18 +1034,20 @@ Global Symbols
 <LI><a href="#[8b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cap_pa01_init
 </UL>
 
-<P><STRONG><a name="[74]"></a>timer_interrupt_flag_clear</STRONG> (Thumb, 10 bytes, Stack size 0 bytes, gd32f30x_timer.o(.text.timer_interrupt_flag_clear))
+<P><STRONG><a name="[73]"></a>timer_interrupt_flag_clear</STRONG> (Thumb, 10 bytes, Stack size 0 bytes, gd32f30x_timer.o(.text.timer_interrupt_flag_clear))
 <BR><BR>[Called By]<UL><LI><a href="#[a6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_exti_init
 <LI><a href="#[8b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cap_pa01_init
 <LI><a href="#[26]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TIMER1_IRQHandler
 <LI><a href="#[41]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TIMER6_IRQHandler
 <LI><a href="#[40]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TIMER5_IRQHandler
+<LI><a href="#[22]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TIMER0_BRK_IRQHandler
 </UL>
 
 <P><STRONG><a name="[72]"></a>timer_interrupt_flag_get</STRONG> (Thumb, 20 bytes, Stack size 0 bytes, gd32f30x_timer.o(.text.timer_interrupt_flag_get))
 <BR><BR>[Called By]<UL><LI><a href="#[26]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TIMER1_IRQHandler
 <LI><a href="#[41]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TIMER6_IRQHandler
 <LI><a href="#[40]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TIMER5_IRQHandler
+<LI><a href="#[22]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TIMER0_BRK_IRQHandler
 </UL>
 
 <P><STRONG><a name="[9c]"></a>timer_master_output_trigger_source_select</STRONG> (Thumb, 16 bytes, Stack size 0 bytes, gd32f30x_timer.o(.text.timer_master_output_trigger_source_select))

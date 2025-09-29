@@ -46,16 +46,16 @@ static void dma_cfg(void){
 void adc_multi_init_dma(uint32_t trig_src){
     analog_pins(); 
 	  dma_cfg();
-		nvic_irq_enable(DMA0_Channel0_IRQn, 1U, 0U);
+		nvic_irq_enable(DMA0_Channel0_IRQn, 1U, 0U); 
     rcu_periph_clock_enable(RCU_ADC0);
     rcu_adc_clock_config(RCU_CKADC_CKAPB2_DIV6);
     adc_deinit(ADC0);
-    adc_mode_config(ADC_MODE_FREE);
-    adc_special_function_config(ADC0, ADC_SCAN_MODE, ENABLE);
+    adc_mode_config(ADC_MODE_FREE); //设置 ADC 为自由运行模式（独立工作）。
+    adc_special_function_config(ADC0, ADC_SCAN_MODE, ENABLE); //启用扫描模式，支持多通道采集。
     adc_special_function_config(ADC0, ADC_CONTINUOUS_MODE, DISABLE);
-    adc_data_alignment_config(ADC0, ADC_DATAALIGN_RIGHT);
-    adc_channel_length_config(ADC0, ADC_REGULAR_CHANNEL, ADC_MULTI_CHANNEL_COUNT);
+    adc_data_alignment_config(ADC0, ADC_DATAALIGN_RIGHT);//设置数据对齐方式为右对齐。
 
+    adc_channel_length_config(ADC0, ADC_REGULAR_CHANNEL, ADC_MULTI_CHANNEL_COUNT);  // 配置 ADC 的常规通道数量。
     adc_regular_channel_config(ADC0, 0, VOUT_SENSE_CH,     ADC_SAMPLETIME_55POINT5); //20us
     adc_regular_channel_config(ADC0, 1, ADC_ISENSE_CH,     ADC_SAMPLETIME_55POINT5); //20us
     adc_regular_channel_config(ADC0, 2, ADC_TSENSE_CH,     ADC_SAMPLETIME_55POINT5);
@@ -63,7 +63,7 @@ void adc_multi_init_dma(uint32_t trig_src){
     adc_regular_channel_config(ADC0, 4, VBT_SENSE_CH,      ADC_SAMPLETIME_55POINT5);
     adc_regular_channel_config(ADC0, 5, T_SENSE_LLCMOS_CH, ADC_SAMPLETIME_55POINT5);
 
-    adc_external_trigger_source_config(ADC0, ADC_REGULAR_CHANNEL, trig_src);
+    adc_external_trigger_source_config(ADC0, ADC_REGULAR_CHANNEL, trig_src);   //配置 ADC 的外部触发源（由参数 trig_src CC0指定）。
     adc_external_trigger_config(ADC0, ADC_REGULAR_CHANNEL, ENABLE);
 
     adc_enable(ADC0); 
@@ -75,13 +75,14 @@ void adc_multi_init_dma(uint32_t trig_src){
 void adc_multi_start(void)
 { 
 	//adc_software_trigger_enable(ADC0, ADC_REGULAR_CHANNEL); 
-	timer_event_software_generate(LLC_PWM_TIMER, TIMER_EVENT_SRC_CH0G);
+	timer_event_software_generate(LLC_PWM_TIMER, TIMER_EVENT_SRC_CH0G);  //通道0的比较/捕获事件。
 }
 
 void adc_multi_copy(void){
-	  uint32_t primask = __get_PRIMASK();
-		__disable_irq();
-    adc_multi_frame_t frame;
+	  uint32_t primask = __get_PRIMASK();  //用于获取当前的中断屏蔽状态（PRIMASK 寄存器的值）。
+		__disable_irq();  //用于禁用所有中断，防止在数据复制过程中被中断打断，确保操作的原子性。
+    adc_multi_frame_t frame;  //用于临时存储从 s_latched 中读取的 ADC 原始数据。
+
 	  frame.vout_raw   = s_latched.vout_raw;
     frame.isense_raw = s_latched.isense_raw;
     frame.tsense_raw = s_latched.tsense_raw;
@@ -89,18 +90,22 @@ void adc_multi_copy(void){
     frame.vbt_raw    = s_latched.vbt_raw;
     frame.t_llc_raw  = s_latched.t_llc_raw;
     g_adc_multi = frame;
-    __set_PRIMASK(primask);
+    __set_PRIMASK(primask); //通过 __set_PRIMASK(primask) 恢复之前的中断屏蔽状态，确保系统的中断行为不受影响。
 }
 
 void DMA0_Channel0_IRQHandler(void)
 {
+		//检查是否触发了半传输完成中断。
 		if(dma_interrupt_flag_get(DMA0, DMA_CH0, DMA_INT_FLAG_HTF)){
 			dma_interrupt_flag_clear(DMA0, DMA_CH0, DMA_INT_FLAG_HTF);
-			adc_multi_store_frame(&s_buf[0]);
+			adc_multi_store_frame(&s_buf[0]); //在半传输完成时，将数据存储到缓冲区的起始位置。
     }
+		
+		//检查是否触发了全传输完成中断。
     if(dma_interrupt_flag_get(DMA0, DMA_CH0, DMA_INT_FLAG_FTF)){
         dma_interrupt_flag_clear(DMA0, DMA_CH0, DMA_INT_FLAG_FTF);
-        adc_multi_store_frame(&s_buf[ADC_MULTI_CHANNEL_COUNT]);
+        adc_multi_store_frame(&s_buf[ADC_MULTI_CHANNEL_COUNT]); //在全传输完成时，将数据存储到缓冲区的后半部分。
+
     }
     dma_interrupt_flag_clear(DMA0, DMA_CH0, DMA_INT_FLAG_G);
 }

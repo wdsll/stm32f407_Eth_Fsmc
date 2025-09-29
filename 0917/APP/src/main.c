@@ -177,7 +177,7 @@ void llc_app_tick_1khz(void)
 			llc_state_enter(ST_WAIT_VBUS);
 			break;
 		case ST_WAIT_VBUS:
-			if(protect_fault_latched())
+			if(protect_fault_latched() || protect_fault_active_hw())
 			{
 				llc_state_enter(ST_FAULT);
 			}
@@ -186,7 +186,7 @@ void llc_app_tick_1khz(void)
 				llc_state_enter(ST_LLC_RUN);
 			}
 		case ST_LLC_RUN:
-			if(protect_fault_latched())
+			if(protect_fault_latched() || protect_fault_active_hw())
 			{
 				llc_state_enter(ST_FAULT);
 			}

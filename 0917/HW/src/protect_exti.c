@@ -1,10 +1,11 @@
 #include "protect_exti.h"
-
+#include "pwm_llc.h"
 static volatile uint8_t s_fault = 0;
 
 static void protect_fault_trigger(void)
 {
 	s_fault = 1;
+	llc_pwm_outputs_enable(0);
 }
 
 #if defined(GD32F30X_XD) || defined(GD32F30X_CL)
@@ -14,6 +15,12 @@ static void protect_fault_trigger(void)
 #define TIMER0_BRK_IRQn_VALUE      TIMER0_BRK_IRQn
 #define TIMER0_BRK_IRQHandler_NAME TIMER0_BRK_IRQHandler
 #endif
+
+int protect_fault_active_hw(void)
+{
+  return gpio_input_bit_get(PROT_GPIO_PORT, PROT_GPIO_PIN) == RESET;
+}
+
 void protect_exti_init(void){
 	rcu_periph_clock_enable(RCU_GPIOC);
 	gpio_init(PROT_GPIO_PORT, GPIO_MODE_IPU, GPIO_OSPEED_50MHZ, PROT_GPIO_PIN);
@@ -27,6 +34,10 @@ void protect_exti_init(void){
 	timer_interrupt_flag_clear(TIMER0,TIMER_INT_FLAG_BRK);
 	timer_interrupt_enable(TIMER0,TIMER_INT_BRK);
 	nvic_irq_enable(TIMER0_BRK_IRQn_VALUE,1,0);
+	if(protect_fault_active_hw())
+	{
+		protect_fault_trigger();
+	}
 }
 
 void EXTI10_15_IRQHandler(void){
