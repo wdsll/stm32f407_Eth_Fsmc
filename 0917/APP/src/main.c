@@ -235,7 +235,7 @@ int main(void){
 		pb0_pwm_init(PB0_PWM_BASE_HZ);
 		pb0_pwm_set_duty(0.5f);
 
-    /* ADC multi (PA0/PA1 removed) triggered by TIMER0 CH0 for coherence */
+    /* ADC multi (PA3/PA1 removed) triggered by TIMER0 CH0 for coherence */
     adc_multi_init_dma(ADC0_1_EXTTRIG_REGULAR_T0_CH0); 
     adc_multi_start();
 

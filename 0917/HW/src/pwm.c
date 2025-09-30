@@ -4,9 +4,15 @@
 
 static uint32_t s_period=0;
 
-static inline float clampf(float x,float a,float b){ return x<a?a:(x>b?b:x); }
+static inline float clampf
 
-static inline uint32_t tim_apb1_clk_hz(void){
+(float x,float a,float b){ return x<a?a:(x>b?b:x); }
+
+
+//APB1 是微控制器中用于低速外设的总线，而定时器的时钟频率可能受到总线预分频器的影响。
+
+
+static inline uint32_t tim_apb1_clk_hz(void){ 
     uint32_t pclk1 = rcu_clock_freq_get(CK_APB1);
     /* APB1 预分频≠1 时，定时器时钟翻倍 */
     return (RCU_CFG0 & RCU_CFG0_APB1PSC) ? (pclk1 * 2U) : pclk1;
@@ -19,6 +25,10 @@ static inline uint32_t timer_clk_hz( ){
 
 void pb0_pwm_init(uint32_t pwm_hz)
 {
+	if(pwm_hz == 0)
+	{
+		return;
+	}
 	rcu_periph_clock_enable(RCU_GPIOB);
 	gpio_init(PB0_PORT, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, PB0_PIN);
 	rcu_periph_clock_enable(RCU_TIMER2);
@@ -42,8 +52,11 @@ void pb0_pwm_init(uint32_t pwm_hz)
 	
 	
 	timer_channel_output_config(PB0_PWM_TIMER, PB0_PWM_CH, &ocpara);
+	//配置定时器通道的输出模式和参数。
 	timer_channel_output_mode_config(PB0_PWM_TIMER, PB0_PWM_CH, TIMER_OC_MODE_PWM0);
-	timer_channel_output_pulse_value_config(PB0_PWM_TIMER, PB0_PWM_CH, 0);
+	//设置PWM的初始占空比（此处为0，表示初始无输出）。
+	timer_channel_output_pulse_value_config(PB0_PWM_TIMER, PB0_PWM_CH, 0); 
+	//启用自动重载影子寄存器，确保周期更新时无干扰。
 	timer_auto_reload_shadow_enable(PB0_PWM_TIMER); 
 	timer_enable(PB0_PWM_TIMER);
 }
