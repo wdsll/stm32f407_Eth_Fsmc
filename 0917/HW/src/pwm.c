@@ -1,11 +1,11 @@
 #include "pwm.h"
 #include "main.h"
 
-
+//BUS_VOL_ADJ 是 MCU 通过光耦去“修正/压低 PFC 的电压目标”的隔离调节口；MCU 输出 PWM → 
+//光耦 LED 电流 → 一次侧通过 Q5 注入 PFC_FB → 目标电压被调小（大概率）。用它可以做轻载降压、软启动辅助、打嗝恢复限幅等功能。
 static uint32_t s_period=0;
 
 static inline float clampf
-
 (float x,float a,float b){ return x<a?a:(x>b?b:x); }
 
 

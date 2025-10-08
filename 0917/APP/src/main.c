@@ -26,6 +26,7 @@
 #include "pwm.h"
 #include "protect_exti.h"
 #include "llc_open_loop.h"
+#include "pfc_control.h"
 /*********************************************************************************************************
 *                                              宏定义
 *********************************************************************************************************/
@@ -44,15 +45,34 @@ typedef struct
 	llc_state_t state;
 	uint32_t entry_ms;
 }llc_app_ctx_t;
+
+typedef struct
+{
+	pfc_state_t state;
+	uint32_t entry_ms;
+	uint32_t vbus_ok_since_ms; //表示总线电压自从变为ok后的时间点，如果未稳定通常约定为0
+	uint32_t dropout_since_ms; //表示发生掉电/失稳时间的时间点，用来判断是否需要进入减载或者重试逻辑
+	bool enable_cmd;
+} pfc_app_ctx_t;
 /*********************************************************************************************************
 *                                              内部变量定义
 *********************************************************************************************************/
-
+static float s_pfc_bus_v = 0.0f;
+static bool s_pfc_hw_enabled = false;
+static bool s_pfc_hw_relay = false;
 /*********************************************************************************************************
 *                                              内部函数声明
 *********************************************************************************************************/
 static llc_app_ctx_t s_llc_app;
+static pfc_app_ctx_t s_pfc_app;
+
+
 static void llc_state_enter(llc_state_t next);
+static void pfc_state_enter(pfc_state_t next);
+
+static void pfc_hw_init(void);
+static void pfc_hw_set_enable(bool en);
+static void pfc_hw_set_relay(bool closed);
 void systick_1ms_init(void);
 
 /*********************************************************************************************************
@@ -105,6 +125,235 @@ static inline float f_maxf(float a,float b){ return a > b ? a : b; }
 static inline float f_clampf(float x,float lo,float hi)
 { return x<lo?lo:(x>hi?hi:x); }
 
+static void pfc_hw_init(void)
+{
+	#if defined(PFC_EN_PORT)&&defined(PFC_EN_PIN)&&defined(PFC_EN_RCU)
+		rcu_periph_clock_enable(PFC_EN_RCU);
+	 	gpio_init(PFC_EN_PORT,GPIO_MODE_OUT_PP,GPIO_OSPEED_50MHZ,PFC_EN_PIN);
+		gpio_bit_reset(PFC_EN_PORT, PFC_EN_PIN);
+	#endif
+	
+	#if defined(PFC_MAIN_RELAY_PORT)&&defined(PFC_MAIN_RELAY_PIN)&&(PFC_MAIN_RELAY_RCU)
+		rcu_periph_clock_enable(PFC_MAIN_RELAY_RCU);
+		gpio_init(PFC_MAIN_RELAY_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, PFC_MAIN_RELAY_PIN);
+		gpio_bit_reset(PFC_MAIN_RELAY_PORT, PFC_MAIN_RELAY_PIN);
+	#endif
+	
+	s_pfc_hw_enabled = false;
+	s_pfc_hw_relay = false;
+}
+
+static void pfc_hw_set_enable(bool en)
+{
+	if(s_pfc_hw_enabled == en)
+	{
+		return;
+	}
+	s_pfc_hw_enabled = en;
+	#if defined(PFC_EN_PORT)&&defined(PFC_EN_PIN)
+		if(en)
+		{
+			gpio_bit_set(PFC_EN_PORT,PFC_EN_PIN);
+		}
+		else
+		{
+			gpio_bit_reset(PFC_EN_PORT,PFC_EN_PIN);
+		}
+	#else
+		(void)en;
+	#endif
+}
+
+static void pfc_hw_set_relay(bool closed)
+{
+	if(s_pfc_hw_relay == closed)
+	{
+		return;
+	}
+	s_pfc_hw_relay = closed;
+	#if defined(PFC_MAIN_RELAY_PORT)&&defined(PFC_MAIN_RELAY_PIN)
+		if(closed)
+		{
+			gpio_bit_set(PFC_MAIN_RELAY_PORT, PFC_MAIN_RELAY_PIN);
+		}
+		else
+		{
+			gpio_bit_reset(PFC_MAIN_RELAY_PORT, PFC_MAIN_RELAY_PIN);
+		}
+	#else
+		(void)closed;
+	#endif
+}
+
+static void pfc_state_enter(pfc_state_t next)
+{
+	s_pfc_app.state = next;
+	s_pfc_app.entry_ms = g_ms;
+	s_pfc_app.vbus_ok_since_ms = 0U;
+	s_pfc_app.dropout_since_ms = 0U;
+	
+	switch(next)
+	{
+		case PFC_ST_IDLE:
+			pfc_hw_set_enable(false);
+			pfc_hw_set_relay(false);
+			break;
+		case PFC_ST_CHARGING:
+			pfc_hw_set_enable(true);
+			pfc_hw_set_relay(false);
+			break;
+		case PFC_ST_READY:
+			pfc_hw_set_enable(true);
+			pfc_hw_set_relay(true);
+			s_pfc_app.vbus_ok_since_ms = g_ms;
+			break;
+		case PFC_ST_FAULT:
+		default:
+			pfc_hw_set_enable(false);
+			pfc_hw_set_relay(false);
+			break;
+	}
+}
+
+void pfc_app_init()
+{
+	pfc_hw_init();
+	s_pfc_bus_v = 0.0f;
+	s_pfc_app.state = PFC_ST_IDLE;
+	s_pfc_app.entry_ms = g_ms;
+	s_pfc_app.vbus_ok_since_ms = 0U;
+	s_pfc_app.dropout_since_ms = 0U;
+	s_pfc_app.enable_cmd = false;
+	pfc_hw_set_enable(false);
+	pfc_hw_set_relay(false);
+}
+
+void pfc_app_request_start(void)
+{
+	s_pfc_app.enable_cmd = false;
+	if(s_pfc_app.state != PFC_ST_IDLE)
+	{
+		s_pfc_app.entry_ms = g_ms;
+	}
+}
+
+void pfc_app_force_off()
+{
+	s_pfc_app.enable_cmd = false;
+	if(s_pfc_app.state != PFC_ST_IDLE)
+	{
+		 pfc_state_enter(PFC_ST_IDLE);
+	}
+}
+
+void pfc_app_tick_1khz(float vbus_v)
+{
+	s_pfc_bus_v = vbus_v;
+	bool fault_active = protect_fault_latched()||protect_fault_active_hw();
+	
+	if(fault_active && s_pfc_app.state != PFC_ST_FAULT)
+	{
+		pfc_state_enter(PFC_ST_FAULT);
+	}
+	
+	switch(s_pfc_app.state)
+	{
+		case PFC_ST_IDLE:
+			if(s_pfc_app.enable_cmd && !fault_active)
+			{
+				if((uint32_t)(g_ms - s_pfc_app.entry_ms) >= PFC_STARTUP_DELAY_MS){
+					pfc_state_enter(PFC_ST_CHARGING);
+				}
+			}
+			break;
+		case PFC_ST_CHARGING:
+			if(!s_pfc_app.enable_cmd)
+			{
+				pfc_state_enter(PFC_ST_IDLE);
+				break;
+			}
+			if(fault_active)
+			{
+				pfc_state_enter(PFC_ST_FAULT);
+				break;
+			}
+			if(vbus_v>=PFC_VBUS_READY_V)
+			{
+				if(s_pfc_app.vbus_ok_since_ms == 0U)
+				{
+					s_pfc_app.vbus_ok_since_ms = g_ms;
+				}
+				else if((uint32_t)(g_ms - s_pfc_app.vbus_ok_since_ms) >= PFC_READY_DELAY_MS)
+				{
+					pfc_state_enter(PFC_ST_READY);
+				}
+			}
+			else
+			{
+				s_pfc_app.vbus_ok_since_ms = 0;
+			}
+		case PFC_ST_READY:
+			if(!s_pfc_app.enable_cmd)
+			{
+				pfc_state_enter(PFC_ST_IDLE);
+				break;
+			}
+			if(fault_active)
+			{
+				pfc_state_enter(PFC_ST_FAULT);
+				break;
+			}
+			if(vbus_v >= (PFC_VBUS_READY_V - PFC_VBUS_READY_HYST_V))
+			{
+				s_pfc_app.dropout_since_ms = 0U;
+			}
+			else
+			{
+				if(s_pfc_app.dropout_since_ms == 0U)
+				{
+					s_pfc_app.dropout_since_ms = g_ms;
+				}
+				else if((uint32_t)(g_ms - s_pfc_app.dropout_since_ms)>=PFC_VBUS_DROPOUT_MS)
+				{
+					pfc_state_enter(PFC_ST_CHARGING);
+				}
+			}
+			break;
+		case PFC_ST_FAULT:
+			
+		default:
+			if(!s_pfc_app.enable_cmd)
+			{
+				if(!fault_active)
+				{
+					pfc_state_enter(PFC_ST_IDLE);
+				}
+			}
+			else if(!fault_active)
+			{
+				if((uint32_t)(g_ms - s_pfc_app.entry_ms)>= PFC_RESTART_DELAY_MS)
+				{
+					pfc_state_enter(PFC_ST_CHARGING);
+				}
+			}
+			break;
+		}
+}
+
+pfc_state_t pfc_app_state(void)
+{
+  return s_pfc_app.state;
+}
+
+bool pfc_app_ready(void)
+{
+        return s_pfc_app.state == PFC_ST_READY;
+}
+
+float pfc_bus_voltage(void)
+{
+        return s_pfc_bus_v;
+}
 
 void llc_step(llc_t* l){
 	/* 1) 误差：目标电压 - 实测电压（单位V） */
@@ -138,10 +387,19 @@ static void llc_state_enter(llc_state_t next)
 	switch(next)
 	{
 		case ST_IDLE:
+#if LLC_USE_OPEN_LOOP
+			llc_open_loop_stop(&s_llc_open_loop);
+#endif
+			pfc_app_force_off();  //进入idle
+			llc_pwm_outputs_enable(0);
+			s_llc.integ = 0.0f;
+			s_llc.f_cmd = s_llc.f_min;
+			break;
 		case ST_WAIT_VBUS:
 #if LLC_USE_OPEN_LOOP
 			llc_open_loop_stop(&s_llc_open_loop);
 #endif
+			pfc_app_request_start();
 			llc_pwm_outputs_enable(0);
 			s_llc.integ = 0.0f;
 			s_llc.f_cmd = s_llc.f_min;
@@ -157,7 +415,9 @@ static void llc_state_enter(llc_state_t next)
 			llc_pwm_outputs_enable(1);
 			break;
 		case ST_FAULT:
+				
 		default:
+			pfc_app_force_off();
 			llc_pwm_outputs_enable(0);
 			s_llc.f_cmd = s_llc.f_min;
 			break;
@@ -177,18 +437,29 @@ void llc_app_tick_1khz(void)
 			llc_state_enter(ST_WAIT_VBUS);
 			break;
 		case ST_WAIT_VBUS:
-			if(protect_fault_latched() || protect_fault_active_hw())
+			if(protect_fault_latched() || protect_fault_active_hw()||pfc_app_state() == PFC_ST_FAULT)
 			{
 				llc_state_enter(ST_FAULT);
+				break;
 			}
-			else if((uint32_t)(g_ms - s_llc_app.entry_ms)>=LLC_START_DELAY_MS)
+			
+			if(!pfc_app_ready()||s_llc.vmeas < LLC_ENTRY_V)
+			{
+				s_llc_app.entry_ms = g_ms;
+				break;
+			}
+			if((uint32_t)(g_ms - s_llc_app.entry_ms)>=LLC_START_DELAY_MS)
 			{
 				llc_state_enter(ST_LLC_RUN);
 			}
 		case ST_LLC_RUN:
-			if(protect_fault_latched() || protect_fault_active_hw())
+			if(protect_fault_latched() || protect_fault_active_hw()||pfc_app_state()==PFC_ST_FAULT)
 			{
 				llc_state_enter(ST_FAULT);
+			}
+			else if(!pfc_app_ready()||s_llc.vmeas<(LLC_ENTRY_V-PFC_VBUS_READY_HYST_V))
+			{
+				llc_state_enter(ST_WAIT_VBUS);
 			}
 			break;
 		case ST_FAULT:
@@ -208,7 +479,7 @@ void SysTick_Handler(void){
     adc_multi_copy();
     float vout = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
     s_llc.vmeas = vout;
-    //llc_step(&s_llc);
+		pfc_app_tick_1khz(vout);
 		llc_app_tick_1khz();
 		if(llc_app_state() == ST_LLC_RUN)
 		{
@@ -253,6 +524,7 @@ int main(void){
 #if LLC_USE_OPEN_LOOP
 		llc_open_loop_init(&s_llc_open_loop, s_llc_open_loop_profile, sizeof(s_llc_open_loop_profile)/sizeof(s_llc_open_loop_profile[0]));
 #endif
+		pfc_app_init();
 		llc_app_init();
 		systick_1ms_init();
     while(1){

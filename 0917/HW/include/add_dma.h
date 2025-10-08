@@ -3,7 +3,7 @@
 #include "gd32f30x.h"
 
 typedef struct {
-    uint16_t vout_raw;    /* PA5 */
+    uint16_t vout_raw;    /* PA5 */ 
     uint16_t isense_raw;  /* PA6 */
     uint16_t tsense_raw;  /* PA7 */
     uint16_t v3v3_raw;    /* PC4 */

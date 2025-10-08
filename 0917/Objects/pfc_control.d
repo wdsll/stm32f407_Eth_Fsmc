@@ -1,5 +1,5 @@
-./objects/main.o: APP/src/main.c APP/include\main.h \
-  ARM/include\gd32f30x_conf.h \
+./objects/pfc_control.o: HW/src/pfc_control.c HW/include\pfc_control.h \
+  APP/include\main.h ARM/include\gd32f30x_conf.h \
   GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_adc.h \
   GD32_SYSTEM/Firmware/CMSIS/GD/GD32F30x/Include\gd32f30x.h \
   C:/Users/huyan/AppData/Local/Arm/Packs/ARM/CMSIS/5.9.0/CMSIS/Core/Include\core_cm4.h \
@@ -33,9 +33,4 @@
   GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_misc.h \
   GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_exmc.h \
   GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_enet.h \
-  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdlib.h HW/include\add_dma.h \
-  HW/include\pwm_llc.h HW/include\RCU.h HW/include\ICU.h \
-  HW/include\pwm.h HW/include\protect_exti.h HW/include\llc_open_loop.h \
-  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stddef.h \
-  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdbool.h \
-  HW/include\pfc_control.h
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdlib.h

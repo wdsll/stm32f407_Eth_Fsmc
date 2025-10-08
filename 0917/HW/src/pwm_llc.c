@@ -3,11 +3,8 @@
 #include "main.h"
 
 //GPIO：高臂、低臂、N 输出都用 AF_PP；BKIN=PB12 用 上拉输入。
-
 //死区：确认 bdtr_deadtime_code_ns(350ns, 108MHz) 得到约 0x26（≈352ns）。
-
 //BKIN：短接 PB12→GND，应当瞬时关断（MOE 清）；松开在一个更新周期后自动恢复（因 outputautostate=ENABLE）。
-
 //变频：调用 llc_pwm_set_freq() 后，示波器看到占空不漂；若固定 50%，把 llc_pwm_set_freq() 里直接设 CCR = ARR/2。
 //#include "gd32f30x_timer.h"
 static llc_pwm_cfg_t s_cfg; 
@@ -29,7 +26,7 @@ static inline float clampf(float x,float a,float b)
 						clk: 时钟频率，单位为赫兹
 * 输出参数：
 * 返 回 值： 返回一个 8 位的无符号整数
-* 创建日期：2021年07月01日
+* 创建日期：2025年10月08日
 * 注    意：尝试不同的分频因子（1x、2x、8x、16x），找到合适的计数值范围。
 根据不同的分频因子，调整计数值并映射到特定的寄存器编码范围。
 *********************************************************************************************************/

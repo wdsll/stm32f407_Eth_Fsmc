@@ -3,7 +3,7 @@
 * 摘    要：主模块
 * 当前版本：1.0.0
 * 作    者：Rengar
-* 完成日期：2024年01月01日 
+* 完成日期：2025年10月08日 
 * 内    容：
 * 注    意：                                                                  
 **********************************************************************************************************
@@ -80,9 +80,9 @@
 #define PB0_PIN        GPIO_PIN_0
 #define PB0_PWM_BASE_HZ     (20000U)
 
-/* ===== PA3 & PA1 BOTH as timer input capture (no ADC on these) ===== */
+/* ===== PA3 & PA1 BOTH as timer input capture (no ADC on these) =====  交流的占空比和母线的占空比*/ 
 #define CAP0_TIMER     TIMER1
-#define CAP0_CH        TIMER_CH_3     /* PA0 → CH0 (adjust if needed) */
+#define CAP0_CH        TIMER_CH_3     /* PA3 → CH0 (adjust if needed) */
 #define CAP0_PORT      GPIOA
 #define CAP0_PIN       GPIO_PIN_3
 #define CAP0_IRQN      TIMER1_IRQn
@@ -109,6 +109,20 @@
 #define PROT_GPIO_PORT     GPIOC
 #define PROT_GPIO_PIN      GPIO_PIN_11
 #define PROT_EXTI_LINE     EXTI_11
+
+
+#define PFC_EN_PORT     GPIOA
+#define PFC_EN_PIN     	GPIO_PIN_10  
+#define PFC_EN_RCU			RCU_GPIOA
+//#define PROT_EXTI_LINE     EXTI_11
+
+/* ==== PFC control thresholds ==== */
+#define PFC_VBUS_READY_V            (360.0f)
+#define PFC_VBUS_READY_HYST_V       (20.0f)
+#define PFC_READY_DELAY_MS          (200U)
+#define PFC_STARTUP_DELAY_MS        (20U)
+#define PFC_VBUS_DROPOUT_MS         (100U)
+#define PFC_RESTART_DELAY_MS        (1000U)
 /*********************************************************************************************************
 *                                              枚举结构体
 *********************************************************************************************************/
