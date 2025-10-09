@@ -384,6 +384,8 @@ static void llc_state_enter(llc_state_t next)
 	s_llc_app.state = next;
 	s_llc_app.entry_ms = g_ms;
 	
+	bus_vol_adj_reset();
+	
 	switch(next)
 	{
 		case ST_IDLE:
@@ -481,7 +483,9 @@ void SysTick_Handler(void){
     s_llc.vmeas = vout;
 		pfc_app_tick_1khz(vout);
 		llc_app_tick_1khz();
-		if(llc_app_state() == ST_LLC_RUN)
+		bool llc_running = (llc_app_state() == ST_LLC_RUN);
+		bus_vol_adj_tick(vout, llc_running);
+		if(llc_running)
 		{
 #if LLC_USE_OPEN_LOOP
 		llc_open_loop_tick(&s_llc_open_loop);
@@ -504,8 +508,9 @@ int main(void){
 
     /* Aux PWM on PB0 */
 		pb0_pwm_init(PB0_PWM_BASE_HZ);
-		pb0_pwm_set_duty(0.5f);
-
+		
+		//pb0_pwm_set_duty(0.5f);
+		bus_vol_adj_init();
     /* ADC multi (PA3/PA1 removed) triggered by TIMER0 CH0 for coherence */
     adc_multi_init_dma(ADC0_1_EXTTRIG_REGULAR_T0_CH0); 
     adc_multi_start();
@@ -528,8 +533,7 @@ int main(void){
 		llc_app_init();
 		systick_1ms_init();
     while(1){
-			
-			
+	
 				float  duty0, duty1; //PA3 PA1²¶»ñµÄÖµ
         if(cap_pa0_read_duty(&duty0)){
             (void)duty0; /* TODO: convert ticks->Hz using TIMER1 clock if? */
