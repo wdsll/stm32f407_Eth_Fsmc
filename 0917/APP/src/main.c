@@ -28,6 +28,46 @@
 #include "llc_open_loop.h"
 #include "pfc_control.h"
 /*********************************************************************************************************
+*                                              模块测试配置
+*********************************************************************************************************/
+#ifndef ENABLE_ADC_TEST
+#define ENABLE_ADC_TEST              0
+#endif
+
+#ifndef ENABLE_PWM_TEST
+#define ENABLE_PWM_TEST              0
+#endif
+
+#ifndef ENABLE_ICU_TEST
+#define ENABLE_ICU_TEST              0
+#endif
+
+#ifndef ENABLE_PFC_TEST
+#define ENABLE_PFC_TEST              0
+#endif
+
+#ifndef ENABLE_LLC_TEST
+#define ENABLE_LLC_TEST              0
+#endif
+
+#if (ENABLE_ADC_TEST || ENABLE_PWM_TEST || ENABLE_ICU_TEST || ENABLE_PFC_TEST || ENABLE_LLC_TEST)
+#define MODULE_TESTS_ACTIVE          1
+#else
+#define MODULE_TESTS_ACTIVE          0
+#endif
+
+#if ENABLE_PWM_TEST
+#define PWM_TEST_SWEEP_PERIOD_MS      1000U
+#endif
+
+#if ENABLE_PFC_TEST
+#define PFC_TEST_TOGGLE_PERIOD_MS     5000U
+#endif
+
+#if ENABLE_LLC_TEST
+#define LLC_TEST_TOGGLE_PERIOD_MS     5000U
+#endif
+/*********************************************************************************************************
 *                                              宏定义
 *********************************************************************************************************/
 
@@ -54,6 +94,66 @@ typedef struct
 	uint32_t dropout_since_ms; //表示发生掉电/失稳时间的时间点，用来判断是否需要进入减载或者重试逻辑
 	bool enable_cmd;
 } pfc_app_ctx_t;
+
+#if MODULE_TESTS_ACTIVE
+typedef struct
+{
+#if ENABLE_ADC_TEST
+    struct {
+        float vout_v;
+        float isense_a;
+        float v3v3_v;
+        float vbat_v;
+        float t_llc_v;
+        uint16_t raw_vout;
+        uint16_t raw_isense;
+        uint16_t raw_tsense;
+        uint16_t raw_v3v3;
+        uint16_t raw_vbat;
+        uint16_t raw_t_llc;
+    } adc;
+#endif
+#if ENABLE_PWM_TEST
+    struct {
+        float pb0_duty;
+        float llc_freq_hz;
+        uint32_t sweep_phase;
+    } pwm;
+#endif
+#if ENABLE_ICU_TEST
+    struct {
+        float pa0_duty;
+        float pa1_duty;
+        uint32_t last_update_ms;
+    } icu;
+#endif
+#if ENABLE_PFC_TEST
+    struct {
+        pfc_state_t state;
+        bool enable_cmd;
+        bool hw_fault;
+        float bus_voltage;
+        uint32_t last_toggle_ms;
+    } pfc;
+#endif
+#if ENABLE_LLC_TEST
+    struct {
+        llc_state_t state;
+        float freq_cmd;
+        float vref;
+        float vmeas;
+        uint32_t last_toggle_ms;
+    } llc;
+#endif
+}module_tests_ctx_t;
+
+static volatile module_tests_ctx_t s_module_tests;
+static void module_tests_init(void);
+static void module_tests_tick_1khz(float vbus_v);
+#else
+static inline void module_tests_init(void) { }
+static inline void module_tests_tick_1khz(float vbus_v) { (void)vbus_v; }
+#endif
 /*********************************************************************************************************
 *                                              内部变量定义
 *********************************************************************************************************/
@@ -128,6 +228,122 @@ static inline float f_maxf(float a,float b){ return a > b ? a : b; }
 static inline float f_clampf(float x,float lo,float hi)
 { return x<lo?lo:(x>hi?hi:x); }
 
+#if MODULE_TESTS_ACTIVE
+
+static void module_tests_init(void)
+{
+#if ENABLE_PWM_TEST
+    s_module_tests.pwm.pb0_duty = 0.0f;
+    s_module_tests.pwm.llc_freq_hz = s_llc.f_cmd;
+    s_module_tests.pwm.sweep_phase = 0U;
+    pb0_pwm_set_duty(0.0f);
+#endif
+#if ENABLE_PFC_TEST
+    s_module_tests.pfc.state = s_pfc_app.state;
+    s_module_tests.pfc.enable_cmd = s_pfc_app.enable_cmd;
+    s_module_tests.pfc.hw_fault = false;
+    s_module_tests.pfc.bus_voltage = 0.0f;
+    s_module_tests.pfc.last_toggle_ms = g_ms;
+#endif
+#if ENABLE_LLC_TEST
+    s_module_tests.llc.state = s_llc_app.state;
+    s_module_tests.llc.freq_cmd = s_llc.f_cmd;
+    s_module_tests.llc.vref = s_llc.vref;
+    s_module_tests.llc.vmeas = s_llc.vmeas;
+    s_module_tests.llc.last_toggle_ms = g_ms;
+#endif
+
+#if ENABLE_ICU_TEST
+    s_module_tests.icu.pa0_duty = 0.0f;
+    s_module_tests.icu.pa1_duty = 0.0f;
+    s_module_tests.icu.last_update_ms = g_ms;
+#endif
+}
+static void module_tests_tick_1khz(float vbus_v)
+{
+#if ENABLE_ADC_TEST
+    s_module_tests.adc.raw_vout = g_adc_multi.vout_raw;
+    s_module_tests.adc.raw_isense = g_adc_multi.isense_raw;
+    s_module_tests.adc.raw_tsense = g_adc_multi.tsense_raw;
+    s_module_tests.adc.raw_v3v3 = g_adc_multi.v3v3_raw;
+    s_module_tests.adc.raw_vbat = g_adc_multi.vbt_raw;
+    s_module_tests.adc.raw_t_llc = g_adc_multi.t_llc_raw;
+    s_module_tests.adc.vout_v = vbus_v;
+    s_module_tests.adc.isense_a = conv_adc_to_i(g_adc_multi.isense_raw);
+    s_module_tests.adc.v3v3_v = (g_adc_multi.v3v3_raw * VREF_ADC) / 4095.0f;
+    s_module_tests.adc.vbat_v = conv_adc_to_v_div(g_adc_multi.vbt_raw, VBT_RTOP_OHM, VBT_RBOT_OHM);
+    s_module_tests.adc.t_llc_v = (g_adc_multi.t_llc_raw * VREF_ADC) / 4095.0f;
+#endif
+
+#if ENABLE_PWM_TEST
+//通过相位递增和分段计算，实现了占空比的平滑变化。
+    uint32_t phase = (s_module_tests.pwm.sweep_phase + 1U) % PWM_TEST_SWEEP_PERIOD_MS;
+    s_module_tests.pwm.sweep_phase = phase;
+    uint32_t half = PWM_TEST_SWEEP_PERIOD_MS / 2U;
+    float duty;
+    if(half == 0U)
+    {
+        duty = 0.5f;
+    }
+    else if(phase < half)
+    {
+        duty = (float)phase / (float)half;
+    }
+    else
+    {
+        duty = (float)(PWM_TEST_SWEEP_PERIOD_MS - phase) / (float)half;
+    }
+    duty = f_clampf(duty, 0.0f, 1.0f);
+    pb0_pwm_set_duty(duty);
+    s_module_tests.pwm.pb0_duty = duty;
+    s_module_tests.pwm.llc_freq_hz = s_llc.f_cmd;
+#endif
+
+#if ENABLE_PFC_TEST
+    bool hw_fault = protect_fault_latched() || protect_fault_active_hw();
+    s_module_tests.pfc.hw_fault = hw_fault;
+    s_module_tests.pfc.state = s_pfc_app.state;
+    s_module_tests.pfc.enable_cmd = s_pfc_app.enable_cmd;
+    s_module_tests.pfc.bus_voltage = vbus_v;
+    if(!hw_fault && (uint32_t)(g_ms - s_module_tests.pfc.last_toggle_ms) >= PFC_TEST_TOGGLE_PERIOD_MS)
+    {
+        if(s_pfc_app.enable_cmd)
+        {
+            pfc_app_force_off();
+        }
+        else
+        {
+            pfc_app_request_start();
+        }
+        s_module_tests.pfc.last_toggle_ms = g_ms;
+    }
+#endif
+#if ENABLE_LLC_TEST
+    s_module_tests.llc.state = s_llc_app.state;
+    s_module_tests.llc.freq_cmd = s_llc.f_cmd;
+    s_module_tests.llc.vref = s_llc.vref;
+    s_module_tests.llc.vmeas = s_llc.vmeas;
+    bool faults_active = protect_fault_latched() || protect_fault_active_hw();
+    if(!faults_active && (uint32_t)(g_ms - s_module_tests.llc.last_toggle_ms) >= LLC_TEST_TOGGLE_PERIOD_MS)
+    {
+        if(s_llc_app.state == ST_LLC_RUN)
+        {
+            llc_state_enter(ST_WAIT_VBUS);
+        }
+        else if(s_llc_app.state == ST_WAIT_VBUS)
+        {
+            llc_state_enter(ST_LLC_RUN);
+        }
+        s_module_tests.llc.last_toggle_ms = g_ms;
+    }
+    if(faults_active)
+    {
+        s_module_tests.llc.last_toggle_ms = g_ms;
+    }
+#endif
+    (void)vbus_v;
+}
+#endif
 static void pfc_hw_init(void)
 {
 	#if defined(PFC_EN_PORT)&&defined(PFC_EN_PIN)&&defined(PFC_EN_RCU)
@@ -530,12 +746,9 @@ static void control_loop_tick_1khz(void){
 #if LLC_USE_OPEN_LOOP
 		if(!s_llc_open_loop_completed)
 		{
-			if(llc_open_loop_running(&s_llc_open_loop))
-			{
-				llc_open_loop_running(&s_llc_open_loop);
-			}
+			bool is_running = llc_open_loop_running(&s_llc_open_loop);
 			s_llc_open_loop_final_freq = f_clampf(llc_open_loop_get_freq(&s_llc_open_loop),s_llc.f_min,s_llc.f_max);
-			if(!llc_open_loop_running(&s_llc_open_loop)&&s_llc_open_loop.segment_count>0U&&s_llc_open_loop.current_index ==(s_llc_open_loop.segment_count -1))
+			if(!is_running&&s_llc_open_loop.segment_count>0U&&s_llc_open_loop.current_index ==(s_llc_open_loop.segment_count -1))
 			{
 				s_llc_open_loop_completed = true;
 			}
@@ -544,6 +757,9 @@ static void control_loop_tick_1khz(void){
 			llc_step(&s_llc);
 #endif
 		}
+#if MODULE_TESTS_ACTIVE
+    module_tests_tick_1khz(vout);
+#endif
     llc_pwm_set_freq((uint32_t)s_llc.f_cmd);
 }
 int main(void){
@@ -584,6 +800,9 @@ int main(void){
 		pfc_app_init();
 		llc_app_init();
 		systick_1ms_init();
+#if MODULE_TESTS_ACTIVE
+		module_tests_init();
+#endif
     while(1){
 			uint32_t pending_ticks = 0U;
 			float  duty0, duty1; //PA3 PA1捕获的值
@@ -600,9 +819,17 @@ int main(void){
 			}
 			if(cap_pa0_read_duty(&duty0)){
 					(void)duty0; /* TODO: convert ticks->Hz using TIMER1 clock if? */
+#if MODULE_TESTS_ACTIVE && ENABLE_ICU_TEST
+					s_module_tests.icu.pa0_duty = duty0;
+					s_module_tests.icu.last_update_ms = g_ms;
+#endif
 			}
 			 if(cap_pa1_read_duty(&duty1)){
 					(void)duty1;
+#if MODULE_TESTS_ACTIVE && ENABLE_ICU_TEST
+					s_module_tests.icu.pa1_duty = duty1;
+					s_module_tests.icu.last_update_ms = g_ms;
+#endif
 			}
 			//if(protect_fault_latched()){
 				//检测到故障（通过PC11中断），则关闭LLC的PWM输出，并标记需要进一步处理故障。

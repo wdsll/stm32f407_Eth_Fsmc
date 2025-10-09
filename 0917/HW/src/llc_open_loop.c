@@ -18,7 +18,7 @@
 *                                              包含头文件
 *********************************************************************************************************/
 #include "llc_open_loop.h"
-
+#include <math.h>
 /*********************************************************************************************************
 *                                              宏定义
 *********************************************************************************************************/
@@ -180,6 +180,7 @@ bool llc_open_loop_running(const llc_open_loop_ctrl_t *ctrl)
     return ctrl ? ctrl->running : false;
 }
 
+//static inline float f_absf(float x){ return x < 0 ? -x : x; }
 /*********************************************************************************************************
 * 函数名称：llc_open_loop_tick
 * 函数功能：它的核心功能是根据预设的分段参数（如频率、斜率、保持时间等）动态调整输出频率（ f_cmd ），并在必要时进入保持状态或切换到下一个分段。
@@ -196,7 +197,7 @@ void llc_open_loop_tick(llc_open_loop_ctrl_t *ctrl)
 			return;
 	}
 	//条件是控制器仍在运行且还有分段需要处理
-	while (ctrl->running && ctrl->segment_count) {
+	while (ctrl->running && ctrl->segment_count > 0) {
 		//获取当前分段（ seg ）的信息
 		const llc_open_loop_segment_t *seg = &ctrl->segments[ctrl->current_index];
 		
@@ -220,11 +221,13 @@ void llc_open_loop_tick(llc_open_loop_ctrl_t *ctrl)
     float step = seg->slew_hz_per_ms;
 		//如果步进值无效（<=0），直接跳到目标频率并进入保持状态。
 		if (step <= 0.0f) {
-			ctrl->f_cmd = seg->stop_hz;
-			ctrl->holding = true;
-			ctrl->hold_elapsed_ms = 0U;
-			if (seg->hold_time_ms == 0U) {
-					if (!llc_open_loop_advance(ctrl)) {
+			ctrl->f_cmd = seg->stop_hz; //设置目标频率为分段的停止频率
+			ctrl->holding = true; //保持状态标志
+			ctrl->hold_elapsed_ms = 0U; //重置保持时间计数器
+			if (seg->hold_time_ms == 0U)  //保持时间（ms）
+			{
+					if (!llc_open_loop_advance(ctrl))
+					{
 							return;
 					}
 					continue;
@@ -234,7 +237,7 @@ void llc_open_loop_tick(llc_open_loop_ctrl_t *ctrl)
 		//如果差值 diff 为正：
 		if (diff > 0.0f) {
 			//如果差值小于等于步进值，直接设置频率为目标值并进入保持状态。
-				if (diff <= step) {
+				if (fabsf(diff - step) < 1e-6f || diff <= step) {
 						ctrl->f_cmd = seg->stop_hz; //设置目标频率为分段的停止频率
 						ctrl->holding = true; //保持状态标志
 						ctrl->hold_elapsed_ms = 0U;
