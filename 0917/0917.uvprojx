@@ -588,11 +588,6 @@
               <FilePath>.\HW\src\llc_open_loop.c</FilePath>
             </File>
             <File>
-              <FileName>pfc_control.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\HW\src\pfc_control.c</FilePath>
-            </File>
-            <File>
               <FileName>pfc_control.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\HW\include\pfc_control.h</FilePath>

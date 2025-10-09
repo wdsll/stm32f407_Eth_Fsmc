@@ -19,9 +19,9 @@ typedef struct
 void pb0_pwm_init(uint32_t pwm_hz);
 void pb0_pwm_set_duty(float duty);
 
-static void bus_vol_adj_init(void);
-static void bus_vol_adj_reset(void);
-static void bus_vol_adj_tick(float vbus, bool enabled);
+void bus_vol_adj_init(void);
+void bus_vol_adj_reset(void);
+void bus_vol_adj_tick(float vbus, bool enabled);
 
 
 #endif

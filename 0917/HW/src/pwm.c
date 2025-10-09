@@ -66,14 +66,14 @@ void pb0_pwm_set_duty(float d){
     timer_channel_output_pulse_value_config(PB0_PWM_TIMER, PB0_PWM_CH, (uint16_t)(d*s_period));
 }
 
-static void bus_vol_adj_reset(void)
+void bus_vol_adj_reset(void)
 {
 		s_bus_adj.integ = 0.0f;
-		s_bus_adj.duty_cmd = f_clampf(s_bus_adj.neutral_duty, s_bus_adj.duty_min, s_bus_adj.duty_max);
+		s_bus_adj.duty_cmd = clampf(s_bus_adj.neutral_duty, s_bus_adj.duty_min, s_bus_adj.duty_max);
 		pb0_pwm_set_duty(s_bus_adj.duty_cmd);
 }
 
-static void bus_vol_adj_init(void)
+void bus_vol_adj_init(void)
 {
 		s_bus_adj.target_v = VBUS_TARGET_V;
 		s_bus_adj.kp = 0.0025f;
@@ -85,13 +85,13 @@ static void bus_vol_adj_init(void)
 }
 //这段代码的主要目的是实现一个基于比例积分（PI）控制的电压调节器，用于动态调整 PWM（脉宽调制）的占空比，以维持目标总线电压（ target_v ）的稳定。
 //当总线电压（ vbus ）偏离目标值时，代码通过 PI 控制算法计算新的占空比，并通过 pb0_pwm_set_duty 函数设置 PWM 输出。
-static void bus_vol_adj_tick(float vbus,bool enabled)
+void bus_vol_adj_tick(float vbus,bool enabled)
 {
 	if(!enabled)
 	{
 		s_bus_adj.integ = 0.0f;
 		//neutral_duty ：中性占空比，即无误差时的默认值。
-		float duty = f_clampf(s_bus_adj.neutral_duty,s_bus_adj.duty_min,s_bus_adj.duty_max);
+		float duty = clampf(s_bus_adj.neutral_duty,s_bus_adj.duty_min,s_bus_adj.duty_max);
 		if(duty != s_bus_adj.duty_cmd)
 		{
 			s_bus_adj.duty_cmd = duty;
@@ -102,14 +102,14 @@ static void bus_vol_adj_tick(float vbus,bool enabled)
 	float error = s_bus_adj.target_v-vbus;
 	float integ = s_bus_adj.integ + (s_bus_adj.ki*error);
 	float duty_unclamped = s_bus_adj.neutral_duty + (s_bus_adj.kp * error) + integ;
-  float duty = f_clampf(duty_unclamped, s_bus_adj.duty_min, s_bus_adj.duty_max);
+  float duty = clampf(duty_unclamped, s_bus_adj.duty_min, s_bus_adj.duty_max);
 	if(duty != duty_unclamped)	
 	{
 		integ = duty - s_bus_adj.neutral_duty - (s_bus_adj.kp * error);
 	}
 	float integ_min = s_bus_adj.duty_min - s_bus_adj.neutral_duty;
 	float integ_max = s_bus_adj.duty_max - s_bus_adj.neutral_duty;
-	s_bus_adj.integ = f_clampf(integ, integ_min, integ_max);
+	s_bus_adj.integ = clampf(integ, integ_min, integ_max);
 	
 	if(duty != s_bus_adj.duty_cmd)
 	{
