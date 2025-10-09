@@ -83,6 +83,8 @@ static llc_t s_llc;
 
 #if LLC_USE_OPEN_LOOP
 static llc_open_loop_ctrl_t s_llc_open_loop;
+static bool s_llc_open_loop_completed = false;
+static float s_llc_open_loop_final_freq = LLC_F_INIT_HZ;
 static const llc_open_loop_segment_t s_llc_open_loop_profile[] = {
 	{ .start_hz = LLC_F_MIN_HZ, .stop_hz = LLC_F_INIT_HZ, .slew_hz_per_ms = LLC_F_SLEW_HZ, .hold_time_ms = 200U },
 	{ .start_hz = LLC_F_INIT_HZ, .stop_hz = LLC_F_MAX_HZ, .slew_hz_per_ms = 500.0f, .hold_time_ms = 200U },
@@ -196,21 +198,21 @@ static void pfc_state_enter(pfc_state_t next)
 	{
 		case PFC_ST_IDLE:
 			pfc_hw_set_enable(false);
-			pfc_hw_set_relay(false);
+			//pfc_hw_set_relay(false);
 			break;
 		case PFC_ST_CHARGING:
 			pfc_hw_set_enable(true);
-			pfc_hw_set_relay(false);
+			//pfc_hw_set_relay(false);
 			break;
 		case PFC_ST_READY:
 			pfc_hw_set_enable(true);
-			pfc_hw_set_relay(true);
+			//pfc_hw_set_relay(true);
 			s_pfc_app.vbus_ok_since_ms = g_ms;
 			break;
 		case PFC_ST_FAULT:
 		default:
 			pfc_hw_set_enable(false);
-			pfc_hw_set_relay(false);
+			//pfc_hw_set_relay(false);
 			break;
 	}
 }
@@ -225,9 +227,9 @@ void pfc_app_init()
 	s_pfc_app.dropout_since_ms = 0U;
 	s_pfc_app.enable_cmd = false;
 	pfc_hw_set_enable(false);
-	pfc_hw_set_relay(false);
+	//pfc_hw_set_relay(false);
 }
-
+//该函数的目的是在启动某种请求时，确保系统状态正确，并记录请求的起始时间（如果系统当前不处于空闲状态）。
 void pfc_app_request_start(void)
 {
 	s_pfc_app.enable_cmd = false;
@@ -245,7 +247,16 @@ void pfc_app_force_off()
 		 pfc_state_enter(PFC_ST_IDLE);
 	}
 }
-
+/*********************************************************************************************************
+* 函数名称：pfc_app_tick_1khz
+* 函数功能：其主要目的是根据输入电压（ vbus_v ）和系统状态（如故障、使能命令等）动态调整 PFC 的工作状态，
+	确保系统在安全、高效的状态下运行。
+* 输入参数：vbus_v
+* 输出参数：void
+* 返 回 值：void
+* 创建日期：2025年10月09日
+* 注    意：
+*********************************************************************************************************/
 void pfc_app_tick_1khz(float vbus_v)
 {
 	s_pfc_bus_v = vbus_v;
@@ -261,6 +272,7 @@ void pfc_app_tick_1khz(float vbus_v)
 		case PFC_ST_IDLE:
 			if(s_pfc_app.enable_cmd && !fault_active)
 			{
+				//启动延迟
 				if((uint32_t)(g_ms - s_pfc_app.entry_ms) >= PFC_STARTUP_DELAY_MS){
 					pfc_state_enter(PFC_ST_CHARGING);
 				}
@@ -277,6 +289,7 @@ void pfc_app_tick_1khz(float vbus_v)
 				pfc_state_enter(PFC_ST_FAULT);
 				break;
 			}
+			//输入电压 vbus_v 达到目标值（ PFC_VBUS_READY_V ），并保持一段时间（ PFC_READY_DELAY_MS ）进入ready状态
 			if(vbus_v>=PFC_VBUS_READY_V)
 			{
 				if(s_pfc_app.vbus_ok_since_ms == 0U)
@@ -290,7 +303,7 @@ void pfc_app_tick_1khz(float vbus_v)
 			}
 			else
 			{
-				s_pfc_app.vbus_ok_since_ms = 0;
+				s_pfc_app.vbus_ok_since_ms = 0; //记录电压达标时间。
 			}
 		case PFC_ST_READY:
 			if(!s_pfc_app.enable_cmd)
@@ -303,6 +316,7 @@ void pfc_app_tick_1khz(float vbus_v)
 				pfc_state_enter(PFC_ST_FAULT);
 				break;
 			}
+	//输入电压低于阈值（ PFC_VBUS_READY_V - PFC_VBUS_READY_HYST_V ），并持续一定时间（ PFC_VBUS_DROPOUT_MS ）。
 			if(vbus_v >= (PFC_VBUS_READY_V - PFC_VBUS_READY_HYST_V))
 			{
 				s_pfc_app.dropout_since_ms = 0U;
@@ -347,12 +361,12 @@ pfc_state_t pfc_app_state(void)
 
 bool pfc_app_ready(void)
 {
-        return s_pfc_app.state == PFC_ST_READY;
+	return s_pfc_app.state == PFC_ST_READY;
 }
 
 float pfc_bus_voltage(void)
 {
-        return s_pfc_bus_v;
+	return s_pfc_bus_v;
 }
 
 void llc_step(llc_t* l){
@@ -378,13 +392,21 @@ void llc_step(llc_t* l){
 
 
 
-
+/*********************************************************************************************************
+* 函数名称：llc_state_enter
+* 函数功能：状态机切换函数，用于控制 LLC（谐振变换器）的不同工作状态
+* 输入参数：next
+* 输出参数：void
+* 返 回 值：void
+* 创建日期：202年10月09日
+* 注    意：当 LLC 需要从一个状态切换到另一个状态时，此函数会被调用，执行相应的初始化或清理操作。
+*********************************************************************************************************/
 static void llc_state_enter(llc_state_t next)
 {
 	s_llc_app.state = next;
 	s_llc_app.entry_ms = g_ms;
 	
-	bus_vol_adj_reset();
+	bus_vol_adj_reset();   //重置总线电压调整逻辑 百分之五十的占空比
 	
 	switch(next)
 	{
@@ -392,7 +414,7 @@ static void llc_state_enter(llc_state_t next)
 #if LLC_USE_OPEN_LOOP
 			llc_open_loop_stop(&s_llc_open_loop);
 #endif
-			pfc_app_force_off();  //进入idle
+			pfc_app_force_off();  
 			llc_pwm_outputs_enable(0);
 			s_llc.integ = 0.0f;
 			s_llc.f_cmd = s_llc.f_min;
@@ -401,7 +423,7 @@ static void llc_state_enter(llc_state_t next)
 #if LLC_USE_OPEN_LOOP
 			llc_open_loop_stop(&s_llc_open_loop);
 #endif
-			pfc_app_request_start();
+			pfc_app_request_start(); //记录请求的起始时间
 			llc_pwm_outputs_enable(0);
 			s_llc.integ = 0.0f;
 			s_llc.f_cmd = s_llc.f_min;
@@ -409,8 +431,12 @@ static void llc_state_enter(llc_state_t next)
 		case ST_LLC_RUN:
 			s_llc.integ = 0.0f;
 #if LLC_USE_OPEN_LOOP
+		if(!s_llc_open_loop_completed)
+		{
 			llc_open_loop_start(&s_llc_open_loop);
 			s_llc.f_cmd = f_clampf(llc_open_loop_get_freq(&s_llc_open_loop), s_llc.f_min, s_llc.f_max);
+		}
+		s_llc.f_cmd = f_clampf(s_llc_open_loop_final_freq, s_llc.f_min, s_llc.f_max);
 #else
 			s_llc.f_cmd = f_clampf(LLC_F_INIT_HZ, s_llc.f_min, s_llc.f_max);
 #endif
@@ -430,7 +456,15 @@ void llc_app_init()
 {
 	llc_state_enter(ST_WAIT_VBUS);
 }
-
+/*********************************************************************************************************
+* 函数名称：llc_state_enter
+* 函数功能：状态机切换函数，用于控制 LLC（谐振变换器）的不同工作状态
+* 输入参数：next
+* 输出参数：void
+* 返 回 值：void
+* 创建日期：202年10月09日
+* 注    意：当 LLC 需要从一个状态切换到另一个状态时，此函数会被调用，执行相应的初始化或清理操作。
+*********************************************************************************************************/
 void llc_app_tick_1khz(void)
 {
 	switch(s_llc_app.state)
@@ -444,21 +478,23 @@ void llc_app_tick_1khz(void)
 				llc_state_enter(ST_FAULT);
 				break;
 			}
-			
+			//需满足 PFC 准备就绪且电压达到阈值
 			if(!pfc_app_ready()||s_llc.vmeas < LLC_ENTRY_V)
 			{
 				s_llc_app.entry_ms = g_ms;
 				break;
 			}
+			//准备就绪后100ms进run
 			if((uint32_t)(g_ms - s_llc_app.entry_ms)>=LLC_START_DELAY_MS)
 			{
-				llc_state_enter(ST_LLC_RUN);
+				llc_state_enter(ST_LLC_RUN); 
 			}
 		case ST_LLC_RUN:
 			if(protect_fault_latched() || protect_fault_active_hw()||pfc_app_state()==PFC_ST_FAULT)
 			{
 				llc_state_enter(ST_FAULT);
 			}
+			//如果任一条件成立（PFC未就绪 或 电压过低），则调用 llc_state_enter(ST_WAIT_VBUS) ，切换至等待VBUS状态。
 			else if(!pfc_app_ready()||s_llc.vmeas<(LLC_ENTRY_V-PFC_VBUS_READY_HYST_V))
 			{
 				llc_state_enter(ST_WAIT_VBUS);
@@ -478,7 +514,7 @@ llc_state_t llc_app_state(void)
 void SysTick_Handler(void){
     g_ms++;
     /* 1 kHz control */
-    adc_multi_copy();
+    adc_multi_copy(); 
     float vout = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
     s_llc.vmeas = vout;
 		pfc_app_tick_1khz(vout);
@@ -488,8 +524,20 @@ void SysTick_Handler(void){
 		if(llc_running)
 		{
 #if LLC_USE_OPEN_LOOP
-		llc_open_loop_tick(&s_llc_open_loop);
-		s_llc.f_cmd = f_clampf(llc_open_loop_get_freq(&s_llc_open_loop), s_llc.f_min, s_llc.f_max);
+		//llc_open_loop_tick(&s_llc_open_loop);
+		//s_llc.f_cmd = f_clampf(llc_open_loop_get_freq(&s_llc_open_loop), s_llc.f_min, s_llc.f_max);
+		if(!s_llc_open_loop_completed)
+		{
+			if(llc_open_loop_running(&s_llc_open_loop))
+			{
+				llc_open_loop_running(&s_llc_open_loop);
+			}
+			s_llc_open_loop_final_freq = f_clampf(llc_open_loop_get_freq(&s_llc_open_loop),s_llc.f_min,s_llc.f_max);
+			if(!llc_open_loop_running(&s_llc_open_loop)&&s_llc_open_loop.segment_count>0U&&s_llc_open_loop.current_index ==(s_llc_open_loop.segment_count -1))
+			{
+				s_llc_open_loop_completed = true;
+			}
+		}
 #else
 			llc_step(&s_llc);
 #endif
@@ -528,6 +576,8 @@ int main(void){
 		};
 #if LLC_USE_OPEN_LOOP
 		llc_open_loop_init(&s_llc_open_loop, s_llc_open_loop_profile, sizeof(s_llc_open_loop_profile)/sizeof(s_llc_open_loop_profile[0]));
+		s_llc_open_loop_completed = false;
+		s_llc_open_loop_final_freq = f_clampf(llc_open_loop_get_freq(&s_llc_open_loop), s_llc.f_min, s_llc.f_max);
 #endif
 		pfc_app_init();
 		llc_app_init();

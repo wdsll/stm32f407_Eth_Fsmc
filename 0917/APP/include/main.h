@@ -35,8 +35,8 @@
 #define VREF_ADC            (3.3f)
 
 /* Dividers for voltage ADC channels */
-#define VOUT_RTOP_OHM       (1000000.0f)   /* PA5 */
-#define VOUT_RBOT_OHM       (4700.0f)
+#define VOUT_RTOP_OHM       (200000.0f)   /* PA5 */
+#define VOUT_RBOT_OHM       (10000.0f)
 #define VBT_RTOP_OHM        (1000000.0f)   /* PC5 */
 #define VBT_RBOT_OHM        (4700.0f)
 
@@ -130,6 +130,8 @@ typedef enum
 { 
 	ST_IDLE=0, ST_WAIT_VBUS, ST_LLC_RUN, ST_FAULT 
 } llc_state_t;
+//vmeas：实际测量到的电压 
+//integ：积分器的当前累积值（积分状态），通常会在饱和或模式切换时清零或软限制以防风up。
 typedef struct {
     float vref, vmeas;
     float kp, ki, integ;
