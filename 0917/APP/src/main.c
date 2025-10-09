@@ -93,6 +93,7 @@ static const llc_open_loop_segment_t s_llc_open_loop_profile[] = {
 #endif
 
 volatile uint32_t g_ms=0;
+static volatile uint32_t s_control_tick_pending = 0U;
 void systick_1ms_init(void){
 		SystemCoreClockUpdate();    
      uint32_t reload  = SystemCoreClock / 1000U;
@@ -232,7 +233,7 @@ void pfc_app_init()
 //该函数的目的是在启动某种请求时，确保系统状态正确，并记录请求的起始时间（如果系统当前不处于空闲状态）。
 void pfc_app_request_start(void)
 {
-	s_pfc_app.enable_cmd = false;
+	s_pfc_app.enable_cmd = true;
 	if(s_pfc_app.state != PFC_ST_IDLE)
 	{
 		s_pfc_app.entry_ms = g_ms;
@@ -513,6 +514,9 @@ llc_state_t llc_app_state(void)
 
 void SysTick_Handler(void){
     g_ms++;
+    s_control_tick_pending++;
+}
+static void control_loop_tick_1khz(void){
     /* 1 kHz control */
     adc_multi_copy(); 
     float vout = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
@@ -524,8 +528,6 @@ void SysTick_Handler(void){
 		if(llc_running)
 		{
 #if LLC_USE_OPEN_LOOP
-		//llc_open_loop_tick(&s_llc_open_loop);
-		//s_llc.f_cmd = f_clampf(llc_open_loop_get_freq(&s_llc_open_loop), s_llc.f_min, s_llc.f_max);
 		if(!s_llc_open_loop_completed)
 		{
 			if(llc_open_loop_running(&s_llc_open_loop))
@@ -583,24 +585,35 @@ int main(void){
 		llc_app_init();
 		systick_1ms_init();
     while(1){
-	
-				float  duty0, duty1; //PA3 PA1捕获的值
-        if(cap_pa0_read_duty(&duty0)){
-            (void)duty0; /* TODO: convert ticks->Hz using TIMER1 clock if? */
-        }
-         if(cap_pa1_read_duty(&duty1)){
-            (void)duty1;
-        }
-        //if(protect_fault_latched()){
-					//检测到故障（通过PC11中断），则关闭LLC的PWM输出，并标记需要进一步处理故障。
-          //  llc_pwm_outputs_enable(0);
-            /* TODO: fault handling */
-        //}
-				if(llc_app_state() == ST_FAULT)
-				{
-					llc_pwm_outputs_enable(0);
-				}
-        __NOP();
+			uint32_t pending_ticks = 0U;
+			float  duty0, duty1; //PA3 PA1捕获的值
+			__disable_irq();
+			if(s_control_tick_pending > 0U)
+			{
+					pending_ticks = s_control_tick_pending;
+					s_control_tick_pending = 0U;
+			}
+			__enable_irq();
+			while(pending_ticks-- > 0U)
+			{
+					control_loop_tick_1khz();
+			}
+			if(cap_pa0_read_duty(&duty0)){
+					(void)duty0; /* TODO: convert ticks->Hz using TIMER1 clock if? */
+			}
+			 if(cap_pa1_read_duty(&duty1)){
+					(void)duty1;
+			}
+			//if(protect_fault_latched()){
+				//检测到故障（通过PC11中断），则关闭LLC的PWM输出，并标记需要进一步处理故障。
+				//  llc_pwm_outputs_enable(0);
+					/* TODO: fault handling */
+			//}
+			if(llc_app_state() == ST_FAULT)
+			{
+				llc_pwm_outputs_enable(0);
+			}
+			__NOP();
     }
 }
 
