@@ -4,8 +4,8 @@
 * 当前版本：1.0.0
 * 作    者：
 * 完成日期：2025年09月25日 
-* 内    容：
-* 注    意：                                                                  
+* 内    容：实现LLC开环控制逻辑
+* 注    意：确保输入参数有效性，避免空指针访问                                                                  
 **********************************************************************************************************
 * 取代版本：
 * 作    者：
@@ -72,20 +72,19 @@ static bool llc_open_loop_advance(llc_open_loop_ctrl_t *ctrl)
 	//if (ctrl->segment_count == 0 || ctrl->current_index + 1U >= ctrl->segment_count)
 	if (ctrl->current_index + 1U >= ctrl->segment_count)  //如果当前分段是最后一个分段
 	{	
-		RESET_HOLD_STATE(ctrl); //重置保存状态
 		ctrl->running = false; //停止运行
-		//ctrl->holding = false;
+		ctrl->holding = false;
 		ctrl->current_index = ctrl->segment_count - 1U;//设置当前索引为最后一个分段
-		//ctrl->hold_elapsed_ms = 0U;
+		ctrl->hold_elapsed_ms = 0U;
 		//ctrl->f_cmd = ctrl->segments[ctrl->current_index].stop_hz;
 		const llc_open_loop_segment_t *current_segment = &ctrl->segments[ctrl->current_index]; 
 		ctrl->f_cmd = current_segment->stop_hz; //设置目标频率为最后一个分段的停止频率（ stop_hz ）。
 		return false;
 	}
 	ctrl->current_index++; //增加当前索引
-	//ctrl->holding = false;
-	//ctrl->hold_elapsed_ms = 0U;
-	RESET_HOLD_STATE(ctrl);
+	ctrl->holding = false;
+	ctrl->hold_elapsed_ms = 0U;
+	//RESET_HOLD_STATE(ctrl);
 	//ctrl->f_cmd = ctrl->segments[ctrl->current_index].start_hz;
 	const llc_open_loop_segment_t *current_segment = &ctrl->segments[ctrl->current_index]; 
 	ctrl->f_cmd = current_segment->start_hz; //设置目标频率为下一个分段的起始频率（ start_hz ）。
@@ -102,19 +101,19 @@ static bool llc_open_loop_advance(llc_open_loop_ctrl_t *ctrl)
 *********************************************************************************************************/
 void llc_open_loop_init(llc_open_loop_ctrl_t *ctrl,const llc_open_loop_segment_t *segments,size_t segment_count)
 {
-	if (!ctrl) {
+	if (!ctrl || !segments) {
 			return;
 	}
 	//设置分段数据和分段数,重置当前索引、目标频率、保持状态和运行状态。
-	RESET_HOLD_STATE(ctrl); //指向开环控制器结构的指针，用于存储和更新控制器的状态。
+	//RESET_HOLD_STATE(ctrl); //指向开环控制器结构的指针，用于存储和更新控制器的状态。
 	ctrl->segments = segments; //指向分段数据数组的指针，每个分段包含起始频率（ start_hz ）等信息。
 	ctrl->segment_count = segment_count; //分段数据的数量。
 	ctrl->current_index = 0U;
 	//计算初始目标频率 f_cmd ：如果分段数据有效（ segments 和 segment_count 均非零），则使用第一个分段的起始频率；否则设为 0.0f 。
 	ctrl->f_cmd = (segments && segment_count) ? segments[0].start_hz : 0.0f;
-	//ctrl->hold_elapsed_ms = 0U;  记录保持状态的持续时间（毫秒）；
+	ctrl->hold_elapsed_ms = 0U;  //记录保持状态的持续时间（毫秒）；
 	ctrl->running = false; //表示控制器尚未启动。
-	//ctrl->holding = false; 标记是不处于保持状态 
+	ctrl->holding = false; //标记是不处于保持状态 
 }
 /*********************************************************************************************************
 * 函数名称：llc_open_loop_start
@@ -130,12 +129,12 @@ void llc_open_loop_start(llc_open_loop_ctrl_t *ctrl)
 	if(!ctrl || ctrl->segment_count == 0U) {
 			return;
 	}
-	RESET_HOLD_STATE(ctrl);
+	//RESET_HOLD_STATE(ctrl);
 	ctrl->current_index = 0U;  //表示从第一个段（segment）开始执行。
 	ctrl->f_cmd = ctrl->segments[0].start_hz;
-	//ctrl->hold_elapsed_ms = 0U;
+	ctrl->hold_elapsed_ms = 0U;
 	ctrl->running = true;  //表示控制器已启动并运行。
-	//ctrl->holding = false;
+	ctrl->holding = false; //还没进入持续状态
 }
 /*********************************************************************************************************
 * 函数名称：llc_open_loop_stop
@@ -151,11 +150,11 @@ void llc_open_loop_stop(llc_open_loop_ctrl_t *ctrl)
 	if(!ctrl) {
 			return;
 	}
-	RESET_HOLD_STATE(ctrl);
+	//RESET_HOLD_STATE(ctrl);
 	ctrl->running = false;	//表示控制器已停止运行。
-	//ctrl->holding = false;
-	//ctrl->hold_elapsed_ms = 0U;
-	if (ctrl->segment_count)  //如果控制器有分段控制，则将目标频率设置为第一个分段的起始频率。
+	ctrl->holding = false;
+	ctrl->hold_elapsed_ms = 0U;
+	if (ctrl->segment_count&&ctrl->segments)  //如果控制器有分段控制，则将目标频率设置为第一个分段的起始频率。
 	{
 			ctrl->current_index = 0U;
 			ctrl->f_cmd = ctrl->segments[0].start_hz;

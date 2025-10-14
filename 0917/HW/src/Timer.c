@@ -33,7 +33,7 @@
 
 static unsigned char s_i2msFlag = FALSE;
 static unsigned char s_i1secFlag = FALSE;
-
+//extern volatile uint32_t g_ms ;
 /*********************************************************************************************************
 *                                              内部函数声明
 *********************************************************************************************************/
@@ -59,21 +59,21 @@ static void ConfigTimer2(unsigned short arr,unsigned short psc)
 {
 	timer_parameter_struct timer_initpara;
 //使能RCU相关时钟
-	rcu_periph_clock_enable(RCU_TIMER2);
-	timer_deinit(TIMER2);
+	rcu_periph_clock_enable(RCU_TIMER5);
+	timer_deinit(TIMER5);
 	
 	timer_struct_para_init(&timer_initpara);
 	
-//配置Timer2
+
 	timer_initpara.prescaler = psc;
 	timer_initpara.counterdirection = TIMER_COUNTER_UP;
 	timer_initpara.period = arr;
 	timer_initpara.clockdivision = TIMER_CKDIV_DIV1;
-	timer_init(TIMER2,&timer_initpara);
+	timer_init(TIMER5,&timer_initpara);
 	
-	timer_interrupt_enable(TIMER2,TIMER_INT_UP);
-	nvic_irq_enable(TIMER2_IRQn,1,0);
-	timer_enable(TIMER2);
+	timer_interrupt_enable(TIMER5,TIMER_INT_UP);
+	nvic_irq_enable(TIMER5_IRQn,1,0);
+	timer_enable(TIMER5);
 }
 
 static void ConfigTimer4(unsigned short arr,unsigned short psc)
@@ -109,9 +109,9 @@ void TIMER5_IRQHandler(void)
 {
 	static unsigned short s_iCnt2 = 0;
 	
-	if(timer_interrupt_flag_get(TIMER2,TIMER_INT_FLAG_UP)==SET)
+	if(timer_interrupt_flag_get(TIMER5,TIMER_INT_FLAG_UP)==SET)
 	{
-		timer_interrupt_flag_clear(TIMER2,TIMER_INT_FLAG_UP);
+		timer_interrupt_flag_clear(TIMER5,TIMER_INT_FLAG_UP);
 	}
 	s_iCnt2++;
 	if(s_iCnt2>=20)
@@ -140,7 +140,7 @@ void TIMER6_IRQHandler(void)
 	{
 		timer_interrupt_flag_clear(TIMER6,TIMER_INT_FLAG_UP);
 	}
-		
+	//g_ms++;	
 	s_iCnt1000++;
 	if(s_iCnt1000>=1000)
 	{

@@ -28,26 +28,41 @@
 *                                              枚举结构体
 *********************************************************************************************************/
 
+typedef struct
+{
+	uint32_t timer;
+	uint16_t channel;
+	uint32_t int_flag;
+	uint32_t polarity_bit;
+	uint32_t rise;
+	uint32_t period;
+	float duty;
+	uint8_t expect_fall;
+	uint8_t have_rise;
+	uint8_t updated;
+}cap_channel_state_t;
+
+enum
+{
+	CAP_CH_INDEX_PA3 = 0,
+	CAP_CH_INDEX_PA1 = 1,
+	CAP_CH_COUNT
+};
+
+static volatile cap_channel_state_t s_cap_channels[CAP_CH_COUNT];
 /*********************************************************************************************************
 *                                              内部变量定义
 *********************************************************************************************************/
-static volatile uint32_t rise0 = 0, rise1 = 0;
-static volatile uint32_t period0 = 0U, period1 = 0U;
-static volatile float duty0 = 0.0f, duty1 = 0.0f;
-static volatile uint8_t expect_fall0 = 0U, expect_fall1 = 0U;
-static volatile uint8_t have_rise0 = 0U, have_rise1 = 0U;
-static volatile uint8_t upd0 = 0U, upd1 = 0U;
-static volatile uint32_t last0=0, last1=0, per0=0, per1=0;
-//static volatile uint8_t upd0=0, upd1=0;
+
 /*********************************************************************************************************
 *                                              内部函数声明
 *********************************************************************************************************/
-
+static inline void cap_set_polarity(uint32_t timer,const volatile cap_channel_state_t* ch,uint16_t polarity);
 /*********************************************************************************************************
 *                                              内部函数实现
 *********************************************************************************************************/
 /*********************************************************************************************************
-* 函数名称：cap_plority_bit
+* 函数名称：cap_polarity_bit
 * 函数功能：其目的是根据输入的通道号（ ch ）返回对应的定时器通道优先级控制位（ TIMER_CHCTL2_CHxP ）
 * 输入参数：void
 * 输出参数：void
@@ -56,7 +71,7 @@ static volatile uint32_t last0=0, last1=0, per0=0, per1=0;
 * 注    意：表明这是一个静态内联函数，通常用于优化性能，避免函数调用的开销。
 *********************************************************************************************************/
 
-static inline uint32_t cap_plority_bit(uint16_t ch) // 返回通道优先级控制位
+static inline uint32_t cap_polarity_bit(uint16_t ch) // 返回通道优先级控制位
 {
 	switch(ch)
 	{
@@ -72,6 +87,73 @@ static inline uint32_t cap_plority_bit(uint16_t ch) // 返回通道优先级控制位
 			return 0;
 	}
 }
+/*********************************************************************************************************
+* 函数名称：cap_channel_reset_state
+* 函数功能：重置通道状态
+* 输入参数：void
+* 输出参数：void
+* 返 回 值：void
+* 创建日期：2025年09月30日
+* 注    意：表明这是一个静态内联函数，通常用于优化性能，避免函数调用的开销。
+*********************************************************************************************************/
+static inline void cap_channel_reset_state(volatile cap_channel_state_t* ch, uint32_t timer, uint16_t channel, uint32_t int_flag)
+{
+	ch->timer = timer;
+	ch->channel = channel;
+	ch->int_flag = int_flag;
+	ch->polarity_bit = cap_polarity_bit(channel);
+	ch->rise = 0U;
+	ch->period = 0U;
+	ch->duty = 0.0f;
+	ch->expect_fall = 0U;
+	ch->have_rise = 0U;
+	ch->updated = 0U;
+}
+/*********************************************************************************************************
+* 函数名称：cap_channel_handle_irq
+* 函数功能：
+* 输入参数：void
+* 输出参数：void
+* 返 回 值：void
+* 创建日期：2025年09月30日
+* 注    意：
+*********************************************************************************************************/
+static inline void cap_channel_handle_irq(volatile cap_channel_state_t* ch)
+{
+	uint32_t now = timer_channel_capture_value_register_read(ch->timer,ch->channel);
+	if(ch->expect_fall)
+	{
+		uint32_t high_ticks = (now - ch->rise)&0xFFFFU;
+		ch->expect_fall = 0U;
+		cap_set_polarity(ch->timer, ch, TIMER_IC_POLARITY_RISING);
+		float duty = 0.0f;
+		if(ch->period != 0U)
+		{
+			duty = (float)high_ticks/(float)ch->period;
+			if(duty<0.0f)
+			{
+				duty = 0.0f;
+			}
+			else if(duty > 1.0f)
+			{
+				duty = 1.0f;
+			}
+		}
+		ch->duty = duty;
+		ch->updated = 1U;
+	}
+	else
+	{
+		if(ch->have_rise)
+		{
+			ch->period = (now - ch->rise)&0xFFFFU;
+		}
+		ch->rise = now;
+		ch->have_rise = 1U;
+		ch->expect_fall = 1U;
+		cap_set_polarity(ch->timer,ch,TIMER_IC_POLARITY_FALLING);
+	}
+}
 
 /*********************************************************************************************************
 * 函数名称：cap_set_polarity
@@ -79,12 +161,12 @@ static inline uint32_t cap_plority_bit(uint16_t ch) // 返回通道优先级控制位
 * 输入参数：void
 * 输出参数：void
 * 返 回 值：void
-* 创建日期：2025年09月30日
+* 创建日期：2025年10月10日
 * 注    意：表明这是一个静态内联函数，通常用于优化性能，避免函数调用的开销。
 *********************************************************************************************************/
-static inline void cap_set_polarity(uint32_t timer,uint16_t channel,uint16_t polarity)
+static inline void cap_set_polarity(uint32_t timer,const volatile cap_channel_state_t* ch,uint16_t polarity)
 {
-	uint32_t bit = cap_plority_bit(channel); //调用 cap_plority_bit(channel) 获取与通道对应的极性位掩码（bitmask）
+	uint32_t bit =  ch->polarity_bit;
 	if(bit == 0)
 	{
 		return ;
@@ -99,7 +181,7 @@ static inline void cap_set_polarity(uint32_t timer,uint16_t channel,uint16_t pol
 }
 
 /*********************************************************************************************************
-* 函数名称：cap_set_polarity
+* 函数名称：cap_pa01_init
 * 函数功能：
 * 输入参数：void
 * 输出参数：void
@@ -127,7 +209,7 @@ void cap_pa01_init()
 	
 	
 	timer_ic_parameter_struct ic;
-	//timer_input_capture_struct_para_init(&ic);
+	// 已手动初始化 ic 结构体各字段，无需调用 timer_input_capture_struct_para_init(&ic)
 	ic.icpolarity  = TIMER_IC_POLARITY_RISING; 			// 初始捕获上升沿
 	ic.icselection = TIMER_IC_SELECTION_DIRECTTI;   // 直接输入模式。
 	ic.icprescaler = TIMER_IC_PSC_DIV1;  //输入捕获不分频	
@@ -139,126 +221,50 @@ void cap_pa01_init()
 	//timer_interrupt_flag_clear(CAP0_TIMER, CAP0_INT_CH | CAP1_INT_CH  | TIMER_INT_UP);
 	// // 清除CAP0_TIMER的中断标志（包括CAP0、CAP1、更新和触发中断）
 	timer_interrupt_flag_clear(CAP0_TIMER, CAP0_INT_CH | CAP1_INT_CH | TIMER_INT_UP | TIMER_INT_TRG);
-	nvic_irq_enable(CAP0_IRQN, 2, 0); /* same as CAP1_IRQN */
+	nvic_irq_enable(CAP0_IRQN, 2, 0); /* 只需使能 CAP0_IRQN（TIMER1 IRQ），因为 CAP0 和 CAP1 共用同一个中断向量 */
 	
 	timer_interrupt_enable(CAP0_TIMER, CAP0_INT_CH);
 	timer_interrupt_enable(CAP1_TIMER, CAP1_INT_CH);
 	timer_enable(CAP0_TIMER);
 	
-	// 初始化全局变量：上升沿时间
-	rise0 = 0U;
-	rise1 = 0U;
-	// 初始化全局变量：周期时间
-	period0 = 0U;
-	period1 = 0U;
-	// 初始化全局变量：期望捕获下降沿标志
-	expect_fall0 = 0U;
-	expect_fall1 = 0U;
-	// 初始化全局变量：已捕获上升沿标志
-	have_rise0 = 0U;
-	have_rise1 = 0U;
-	upd0 = 0U;
-	upd1 = 0U;
+	cap_channel_reset_state(&s_cap_channels[CAP_CH_INDEX_PA3],CAP0_TIMER,CAP0_CH,CAP0_INT_CH);
+	cap_channel_reset_state(&s_cap_channels[CAP_CH_INDEX_PA1],CAP1_TIMER,CAP1_CH,CAP1_INT_CH);
 }
 
 //通过捕获输入信号的上升沿和下降沿，计算输入信号的周期（ period ）和占空比（ duty ）
 void TIMER1_IRQHandler()
 {
-	uint32_t now0 = 0; // 当前捕获值
-	float duty = 0.0f;  // 占空比	
-	if(SET == timer_interrupt_flag_get(CAP0_TIMER,CAP0_INT_CH))  // 如果捕获通道0中断标志被设置
+	volatile cap_channel_state_t* ch0 = &s_cap_channels[CAP_CH_INDEX_PA3];
+	if(SET == timer_interrupt_flag_get(ch0->timer,ch0->int_flag))
 	{
-		now0 = timer_channel_capture_value_register_read(CAP0_TIMER, CAP0_CH); 		
-		if(expect_fall0) // 如果期望捕获下降沿
-		{
-			uint32_t high_ticks = (now0 - rise0) & 0xFFFFU;  // 计算高电平时间
-			expect_fall0 = 0U; //下降沿标志
-			cap_set_polarity(CAP0_TIMER, CAP0_CH, TIMER_IC_POLARITY_RISING); // 设置捕获通道的极性为上升沿
-			if(period0 != 0U) // 如果周期不为0
-			{
-				duty = (float)high_ticks / (float)period0; //计算占空比
-				if(duty < 0.0f)
-				{
-					duty = 0.0f;
-				}
-				if(duty > 1.0f)
-				{
-					duty = 1.0f;
-				}
-			}
-			duty0 = duty;
-			upd0 = 1U;
-		}
-		else
-		{
-			if(have_rise0) // 如果已捕获上升沿
-			{
-				period0 = (now0 - rise0)&0xFFFFU; //计算周期
-			}
-		rise0 = now0; //保存本次的上升沿时间
-		have_rise0 = 1U; //已捕获上升沿标志
-		expect_fall0 = 1U; //期望捕获下降沿标志
-		cap_set_polarity(CAP0_TIMER, CAP0_CH, TIMER_IC_POLARITY_FALLING); //设置捕获通道的极性为下降沿
-		}
-		timer_interrupt_flag_clear(CAP0_TIMER, CAP0_INT_CH); //清除中断标志
+		cap_channel_handle_irq(ch0);
+		timer_interrupt_flag_clear(ch0->timer,ch0->int_flag);
 	}
-	if(SET == timer_interrupt_flag_get(CAP1_TIMER, CAP1_INT_CH)) // 如果捕获通道1中断标志被设置
+	
+	volatile cap_channel_state_t* ch1 = &s_cap_channels[CAP_CH_INDEX_PA1];
+	if(SET == timer_interrupt_flag_get(ch1->timer, ch1->int_flag))
 	{
-			uint32_t now1 = timer_channel_capture_value_register_read(CAP1_TIMER, CAP1_CH);  // 读取当前捕获值
-
-			if(expect_fall1)   // 如果期望捕获下降沿
-			{
-					uint32_t high_ticks = (now1 - rise1) & 0xFFFFU; // 计算高电平时间
-					expect_fall1 = 0U; //下降沿标志
-					cap_set_polarity(CAP1_TIMER, CAP1_CH, TIMER_IC_POLARITY_RISING); // 设置捕获通道的极性为上升沿
-					if(period1 != 0U) // 如果周期不为0
-					{
-							float duty = (float)high_ticks / (float)period1; //计算占空比
-							if(duty < 0.0f)
-							{
-									duty = 0.0f;
-							}
-							if(duty > 1.0f)
-							{
-									duty = 1.0f;
-							}
-							duty1 = duty;
-							upd1 = 1U;
-					}
-				}
-			else
-			{
-					if(have_rise1) // 如果已捕获上升沿
-					{
-							period1 = (now1 - rise1) & 0xFFFFU; //计算周期
-					}
-					rise1 = now1; //保存本次的上升沿时间
-					have_rise1 = 1U; //已捕获上升沿标志
-					expect_fall1 = 1U; //期望捕获下降沿标志
-					cap_set_polarity(CAP1_TIMER, CAP1_CH, TIMER_IC_POLARITY_FALLING); //设置捕获通道的极性为下降沿
-			}
- 
-			timer_interrupt_flag_clear(CAP1_TIMER, CAP1_INT_CH); //清除中断标志
+		cap_channel_handle_irq(ch1);
+		timer_interrupt_flag_clear(ch1->timer, ch1->int_flag);
 	}
 }
 				
-
-int cap_pa0_read_duty(float* duty){
-	if(upd0)
-	{ 
-		upd0=0;
-		*duty = duty0;
-		return 1; 
+static inline int cap_read_duty(uint32_t index,float*duty)
+{
+	volatile cap_channel_state_t* ch = &s_cap_channels[index];
+	if(ch->updated)
+	{
+		ch->updated = 0U;
+		*duty = ch->duty;
+		return 1;
 	}
 	return 0;
 }
-
+// 注意：cap_pa0_read_duty 实际读取的是 PA3 通道（CAP_CH_INDEX_PA3），请确保硬件连接与逻辑一致。
+int cap_pa0_read_duty(float* duty){
+	return cap_read_duty(CAP_CH_INDEX_PA3, duty);
+}
+// cap_pa1_read_duty corresponds to CAP_CH_INDEX_PA1, which represents the PA1 input capture channel.
 int cap_pa1_read_duty(float* duty){
-	if(upd1)
-	{ 
-		upd1=0;
-	  *duty = duty1;
-		return 1; 
-	}
-	return 0;
+	return cap_read_duty(CAP_CH_INDEX_PA1, duty);
 }

@@ -26,23 +26,21 @@
 /*********************************************************************************************************
 *                                              ∫Í∂®“Â
 *********************************************************************************************************/
-//#define SYSCLK_HZ           108000000UL
-
 /* ==== Voltage sense dividers (top to bus, bottom to gnd) ==== */
-#define VBUS_RTOP_OHM       (1000000.0f)
-#define VBUS_RBOT_OHM       (4700.0f)
+#define VBUS_RTOP_OHM       (200000.0f)
+#define VBUS_RBOT_OHM       (10000.0f)
 
 #define VREF_ADC            (3.3f)
 
 /* Dividers for voltage ADC channels */
 #define VOUT_RTOP_OHM       (200000.0f)   /* PA5 */
 #define VOUT_RBOT_OHM       (10000.0f)
-#define VBT_RTOP_OHM        (1000000.0f)   /* PC5 */
-#define VBT_RBOT_OHM        (4700.0f)
+#define VBT_RTOP_OHM        (200000.0f)   /* PC5 */
+#define VBT_RBOT_OHM        (10000.0f)
 
 /* ==== Current sense ==== */
-#define ISHUNT_OHM          (0.02f)   /* 20 m¶∏ */
-#define IAMP_GAIN           (20.0f)   /* INA gain */
+#define ISHUNT_OHM          (0.005f)   /* 5 m¶∏ */
+#define IAMP_GAIN           (19.6f)   /* INA gain */
 
 /* ==== Control targets/thresholds ==== */
 #define VBUS_TARGET_V       (400.0f)
@@ -110,6 +108,10 @@
 #define PROT_GPIO_PIN      GPIO_PIN_11
 #define PROT_EXTI_LINE     EXTI_11
 
+
+#define PFC_MAIN_RELAY_PORT     GPIOA
+#define PFC_MAIN_RELAY_PIN     	GPIO_PIN_12 
+#define PFC_MAIN_RELAY_RCU			RCU_GPIOA
 
 #define PFC_EN_PORT     GPIOA
 #define PFC_EN_PIN     	GPIO_PIN_10  

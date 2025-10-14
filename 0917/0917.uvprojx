@@ -387,6 +387,11 @@
               <FileType>1</FileType>
               <FilePath>.\APP\src\main.c</FilePath>
             </File>
+            <File>
+              <FileName>Readme.txt</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Readme.txt</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

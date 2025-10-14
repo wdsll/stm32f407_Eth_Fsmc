@@ -1,7 +1,7 @@
 #include "main.h"
 typedef enum {
         PFC_ST_IDLE = 0,
-        PFC_ST_CHARGING,
+        //PFC_ST_CHARGING,
         PFC_ST_READY,
         PFC_ST_FAULT
 } pfc_state_t;

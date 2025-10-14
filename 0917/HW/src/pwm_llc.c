@@ -87,28 +87,29 @@ static uint32_t timer0_clk_hz(void){
 void llc_pwm_init(const llc_pwm_cfg_t* cfg){
     s_cfg=*cfg;
     pins_init();
+	/* 启用TIMER0的时钟 */
     rcu_periph_clock_enable(RCU_TIMER0);
-
+		/* 定义TIMER0的初始化参数结构体 */
     timer_parameter_struct t;
-    timer_struct_para_init(&t);
+   // timer_struct_para_init(&t);
 	
     uint32_t tclk = timer0_clk_hz();                // 如果你库里没有此宏，见文末备注
     s_period = (tclk/(2U*s_cfg.pwm_hz)) - 1U;      /* 中心对齐频率公式 */ //s_period 存储计算出的 PWM 周期值。
-
-    t.prescaler         = 0;
-    t.alignedmode       = TIMER_COUNTER_CENTER_BOTH;
-    t.counterdirection  = TIMER_COUNTER_UP;
-    t.period            = s_period;
-    t.clockdivision     = TIMER_CKDIV_DIV1;
-    t.repetitioncounter = 0;
+/* TIMER0 configuration */
+    t.prescaler         = 0;  // 预分频器设置为0（实际分频系数为0+1=1）
+    t.alignedmode       = TIMER_COUNTER_CENTER_BOTH; //居中对齐且向上/向下计数的断言模式
+    t.counterdirection  = TIMER_COUNTER_UP; // 向上计数
+    t.period            = s_period;   // 自动重载值  1
+    t.clockdivision     = TIMER_CKDIV_DIV1; // 时钟分频因子为1
+    t.repetitioncounter = 0; // 重复计数器值为0
     timer_init(TIMER0, &t);
 
     /* === 手动初始化 OC 结构体（无 para_init 版本）  OC 配置：一个通道 + 互补（半桥）  === */
     timer_oc_parameter_struct oc;
     oc.outputstate   = TIMER_CCX_ENABLE;  // 使能主输出通道
     oc.outputnstate  = TIMER_CCXN_ENABLE;
-    oc.ocpolarity    = TIMER_OC_POLARITY_HIGH;
-    oc.ocnpolarity   = TIMER_OCN_POLARITY_HIGH;
+    oc.ocpolarity    = TIMER_OC_POLARITY_HIGH; // 通道0输出极性为高电平
+    oc.ocnpolarity   = TIMER_OCN_POLARITY_HIGH;  // 通道0N输出极性为高电平
     oc.ocidlestate   = TIMER_OC_IDLE_STATE_LOW;   //空闲状态下主输出为低电平
     oc.ocnidlestate  = TIMER_OCN_IDLE_STATE_LOW;
 		//oc.ocnidlestate  = TIMER_OCN_IDLE_STATE_LOW;
@@ -116,6 +117,7 @@ void llc_pwm_init(const llc_pwm_cfg_t* cfg){
     timer_channel_output_config(TIMER0, LLC_PWM_CH, &oc);
 		// 设置TIMER0的LLC_PWM_CH通道的输出模式为标准PWM模式（TIMER_OC_MODE_PWM0)
     timer_channel_output_mode_config(TIMER0, LLC_PWM_CH, TIMER_OC_MODE_PWM0); /*TIMER_OC_MODE_PWM0 !< 通道互补输出状态 */
+		
 		// 配置TIMER0的LLC_PWM_CH通道的初始脉冲值（占空比）
 		// 参数0表示初始占空比为0%（输出低电平），常用于软启动或安全初始化
     timer_channel_output_pulse_value_config(TIMER0, LLC_PWM_CH, 0);
@@ -151,49 +153,6 @@ void llc_pwm_init(const llc_pwm_cfg_t* cfg){
 
     llc_pwm_set_duty(s_cfg.duty); /* 如果你走 50% 固定，这里直接设 0.5f 即可 */
 }
-/*
-void llc_pwm_init(const llc_pwm_cfg_t* cfg){
-    s_cfg=*cfg; 
-		pins_init(); 
-		rcu_periph_clock_enable(RCU_TIMER0);
-    timer_parameter_struct t;
-		timer_struct_para_init(&t);
-    uint32_t tclk=RCU_TIMER0CLK; 
-		s_period=(tclk/(2U*s_cfg.pwm_hz))-1U;
-    t.prescaler=0; 
-		t.alignedmode=TIMER_COUNTER_CENTER_BOTH; 
-		t.counterdirection=TIMER_COUNTER_UP;
-    t.period=s_period; 
-		t.clockdivision=TIMER_CKDIV_DIV1; 
-		t.repetitioncounter=0; 
-		timer_init(TIMER0,&t);
-    timer_oc_parameter_struct oc; 
-		timer_channel_output_struct_para_init(&oc);
-    oc.outputstate=TIMER_CCX_ENABLE; 
-		oc.outputnstate=TIMER_CCXN_ENABLE;
-    oc.ocpolarity=TIMER_OC_POLARITY_HIGH; 
-		oc.ocnpolarity=TIMER_OCN_POLARITY_HIGH;
-    oc.ocidlestate=TIMER_OC_IDLE_STATE_LOW; 
-		oc.ocnidlestate=TIMER_OCN_IDLE_STATE_LOW;
-    timer_channel_output_config(TIMER0, LLC_PWM_CH, &oc);
-    timer_channel_output_mode_config(TIMER0, LLC_PWM_CH, TIMER_OC_MODE_PWM0);
-    timer_channel_output_pulse_value_config(TIMER0, LLC_PWM_CH, 0);
-    timer_channel_output_shadow_config(TIMER0, LLC_PWM_CH, TIMER_OC_SHADOW_ENABLE);
-    timer_break_parameter_struct bk; 
-		//timer_break_struct_para_init(&bk);
-    bk.runoffstate=TIMER_ROS_STATE_ENABLE; bk.ideloffstate=TIMER_IOS_STATE_ENABLE;
-    bk.protectmode=TIMER_CCHP_PROT_OFF; 
-		bk.deadtime=dt_ticks(s_cfg.deadtime_ns,tclk);
-    bk.breakstate=TIMER_BREAK_ENABLE; 
-		bk.breakpolarity=TIMER_BREAK_POLARITY_LOW; 
-		bk.outputautostate=TIMER_OUTAUTO_ENABLE;
-    timer_break_config(TIMER0,&bk);
-    timer_auto_reload_shadow_enable(TIMER0); 
-		timer_primary_output_config(TIMER0, ENABLE); 
-		timer_enable(TIMER0);
-    llc_pwm_set_duty(s_cfg.duty);
-}
-*/
 
 /* 	频率在线更新：同时更新 ARR 和 CCR，保持占空比 ,ARR（Auto-Reload Register，自动重装载寄存器）
 		CCR（Capture/Compare Register，捕获/比较寄存器）*/

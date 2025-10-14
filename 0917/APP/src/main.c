@@ -72,6 +72,8 @@
 *********************************************************************************************************/
 
 #define LLC_USE_OPEN_LOOP 1
+
+#define Bus_Adj 0
 /*********************************************************************************************************
 *                                              枚举结构体
 *********************************************************************************************************/
@@ -160,26 +162,11 @@ static inline void module_tests_tick_1khz(float vbus_v) { (void)vbus_v; }
 static float s_pfc_bus_v = 0.0f;
 static bool s_pfc_hw_enabled = false;
 static bool s_pfc_hw_relay = false;
-/*********************************************************************************************************
-*                                              内部函数声明
-*********************************************************************************************************/
-static llc_app_ctx_t s_llc_app;
-static pfc_app_ctx_t s_pfc_app;
 
-
-static void llc_state_enter(llc_state_t next);
-static void pfc_state_enter(pfc_state_t next);
-
-static void pfc_hw_init(void);
-static void pfc_hw_set_enable(bool en);
-static void pfc_hw_set_relay(bool closed);
-void systick_1ms_init(void);
-
-/*********************************************************************************************************
-*                                              内部函数实现
-*********************************************************************************************************/
 
 static llc_t s_llc;
+static llc_app_ctx_t s_llc_app;
+static pfc_app_ctx_t s_pfc_app;
 
 #if LLC_USE_OPEN_LOOP
 static llc_open_loop_ctrl_t s_llc_open_loop;
@@ -194,22 +181,57 @@ static const llc_open_loop_segment_t s_llc_open_loop_profile[] = {
 
 volatile uint32_t g_ms=0;
 static volatile uint32_t s_control_tick_pending = 0U;
+
+/* 控制循环参数（1 kHz） */
+#define CONTROL_LOOP_HZ            (1000U)
+#define CONTROL_LOOP_DT_S          (1.0f / (float)CONTROL_LOOP_HZ)
+/* 主循环一次最多处理的 tick，超过将计数为丢弃（避免主循环长时间占用） */
+#define MAX_TICKS_PER_LOOP         (5U)
+static volatile uint32_t s_tick_drop_count = 0U; /* 被丢弃的 tick 计数 */
+/*********************************************************************************************************
+*                                              内部函数声明
+*********************************************************************************************************/
+static void llc_state_enter(llc_state_t next);
+static void pfc_state_enter(pfc_state_t next);
+
+static void pfc_hw_init(void);
+static void pfc_hw_set_enable(bool en);
+static void pfc_hw_set_relay(bool closed);
+void systick_1ms_init(void);
+
+/*********************************************************************************************************
+*                                              内部函数实现
+*********************************************************************************************************/
+void systick_config(void)
+{
+    /* setup systick timer for 1000Hz interrupts */
+    if (SysTick_Config(SystemCoreClock / 1000U)){
+        /* capture error */
+        while (1){
+        }
+    }
+    /* configure the systick handler priority */
+    NVIC_SetPriority(SysTick_IRQn, 0x00U);
+}
 void systick_1ms_init(void){
 		SystemCoreClockUpdate();    
      uint32_t reload  = SystemCoreClock / 1000U;
 	  if (reload == 0U || reload > SysTick_LOAD_RELOAD_Msk) {
                                            // 失败：频率异常或超出24位
     }
-		reload -= 1U;
+		reload -= 1U; //调整重载值，确保定时器行为符合预期。
 		if (reload > SysTick_LOAD_RELOAD_Msk) {
 			reload = SysTick_LOAD_RELOAD_Msk;
 		}
 		
-		SysTick->CTRL = 0U;
-		SysTick->LOAD = reload;
-		SysTick->VAL  = 0U;
+		SysTick->CTRL = 0U;  //先禁用 SysTick。
+		SysTick->LOAD = reload; //设置重载值。
+		SysTick->VAL  = 0U; //清除当前计数值。
     NVIC_SetPriority(SysTick_IRQn, 0x0F);
-		SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk |
+		//设置 SysTick 的时钟源。如果该位被置 1，表示使用处理器时钟（HCLK）；如果为 0，表示使用 HCLK 的 8 分频。
+		//控制 SysTick 中断的启用。如果该位被置 1，表示允许 SysTick 定时器在计数到 0 时触发中断。
+		//控制 SysTick 定时器的启用。如果该位被置 1，表示启动定时器计数。
+		SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk |  
 								SysTick_CTRL_TICKINT_Msk   |
 								SysTick_CTRL_ENABLE_Msk;
 }
@@ -218,9 +240,15 @@ static inline float conv_adc_to_v_div(uint16_t raw, float rtop, float rbot){
     float v = (raw * VREF_ADC) / 4095.0f;
     return v * (rtop + rbot) / rbot;
 }
+
+//去偏置
+//float v_net = v_adc - v_zero;               // 去偏置
+//return v_net / (ISHUNT_OHM * IAMP_GAIN);    // 单位：安培
+//v_zero≈0.17V
 static inline float conv_adc_to_i(uint16_t raw){
     float v = (raw * VREF_ADC) / 4095.0f;
-    return v / (ISHUNT_OHM * IAMP_GAIN);
+		float v1 = v - 0.17;              // 去偏置
+    return v1 / (ISHUNT_OHM * IAMP_GAIN);
 }
 static inline float f_absf(float x){ return x < 0 ? -x : x; }
 static inline float f_minf(float a,float b){ return a < b ? a : b; }
@@ -344,6 +372,7 @@ static void module_tests_tick_1khz(float vbus_v)
     (void)vbus_v;
 }
 #endif
+
 static void pfc_hw_init(void)
 {
 	#if defined(PFC_EN_PORT)&&defined(PFC_EN_PIN)&&defined(PFC_EN_RCU)
@@ -352,7 +381,7 @@ static void pfc_hw_init(void)
 		gpio_bit_reset(PFC_EN_PORT, PFC_EN_PIN);
 	#endif
 	
-	#if defined(PFC_MAIN_RELAY_PORT)&&defined(PFC_MAIN_RELAY_PIN)&&(PFC_MAIN_RELAY_RCU)
+	#if defined(PFC_MAIN_RELAY_PORT)&&defined(PFC_MAIN_RELAY_PIN)&&defined(PFC_MAIN_RELAY_RCU)
 		rcu_periph_clock_enable(PFC_MAIN_RELAY_RCU);
 		gpio_init(PFC_MAIN_RELAY_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, PFC_MAIN_RELAY_PIN);
 		gpio_bit_reset(PFC_MAIN_RELAY_PORT, PFC_MAIN_RELAY_PIN);
@@ -383,7 +412,7 @@ static void pfc_hw_set_enable(bool en)
 	#endif
 }
 
-static void pfc_hw_set_relay(bool closed)
+static void pfc_hw_set_relay(bool closed)  //PA12
 {
 	if(s_pfc_hw_relay == closed)
 	{
@@ -414,14 +443,11 @@ static void pfc_state_enter(pfc_state_t next)
 	switch(next)
 	{
 		case PFC_ST_IDLE:
-			pfc_hw_set_enable(false);
-			//pfc_hw_set_relay(false);
-			break;
-		case PFC_ST_CHARGING:
-			pfc_hw_set_enable(true);
-			//pfc_hw_set_relay(false);
+			pfc_hw_set_enable(s_pfc_app.enable_cmd);
+
 			break;
 		case PFC_ST_READY:
+			// 到这一步才合上继电器
 			pfc_hw_set_enable(true);
 			//pfc_hw_set_relay(true);
 			s_pfc_app.vbus_ok_since_ms = g_ms;
@@ -472,40 +498,42 @@ void pfc_app_force_off()
 * 输出参数：void
 * 返 回 值：void
 * 创建日期：2025年10月09日
-* 注    意：
+* 注    意：有启动延时、达标保持、迟滞、READY 消抖和充电超时五道保障，现场表现会更“稳且可预期
 *********************************************************************************************************/
 void pfc_app_tick_1khz(float vbus_v)
 {
 	s_pfc_bus_v = vbus_v;
 	bool fault_active = protect_fault_latched()||protect_fault_active_hw();
-	
+	//排除故障状态
 	if(fault_active && s_pfc_app.state != PFC_ST_FAULT)
 	{
 		pfc_state_enter(PFC_ST_FAULT);
+		 return;
 	}
 	
 	switch(s_pfc_app.state)
 	{
 		case PFC_ST_IDLE:
-			if(s_pfc_app.enable_cmd && !fault_active)
-			{
-				//启动延迟
-				if((uint32_t)(g_ms - s_pfc_app.entry_ms) >= PFC_STARTUP_DELAY_MS){
-					pfc_state_enter(PFC_ST_CHARGING);
-				}
-			}
-			break;
-		case PFC_ST_CHARGING:
 			if(!s_pfc_app.enable_cmd)
 			{
-				pfc_state_enter(PFC_ST_IDLE);
+				if(s_pfc_hw_enabled)
+				{
+					pfc_hw_set_enable(false);
+				}
+				s_pfc_app.vbus_ok_since_ms = 0U;
 				break;
 			}
-			if(fault_active)
+			if(!s_pfc_hw_enabled)
 			{
-				pfc_state_enter(PFC_ST_FAULT);
-				break;
+				//用示波器测量从使能信号（ pfc_hw_set_enable(true) ）到输出电压稳定的实际时间,将延时设为实测时间的 1.2-1.5倍 以留余量。
+				if((uint32_t)(g_ms - s_pfc_app.entry_ms)<PFC_STARTUP_DELAY_MS)
+				{
+					break;
+				}
+				pfc_hw_set_enable(true);
 			}
+			
+			
 			//输入电压 vbus_v 达到目标值（ PFC_VBUS_READY_V ），并保持一段时间（ PFC_READY_DELAY_MS ）进入ready状态
 			if(vbus_v>=PFC_VBUS_READY_V)
 			{
@@ -520,17 +548,13 @@ void pfc_app_tick_1khz(float vbus_v)
 			}
 			else
 			{
-				s_pfc_app.vbus_ok_since_ms = 0; //记录电压达标时间。
+				s_pfc_app.vbus_ok_since_ms = 0; // 重新计时
 			}
+			break;
 		case PFC_ST_READY:
 			if(!s_pfc_app.enable_cmd)
 			{
 				pfc_state_enter(PFC_ST_IDLE);
-				break;
-			}
-			if(fault_active)
-			{
-				pfc_state_enter(PFC_ST_FAULT);
 				break;
 			}
 	//输入电压低于阈值（ PFC_VBUS_READY_V - PFC_VBUS_READY_HYST_V ），并持续一定时间（ PFC_VBUS_DROPOUT_MS ）。
@@ -546,7 +570,7 @@ void pfc_app_tick_1khz(float vbus_v)
 				}
 				else if((uint32_t)(g_ms - s_pfc_app.dropout_since_ms)>=PFC_VBUS_DROPOUT_MS)
 				{
-					pfc_state_enter(PFC_ST_CHARGING);
+					pfc_state_enter(PFC_ST_IDLE);
 				}
 			}
 			break;
@@ -564,7 +588,7 @@ void pfc_app_tick_1khz(float vbus_v)
 			{
 				if((uint32_t)(g_ms - s_pfc_app.entry_ms)>= PFC_RESTART_DELAY_MS)
 				{
-					pfc_state_enter(PFC_ST_CHARGING);
+					pfc_state_enter(PFC_ST_IDLE);
 				}
 			}
 			break;
@@ -607,8 +631,6 @@ void llc_step(llc_t* l){
 			l->f_cmd = f_req; // 否则一步到位：直接把下发频率设为目标
 }
 
-
-
 /*********************************************************************************************************
 * 函数名称：llc_state_enter
 * 函数功能：状态机切换函数，用于控制 LLC（谐振变换器）的不同工作状态
@@ -622,9 +644,9 @@ static void llc_state_enter(llc_state_t next)
 {
 	s_llc_app.state = next;
 	s_llc_app.entry_ms = g_ms;
-	
+	#if Bus_Adj
 	bus_vol_adj_reset();   //重置总线电压调整逻辑 百分之五十的占空比
-	
+	#endif
 	switch(next)
 	{
 		case ST_IDLE:
@@ -653,7 +675,11 @@ static void llc_state_enter(llc_state_t next)
 			llc_open_loop_start(&s_llc_open_loop);
 			s_llc.f_cmd = f_clampf(llc_open_loop_get_freq(&s_llc_open_loop), s_llc.f_min, s_llc.f_max);
 		}
-		s_llc.f_cmd = f_clampf(s_llc_open_loop_final_freq, s_llc.f_min, s_llc.f_max);
+		else
+		{
+			s_llc.f_cmd = f_clampf(s_llc_open_loop_final_freq, s_llc.f_min, s_llc.f_max);
+		}
+		
 #else
 			s_llc.f_cmd = f_clampf(LLC_F_INIT_HZ, s_llc.f_min, s_llc.f_max);
 #endif
@@ -679,41 +705,47 @@ void llc_app_init()
 * 输入参数：next
 * 输出参数：void
 * 返 回 值：void
-* 创建日期：202年10月09日
+* 创建日期：2025年10月09日
 * 注    意：当 LLC 需要从一个状态切换到另一个状态时，此函数会被调用，执行相应的初始化或清理操作。
 *********************************************************************************************************/
 void llc_app_tick_1khz(void)
 {
+	if(protect_fault_latched() || protect_fault_active_hw()||pfc_app_state() == PFC_ST_FAULT)
+	{
+		llc_state_enter(ST_FAULT);
+		return;
+	}
 	switch(s_llc_app.state)
 	{
 		case ST_IDLE:
 			llc_state_enter(ST_WAIT_VBUS);
 			break;
 		case ST_WAIT_VBUS:
-			if(protect_fault_latched() || protect_fault_active_hw()||pfc_app_state() == PFC_ST_FAULT)
-			{
-				llc_state_enter(ST_FAULT);
-				break;
-			}
 			//需满足 PFC 准备就绪且电压达到阈值
 			if(!pfc_app_ready()||s_llc.vmeas < LLC_ENTRY_V)
 			{
-				s_llc_app.entry_ms = g_ms;
+				if (s_llc_app.entry_ms == 0U)
+				{
+					s_llc_app.entry_ms = g_ms;
+				}					
+				//吸合主继电器
+				pfc_hw_set_relay(1);
+				llc_state_enter(ST_LLC_RUN); 
 				break;
 			}
-			//准备就绪后100ms进run
-			if((uint32_t)(g_ms - s_llc_app.entry_ms)>=LLC_START_DELAY_MS)
+			else
 			{
-				llc_state_enter(ST_LLC_RUN); 
+				s_llc_app.entry_ms = 0U;          // 条件中断，重新计时
+				pfc_hw_set_relay(0);              // 还未满足，保持断开更安全
 			}
+			break;                                 // <<< 必须有
+
 		case ST_LLC_RUN:
-			if(protect_fault_latched() || protect_fault_active_hw()||pfc_app_state()==PFC_ST_FAULT)
-			{
-				llc_state_enter(ST_FAULT);
-			}
+			 // 运行中：不就绪或电压跌破“进入阈值-迟滞”→ 退回等待
 			//如果任一条件成立（PFC未就绪 或 电压过低），则调用 llc_state_enter(ST_WAIT_VBUS) ，切换至等待VBUS状态。
-			else if(!pfc_app_ready()||s_llc.vmeas<(LLC_ENTRY_V-PFC_VBUS_READY_HYST_V))
+			if(!pfc_app_ready()||s_llc.vmeas<(LLC_ENTRY_V-PFC_VBUS_READY_HYST_V))
 			{
+				pfc_hw_set_relay(0);
 				llc_state_enter(ST_WAIT_VBUS);
 			}
 			break;
@@ -732,6 +764,18 @@ void SysTick_Handler(void){
     g_ms++;
     s_control_tick_pending++;
 }
+
+/*********************************************************************************************************
+* 函数名称：control_loop_tick_1khz
+* 函数功能：主要用于实时控制电力电子系统中的功率转换模块
+* 输入参数：next
+* 输出参数：void
+* 返 回 值：void
+* 创建日期：2025年10月09日
+* 注    意：数据采集与转换：通过ADC读取输出电压的原始数据，并将其转换为实际的电压值。
+						根据系统状态（如LLC是否运行）执行不同的控制逻辑
+						动态调整LLC的工作频率，确保系统稳定运行。
+*********************************************************************************************************/
 static void control_loop_tick_1khz(void){
     /* 1 kHz control */
     adc_multi_copy(); 
@@ -740,16 +784,20 @@ static void control_loop_tick_1khz(void){
 		pfc_app_tick_1khz(vout);
 		llc_app_tick_1khz();
 		bool llc_running = (llc_app_state() == ST_LLC_RUN);
+#if Bus_Adj
 		bus_vol_adj_tick(vout, llc_running);
+#endif
 		if(llc_running)
 		{
 #if LLC_USE_OPEN_LOOP
 		if(!s_llc_open_loop_completed)
 		{
-			bool is_running = llc_open_loop_running(&s_llc_open_loop);
-			s_llc_open_loop_final_freq = f_clampf(llc_open_loop_get_freq(&s_llc_open_loop),s_llc.f_min,s_llc.f_max);
-			if(!is_running&&s_llc_open_loop.segment_count>0U&&s_llc_open_loop.current_index ==(s_llc_open_loop.segment_count -1))
+			llc_open_loop_tick(&s_llc_open_loop);
+			float freq = f_clampf(llc_open_loop_get_freq(&s_llc_open_loop),s_llc.f_min,s_llc.f_max);
+			s_llc.f_cmd = freq;
+			if(!llc_open_loop_running(&s_llc_open_loop))
 			{
+				s_llc_open_loop_final_freq = freq;
 				s_llc_open_loop_completed = true;
 			}
 		}
@@ -775,8 +823,12 @@ int main(void){
     /* Aux PWM on PB0 */
 		pb0_pwm_init(PB0_PWM_BASE_HZ);
 		
-		//pb0_pwm_set_duty(0.5f);
+		#if Bus_Adj
 		bus_vol_adj_init();
+		#else
+		pb0_pwm_set_duty(0.5f);
+		#endif
+		
     /* ADC multi (PA3/PA1 removed) triggered by TIMER0 CH0 for coherence */
     adc_multi_init_dma(ADC0_1_EXTTRIG_REGULAR_T0_CH0); 
     adc_multi_start();
@@ -809,8 +861,8 @@ int main(void){
 			__disable_irq();
 			if(s_control_tick_pending > 0U)
 			{
-					pending_ticks = s_control_tick_pending;
-					s_control_tick_pending = 0U;
+					pending_ticks = s_control_tick_pending; //pending_ticks ：用于逐个处理待执行的控制任务。
+					s_control_tick_pending = 0U;  //记录待处理的控制周期任务数量。
 			}
 			__enable_irq();
 			while(pending_ticks-- > 0U)

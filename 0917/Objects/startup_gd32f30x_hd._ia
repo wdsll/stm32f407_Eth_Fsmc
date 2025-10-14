@@ -1,0 +1,10 @@
+--cpu Cortex-M4.fp -g --pd "__MICROLIB SETA 1"
+-I.\RTE\_Target_1
+-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include
+-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include
+--pd "__UVISION_VERSION SETA 525"
+--pd "_RTE_ SETA 1"
+--pd "GD32F30X_HD SETA 1"
+--list .\listings\startup_gd32f30x_hd.lst
+--xref -o .\objects\startup_gd32f30x_hd.o
+--depend .\objects\startup_gd32f30x_hd.d "GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Source\ARM\startup_gd32f30x_hd.s"
