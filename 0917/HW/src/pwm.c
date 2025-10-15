@@ -33,7 +33,7 @@ void pb0_pwm_init(uint32_t pwm_hz)
 	gpio_init(PB0_PORT, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, PB0_PIN);
 	rcu_periph_clock_enable(RCU_TIMER2);
 	timer_parameter_struct t;
-	timer_struct_para_init(&t);
+	//timer_struct_para_init(&t);
 	uint32_t tclk = timer_clk_hz();
 	s_period = (tclk / pwm_hz) - 1U;
 	t.prescaler=0;

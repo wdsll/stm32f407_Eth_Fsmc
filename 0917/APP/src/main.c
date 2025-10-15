@@ -97,6 +97,15 @@ typedef struct
 	bool enable_cmd;
 } pfc_app_ctx_t;
 
+typedef struct
+{
+	bool active;
+	uint32_t start_ms;
+	uint32_t duration_ms;
+	float start_duty;
+	float target_duty;
+} llc_softstart_ctx_t;
+
 #if MODULE_TESTS_ACTIVE
 typedef struct
 {
@@ -167,6 +176,8 @@ static bool s_pfc_hw_relay = false;
 static llc_t s_llc;
 static llc_app_ctx_t s_llc_app;
 static pfc_app_ctx_t s_pfc_app;
+static llc_softstart_ctx_t s_llc_softstart;
+
 
 #if LLC_USE_OPEN_LOOP
 static llc_open_loop_ctrl_t s_llc_open_loop;
@@ -191,6 +202,10 @@ static volatile uint32_t s_tick_drop_count = 0U; /* 被丢弃的 tick 计数 */
 /*********************************************************************************************************
 *                                              内部函数声明
 *********************************************************************************************************/
+static void llc_softstart_reset(void);
+static void llc_softstart_begin(float target_duty);
+static void llc_softstart_tick(void);
+
 static void llc_state_enter(llc_state_t next);
 static void pfc_state_enter(pfc_state_t next);
 
@@ -256,6 +271,60 @@ static inline float f_maxf(float a,float b){ return a > b ? a : b; }
 static inline float f_clampf(float x,float lo,float hi)
 { return x<lo?lo:(x>hi?hi:x); }
 
+static void llc_softstart_reset(void)
+{
+		s_llc_softstart.active = false;
+		s_llc_softstart.start_ms = 0U;
+		s_llc_softstart.duration_ms = LLC_SOFTSTART_DURATION_MS;
+		s_llc_softstart.start_duty = f_clampf(LLC_SOFTSTART_START_DUTY, 0.0f, 0.99f);
+		s_llc_softstart.target_duty = f_clampf(LLC_PWM_DUTY, 0.0f, 0.99f);
+		llc_pwm_set_duty(s_llc_softstart.start_duty);
+}
+static void llc_softstart_begin(float target_duty)
+{
+		float start_duty = f_clampf(LLC_SOFTSTART_START_DUTY, 0.0f, 0.99f);
+		float final_duty = f_clampf(target_duty, 0.0f, 0.99f);
+		s_llc_softstart.duration_ms = LLC_SOFTSTART_DURATION_MS;
+		s_llc_softstart.start_duty = start_duty;
+		s_llc_softstart.target_duty = final_duty;
+		if(final_duty <= start_duty || s_llc_softstart.duration_ms == 0U)
+		{
+			s_llc_softstart.active = false;
+			llc_pwm_set_duty(final_duty);
+		}
+		else
+		{
+			s_llc_softstart.active = true;
+			s_llc_softstart.start_ms = g_ms;
+			llc_pwm_set_duty(start_duty);
+		}
+}
+
+static void llc_softstart_tick(void)
+{
+		if(!s_llc_softstart.active)
+		{
+			return;
+		}
+		uint32_t elapsed = (uint32_t)(g_ms - s_llc_softstart.start_ms);
+		if(elapsed >= s_llc_softstart.duration_ms)
+		{
+			s_llc_softstart.active = false;
+			llc_pwm_set_duty(s_llc_softstart.target_duty);
+			return;
+		}
+		if(s_llc_softstart.duration_ms == 0U)
+		{
+						s_llc_softstart.active = false;
+						llc_pwm_set_duty(s_llc_softstart.target_duty);
+						return;
+		}
+		float progress = (float)elapsed / (float)s_llc_softstart.duration_ms;
+		//使用线性插值公式计算当前占空比
+		float duty = s_llc_softstart.start_duty +
+								 (s_llc_softstart.target_duty - s_llc_softstart.start_duty) * progress;
+		llc_pwm_set_duty(duty);
+}
 #if MODULE_TESTS_ACTIVE
 
 static void module_tests_init(void)
@@ -653,8 +722,10 @@ static void llc_state_enter(llc_state_t next)
 #if LLC_USE_OPEN_LOOP
 			llc_open_loop_stop(&s_llc_open_loop);
 #endif
+			llc_softstart_reset();
 			pfc_app_force_off();  
 			llc_pwm_outputs_enable(0);
+		
 			s_llc.integ = 0.0f;
 			s_llc.f_cmd = s_llc.f_min;
 			break;
@@ -662,6 +733,7 @@ static void llc_state_enter(llc_state_t next)
 #if LLC_USE_OPEN_LOOP
 			llc_open_loop_stop(&s_llc_open_loop);
 #endif
+			llc_softstart_reset();
 			pfc_app_request_start(); //记录请求的起始时间
 			llc_pwm_outputs_enable(0);
 			s_llc.integ = 0.0f;
@@ -683,11 +755,13 @@ static void llc_state_enter(llc_state_t next)
 #else
 			s_llc.f_cmd = f_clampf(LLC_F_INIT_HZ, s_llc.f_min, s_llc.f_max);
 #endif
+			llc_softstart_begin(LLC_PWM_DUTY);
 			llc_pwm_outputs_enable(1);
 			break;
 		case ST_FAULT:
 				
-		default:
+		default:	
+			llc_softstart_reset();
 			pfc_app_force_off();
 			llc_pwm_outputs_enable(0);
 			s_llc.f_cmd = s_llc.f_min;
@@ -789,6 +863,7 @@ static void control_loop_tick_1khz(void){
 #endif
 		if(llc_running)
 		{
+			llc_softstart_tick();
 #if LLC_USE_OPEN_LOOP
 		if(!s_llc_open_loop_completed)
 		{

@@ -164,6 +164,8 @@ static inline uint16_t duty_to_ccr(float d)
 }
 void llc_pwm_set_duty(float d)
 { 
+	float duty = clampf(d, 0.0f, 0.99f);
+	s_cfg.duty = duty;
 	timer_channel_output_pulse_value_config(TIMER0, LLC_PWM_CH, duty_to_ccr(d)); 
 }
 void llc_pwm_outputs_enable(bool en)

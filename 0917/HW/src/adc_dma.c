@@ -17,10 +17,10 @@ static void analog_pins(void){
 static inline void adc_multi_store_frame(const uint16_t *src){
     s_latched.vout_raw   = src[0];
     s_latched.isense_raw = src[1];
-    s_latched.tsense_raw = src[2];
-    s_latched.v3v3_raw   = src[3];
-    s_latched.vbt_raw    = src[4];
-    s_latched.t_llc_raw  = src[5];
+    //s_latched.tsense_raw = src[2];
+    //s_latched.v3v3_raw   = src[3];
+    //s_latched.vbt_raw    = src[4];
+    //s_latched.t_llc_raw  = src[5];
 }
 static void dma_cfg(void){
     rcu_periph_clock_enable(RCU_DMA0);
@@ -34,7 +34,7 @@ static void dma_cfg(void){
     d.memory_width=DMA_MEMORY_WIDTH_16BIT;    // 指定内存存储宽度为 16 位，与外设宽度保持一致
     //d.number=6;
 		//d.number=ADC_MULTI_CHANNEL_COUNT * 2U;  // 每次 DMA 循环要传输 6 个数据项，对应 6 个规则通道的结果,这边配置了双缓冲区
-    d.number=ADC_MULTI_CHANNEL_COUNT * 2U;  // 配置双缓冲区，每次 DMA 循环传输 6*2=12 个数据项，前 6 个用于半传输（HTF），后 6 个用于全传输（FTF），便于双缓冲处理
+    d.number=ADC_TIM0_TRIGGERED_COUNT  * 2U;  // 配置双缓冲区，每次 DMA 循环传输 6*2=12 个数据项，前 6 个用于半传输（HTF），后 6 个用于全传输（FTF），便于双缓冲处理
     d.priority=DMA_PRIORITY_HIGH;   // 将该通道优先级设为高，减少被其他 DMA 任务抢占的概率
 		d.direction=DMA_PERIPHERAL_TO_MEMORY;  // 设置传输方向：从外设读数据写入内存
     dma_init(DMA0, DMA_CH0, d);   // 依据以上参数初始化 DMA0 通道 0
@@ -66,10 +66,10 @@ void adc_multi_init_dma(uint32_t trig_src){
     adc_channel_length_config(ADC0, ADC_REGULAR_CHANNEL, ADC_MULTI_CHANNEL_COUNT);  // 配置 ADC 的常规通道数量。
     adc_regular_channel_config(ADC0, 0, VOUT_SENSE_CH,     ADC_SAMPLETIME_55POINT5); 
     adc_regular_channel_config(ADC0, 1, ADC_ISENSE_CH,     ADC_SAMPLETIME_55POINT5); 
-    adc_regular_channel_config(ADC0, 2, ADC_TSENSE_CH,     ADC_SAMPLETIME_55POINT5);
-    adc_regular_channel_config(ADC0, 3, AD_3V3_CH,         ADC_SAMPLETIME_55POINT5);
-    adc_regular_channel_config(ADC0, 4, VBT_SENSE_CH,      ADC_SAMPLETIME_55POINT5);
-    adc_regular_channel_config(ADC0, 5, T_SENSE_LLCMOS_CH, ADC_SAMPLETIME_55POINT5);
+    //adc_regular_channel_config(ADC0, 2, ADC_TSENSE_CH,     ADC_SAMPLETIME_55POINT5);
+    //adc_regular_channel_config(ADC0, 3, AD_3V3_CH,         ADC_SAMPLETIME_55POINT5);
+    //adc_regular_channel_config(ADC0, 4, VBT_SENSE_CH,      ADC_SAMPLETIME_55POINT5);
+    //adc_regular_channel_config(ADC0, 5, T_SENSE_LLCMOS_CH, ADC_SAMPLETIME_55POINT5);
 
     adc_external_trigger_source_config(ADC0, ADC_REGULAR_CHANNEL, trig_src);
     adc_external_trigger_config(ADC0, ADC_REGULAR_CHANNEL, ENABLE);
@@ -89,10 +89,10 @@ void adc_multi_copy(void){
     adc_multi_frame_t frame;
     frame.vout_raw   = s_latched.vout_raw;
     frame.isense_raw = s_latched.isense_raw;
-    frame.tsense_raw = s_latched.tsense_raw;
-    frame.v3v3_raw   = s_latched.v3v3_raw;
-    frame.vbt_raw    = s_latched.vbt_raw;
-    frame.t_llc_raw  = s_latched.t_llc_raw;
+   // frame.tsense_raw = s_latched.tsense_raw;
+    //frame.v3v3_raw   = s_latched.v3v3_raw;
+   // frame.vbt_raw    = s_latched.vbt_raw;
+   // frame.t_llc_raw  = s_latched.t_llc_raw;
     g_adc_multi = frame;
 }
 
@@ -104,7 +104,7 @@ void DMA0_Channel0_IRQHandler(void)
     }
     if(dma_interrupt_flag_get(DMA0, DMA_CH0, DMA_INT_FLAG_FTF)){
 				dma_interrupt_flag_clear(DMA0, DMA_CH0, DMA_INT_FLAG_FTF);
-        adc_multi_store_frame(&s_buf[ADC_MULTI_CHANNEL_COUNT]);
+        adc_multi_store_frame(&s_buf[ADC_TIM0_TRIGGERED_COUNT]);
     }
     dma_interrupt_flag_clear(DMA0, DMA_CH0, DMA_INT_FLAG_G);
 }

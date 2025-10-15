@@ -12,9 +12,11 @@ typedef struct {
 } adc_multi_frame_t;
 
 enum { 
-	ADC_MULTI_CHANNEL_COUNT = 6U 
+	ADC_MULTI_CHANNEL_COUNT = 6U,
+	ADC_TIM0_TRIGGERED_COUNT = 2U
 };
-static uint16_t s_buf[ADC_MULTI_CHANNEL_COUNT * 2U];
+//static uint16_t s_buf[ADC_MULTI_CHANNEL_COUNT * 2U];
+static uint16_t s_buf[ADC_TIM0_TRIGGERED_COUNT * 2U];
 static volatile adc_multi_frame_t s_latched;
 
 extern volatile adc_multi_frame_t g_adc_multi;

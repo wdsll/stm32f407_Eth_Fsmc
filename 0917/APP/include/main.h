@@ -19,8 +19,6 @@
 /*********************************************************************************************************
 *                                              包含头文件
 *********************************************************************************************************/
-
-
 #include "gd32f30x_conf.h"
 #include <stdint.h>
 /*********************************************************************************************************
@@ -40,7 +38,7 @@
 
 /* ==== Current sense ==== */
 #define ISHUNT_OHM          (0.005f)   /* 5 mΩ */
-#define IAMP_GAIN           (19.6f)   /* INA gain */
+#define IAMP_GAIN           (19.4f)   /* INA gain */
 
 /* ==== Control targets/thresholds ==== */
 #define VBUS_TARGET_V       (400.0f)
@@ -50,14 +48,16 @@
 #define RUN_OK_HIGH_V       (405.0f)
 
 /* ==== PWM defaults ==== */
-#define LLC_PWM_BASE_HZ     (100000U)
+#define LLC_PWM_BASE_HZ     (98753U)
 #define LLC_PWM_DEAD_NS     (500U)
 #define LLC_PWM_DUTY        (0.50f)
+#define LLC_SOFTSTART_DURATION_MS   (200U)
+#define LLC_SOFTSTART_START_DUTY    (0.05f)
 
 /* ==== LLC frequency window ==== */
-#define LLC_F_MIN_HZ        (60000.0f)
-#define LLC_F_MAX_HZ        (150000.0f)
-#define LLC_F_INIT_HZ       (100000.0f)
+#define LLC_F_MIN_HZ        (85000.0f)
+#define LLC_F_MAX_HZ        (130000.0f)
+#define LLC_F_INIT_HZ       (130000.0f)
 #define LLC_F_SLEW_HZ       (1000.0f)
 /*******************************************Board pin list********************************************************************/
 /* TIMER0 (TIM1) complementary PWM */
@@ -120,7 +120,7 @@
 
 /* ==== PFC control thresholds ==== */
 #define PFC_VBUS_READY_V            (360.0f)
-#define PFC_VBUS_READY_HYST_V       (20.0f)
+#define PFC_VBUS_READY_HYST_V       (10.0f)
 #define PFC_READY_DELAY_MS          (200U)
 #define PFC_STARTUP_DELAY_MS        (20U)
 #define PFC_VBUS_DROPOUT_MS         (100U)
