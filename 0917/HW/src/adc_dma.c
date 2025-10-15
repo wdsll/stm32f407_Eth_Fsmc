@@ -63,9 +63,9 @@ void adc_multi_init_dma(uint32_t trig_src){
     adc_special_function_config(ADC0, ADC_CONTINUOUS_MODE, DISABLE); // 禁用连续模式
     adc_data_alignment_config(ADC0, ADC_DATAALIGN_RIGHT);//设置数据对齐方式为右对齐。
 
-    adc_channel_length_config(ADC0, ADC_REGULAR_CHANNEL, ADC_MULTI_CHANNEL_COUNT);  // 配置 ADC 的常规通道数量。
-    adc_regular_channel_config(ADC0, 0, VOUT_SENSE_CH,     ADC_SAMPLETIME_55POINT5); 
-    adc_regular_channel_config(ADC0, 1, ADC_ISENSE_CH,     ADC_SAMPLETIME_55POINT5); 
+    adc_channel_length_config(ADC0, ADC_REGULAR_CHANNEL, ADC_TIM0_TRIGGERED_COUNT);  // 配置 ADC 的常规通道数量。
+    adc_regular_channel_config(ADC0, 0, VOUT_SENSE_CH,     ADC_SAMPLETIME_41POINT5); 
+    adc_regular_channel_config(ADC0, 1, ADC_ISENSE_CH,     ADC_SAMPLETIME_13POINT5); 
     //adc_regular_channel_config(ADC0, 2, ADC_TSENSE_CH,     ADC_SAMPLETIME_55POINT5);
     //adc_regular_channel_config(ADC0, 3, AD_3V3_CH,         ADC_SAMPLETIME_55POINT5);
     //adc_regular_channel_config(ADC0, 4, VBT_SENSE_CH,      ADC_SAMPLETIME_55POINT5);

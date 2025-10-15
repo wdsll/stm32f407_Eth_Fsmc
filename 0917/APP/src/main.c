@@ -23,6 +23,7 @@
 #include "pwm_llc.h"
 #include "RCU.h"
 #include "ICU.h"
+#include "debug_printf.h"
 #include "pwm.h"
 #include "protect_exti.h"
 #include "llc_open_loop.h"
@@ -888,8 +889,8 @@ static void control_loop_tick_1khz(void){
 int main(void){
 	
 	  InitRCU();
-	  //RCU_Config_72M();
-    //systick_1ms_init();
+	  debug_printf_init(DEBUG_PRINTF_DEFAULT_BAUDRATE);
+	  debug_printf("Debug console initialized @%lu baud\n", (unsigned long)DEBUG_PRINTF_DEFAULT_BAUDRATE);
 
     /* LLC complementary PWM 配置LLC的PWM频率 、死区时间和占空比，并初始化PWM模块*/
     llc_pwm_cfg_t lcfg = { .pwm_hz=LLC_PWM_BASE_HZ, .deadtime_ns=LLC_PWM_DEAD_NS, .duty=LLC_PWM_DUTY };
@@ -933,13 +934,13 @@ int main(void){
     while(1){
 			uint32_t pending_ticks = 0U;
 			float  duty0, duty1; //PA3 PA1捕获的值
-			__disable_irq();
+			//__disable_irq();
 			if(s_control_tick_pending > 0U)
 			{
 					pending_ticks = s_control_tick_pending; //pending_ticks ：用于逐个处理待执行的控制任务。
 					s_control_tick_pending = 0U;  //记录待处理的控制周期任务数量。
 			}
-			__enable_irq();
+			//__enable_irq();
 			while(pending_ticks-- > 0U)
 			{
 					control_loop_tick_1khz();
