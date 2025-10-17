@@ -94,10 +94,12 @@ void llc_pwm_init(const llc_pwm_cfg_t* cfg){
    // timer_struct_para_init(&t);
 	
     uint32_t tclk = timer0_clk_hz();                // 如果你库里没有此宏，见文末备注
-    s_period = (tclk/(2U*s_cfg.pwm_hz)) - 1U;      /* 中心对齐频率公式 */ //s_period 存储计算出的 PWM 周期值。
+    //s_period = (tclk/(2U*s_cfg.pwm_hz)) - 1U;      /* 中心对齐频率公式 */ //s_period 存储计算出的 PWM 周期值。
+		s_period = (tclk/(2U*s_cfg.pwm_hz)) - 1U;     //单边（边沿对齐）计数模式
 /* TIMER0 configuration */
     t.prescaler         = 0;  // 预分频器设置为0（实际分频系数为0+1=1）
-    t.alignedmode       = TIMER_COUNTER_CENTER_BOTH; //居中对齐且向上/向下计数的断言模式
+    //t.alignedmode       = TIMER_COUNTER_CENTER_BOTH; //居中对齐且向上/向下计数的断言模式
+		t.alignedmode       = TIMER_COUNTER_EDGE;   //边缘对齐模式
     t.counterdirection  = TIMER_COUNTER_UP; // 向上计数
     t.period            = s_period;   // 自动重载值  1
     t.clockdivision     = TIMER_CKDIV_DIV1; // 时钟分频因子为1
@@ -182,10 +184,28 @@ void llc_pwm_set_freq(uint32_t f_hz)
 			return;
 	s_cfg.pwm_hz=f_hz; 
 	uint32_t tclk=timer0_clk_hz(); 
-	s_period=(tclk/(2U*f_hz))-1U; 
+	//s_period=(tclk/(2U*f_hz))-1U; 
+	s_period=(tclk/f_hz)-1U;
 	TIMER_CAR(TIMER0)=s_period; 
 	
 	/* 保持当前占空比（或固定 50%：直接用 s_period/2） */
 	TIMER_CH0CV(TIMER0) = duty_to_ccr(s_cfg.duty);
 	/* 若 LLC_PWM_CH 不是 CH0，请改成对应的 TIMER_CHxCV 宏 */
+}
+
+uint32_t llc_pwm_get_period_ns(void)
+{
+    uint32_t tclk = timer0_clk_hz();                 // TIM 内部时钟 Hz
+    uint32_t arr  = TIMER_CAR(TIMER0);               // 当前 ARR
+    // 你的 set_freq 用的是边沿计数：f = tclk/(ARR+1)
+    // 周期(ns) = 1e9 * (ARR+1) / tclk
+    if (tclk == 0U) 
+			return 0U;
+    uint64_t ns = (1000000000ULL * (uint64_t)(arr + 1U)) / (uint64_t)tclk;
+    return (uint32_t)ns;
+}
+
+uint32_t llc_pwm_get_deadtime_ns(void)
+{
+    return s_cfg.deadtime_ns; // 直接回传你配置进来的死区（ns）
 }

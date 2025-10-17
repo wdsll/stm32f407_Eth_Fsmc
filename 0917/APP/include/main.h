@@ -38,7 +38,7 @@
 
 /* ==== Current sense ==== */
 #define ISHUNT_OHM          (0.005f)   /* 5 mΩ */
-#define IAMP_GAIN           (19.4f)   /* INA gain */
+#define IAMP_GAIN           (19.6f)   /* INA gain */
 
 /* ==== Control targets/thresholds ==== */
 #define VBUS_TARGET_V       (400.0f)
@@ -48,12 +48,21 @@
 #define RUN_OK_HIGH_V       (405.0f)
 
 /* ==== PWM defaults ==== */
-#define LLC_PWM_BASE_HZ     (98753U)
+#define LLC_PWM_BASE_HZ     (98753U)  //98753U
 #define LLC_PWM_DEAD_NS     (500U)
 #define LLC_PWM_DUTY        (0.50f)
-#define LLC_SOFTSTART_DURATION_MS   (200U)
-#define LLC_SOFTSTART_START_DUTY    (0.05f)
 
+#ifndef LLC_SOFTSTART_ENABLE
+#define LLC_SOFTSTART_ENABLE        (1)
+#endif
+/* ==== LLC_SOFTSTART ==== */
+#define LLC_SOFTSTART_DURATION_MS     30U      // 软启动总时长
+#define LLC_SOFTSTART_START_DUTY      0.10f    // 起始占空（0~1）
+#define LLC_SOFTSTART_TARGET_DUTY     0.50f    // 默认目标占空（0~1），可在 begin() 传入覆盖
+#define LLC_SOFTSTART_FAILSAFE_DUTY   0.00f    // 故障时退回占空
+#define LLC_SOFTSTART_USE_COSINE_EASE 1        // 1: 余弦S曲线；0: 指数曲线
+#define LLC_SOFTSTART_EXP_K           3.0f     // 指数陡峭度（越大前期越缓）
+#define LLC_SOFTSTART_EXTRA_MARGIN      (0.01f)   /* 安全窗额外余量（防抖） */
 /* ==== LLC frequency window ==== */
 #define LLC_F_MIN_HZ        (85000.0f)
 #define LLC_F_MAX_HZ        (130000.0f)

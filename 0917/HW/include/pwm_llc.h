@@ -17,5 +17,6 @@ void llc_pwm_set_duty(float duty);
 void llc_pwm_outputs_enable(bool en);
 void llc_pwm_break(bool en);
 void llc_pwm_set_freq(uint32_t f_hz);
-	
+uint32_t llc_pwm_get_period_ns(void);
+uint32_t llc_pwm_get_deadtime_ns(void);
 #endif

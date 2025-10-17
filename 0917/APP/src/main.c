@@ -19,6 +19,7 @@
 *                                              包含头文件
 *********************************************************************************************************/
 #include "main.h"
+#include <math.h>
 #include "add_dma.h"
 #include "pwm_llc.h"
 #include "RCU.h"
@@ -101,10 +102,15 @@ typedef struct
 typedef struct
 {
 	bool active;
+	bool pause;
 	uint32_t start_ms;
 	uint32_t duration_ms;
 	float start_duty;
 	float target_duty;
+	
+// 运行时计算得到的安全上下限
+	float    duty_min_safe;
+	float    duty_max_safe;
 } llc_softstart_ctx_t;
 
 #if MODULE_TESTS_ACTIVE
@@ -177,8 +183,9 @@ static bool s_pfc_hw_relay = false;
 static llc_t s_llc;
 static llc_app_ctx_t s_llc_app;
 static pfc_app_ctx_t s_pfc_app;
+#if LLC_SOFTSTART_ENABLE
 static llc_softstart_ctx_t s_llc_softstart;
-
+#endif
 
 #if LLC_USE_OPEN_LOOP
 static llc_open_loop_ctrl_t s_llc_open_loop;
@@ -272,60 +279,152 @@ static inline float f_maxf(float a,float b){ return a > b ? a : b; }
 static inline float f_clampf(float x,float lo,float hi)
 { return x<lo?lo:(x>hi?hi:x); }
 
+#if LLC_SOFTSTART_ENABLE
+
+
+/* 根据当前周期/死区，计算“有效占空安全窗” */
+static void ss_update_safe_window(void)
+{
+	  uint32_t per_ns = llc_pwm_get_period_ns();
+    uint32_t dt_ns  = llc_pwm_get_deadtime_ns();
+	  float guard = 0.0f;
+    if (per_ns > 0U) {
+        /* 互补两沿都插死区：保守取 2*deadtime */
+        guard = (2.0f * (float)dt_ns) / (float)per_ns;  // 0~1
+    }
+		guard += LLC_SOFTSTART_EXTRA_MARGIN; // 经验余量
+
+    /* 下限不超过 0.49，上限不低于 0.51，避免靠近 50% 附近偶发直通/无效脉宽 */
+    s_llc_softstart.duty_min_safe = f_clampf(guard, 0.0f, 0.49f);
+    s_llc_softstart.duty_max_safe = f_clampf(1.0f - guard,  0.51f, 0.99f);
+}
+
+/* 余弦 S 曲线：0→1 */
+static inline float ease_cos(float t)
+{
+    if (t <= 0.f) return 0.f;
+    if (t >= 1.f) return 1.f;
+    return 0.5f * (1.0f - cosf(3.1415926535f * t));
+}
+
+static void ss_apply(float duty)
+{
+    float d = f_clampf(duty, s_llc_softstart.duty_min_safe, s_llc_softstart.duty_max_safe);
+    llc_pwm_set_duty(d);
+}
+
+
+/* 指数曲线：0→1 */
+static inline float ease_exp(float t, float k)
+{
+    if (t <= 0.f) return 0.f;
+    if (t >= 1.f) return 1.f;
+    float denom = 1.0f - expf(-k);
+    if (denom < 1e-6f) return t;
+    return (1.0f - expf(-k * t)) / denom;
+}
+
 static void llc_softstart_reset(void)
 {
 		s_llc_softstart.active = false;
+		s_llc_softstart.pause = false;
 		s_llc_softstart.start_ms = 0U;
 		s_llc_softstart.duration_ms = LLC_SOFTSTART_DURATION_MS;
 		s_llc_softstart.start_duty = f_clampf(LLC_SOFTSTART_START_DUTY, 0.0f, 0.99f);
-		s_llc_softstart.target_duty = f_clampf(LLC_PWM_DUTY, 0.0f, 0.99f);
-		llc_pwm_set_duty(s_llc_softstart.start_duty);
+		//s_llc_softstart.target_duty = f_clampf(LLC_PWM_DUTY, 0.0f, 0.99f);
+		s_llc_softstart.target_duty = s_llc_softstart.start_duty;
+		ss_update_safe_window();
+		ss_apply(s_llc_softstart.start_duty);
 }
 static void llc_softstart_begin(float target_duty)
 {
+		s_llc_softstart.duration_ms = LLC_SOFTSTART_DURATION_MS;
 		float start_duty = f_clampf(LLC_SOFTSTART_START_DUTY, 0.0f, 0.99f);
 		float final_duty = f_clampf(target_duty, 0.0f, 0.99f);
-		s_llc_softstart.duration_ms = LLC_SOFTSTART_DURATION_MS;
-		s_llc_softstart.start_duty = start_duty;
-		s_llc_softstart.target_duty = final_duty;
+		s_llc_softstart.pause      = false;
+		
+		//s_llc_softstart.start_duty = start_duty;
+		//s_llc_softstart.target_duty = final_duty;
+		ss_update_safe_window();
 		if(final_duty <= start_duty || s_llc_softstart.duration_ms == 0U)
 		{
 			s_llc_softstart.active = false;
-			llc_pwm_set_duty(final_duty);
+			ss_apply(final_duty);
 		}
 		else
 		{
 			s_llc_softstart.active = true;
 			s_llc_softstart.start_ms = g_ms;
-			llc_pwm_set_duty(start_duty);
+			ss_apply(start_duty);
 		}
+}
+void llc_softstart_update_target(float new_target_0_1)
+{
+    s_llc_softstart.target_duty = f_clampf(new_target_0_1, 0.0f, 0.99f);
+}
+void llc_softstart_set_pause(bool pause)
+{
+    s_llc_softstart.pause = pause;
+}
+
+void llc_softstart_abort(void)
+{
+    s_llc_softstart.active = false;
+    s_llc_softstart.pause = false;
+    ss_update_safe_window(); // 以防期间改过频率/死区
+    ss_apply(f_clampf(LLC_SOFTSTART_FAILSAFE_DUTY, 0.0f, 0.99f));
 }
 
 static void llc_softstart_tick(void)
 {
-		if(!s_llc_softstart.active)
-		{
+    if (!s_llc_softstart.active) 
 			return;
-		}
+
+    /* 用你项目已有的故障判据 */
+    if (protect_fault_latched() || protect_fault_active_hw()) {
+        llc_softstart_abort();
+        return;
+    }
+		if (s_llc_softstart.pause) 
+			return;
 		uint32_t elapsed = (uint32_t)(g_ms - s_llc_softstart.start_ms);
 		if(elapsed >= s_llc_softstart.duration_ms)
 		{
 			s_llc_softstart.active = false;
-			llc_pwm_set_duty(s_llc_softstart.target_duty);
+			ss_apply(s_llc_softstart.target_duty);
 			return;
 		}
-		if(s_llc_softstart.duration_ms == 0U)
-		{
-						s_llc_softstart.active = false;
-						llc_pwm_set_duty(s_llc_softstart.target_duty);
-						return;
-		}
-		float progress = (float)elapsed / (float)s_llc_softstart.duration_ms;
+		float progress = (s_llc_softstart.duration_ms > 0U) ? ((float)elapsed / (float)s_llc_softstart.duration_ms) : 1.0f;
+
+		
+		 /* 将线性换成 S 曲线（如需线性，把 ease 改成 progress） */
+#if defined(LLC_SOFTSTART_USE_COSINE_EASE) && (LLC_SOFTSTART_USE_COSINE_EASE)
+    float k = ease_cos(progress);
+#else
+    float k = ease_exp(progress, 3.0f);
+#endif
+		
 		//使用线性插值公式计算当前占空比
 		float duty = s_llc_softstart.start_duty +
 								 (s_llc_softstart.target_duty - s_llc_softstart.start_duty) * progress;
-		llc_pwm_set_duty(duty);
+		ss_apply(duty);
 }
+
+#else
+
+static void llc_softstart_reset(void)
+{
+                llc_pwm_set_duty(f_clampf(LLC_PWM_DUTY, 0.0f, 0.99f));
+}
+static void llc_softstart_begin(float target_duty)
+{
+                llc_pwm_set_duty(f_clampf(target_duty, 0.0f, 0.99f));
+}
+static void llc_softstart_tick(void)
+{
+                /* Soft-start disabled. Nothing to do. */
+}
+#endif /* LLC_SOFTSTART_ENABLE */
 #if MODULE_TESTS_ACTIVE
 
 static void module_tests_init(void)

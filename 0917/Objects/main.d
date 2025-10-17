@@ -33,7 +33,8 @@
   GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_misc.h \
   GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_exmc.h \
   GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_enet.h \
-  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdlib.h HW/include\add_dma.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdlib.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\math.h HW/include\add_dma.h \
   HW/include\pwm_llc.h HW/include\RCU.h HW/include\ICU.h \
   HW/include\debug_printf.h \
   C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stddef.h \
