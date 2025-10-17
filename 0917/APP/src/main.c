@@ -288,10 +288,15 @@ static void ss_update_safe_window(void)
 	  uint32_t per_ns = llc_pwm_get_period_ns();
     uint32_t dt_ns  = llc_pwm_get_deadtime_ns();
 	  float guard = 0.0f;
-    if (per_ns > 0U) {
+    if (per_ns > 0U && dt_ns <= (UINT32_MAX / 2)) {
         /* 互补两沿都插死区：保守取 2*deadtime */
         guard = (2.0f * (float)dt_ns) / (float)per_ns;  // 0~1
     }
+		else
+		{
+			guard = 0.0f;
+		}
+		
 		guard += LLC_SOFTSTART_EXTRA_MARGIN; // 经验余量
 
     /* 下限不超过 0.49，上限不低于 0.51，避免靠近 50% 附近偶发直通/无效脉宽 */
@@ -331,8 +336,8 @@ static void llc_softstart_reset(void)
 		s_llc_softstart.start_ms = 0U;
 		s_llc_softstart.duration_ms = LLC_SOFTSTART_DURATION_MS;
 		s_llc_softstart.start_duty = f_clampf(LLC_SOFTSTART_START_DUTY, 0.0f, 0.99f);
-		//s_llc_softstart.target_duty = f_clampf(LLC_PWM_DUTY, 0.0f, 0.99f);
-		s_llc_softstart.target_duty = s_llc_softstart.start_duty;
+
+		s_llc_softstart.target_duty =  f_clampf(LLC_SOFTSTART_TARGET_DUTY, 0.0f, 0.99f);
 		ss_update_safe_window();
 		ss_apply(s_llc_softstart.start_duty);
 }
@@ -343,12 +348,14 @@ static void llc_softstart_begin(float target_duty)
 		float final_duty = f_clampf(target_duty, 0.0f, 0.99f);
 		s_llc_softstart.pause      = false;
 		
-		//s_llc_softstart.start_duty = start_duty;
-		//s_llc_softstart.target_duty = final_duty;
+		s_llc_softstart.start_duty = start_duty;
+		s_llc_softstart.target_duty = final_duty;
 		ss_update_safe_window();
 		if(final_duty <= start_duty || s_llc_softstart.duration_ms == 0U)
 		{
 			s_llc_softstart.active = false;
+			s_llc_softstart.start_duty = final_duty;
+			s_llc_softstart.target_duty = final_duty;
 			ss_apply(final_duty);
 		}
 		else
@@ -401,12 +408,12 @@ static void llc_softstart_tick(void)
 #if defined(LLC_SOFTSTART_USE_COSINE_EASE) && (LLC_SOFTSTART_USE_COSINE_EASE)
     float k = ease_cos(progress);
 #else
-    float k = ease_exp(progress, 3.0f);
+    float k = ease_exp(progress, LLC_SOFTSTART_EXP_K);
 #endif
 		
 		//使用线性插值公式计算当前占空比
 		float duty = s_llc_softstart.start_duty +
-								 (s_llc_softstart.target_duty - s_llc_softstart.start_duty) * progress;
+								 (s_llc_softstart.target_duty - s_llc_softstart.start_duty) * k;
 		ss_apply(duty);
 }
 
@@ -895,25 +902,20 @@ void llc_app_tick_1khz(void)
 			llc_state_enter(ST_WAIT_VBUS);
 			break;
 		case ST_WAIT_VBUS:
-			//需满足 PFC 准备就绪且电压达到阈值
-			if(!pfc_app_ready()||s_llc.vmeas < LLC_ENTRY_V)
+			if(pfc_app_ready() && (s_llc.vmeas >= LLC_ENTRY_V)) 
 			{
-				if (s_llc_app.entry_ms == 0U)
+				if (s_llc_app.entry_ms == 0U) 
 				{
-					s_llc_app.entry_ms = g_ms;
-				}					
-				//吸合主继电器
-				pfc_hw_set_relay(1);
-				llc_state_enter(ST_LLC_RUN); 
-				break;
+					s_llc_app.entry_ms = g_ms; // 可用于入门延时(若需要)
+				}
+				pfc_hw_set_relay(true);
+				llc_state_enter(ST_LLC_RUN);
 			}
-			else
-			{
-				s_llc_app.entry_ms = 0U;          // 条件中断，重新计时
-				pfc_hw_set_relay(0);              // 还未满足，保持断开更安全
+			else{
+				 s_llc_app.entry_ms = 0U;
+				 pfc_hw_set_relay(false);
 			}
-			break;                                 // <<< 必须有
-
+			break;
 		case ST_LLC_RUN:
 			 // 运行中：不就绪或电压跌破“进入阈值-迟滞”→ 退回等待
 			//如果任一条件成立（PFC未就绪 或 电压过低），则调用 llc_state_enter(ST_WAIT_VBUS) ，切换至等待VBUS状态。
@@ -1004,8 +1006,8 @@ int main(void){
 		pb0_pwm_set_duty(0.5f);
 		#endif
 		
-    /* ADC multi (PA3/PA1 removed) triggered by TIMER0 CH0 for coherence */
-    adc_multi_init_dma(ADC0_1_EXTTRIG_REGULAR_T0_CH0); 
+    /* ADC multi (PA3/PA1 removed) triggered by TIMER0 CH2 for coherence */
+    adc_multi_init_dma(ADC0_1_EXTTRIG_REGULAR_T0_CH2); 
     adc_multi_start();
 
     /* PA0 & PA1 input capture */
@@ -1043,6 +1045,12 @@ int main(void){
 			while(pending_ticks-- > 0U)
 			{
 					control_loop_tick_1khz();
+				// 防止单次主循环处理过多 tick
+					if(pending_ticks > MAX_TICKS_PER_LOOP)
+					{
+						s_tick_drop_count += (pending_ticks - MAX_TICKS_PER_LOOP);
+						pending_ticks = MAX_TICKS_PER_LOOP;
+					}
 			}
 			if(cap_pa0_read_duty(&duty0)){
 					(void)duty0; /* TODO: convert ticks->Hz using TIMER1 clock if? */

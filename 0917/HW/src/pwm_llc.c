@@ -9,6 +9,39 @@
 //#include "gd32f30x_timer.h"
 static llc_pwm_cfg_t s_cfg; 
 static uint32_t s_period=0; 
+
+/*
+static void update_adc_trigger_from_pwm(uint16_t pwm_ccr)
+{
+	uint16_t midpoint = pwm_ccr / 2U;
+	if ((midpoint == 0U) && (pwm_ccr > 0U))
+  {
+		midpoint = 1;
+	}
+	//配置定时器通道输出脉冲值
+	timer_channel_output_pulse_value_config(TIMER0, TIMER_CH_2, midpoint);
+}
+*/
+static void set_adc_trigger_phase(float phase_0_1)
+{
+	if (phase_0_1 < 0.f) 
+		phase_0_1 = 0.f;
+	 if (phase_0_1 > 1.f) 
+		 phase_0_1 = 1.f;
+	 uint32_t arr = TIMER_CAR(TIMER0);
+	 uint32_t ccr2 = (uint32_t)((phase_0_1 * (float)(arr + 1U)) + 0.5f);
+	 
+	  if (ccr2 == 0U && arr > 0U) 
+			ccr2 = 1U;
+    if (ccr2 >= arr)            
+			ccr2 = arr - 1U;
+		timer_channel_output_pulse_value_config(TIMER0, TIMER_CH_2, (uint16_t)ccr2);
+}
+
+static inline void update_adc_trigger_midpoint_from_arr(void)
+{
+    set_adc_trigger_phase(0.5f); // 周期中点
+}
 //其目的是将一个浮点数限制在指定的范围内
 static inline float clampf(float x,float a,float b)
 { 
@@ -95,7 +128,7 @@ void llc_pwm_init(const llc_pwm_cfg_t* cfg){
 	
     uint32_t tclk = timer0_clk_hz();                // 如果你库里没有此宏，见文末备注
     //s_period = (tclk/(2U*s_cfg.pwm_hz)) - 1U;      /* 中心对齐频率公式 */ //s_period 存储计算出的 PWM 周期值。
-		s_period = (tclk/(2U*s_cfg.pwm_hz)) - 1U;     //单边（边沿对齐）计数模式
+		s_period = (tclk/s_cfg.pwm_hz) - 1U;     //单边（边沿对齐）计数模式
 /* TIMER0 configuration */
     t.prescaler         = 0;  // 预分频器设置为0（实际分频系数为0+1=1）
     //t.alignedmode       = TIMER_COUNTER_CENTER_BOTH; //居中对齐且向上/向下计数的断言模式
@@ -127,8 +160,15 @@ void llc_pwm_init(const llc_pwm_cfg_t* cfg){
 		// 作用：确保配置在下一次更新事件时生效，避免运行时配置冲突
 		// 关键点：影子寄存器用于保证配置的原子性和实时性
     timer_channel_output_shadow_config(TIMER0, LLC_PWM_CH, TIMER_OC_SHADOW_ENABLE); 
-
-    /* === 手动初始化 Break/Deadtime 结构体（无 para_init 版本） === */
+		
+		/* === 配置比较器ch2 === */
+		timer_oc_parameter_struct oc_mid = oc;
+		oc_mid.outputstate  = TIMER_CCX_DISABLE;
+		oc_mid.outputnstate = TIMER_CCXN_DISABLE;
+    timer_channel_output_config(TIMER0, TIMER_CH_2, &oc_mid);
+		timer_channel_output_mode_config(TIMER0, TIMER_CH_2, TIMER_OC_MODE_PWM0);
+		timer_channel_output_pulse_value_config(TIMER0, TIMER_CH_2, 0);
+		timer_channel_output_shadow_config(TIMER0, TIMER_CH_2, TIMER_OC_SHADOW_ENABLE);
 		//死区时间与保护配置
     timer_break_parameter_struct bk;
     bk.runoffstate     = TIMER_ROS_STATE_DISABLE ; //设置定时器在运行状态下的断路行为为禁用。这意味着在正常运行期间，断路功能不会触发。
@@ -144,9 +184,9 @@ void llc_pwm_init(const llc_pwm_cfg_t* cfg){
     bk.outputautostate = TIMER_OUTAUTO_ENABLE;				
 
     timer_break_config(TIMER0, &bk);
-		// 配置主输出触发源为通道0的比较输出,通过配置触发源，
+		// 配置主输出触发源为通道0的比较输出,通过配置触发源，TIMER_TRI_OUT_SRC_O2CPRE
 		//定时器可以在特定事件（如比较匹配）时生成触发信号，用于同步其他硬件模块（如ADC或其他定时器）。
-		timer_master_output_trigger_source_select(TIMER0, TIMER_TRI_OUT_SRC_CC0); //在通道 0 中发生了一次捕获或比较匹配事件，触发输出为 TRGO 。
+		timer_master_output_trigger_source_select(TIMER0, TIMER_TRI_OUT_SRC_O2CPRE); //在通道 0 中发生了一次捕获或比较匹配事件，触发输出为 TRGO 。
 		//启用定时器的自动重载影子寄存器功能。定时器的重载值会在下一个更新事件时生效，确保配置的平滑切换。
     timer_auto_reload_shadow_enable(TIMER0);
 		//配置定时器的主输出功能。启用后，定时器可以输出信号到指定的引脚或模块
@@ -154,6 +194,8 @@ void llc_pwm_init(const llc_pwm_cfg_t* cfg){
     timer_enable(TIMER0);
 
     llc_pwm_set_duty(s_cfg.duty); /* 如果你走 50% 固定，这里直接设 0.5f 即可 */
+		
+		update_adc_trigger_midpoint_from_arr();  
 }
 
 /* 	频率在线更新：同时更新 ARR 和 CCR，保持占空比 ,ARR（Auto-Reload Register，自动重装载寄存器）
@@ -168,7 +210,9 @@ void llc_pwm_set_duty(float d)
 { 
 	float duty = clampf(d, 0.0f, 0.99f);
 	s_cfg.duty = duty;
-	timer_channel_output_pulse_value_config(TIMER0, LLC_PWM_CH, duty_to_ccr(d)); 
+	uint16_t pwm_ccr = duty_to_ccr(duty);
+	timer_channel_output_pulse_value_config(TIMER0, LLC_PWM_CH, pwm_ccr); 
+	update_adc_trigger_midpoint_from_arr();
 }
 void llc_pwm_outputs_enable(bool en)
 { 
@@ -184,13 +228,14 @@ void llc_pwm_set_freq(uint32_t f_hz)
 			return;
 	s_cfg.pwm_hz=f_hz; 
 	uint32_t tclk=timer0_clk_hz(); 
-	//s_period=(tclk/(2U*f_hz))-1U; 
+	//s_period=(tclk/(2U*f_hz))-1U;
+//计算 PWM 周期值 s_period	
 	s_period=(tclk/f_hz)-1U;
 	TIMER_CAR(TIMER0)=s_period; 
+	uint16_t pwm_ccr = duty_to_ccr(s_cfg.duty);
 	
-	/* 保持当前占空比（或固定 50%：直接用 s_period/2） */
-	TIMER_CH0CV(TIMER0) = duty_to_ccr(s_cfg.duty);
-	/* 若 LLC_PWM_CH 不是 CH0，请改成对应的 TIMER_CHxCV 宏 */
+	TIMER_CH0CV(TIMER0) = pwm_ccr;
+	update_adc_trigger_midpoint_from_arr();  // 固定触发在周期中点（与占空解耦）
 }
 
 uint32_t llc_pwm_get_period_ns(void)

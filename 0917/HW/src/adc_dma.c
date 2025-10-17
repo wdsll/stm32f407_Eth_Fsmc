@@ -85,7 +85,8 @@ void adc_multi_init_dma(uint32_t trig_src){
 void adc_multi_start(void)
 { 
 	//adc_software_trigger_enable(ADC0, ADC_REGULAR_CHANNEL); 启用 ADC0 的软件触发功能，启动常规通道的采样。
-	timer_event_software_generate(LLC_PWM_TIMER, TIMER_EVENT_SRC_CH0G); //定时器事件的生成可以用于同步 ADC 采样或其他外设操作，确保时序一致性。
+	timer_event_software_generate(LLC_PWM_TIMER, TIMER_EVENT_SRC_UPG); //用 UPG 能保证“下一次 ADC 触发”与定时器的 PWM 相位绝对同步。
+	
 }
 void adc_multi_copy(void){
     adc_multi_frame_t frame;
