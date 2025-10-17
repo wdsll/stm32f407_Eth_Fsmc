@@ -1,22 +1,22 @@
 
 /*********************************************************************************************************
-* Ä£¿éÃû³Æ£ºmain.c
-* Õª    Òª£º
-* µ±Ç°°æ±¾£º1.0.0
-* ×÷    Õß£ºRengar
-* Íê³ÉÈÕÆÚ£º2025Äê09ÔÂ24ÈÕ  
-* ÄÚ    Èİ£º
-* ×¢    Òâ£º                                                                  
+* æ¨¡å—åç§°ï¼šmain.c
+* æ‘˜    è¦ï¼š
+* å½“å‰ç‰ˆæœ¬ï¼š1.0.0
+* ä½œ    è€…ï¼šRengar
+* å®Œæˆæ—¥æœŸï¼š2025å¹´09æœˆ24æ—¥  
+* å†…    å®¹ï¼š
+* æ³¨    æ„ï¼š                                                                  
 **********************************************************************************************************
-* È¡´ú°æ±¾£º
-* ×÷    Õß£º
-* Íê³ÉÈÕÆÚ£º
-* ĞŞ¸ÄÄÚÈİ£º
-* ĞŞ¸ÄÎÄ¼ş£º
+* å–ä»£ç‰ˆæœ¬ï¼š
+* ä½œ    è€…ï¼š
+* å®Œæˆæ—¥æœŸï¼š
+* ä¿®æ”¹å†…å®¹ï¼š
+* ä¿®æ”¹æ–‡ä»¶ï¼š
 *********************************************************************************************************/
 
 /*********************************************************************************************************
-*                                              °üº¬Í·ÎÄ¼ş
+*                                              åŒ…å«å¤´æ–‡ä»¶
 *********************************************************************************************************/
 #include "main.h"
 #include <math.h>
@@ -30,7 +30,7 @@
 #include "llc_open_loop.h"
 #include "pfc_control.h"
 /*********************************************************************************************************
-*                                              Ä£¿é²âÊÔÅäÖÃ
+*                                              æ¨¡å—æµ‹è¯•é…ç½®
 *********************************************************************************************************/
 #ifndef ENABLE_ADC_TEST
 #define ENABLE_ADC_TEST              0
@@ -70,14 +70,14 @@
 #define LLC_TEST_TOGGLE_PERIOD_MS     5000U
 #endif
 /*********************************************************************************************************
-*                                              ºê¶¨Òå
+*                                              å®å®šä¹‰
 *********************************************************************************************************/
 
 #define LLC_USE_OPEN_LOOP 1
 
 #define Bus_Adj 0
 /*********************************************************************************************************
-*                                              Ã¶¾Ù½á¹¹Ìå
+*                                              æšä¸¾ç»“æ„ä½“
 *********************************************************************************************************/
 
 enum{
@@ -94,8 +94,8 @@ typedef struct
 {
 	pfc_state_t state;
 	uint32_t entry_ms;
-	uint32_t vbus_ok_since_ms; //±íÊ¾×ÜÏßµçÑ¹×Ô´Ó±äÎªokºóµÄÊ±¼äµã£¬Èç¹ûÎ´ÎÈ¶¨Í¨³£Ô¼¶¨Îª0
-	uint32_t dropout_since_ms; //±íÊ¾·¢Éúµôµç/Ê§ÎÈÊ±¼äµÄÊ±¼äµã£¬ÓÃÀ´ÅĞ¶ÏÊÇ·ñĞèÒª½øÈë¼õÔØ»òÕßÖØÊÔÂß¼­
+	uint32_t vbus_ok_since_ms; //è¡¨ç¤ºæ€»çº¿ç”µå‹è‡ªä»å˜ä¸ºokåçš„æ—¶é—´ç‚¹ï¼Œå¦‚æœæœªç¨³å®šé€šå¸¸çº¦å®šä¸º0
+	uint32_t dropout_since_ms; //è¡¨ç¤ºå‘ç”Ÿæ‰ç”µ/å¤±ç¨³æ—¶é—´çš„æ—¶é—´ç‚¹ï¼Œç”¨æ¥åˆ¤æ–­æ˜¯å¦éœ€è¦è¿›å…¥å‡è½½æˆ–è€…é‡è¯•é€»è¾‘
 	bool enable_cmd;
 } pfc_app_ctx_t;
 
@@ -108,7 +108,7 @@ typedef struct
 	float start_duty;
 	float target_duty;
 	
-// ÔËĞĞÊ±¼ÆËãµÃµ½µÄ°²È«ÉÏÏÂÏŞ
+// è¿è¡Œæ—¶è®¡ç®—å¾—åˆ°çš„å®‰å…¨ä¸Šä¸‹é™
 	float    duty_min_safe;
 	float    duty_max_safe;
 } llc_softstart_ctx_t;
@@ -173,7 +173,7 @@ static inline void module_tests_init(void) { }
 static inline void module_tests_tick_1khz(float vbus_v) { (void)vbus_v; }
 #endif
 /*********************************************************************************************************
-*                                              ÄÚ²¿±äÁ¿¶¨Òå
+*                                              å†…éƒ¨å˜é‡å®šä¹‰
 *********************************************************************************************************/
 static float s_pfc_bus_v = 0.0f;
 static bool s_pfc_hw_enabled = false;
@@ -201,14 +201,14 @@ static const llc_open_loop_segment_t s_llc_open_loop_profile[] = {
 volatile uint32_t g_ms=0;
 static volatile uint32_t s_control_tick_pending = 0U;
 
-/* ¿ØÖÆÑ­»·²ÎÊı£¨1 kHz£© */
+/* æ§åˆ¶å¾ªç¯å‚æ•°ï¼ˆ1 kHzï¼‰ */
 #define CONTROL_LOOP_HZ            (1000U)
 #define CONTROL_LOOP_DT_S          (1.0f / (float)CONTROL_LOOP_HZ)
-/* Ö÷Ñ­»·Ò»´Î×î¶à´¦ÀíµÄ tick£¬³¬¹ı½«¼ÆÊıÎª¶ªÆú£¨±ÜÃâÖ÷Ñ­»·³¤Ê±¼äÕ¼ÓÃ£© */
+/* ä¸»å¾ªç¯ä¸€æ¬¡æœ€å¤šå¤„ç†çš„ tickï¼Œè¶…è¿‡å°†è®¡æ•°ä¸ºä¸¢å¼ƒï¼ˆé¿å…ä¸»å¾ªç¯é•¿æ—¶é—´å ç”¨ï¼‰ */
 #define MAX_TICKS_PER_LOOP         (5U)
-static volatile uint32_t s_tick_drop_count = 0U; /* ±»¶ªÆúµÄ tick ¼ÆÊı */
+static volatile uint32_t s_tick_drop_count = 0U; /* è¢«ä¸¢å¼ƒçš„ tick è®¡æ•° */
 /*********************************************************************************************************
-*                                              ÄÚ²¿º¯ÊıÉùÃ÷
+*                                              å†…éƒ¨å‡½æ•°å£°æ˜
 *********************************************************************************************************/
 static void llc_softstart_reset(void);
 static void llc_softstart_begin(float target_duty);
@@ -223,7 +223,7 @@ static void pfc_hw_set_relay(bool closed);
 void systick_1ms_init(void);
 
 /*********************************************************************************************************
-*                                              ÄÚ²¿º¯ÊıÊµÏÖ
+*                                              å†…éƒ¨å‡½æ•°å®ç°
 *********************************************************************************************************/
 void systick_config(void)
 {
@@ -240,20 +240,20 @@ void systick_1ms_init(void){
 		SystemCoreClockUpdate();    
      uint32_t reload  = SystemCoreClock / 1000U;
 	  if (reload == 0U || reload > SysTick_LOAD_RELOAD_Msk) {
-                                           // Ê§°Ü£ºÆµÂÊÒì³£»ò³¬³ö24Î»
+                                           // å¤±è´¥ï¼šé¢‘ç‡å¼‚å¸¸æˆ–è¶…å‡º24ä½
     }
-		reload -= 1U; //µ÷ÕûÖØÔØÖµ£¬È·±£¶¨Ê±Æ÷ĞĞÎª·ûºÏÔ¤ÆÚ¡£
+		reload -= 1U; //è°ƒæ•´é‡è½½å€¼ï¼Œç¡®ä¿å®šæ—¶å™¨è¡Œä¸ºç¬¦åˆé¢„æœŸã€‚
 		if (reload > SysTick_LOAD_RELOAD_Msk) {
 			reload = SysTick_LOAD_RELOAD_Msk;
 		}
 		
-		SysTick->CTRL = 0U;  //ÏÈ½ûÓÃ SysTick¡£
-		SysTick->LOAD = reload; //ÉèÖÃÖØÔØÖµ¡£
-		SysTick->VAL  = 0U; //Çå³ıµ±Ç°¼ÆÊıÖµ¡£
+		SysTick->CTRL = 0U;  //å…ˆç¦ç”¨ SysTickã€‚
+		SysTick->LOAD = reload; //è®¾ç½®é‡è½½å€¼ã€‚
+		SysTick->VAL  = 0U; //æ¸…é™¤å½“å‰è®¡æ•°å€¼ã€‚
     NVIC_SetPriority(SysTick_IRQn, 0x0F);
-		//ÉèÖÃ SysTick µÄÊ±ÖÓÔ´¡£Èç¹û¸ÃÎ»±»ÖÃ 1£¬±íÊ¾Ê¹ÓÃ´¦ÀíÆ÷Ê±ÖÓ£¨HCLK£©£»Èç¹ûÎª 0£¬±íÊ¾Ê¹ÓÃ HCLK µÄ 8 ·ÖÆµ¡£
-		//¿ØÖÆ SysTick ÖĞ¶ÏµÄÆôÓÃ¡£Èç¹û¸ÃÎ»±»ÖÃ 1£¬±íÊ¾ÔÊĞí SysTick ¶¨Ê±Æ÷ÔÚ¼ÆÊıµ½ 0 Ê±´¥·¢ÖĞ¶Ï¡£
-		//¿ØÖÆ SysTick ¶¨Ê±Æ÷µÄÆôÓÃ¡£Èç¹û¸ÃÎ»±»ÖÃ 1£¬±íÊ¾Æô¶¯¶¨Ê±Æ÷¼ÆÊı¡£
+		//è®¾ç½® SysTick çš„æ—¶é’Ÿæºã€‚å¦‚æœè¯¥ä½è¢«ç½® 1ï¼Œè¡¨ç¤ºä½¿ç”¨å¤„ç†å™¨æ—¶é’Ÿï¼ˆHCLKï¼‰ï¼›å¦‚æœä¸º 0ï¼Œè¡¨ç¤ºä½¿ç”¨ HCLK çš„ 8 åˆ†é¢‘ã€‚
+		//æ§åˆ¶ SysTick ä¸­æ–­çš„å¯ç”¨ã€‚å¦‚æœè¯¥ä½è¢«ç½® 1ï¼Œè¡¨ç¤ºå…è®¸ SysTick å®šæ—¶å™¨åœ¨è®¡æ•°åˆ° 0 æ—¶è§¦å‘ä¸­æ–­ã€‚
+		//æ§åˆ¶ SysTick å®šæ—¶å™¨çš„å¯ç”¨ã€‚å¦‚æœè¯¥ä½è¢«ç½® 1ï¼Œè¡¨ç¤ºå¯åŠ¨å®šæ—¶å™¨è®¡æ•°ã€‚
 		SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk |  
 								SysTick_CTRL_TICKINT_Msk   |
 								SysTick_CTRL_ENABLE_Msk;
@@ -264,13 +264,13 @@ static inline float conv_adc_to_v_div(uint16_t raw, float rtop, float rbot){
     return v * (rtop + rbot) / rbot;
 }
 
-//È¥Æ«ÖÃ
-//float v_net = v_adc - v_zero;               // È¥Æ«ÖÃ
-//return v_net / (ISHUNT_OHM * IAMP_GAIN);    // µ¥Î»£º°²Åà
-//v_zero¡Ö0.17V
+//å»åç½®
+//float v_net = v_adc - v_zero;               // å»åç½®
+//return v_net / (ISHUNT_OHM * IAMP_GAIN);    // å•ä½ï¼šå®‰åŸ¹
+//v_zeroâ‰ˆ0.17V
 static inline float conv_adc_to_i(uint16_t raw){
     float v = (raw * VREF_ADC) / 4095.0f;
-		float v1 = v - 0.17;              // È¥Æ«ÖÃ
+		float v1 = v - 0.17;              // å»åç½®
     return v1 / (ISHUNT_OHM * IAMP_GAIN);
 }
 static inline float f_absf(float x){ return x < 0 ? -x : x; }
@@ -282,24 +282,24 @@ static inline float f_clampf(float x,float lo,float hi)
 #if LLC_SOFTSTART_ENABLE
 
 
-/* ¸ù¾İµ±Ç°ÖÜÆÚ/ËÀÇø£¬¼ÆËã¡°ÓĞĞ§Õ¼¿Õ°²È«´°¡± */
+/* æ ¹æ®å½“å‰å‘¨æœŸ/æ­»åŒºï¼Œè®¡ç®—â€œæœ‰æ•ˆå ç©ºå®‰å…¨çª—â€ */
 static void ss_update_safe_window(void)
 {
 	  uint32_t per_ns = llc_pwm_get_period_ns();
     uint32_t dt_ns  = llc_pwm_get_deadtime_ns();
 	  float guard = 0.0f;
     if (per_ns > 0U) {
-        /* »¥²¹Á½ÑØ¶¼²åËÀÇø£º±£ÊØÈ¡ 2*deadtime */
+        /* äº’è¡¥ä¸¤æ²¿éƒ½æ’æ­»åŒºï¼šä¿å®ˆå– 2*deadtime */
         guard = (2.0f * (float)dt_ns) / (float)per_ns;  // 0~1
     }
-		guard += LLC_SOFTSTART_EXTRA_MARGIN; // ¾­ÑéÓàÁ¿
+		guard += LLC_SOFTSTART_EXTRA_MARGIN; // ç»éªŒä½™é‡
 
-    /* ÏÂÏŞ²»³¬¹ı 0.49£¬ÉÏÏŞ²»µÍÓÚ 0.51£¬±ÜÃâ¿¿½ü 50% ¸½½üÅ¼·¢Ö±Í¨/ÎŞĞ§Âö¿í */
+    /* ä¸‹é™ä¸è¶…è¿‡ 0.49ï¼Œä¸Šé™ä¸ä½äº 0.51ï¼Œé¿å…é è¿‘ 50% é™„è¿‘å¶å‘ç›´é€š/æ— æ•ˆè„‰å®½ */
     s_llc_softstart.duty_min_safe = f_clampf(guard, 0.0f, 0.49f);
     s_llc_softstart.duty_max_safe = f_clampf(1.0f - guard,  0.51f, 0.99f);
 }
 
-/* ÓàÏÒ S ÇúÏß£º0¡ú1 */
+/* ä½™å¼¦ S æ›²çº¿ï¼š0â†’1 */
 static inline float ease_cos(float t)
 {
     if (t <= 0.f) return 0.f;
@@ -314,7 +314,7 @@ static void ss_apply(float duty)
 }
 
 
-/* Ö¸ÊıÇúÏß£º0¡ú1 */
+/* æŒ‡æ•°æ›²çº¿ï¼š0â†’1 */
 static inline float ease_exp(float t, float k)
 {
     if (t <= 0.f) return 0.f;
@@ -371,7 +371,7 @@ void llc_softstart_abort(void)
 {
     s_llc_softstart.active = false;
     s_llc_softstart.pause = false;
-    ss_update_safe_window(); // ÒÔ·ÀÆÚ¼ä¸Ä¹ıÆµÂÊ/ËÀÇø
+    ss_update_safe_window(); // ä»¥é˜²æœŸé—´æ”¹è¿‡é¢‘ç‡/æ­»åŒº
     ss_apply(f_clampf(LLC_SOFTSTART_FAILSAFE_DUTY, 0.0f, 0.99f));
 }
 
@@ -380,7 +380,7 @@ static void llc_softstart_tick(void)
     if (!s_llc_softstart.active) 
 			return;
 
-    /* ÓÃÄãÏîÄ¿ÒÑÓĞµÄ¹ÊÕÏÅĞ¾İ */
+    /* ç”¨ä½ é¡¹ç›®å·²æœ‰çš„æ•…éšœåˆ¤æ® */
     if (protect_fault_latched() || protect_fault_active_hw()) {
         llc_softstart_abort();
         return;
@@ -397,14 +397,14 @@ static void llc_softstart_tick(void)
 		float progress = (s_llc_softstart.duration_ms > 0U) ? ((float)elapsed / (float)s_llc_softstart.duration_ms) : 1.0f;
 
 		
-		 /* ½«ÏßĞÔ»»³É S ÇúÏß£¨ÈçĞèÏßĞÔ£¬°Ñ ease ¸Ä³É progress£© */
+		 /* å°†çº¿æ€§æ¢æˆ S æ›²çº¿ï¼ˆå¦‚éœ€çº¿æ€§ï¼ŒæŠŠ ease æ”¹æˆ progressï¼‰ */
 #if defined(LLC_SOFTSTART_USE_COSINE_EASE) && (LLC_SOFTSTART_USE_COSINE_EASE)
     float k = ease_cos(progress);
 #else
     float k = ease_exp(progress, 3.0f);
 #endif
 		
-		//Ê¹ÓÃÏßĞÔ²åÖµ¹«Ê½¼ÆËãµ±Ç°Õ¼¿Õ±È
+		//ä½¿ç”¨çº¿æ€§æ’å€¼å…¬å¼è®¡ç®—å½“å‰å ç©ºæ¯”
 		float duty = s_llc_softstart.start_duty +
 								 (s_llc_softstart.target_duty - s_llc_softstart.start_duty) * progress;
 		ss_apply(duty);
@@ -473,7 +473,7 @@ static void module_tests_tick_1khz(float vbus_v)
 #endif
 
 #if ENABLE_PWM_TEST
-//Í¨¹ıÏàÎ»µİÔöºÍ·Ö¶Î¼ÆËã£¬ÊµÏÖÁËÕ¼¿Õ±ÈµÄÆ½»¬±ä»¯¡£
+//é€šè¿‡ç›¸ä½é€’å¢å’Œåˆ†æ®µè®¡ç®—ï¼Œå®ç°äº†å ç©ºæ¯”çš„å¹³æ»‘å˜åŒ–ã€‚
     uint32_t phase = (s_module_tests.pwm.sweep_phase + 1U) % PWM_TEST_SWEEP_PERIOD_MS;
     s_module_tests.pwm.sweep_phase = phase;
     uint32_t half = PWM_TEST_SWEEP_PERIOD_MS / 2U;
@@ -616,7 +616,7 @@ static void pfc_state_enter(pfc_state_t next)
 
 			break;
 		case PFC_ST_READY:
-			// µ½ÕâÒ»²½²ÅºÏÉÏ¼ÌµçÆ÷
+			// åˆ°è¿™ä¸€æ­¥æ‰åˆä¸Šç»§ç”µå™¨
 			pfc_hw_set_enable(true);
 			//pfc_hw_set_relay(true);
 			s_pfc_app.vbus_ok_since_ms = g_ms;
@@ -641,7 +641,7 @@ void pfc_app_init()
 	pfc_hw_set_enable(false);
 	//pfc_hw_set_relay(false);
 }
-//¸Ãº¯ÊıµÄÄ¿µÄÊÇÔÚÆô¶¯Ä³ÖÖÇëÇóÊ±£¬È·±£ÏµÍ³×´Ì¬ÕıÈ·£¬²¢¼ÇÂ¼ÇëÇóµÄÆğÊ¼Ê±¼ä£¨Èç¹ûÏµÍ³µ±Ç°²»´¦ÓÚ¿ÕÏĞ×´Ì¬£©¡£
+//è¯¥å‡½æ•°çš„ç›®çš„æ˜¯åœ¨å¯åŠ¨æŸç§è¯·æ±‚æ—¶ï¼Œç¡®ä¿ç³»ç»ŸçŠ¶æ€æ­£ç¡®ï¼Œå¹¶è®°å½•è¯·æ±‚çš„èµ·å§‹æ—¶é—´ï¼ˆå¦‚æœç³»ç»Ÿå½“å‰ä¸å¤„äºç©ºé—²çŠ¶æ€ï¼‰ã€‚
 void pfc_app_request_start(void)
 {
 	s_pfc_app.enable_cmd = true;
@@ -660,20 +660,20 @@ void pfc_app_force_off()
 	}
 }
 /*********************************************************************************************************
-* º¯ÊıÃû³Æ£ºpfc_app_tick_1khz
-* º¯Êı¹¦ÄÜ£ºÆäÖ÷ÒªÄ¿µÄÊÇ¸ù¾İÊäÈëµçÑ¹£¨ vbus_v £©ºÍÏµÍ³×´Ì¬£¨Èç¹ÊÕÏ¡¢Ê¹ÄÜÃüÁîµÈ£©¶¯Ì¬µ÷Õû PFC µÄ¹¤×÷×´Ì¬£¬
-	È·±£ÏµÍ³ÔÚ°²È«¡¢¸ßĞ§µÄ×´Ì¬ÏÂÔËĞĞ¡£
-* ÊäÈë²ÎÊı£ºvbus_v
-* Êä³ö²ÎÊı£ºvoid
-* ·µ »Ø Öµ£ºvoid
-* ´´½¨ÈÕÆÚ£º2025Äê10ÔÂ09ÈÕ
-* ×¢    Òâ£ºÓĞÆô¶¯ÑÓÊ±¡¢´ï±ê±£³Ö¡¢³ÙÖÍ¡¢READY Ïû¶¶ºÍ³äµç³¬Ê±ÎåµÀ±£ÕÏ£¬ÏÖ³¡±íÏÖ»á¸ü¡°ÎÈÇÒ¿ÉÔ¤ÆÚ
+* å‡½æ•°åç§°ï¼špfc_app_tick_1khz
+* å‡½æ•°åŠŸèƒ½ï¼šå…¶ä¸»è¦ç›®çš„æ˜¯æ ¹æ®è¾“å…¥ç”µå‹ï¼ˆ vbus_v ï¼‰å’Œç³»ç»ŸçŠ¶æ€ï¼ˆå¦‚æ•…éšœã€ä½¿èƒ½å‘½ä»¤ç­‰ï¼‰åŠ¨æ€è°ƒæ•´ PFC çš„å·¥ä½œçŠ¶æ€ï¼Œ
+	ç¡®ä¿ç³»ç»Ÿåœ¨å®‰å…¨ã€é«˜æ•ˆçš„çŠ¶æ€ä¸‹è¿è¡Œã€‚
+* è¾“å…¥å‚æ•°ï¼švbus_v
+* è¾“å‡ºå‚æ•°ï¼švoid
+* è¿” å› å€¼ï¼švoid
+* åˆ›å»ºæ—¥æœŸï¼š2025å¹´10æœˆ09æ—¥
+* æ³¨    æ„ï¼šæœ‰å¯åŠ¨å»¶æ—¶ã€è¾¾æ ‡ä¿æŒã€è¿Ÿæ»ã€READY æ¶ˆæŠ–å’Œå……ç”µè¶…æ—¶äº”é“ä¿éšœï¼Œç°åœºè¡¨ç°ä¼šæ›´â€œç¨³ä¸”å¯é¢„æœŸ
 *********************************************************************************************************/
 void pfc_app_tick_1khz(float vbus_v)
 {
 	s_pfc_bus_v = vbus_v;
 	bool fault_active = protect_fault_latched()||protect_fault_active_hw();
-	//ÅÅ³ı¹ÊÕÏ×´Ì¬
+	//æ’é™¤æ•…éšœçŠ¶æ€
 	if(fault_active && s_pfc_app.state != PFC_ST_FAULT)
 	{
 		pfc_state_enter(PFC_ST_FAULT);
@@ -694,7 +694,7 @@ void pfc_app_tick_1khz(float vbus_v)
 			}
 			if(!s_pfc_hw_enabled)
 			{
-				//ÓÃÊ¾²¨Æ÷²âÁ¿´ÓÊ¹ÄÜĞÅºÅ£¨ pfc_hw_set_enable(true) £©µ½Êä³öµçÑ¹ÎÈ¶¨µÄÊµ¼ÊÊ±¼ä,½«ÑÓÊ±ÉèÎªÊµ²âÊ±¼äµÄ 1.2-1.5±¶ ÒÔÁôÓàÁ¿¡£
+				//ç”¨ç¤ºæ³¢å™¨æµ‹é‡ä»ä½¿èƒ½ä¿¡å·ï¼ˆ pfc_hw_set_enable(true) ï¼‰åˆ°è¾“å‡ºç”µå‹ç¨³å®šçš„å®é™…æ—¶é—´,å°†å»¶æ—¶è®¾ä¸ºå®æµ‹æ—¶é—´çš„ 1.2-1.5å€ ä»¥ç•™ä½™é‡ã€‚
 				if((uint32_t)(g_ms - s_pfc_app.entry_ms)<PFC_STARTUP_DELAY_MS)
 				{
 					break;
@@ -703,7 +703,7 @@ void pfc_app_tick_1khz(float vbus_v)
 			}
 			
 			
-			//ÊäÈëµçÑ¹ vbus_v ´ïµ½Ä¿±êÖµ£¨ PFC_VBUS_READY_V £©£¬²¢±£³ÖÒ»¶ÎÊ±¼ä£¨ PFC_READY_DELAY_MS £©½øÈëready×´Ì¬
+			//è¾“å…¥ç”µå‹ vbus_v è¾¾åˆ°ç›®æ ‡å€¼ï¼ˆ PFC_VBUS_READY_V ï¼‰ï¼Œå¹¶ä¿æŒä¸€æ®µæ—¶é—´ï¼ˆ PFC_READY_DELAY_MS ï¼‰è¿›å…¥readyçŠ¶æ€
 			if(vbus_v>=PFC_VBUS_READY_V)
 			{
 				if(s_pfc_app.vbus_ok_since_ms == 0U)
@@ -717,7 +717,7 @@ void pfc_app_tick_1khz(float vbus_v)
 			}
 			else
 			{
-				s_pfc_app.vbus_ok_since_ms = 0; // ÖØĞÂ¼ÆÊ±
+				s_pfc_app.vbus_ok_since_ms = 0; // é‡æ–°è®¡æ—¶
 			}
 			break;
 		case PFC_ST_READY:
@@ -726,7 +726,7 @@ void pfc_app_tick_1khz(float vbus_v)
 				pfc_state_enter(PFC_ST_IDLE);
 				break;
 			}
-	//ÊäÈëµçÑ¹µÍÓÚãĞÖµ£¨ PFC_VBUS_READY_V - PFC_VBUS_READY_HYST_V £©£¬²¢³ÖĞøÒ»¶¨Ê±¼ä£¨ PFC_VBUS_DROPOUT_MS £©¡£
+	//è¾“å…¥ç”µå‹ä½äºé˜ˆå€¼ï¼ˆ PFC_VBUS_READY_V - PFC_VBUS_READY_HYST_V ï¼‰ï¼Œå¹¶æŒç»­ä¸€å®šæ—¶é—´ï¼ˆ PFC_VBUS_DROPOUT_MS ï¼‰ã€‚
 			if(vbus_v >= (PFC_VBUS_READY_V - PFC_VBUS_READY_HYST_V))
 			{
 				s_pfc_app.dropout_since_ms = 0U;
@@ -780,41 +780,41 @@ float pfc_bus_voltage(void)
 }
 
 void llc_step(llc_t* l){
-	/* 1) Îó²î£ºÄ¿±êµçÑ¹ - Êµ²âµçÑ¹£¨µ¥Î»V£© */
+	/* 1) è¯¯å·®ï¼šç›®æ ‡ç”µå‹ - å®æµ‹ç”µå‹ï¼ˆå•ä½Vï¼‰ */
     float e = l->vref - l->vmeas;
-	/* 2) »ı·ÖÀÛ¼Ó£ºÃ¿¸ö¿ØÖÆÖÜÆÚÔö¼Ó ki*e£¨²»¿¼ÂÇ±¥ºÍ£© */
+	/* 2) ç§¯åˆ†ç´¯åŠ ï¼šæ¯ä¸ªæ§åˆ¶å‘¨æœŸå¢åŠ  ki*eï¼ˆä¸è€ƒè™‘é¥±å’Œï¼‰ */
     l->integ += l->ki * e;
-	/* 3) PIÊä³öÓ³Éäµ½ÆµÂÊÇëÇó£ºkp*e + I£¬ÔÙ¼Ó»ùÏß f_min£¨µ¥Î»Hz£© */
+	/* 3) PIè¾“å‡ºæ˜ å°„åˆ°é¢‘ç‡è¯·æ±‚ï¼škp*e + Iï¼Œå†åŠ åŸºçº¿ f_minï¼ˆå•ä½Hzï¼‰ */
     float f_req = l->kp * e + l->integ + l->f_min;
-	/* 4) ÏŞ·ù */
-    if(f_req < l->f_min)   // ÆµÂÊÏÂÏŞÇ¯Î»£º²»¿ÉµÍÓÚ f_min
+	/* 4) é™å¹… */
+    if(f_req < l->f_min)   // é¢‘ç‡ä¸‹é™é’³ä½ï¼šä¸å¯ä½äº f_min
 			f_req = l->f_min;
-    if(f_req > l->f_max)   // ÆµÂÊÉÏÏŞÇ¯Î»£º²»¿É¸ßÓÚ f_max
+    if(f_req > l->f_max)   // é¢‘ç‡ä¸Šé™é’³ä½ï¼šä¸å¯é«˜äº f_max
 			f_req = l->f_max;
 		
-    float df = f_req - l->f_cmd;  // ÆÚÍûÆµÂÊÓëµ±Ç°ÏÂ·¢ÆµÂÊµÄ²îÖµ ¦¤f
+    float df = f_req - l->f_cmd;  // æœŸæœ›é¢‘ç‡ä¸å½“å‰ä¸‹å‘é¢‘ç‡çš„å·®å€¼ Î”f
 		
-    if(f_absf(df) > l->f_slew)   // Ğ±ÂÊÏŞ·ù£ºÈô |¦¤f| ´óÓÚÃ¿ÖÜÆÚ×î´ó²½³¤ f_slew
-			l->f_cmd += (df>0?l->f_slew:-l->f_slew); //¾Í°´Õı/¸º·½ÏòÖ»ÒÆ¶¯ f_slew£¨ÏŞËÙ±äÆµ£©
+    if(f_absf(df) > l->f_slew)   // æ–œç‡é™å¹…ï¼šè‹¥ |Î”f| å¤§äºæ¯å‘¨æœŸæœ€å¤§æ­¥é•¿ f_slew
+			l->f_cmd += (df>0?l->f_slew:-l->f_slew); //å°±æŒ‰æ­£/è´Ÿæ–¹å‘åªç§»åŠ¨ f_slewï¼ˆé™é€Ÿå˜é¢‘ï¼‰
     else 
-			l->f_cmd = f_req; // ·ñÔòÒ»²½µ½Î»£ºÖ±½Ó°ÑÏÂ·¢ÆµÂÊÉèÎªÄ¿±ê
+			l->f_cmd = f_req; // å¦åˆ™ä¸€æ­¥åˆ°ä½ï¼šç›´æ¥æŠŠä¸‹å‘é¢‘ç‡è®¾ä¸ºç›®æ ‡
 }
 
 /*********************************************************************************************************
-* º¯ÊıÃû³Æ£ºllc_state_enter
-* º¯Êı¹¦ÄÜ£º×´Ì¬»úÇĞ»»º¯Êı£¬ÓÃÓÚ¿ØÖÆ LLC£¨Ğ³Õñ±ä»»Æ÷£©µÄ²»Í¬¹¤×÷×´Ì¬
-* ÊäÈë²ÎÊı£ºnext
-* Êä³ö²ÎÊı£ºvoid
-* ·µ »Ø Öµ£ºvoid
-* ´´½¨ÈÕÆÚ£º202Äê10ÔÂ09ÈÕ
-* ×¢    Òâ£ºµ± LLC ĞèÒª´ÓÒ»¸ö×´Ì¬ÇĞ»»µ½ÁíÒ»¸ö×´Ì¬Ê±£¬´Ëº¯Êı»á±»µ÷ÓÃ£¬Ö´ĞĞÏàÓ¦µÄ³õÊ¼»¯»òÇåÀí²Ù×÷¡£
+* å‡½æ•°åç§°ï¼šllc_state_enter
+* å‡½æ•°åŠŸèƒ½ï¼šçŠ¶æ€æœºåˆ‡æ¢å‡½æ•°ï¼Œç”¨äºæ§åˆ¶ LLCï¼ˆè°æŒ¯å˜æ¢å™¨ï¼‰çš„ä¸åŒå·¥ä½œçŠ¶æ€
+* è¾“å…¥å‚æ•°ï¼šnext
+* è¾“å‡ºå‚æ•°ï¼švoid
+* è¿” å› å€¼ï¼švoid
+* åˆ›å»ºæ—¥æœŸï¼š202å¹´10æœˆ09æ—¥
+* æ³¨    æ„ï¼šå½“ LLC éœ€è¦ä»ä¸€ä¸ªçŠ¶æ€åˆ‡æ¢åˆ°å¦ä¸€ä¸ªçŠ¶æ€æ—¶ï¼Œæ­¤å‡½æ•°ä¼šè¢«è°ƒç”¨ï¼Œæ‰§è¡Œç›¸åº”çš„åˆå§‹åŒ–æˆ–æ¸…ç†æ“ä½œã€‚
 *********************************************************************************************************/
 static void llc_state_enter(llc_state_t next)
 {
 	s_llc_app.state = next;
 	s_llc_app.entry_ms = g_ms;
 	#if Bus_Adj
-	bus_vol_adj_reset();   //ÖØÖÃ×ÜÏßµçÑ¹µ÷ÕûÂß¼­ °Ù·ÖÖ®ÎåÊ®µÄÕ¼¿Õ±È
+	bus_vol_adj_reset();   //é‡ç½®æ€»çº¿ç”µå‹è°ƒæ•´é€»è¾‘ ç™¾åˆ†ä¹‹äº”åçš„å ç©ºæ¯”
 	#endif
 	switch(next)
 	{
@@ -834,7 +834,7 @@ static void llc_state_enter(llc_state_t next)
 			llc_open_loop_stop(&s_llc_open_loop);
 #endif
 			llc_softstart_reset();
-			pfc_app_request_start(); //¼ÇÂ¼ÇëÇóµÄÆğÊ¼Ê±¼ä
+			pfc_app_request_start(); //è®°å½•è¯·æ±‚çš„èµ·å§‹æ—¶é—´
 			llc_pwm_outputs_enable(0);
 			s_llc.integ = 0.0f;
 			s_llc.f_cmd = s_llc.f_min;
@@ -874,13 +874,13 @@ void llc_app_init()
 	llc_state_enter(ST_WAIT_VBUS);
 }
 /*********************************************************************************************************
-* º¯ÊıÃû³Æ£ºllc_state_enter
-* º¯Êı¹¦ÄÜ£º×´Ì¬»úÇĞ»»º¯Êı£¬ÓÃÓÚ¿ØÖÆ LLC£¨Ğ³Õñ±ä»»Æ÷£©µÄ²»Í¬¹¤×÷×´Ì¬
-* ÊäÈë²ÎÊı£ºnext
-* Êä³ö²ÎÊı£ºvoid
-* ·µ »Ø Öµ£ºvoid
-* ´´½¨ÈÕÆÚ£º2025Äê10ÔÂ09ÈÕ
-* ×¢    Òâ£ºµ± LLC ĞèÒª´ÓÒ»¸ö×´Ì¬ÇĞ»»µ½ÁíÒ»¸ö×´Ì¬Ê±£¬´Ëº¯Êı»á±»µ÷ÓÃ£¬Ö´ĞĞÏàÓ¦µÄ³õÊ¼»¯»òÇåÀí²Ù×÷¡£
+* å‡½æ•°åç§°ï¼šllc_state_enter
+* å‡½æ•°åŠŸèƒ½ï¼šçŠ¶æ€æœºåˆ‡æ¢å‡½æ•°ï¼Œç”¨äºæ§åˆ¶ LLCï¼ˆè°æŒ¯å˜æ¢å™¨ï¼‰çš„ä¸åŒå·¥ä½œçŠ¶æ€
+* è¾“å…¥å‚æ•°ï¼šnext
+* è¾“å‡ºå‚æ•°ï¼švoid
+* è¿” å› å€¼ï¼švoid
+* åˆ›å»ºæ—¥æœŸï¼š2025å¹´10æœˆ09æ—¥
+* æ³¨    æ„ï¼šå½“ LLC éœ€è¦ä»ä¸€ä¸ªçŠ¶æ€åˆ‡æ¢åˆ°å¦ä¸€ä¸ªçŠ¶æ€æ—¶ï¼Œæ­¤å‡½æ•°ä¼šè¢«è°ƒç”¨ï¼Œæ‰§è¡Œç›¸åº”çš„åˆå§‹åŒ–æˆ–æ¸…ç†æ“ä½œã€‚
 *********************************************************************************************************/
 void llc_app_tick_1khz(void)
 {
@@ -895,28 +895,28 @@ void llc_app_tick_1khz(void)
 			llc_state_enter(ST_WAIT_VBUS);
 			break;
 		case ST_WAIT_VBUS:
-			//ĞèÂú×ã PFC ×¼±¸¾ÍĞ÷ÇÒµçÑ¹´ïµ½ãĞÖµ
+			//éœ€æ»¡è¶³ PFC å‡†å¤‡å°±ç»ªä¸”ç”µå‹è¾¾åˆ°é˜ˆå€¼
 			if(!pfc_app_ready()||s_llc.vmeas < LLC_ENTRY_V)
 			{
 				if (s_llc_app.entry_ms == 0U)
 				{
 					s_llc_app.entry_ms = g_ms;
 				}					
-				//ÎüºÏÖ÷¼ÌµçÆ÷
+				//å¸åˆä¸»ç»§ç”µå™¨
 				pfc_hw_set_relay(1);
 				llc_state_enter(ST_LLC_RUN); 
 				break;
 			}
 			else
 			{
-				s_llc_app.entry_ms = 0U;          // Ìõ¼şÖĞ¶Ï£¬ÖØĞÂ¼ÆÊ±
-				pfc_hw_set_relay(0);              // »¹Î´Âú×ã£¬±£³Ö¶Ï¿ª¸ü°²È«
+				s_llc_app.entry_ms = 0U;          // æ¡ä»¶ä¸­æ–­ï¼Œé‡æ–°è®¡æ—¶
+				pfc_hw_set_relay(0);              // è¿˜æœªæ»¡è¶³ï¼Œä¿æŒæ–­å¼€æ›´å®‰å…¨
 			}
-			break;                                 // <<< ±ØĞëÓĞ
+			break;                                 // <<< å¿…é¡»æœ‰
 
 		case ST_LLC_RUN:
-			 // ÔËĞĞÖĞ£º²»¾ÍĞ÷»òµçÑ¹µøÆÆ¡°½øÈëãĞÖµ-³ÙÖÍ¡±¡ú ÍË»ØµÈ´ı
-			//Èç¹ûÈÎÒ»Ìõ¼ş³ÉÁ¢£¨PFCÎ´¾ÍĞ÷ »ò µçÑ¹¹ıµÍ£©£¬Ôòµ÷ÓÃ llc_state_enter(ST_WAIT_VBUS) £¬ÇĞ»»ÖÁµÈ´ıVBUS×´Ì¬¡£
+			 // è¿è¡Œä¸­ï¼šä¸å°±ç»ªæˆ–ç”µå‹è·Œç ´â€œè¿›å…¥é˜ˆå€¼-è¿Ÿæ»â€â†’ é€€å›ç­‰å¾…
+			//å¦‚æœä»»ä¸€æ¡ä»¶æˆç«‹ï¼ˆPFCæœªå°±ç»ª æˆ– ç”µå‹è¿‡ä½ï¼‰ï¼Œåˆ™è°ƒç”¨ llc_state_enter(ST_WAIT_VBUS) ï¼Œåˆ‡æ¢è‡³ç­‰å¾…VBUSçŠ¶æ€ã€‚
 			if(!pfc_app_ready()||s_llc.vmeas<(LLC_ENTRY_V-PFC_VBUS_READY_HYST_V))
 			{
 				pfc_hw_set_relay(0);
@@ -940,15 +940,15 @@ void SysTick_Handler(void){
 }
 
 /*********************************************************************************************************
-* º¯ÊıÃû³Æ£ºcontrol_loop_tick_1khz
-* º¯Êı¹¦ÄÜ£ºÖ÷ÒªÓÃÓÚÊµÊ±¿ØÖÆµçÁ¦µç×ÓÏµÍ³ÖĞµÄ¹¦ÂÊ×ª»»Ä£¿é
-* ÊäÈë²ÎÊı£ºnext
-* Êä³ö²ÎÊı£ºvoid
-* ·µ »Ø Öµ£ºvoid
-* ´´½¨ÈÕÆÚ£º2025Äê10ÔÂ09ÈÕ
-* ×¢    Òâ£ºÊı¾İ²É¼¯Óë×ª»»£ºÍ¨¹ıADC¶ÁÈ¡Êä³öµçÑ¹µÄÔ­Ê¼Êı¾İ£¬²¢½«Æä×ª»»ÎªÊµ¼ÊµÄµçÑ¹Öµ¡£
-						¸ù¾İÏµÍ³×´Ì¬£¨ÈçLLCÊÇ·ñÔËĞĞ£©Ö´ĞĞ²»Í¬µÄ¿ØÖÆÂß¼­
-						¶¯Ì¬µ÷ÕûLLCµÄ¹¤×÷ÆµÂÊ£¬È·±£ÏµÍ³ÎÈ¶¨ÔËĞĞ¡£
+* å‡½æ•°åç§°ï¼šcontrol_loop_tick_1khz
+* å‡½æ•°åŠŸèƒ½ï¼šä¸»è¦ç”¨äºå®æ—¶æ§åˆ¶ç”µåŠ›ç”µå­ç³»ç»Ÿä¸­çš„åŠŸç‡è½¬æ¢æ¨¡å—
+* è¾“å…¥å‚æ•°ï¼šnext
+* è¾“å‡ºå‚æ•°ï¼švoid
+* è¿” å› å€¼ï¼švoid
+* åˆ›å»ºæ—¥æœŸï¼š2025å¹´10æœˆ09æ—¥
+* æ³¨    æ„ï¼šæ•°æ®é‡‡é›†ä¸è½¬æ¢ï¼šé€šè¿‡ADCè¯»å–è¾“å‡ºç”µå‹çš„åŸå§‹æ•°æ®ï¼Œå¹¶å°†å…¶è½¬æ¢ä¸ºå®é™…çš„ç”µå‹å€¼ã€‚
+						æ ¹æ®ç³»ç»ŸçŠ¶æ€ï¼ˆå¦‚LLCæ˜¯å¦è¿è¡Œï¼‰æ‰§è¡Œä¸åŒçš„æ§åˆ¶é€»è¾‘
+						åŠ¨æ€è°ƒæ•´LLCçš„å·¥ä½œé¢‘ç‡ï¼Œç¡®ä¿ç³»ç»Ÿç¨³å®šè¿è¡Œã€‚
 *********************************************************************************************************/
 static void control_loop_tick_1khz(void){
     /* 1 kHz control */
@@ -991,8 +991,8 @@ int main(void){
 	  debug_printf_init(DEBUG_PRINTF_DEFAULT_BAUDRATE);
 	  debug_printf("Debug console initialized @%lu baud\n", (unsigned long)DEBUG_PRINTF_DEFAULT_BAUDRATE);
 
-    /* LLC complementary PWM ÅäÖÃLLCµÄPWMÆµÂÊ ¡¢ËÀÇøÊ±¼äºÍÕ¼¿Õ±È£¬²¢³õÊ¼»¯PWMÄ£¿é*/
-    llc_pwm_cfg_t lcfg = { .pwm_hz=LLC_PWM_BASE_HZ, .deadtime_ns=LLC_PWM_DEAD_NS, .duty=LLC_PWM_DUTY };
+    /* ADC multi (PA3/PA1 removed) triggered by TIMER0 CH2 at PWM midpoint for coherence */
+    adc_multi_init_dma(ADC0_1_EXTTRIG_REGULAR_T0_CH2); 
     llc_pwm_init(&lcfg);
 
     /* Aux PWM on PB0 */
@@ -1014,7 +1014,7 @@ int main(void){
     /* Protection EXTI PC11 */
     protect_exti_init();
 
-    /* LLC control default¡£³õÊ¼»¯LLCµÄ¿ØÖÆ²ÎÊı£¬°üÀ¨Ä¿±êµçÑ¹¡¢PID²ÎÊı¡¢ÆµÂÊ·¶Î§ºÍ³õÊ¼ÆµÂÊ¡£*/
+    /* LLC control defaultã€‚åˆå§‹åŒ–LLCçš„æ§åˆ¶å‚æ•°ï¼ŒåŒ…æ‹¬ç›®æ ‡ç”µå‹ã€PIDå‚æ•°ã€é¢‘ç‡èŒƒå›´å’Œåˆå§‹é¢‘ç‡ã€‚*/
     s_llc = (llc_t){ 
 			.vref=VBUS_TARGET_V, .vmeas=0.0f, .kp=0.01f, .ki=0.0005f,
       .f_min=LLC_F_MIN_HZ, .f_max=LLC_F_MAX_HZ, .f_cmd=LLC_F_INIT_HZ, .f_slew=LLC_F_SLEW_HZ 
@@ -1032,12 +1032,12 @@ int main(void){
 #endif
     while(1){
 			uint32_t pending_ticks = 0U;
-			float  duty0, duty1; //PA3 PA1²¶»ñµÄÖµ
+			float  duty0, duty1; //PA3 PA1æ•è·çš„å€¼
 			//__disable_irq();
 			if(s_control_tick_pending > 0U)
 			{
-					pending_ticks = s_control_tick_pending; //pending_ticks £ºÓÃÓÚÖğ¸ö´¦Àí´ıÖ´ĞĞµÄ¿ØÖÆÈÎÎñ¡£
-					s_control_tick_pending = 0U;  //¼ÇÂ¼´ı´¦ÀíµÄ¿ØÖÆÖÜÆÚÈÎÎñÊıÁ¿¡£
+					pending_ticks = s_control_tick_pending; //pending_ticks ï¼šç”¨äºé€ä¸ªå¤„ç†å¾…æ‰§è¡Œçš„æ§åˆ¶ä»»åŠ¡ã€‚
+					s_control_tick_pending = 0U;  //è®°å½•å¾…å¤„ç†çš„æ§åˆ¶å‘¨æœŸä»»åŠ¡æ•°é‡ã€‚
 			}
 			//__enable_irq();
 			while(pending_ticks-- > 0U)
@@ -1059,7 +1059,7 @@ int main(void){
 #endif
 			}
 			//if(protect_fault_latched()){
-				//¼ì²âµ½¹ÊÕÏ£¨Í¨¹ıPC11ÖĞ¶Ï£©£¬Ôò¹Ø±ÕLLCµÄPWMÊä³ö£¬²¢±ê¼ÇĞèÒª½øÒ»²½´¦Àí¹ÊÕÏ¡£
+				//æ£€æµ‹åˆ°æ•…éšœï¼ˆé€šè¿‡PC11ä¸­æ–­ï¼‰ï¼Œåˆ™å…³é—­LLCçš„PWMè¾“å‡ºï¼Œå¹¶æ ‡è®°éœ€è¦è¿›ä¸€æ­¥å¤„ç†æ•…éšœã€‚
 				//  llc_pwm_outputs_enable(0);
 					/* TODO: fault handling */
 			//}

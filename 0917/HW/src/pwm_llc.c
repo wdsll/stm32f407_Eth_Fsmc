@@ -2,14 +2,26 @@
 #include "pwm_llc.h"
 #include "main.h"
 
-//GPIO£º¸ß±Û¡¢µÍ±Û¡¢N Êä³ö¶¼ÓÃ AF_PP£»BKIN=PB12 ÓÃ ÉÏÀ­ÊäÈë¡£
-//ËÀÇø£ºÈ·ÈÏ bdtr_deadtime_code_ns(350ns, 108MHz) µÃµ½Ô¼ 0x26£¨¡Ö352ns£©¡£
-//BKIN£º¶Ì½Ó PB12¡úGND£¬Ó¦µ±Ë²Ê±¹Ø¶Ï£¨MOE Çå£©£»ËÉ¿ªÔÚÒ»¸ö¸üĞÂÖÜÆÚºó×Ô¶¯»Ö¸´£¨Òò outputautostate=ENABLE£©¡£
-//±äÆµ£ºµ÷ÓÃ llc_pwm_set_freq() ºó£¬Ê¾²¨Æ÷¿´µ½Õ¼¿Õ²»Æ¯£»Èô¹Ì¶¨ 50%£¬°Ñ llc_pwm_set_freq() ÀïÖ±½ÓÉè CCR = ARR/2¡£
+
+static void update_adc_trigger_from_pwm(uint16_t pwm_ccr)
+{
+    uint16_t midpoint = pwm_ccr / 2U;
+
+    if ((midpoint == 0U) && (pwm_ccr > 0U))
+    {
+        midpoint = 1U;
+    }
+
+    timer_channel_output_pulse_value_config(TIMER0, TIMER_CH_2, midpoint);
+}
+//GPIOï¼šé«˜è‡‚ã€ä½è‡‚ã€N è¾“å‡ºéƒ½ç”¨ AF_PPï¼›BKIN=PB12 ç”¨ ä¸Šæ‹‰è¾“å…¥ã€‚
+//æ­»åŒºï¼šç¡®è®¤ bdtr_deadtime_code_ns(350ns, 108MHz) å¾—åˆ°çº¦ 0x26ï¼ˆâ‰ˆ352nsï¼‰ã€‚
+//BKINï¼šçŸ­æ¥ PB12â†’GNDï¼Œåº”å½“ç¬æ—¶å…³æ–­ï¼ˆMOE æ¸…ï¼‰ï¼›æ¾å¼€åœ¨ä¸€ä¸ªæ›´æ–°å‘¨æœŸåè‡ªåŠ¨æ¢å¤ï¼ˆå›  outputautostate=ENABLEï¼‰ã€‚
+//å˜é¢‘ï¼šè°ƒç”¨ llc_pwm_set_freq() åï¼Œç¤ºæ³¢å™¨çœ‹åˆ°å ç©ºä¸æ¼‚ï¼›è‹¥å›ºå®š 50%ï¼ŒæŠŠ llc_pwm_set_freq() é‡Œç›´æ¥è®¾ CCR = ARR/2ã€‚
 //#include "gd32f30x_timer.h"
 static llc_pwm_cfg_t s_cfg; 
 static uint32_t s_period=0; 
-//ÆäÄ¿µÄÊÇ½«Ò»¸ö¸¡µãÊıÏŞÖÆÔÚÖ¸¶¨µÄ·¶Î§ÄÚ
+//å…¶ç›®çš„æ˜¯å°†ä¸€ä¸ªæµ®ç‚¹æ•°é™åˆ¶åœ¨æŒ‡å®šçš„èŒƒå›´å†…
 static inline float clampf(float x,float a,float b)
 { 
 	return x<a?a:(x>b?b:x); 
@@ -20,15 +32,15 @@ static inline float clampf(float x,float a,float b)
 	//return (t>255)?255:(uint8_t)t;
 //}
 /*********************************************************************************************************
-* º¯ÊıÃû³Æ£ºbdtr_deadtime_code_ns
-* º¯Êı¹¦ÄÜ£ºÓÃÓÚÅäÖÃÓ²¼şÖĞµÄËÀÇøÊ±¼ä¼Ä´æÆ÷£¨BDTR£©
-* ÊäÈë²ÎÊı£ºdead_ns:ËÀÇøÊ±¼ä£¬µ¥Î»ÎªÄÉÃë
-						clk: Ê±ÖÓÆµÂÊ£¬µ¥Î»ÎªºÕ×È
-* Êä³ö²ÎÊı£º
-* ·µ »Ø Öµ£º ·µ»ØÒ»¸ö 8 Î»µÄÎŞ·ûºÅÕûÊı
-* ´´½¨ÈÕÆÚ£º2025Äê10ÔÂ08ÈÕ
-* ×¢    Òâ£º³¢ÊÔ²»Í¬µÄ·ÖÆµÒò×Ó£¨1x¡¢2x¡¢8x¡¢16x£©£¬ÕÒµ½ºÏÊÊµÄ¼ÆÊıÖµ·¶Î§¡£
-¸ù¾İ²»Í¬µÄ·ÖÆµÒò×Ó£¬µ÷Õû¼ÆÊıÖµ²¢Ó³Éäµ½ÌØ¶¨µÄ¼Ä´æÆ÷±àÂë·¶Î§¡£
+* å‡½æ•°åç§°ï¼šbdtr_deadtime_code_ns
+* å‡½æ•°åŠŸèƒ½ï¼šç”¨äºé…ç½®ç¡¬ä»¶ä¸­çš„æ­»åŒºæ—¶é—´å¯„å­˜å™¨ï¼ˆBDTRï¼‰
+* è¾“å…¥å‚æ•°ï¼šdead_ns:æ­»åŒºæ—¶é—´ï¼Œå•ä½ä¸ºçº³ç§’
+						clk: æ—¶é’Ÿé¢‘ç‡ï¼Œå•ä½ä¸ºèµ«å…¹
+* è¾“å‡ºå‚æ•°ï¼š
+* è¿” å› å€¼ï¼š è¿”å›ä¸€ä¸ª 8 ä½çš„æ— ç¬¦å·æ•´æ•°
+* åˆ›å»ºæ—¥æœŸï¼š2025å¹´10æœˆ08æ—¥
+* æ³¨    æ„ï¼šå°è¯•ä¸åŒçš„åˆ†é¢‘å› å­ï¼ˆ1xã€2xã€8xã€16xï¼‰ï¼Œæ‰¾åˆ°åˆé€‚çš„è®¡æ•°å€¼èŒƒå›´ã€‚
+æ ¹æ®ä¸åŒçš„åˆ†é¢‘å› å­ï¼Œè°ƒæ•´è®¡æ•°å€¼å¹¶æ˜ å°„åˆ°ç‰¹å®šçš„å¯„å­˜å™¨ç¼–ç èŒƒå›´ã€‚
 *********************************************************************************************************/
 static uint8_t bdtr_deadtime_code_ns(uint32_t dead_ns, uint32_t clk) 
 {
@@ -71,94 +83,106 @@ static void pins_init(void){
 
 static uint32_t timer0_clk_hz(void){
     uint32_t apb2 = rcu_clock_freq_get(CK_APB2);
-    return (RCU_CFG0 & RCU_CFG0_APB2PSC) ? (apb2 * 2U) : apb2;  // APB2·ÖÆµ¡Ù1 Ê± TIMx=APB¡Á2
+    return (RCU_CFG0 & RCU_CFG0_APB2PSC) ? (apb2 * 2U) : apb2;  // APB2åˆ†é¢‘â‰ 1 æ—¶ TIMx=APBÃ—2
 }
 /*********************************************************************************************************
-* º¯ÊıÃû³Æ£ºllc_pwm_init
-* º¯Êı¹¦ÄÜ£º¸Ãº¯ÊıÓÃÓÚÅäÖÃºÍ³õÊ¼»¯LLC PWMÄ£¿é£¬°üÀ¨¶¨Ê±Æ÷¡¢Êä³ö±È½ÏÍ¨µÀ¡¢Break/Deadtime½á¹¹ÌåµÈ¡£
-Ä¿µÄÊÇ³õÊ¼»¯Ò»¸öÓÃÓÚ LLC Ğ³Õñ±ä»»Æ÷µÄ PWM£¨Âö¿íµ÷ÖÆ£©¿ØÖÆÆ÷¡£
-* ÊäÈë²ÎÊı£ºcfg
-* Êä³ö²ÎÊı£ºvoid
-* ·µ »Ø Öµ£ºvoid
-* ´´½¨ÈÕÆÚ£º2025/09/29
-* ×¢    Òâ£ºµ÷ÓÃ´Ëº¯ÊıÇ°£¬ĞèÈ·±£Ïà¹ØÍâÉèÊ±ÖÓÒÑÊ¹ÄÜ¡£ ³õÊ¼»¯Íê³Éºó£¬PWMÄ£¿é»á×Ô¶¯Æô¶¯¡£
+* å‡½æ•°åç§°ï¼šllc_pwm_init
+* å‡½æ•°åŠŸèƒ½ï¼šè¯¥å‡½æ•°ç”¨äºé…ç½®å’Œåˆå§‹åŒ–LLC PWMæ¨¡å—ï¼ŒåŒ…æ‹¬å®šæ—¶å™¨ã€è¾“å‡ºæ¯”è¾ƒé€šé“ã€Break/Deadtimeç»“æ„ä½“ç­‰ã€‚
+ç›®çš„æ˜¯åˆå§‹åŒ–ä¸€ä¸ªç”¨äº LLC è°æŒ¯å˜æ¢å™¨çš„ PWMï¼ˆè„‰å®½è°ƒåˆ¶ï¼‰æ§åˆ¶å™¨ã€‚
+* è¾“å…¥å‚æ•°ï¼šcfg
+* è¾“å‡ºå‚æ•°ï¼švoid
+* è¿” å› å€¼ï¼švoid
+* åˆ›å»ºæ—¥æœŸï¼š2025/09/29
+* æ³¨    æ„ï¼šè°ƒç”¨æ­¤å‡½æ•°å‰ï¼Œéœ€ç¡®ä¿ç›¸å…³å¤–è®¾æ—¶é’Ÿå·²ä½¿èƒ½ã€‚ åˆå§‹åŒ–å®Œæˆåï¼ŒPWMæ¨¡å—ä¼šè‡ªåŠ¨å¯åŠ¨ã€‚
 *********************************************************************************************************/
-//³õÊ¼»¯¶¨Ê±Æ÷»ù±¾²ÎÊı
+//åˆå§‹åŒ–å®šæ—¶å™¨åŸºæœ¬å‚æ•°
 void llc_pwm_init(const llc_pwm_cfg_t* cfg){
     s_cfg=*cfg;
     pins_init();
-	/* ÆôÓÃTIMER0µÄÊ±ÖÓ */
+	/* å¯ç”¨TIMER0çš„æ—¶é’Ÿ */
     rcu_periph_clock_enable(RCU_TIMER0);
-		/* ¶¨ÒåTIMER0µÄ³õÊ¼»¯²ÎÊı½á¹¹Ìå */
+		/* å®šä¹‰TIMER0çš„åˆå§‹åŒ–å‚æ•°ç»“æ„ä½“ */
     timer_parameter_struct t;
    // timer_struct_para_init(&t);
 	
-    uint32_t tclk = timer0_clk_hz();                // Èç¹ûÄã¿âÀïÃ»ÓĞ´Ëºê£¬¼ûÎÄÄ©±¸×¢
-    //s_period = (tclk/(2U*s_cfg.pwm_hz)) - 1U;      /* ÖĞĞÄ¶ÔÆëÆµÂÊ¹«Ê½ */ //s_period ´æ´¢¼ÆËã³öµÄ PWM ÖÜÆÚÖµ¡£
-		s_period = (tclk/(2U*s_cfg.pwm_hz)) - 1U;     //µ¥±ß£¨±ßÑØ¶ÔÆë£©¼ÆÊıÄ£Ê½
+    uint32_t tclk = timer0_clk_hz();                // å¦‚æœä½ åº“é‡Œæ²¡æœ‰æ­¤å®ï¼Œè§æ–‡æœ«å¤‡æ³¨
+    //s_period = (tclk/(2U*s_cfg.pwm_hz)) - 1U;      /* ä¸­å¿ƒå¯¹é½é¢‘ç‡å…¬å¼ */ //s_period å­˜å‚¨è®¡ç®—å‡ºçš„ PWM å‘¨æœŸå€¼ã€‚
+		s_period = (tclk/(2U*s_cfg.pwm_hz)) - 1U;     //å•è¾¹ï¼ˆè¾¹æ²¿å¯¹é½ï¼‰è®¡æ•°æ¨¡å¼
 /* TIMER0 configuration */
-    t.prescaler         = 0;  // Ô¤·ÖÆµÆ÷ÉèÖÃÎª0£¨Êµ¼Ê·ÖÆµÏµÊıÎª0+1=1£©
-    //t.alignedmode       = TIMER_COUNTER_CENTER_BOTH; //¾ÓÖĞ¶ÔÆëÇÒÏòÉÏ/ÏòÏÂ¼ÆÊıµÄ¶ÏÑÔÄ£Ê½
-		t.alignedmode       = TIMER_COUNTER_EDGE;   //±ßÔµ¶ÔÆëÄ£Ê½
-    t.counterdirection  = TIMER_COUNTER_UP; // ÏòÉÏ¼ÆÊı
-    t.period            = s_period;   // ×Ô¶¯ÖØÔØÖµ  1
-    t.clockdivision     = TIMER_CKDIV_DIV1; // Ê±ÖÓ·ÖÆµÒò×ÓÎª1
-    t.repetitioncounter = 0; // ÖØ¸´¼ÆÊıÆ÷ÖµÎª0
-    timer_init(TIMER0, &t);
+    t.prescaler         = 0;  // é¢„åˆ†é¢‘å™¨è®¾ç½®ä¸º0ï¼ˆå®é™…åˆ†é¢‘ç³»æ•°ä¸º0+1=1ï¼‰
+    //t.alignedmode       = TIMER_COUNTER_CENTER_BOTH; //å±…ä¸­å¯¹é½ä¸”å‘ä¸Š/å‘ä¸‹è®¡æ•°çš„æ–­è¨€æ¨¡å¼
+		t.alignedmode       = TIMER_COUNTER_EDGE;   //è¾¹ç¼˜å¯¹é½æ¨¡å¼
+    t.counterdirection  = TIMER_COUNTER_UP; // å‘ä¸Šè®¡æ•°
+    t.period            = s_period;   // è‡ªåŠ¨é‡è½½å€¼  1
+    t.clockdivision     = TIMER_CKDIV_DIV1; // æ—¶é’Ÿåˆ†é¢‘å› å­ä¸º1
+    timer_oc_parameter_struct oc_mid = oc;
+    oc_mid.outputstate  = TIMER_CCX_DISABLE;
+    oc_mid.outputnstate = TIMER_CCXN_DISABLE;
+    timer_channel_output_config(TIMER0, TIMER_CH_2, &oc_mid);
+    timer_channel_output_mode_config(TIMER0, TIMER_CH_2, TIMER_OC_MODE_PWM0);
+    timer_channel_output_pulse_value_config(TIMER0, TIMER_CH_2, 0);
+    timer_channel_output_shadow_config(TIMER0, TIMER_CH_2, TIMER_OC_SHADOW_ENABLE);
 
-    /* === ÊÖ¶¯³õÊ¼»¯ OC ½á¹¹Ìå£¨ÎŞ para_init °æ±¾£©  OC ÅäÖÃ£ºÒ»¸öÍ¨µÀ + »¥²¹£¨°ëÇÅ£©  === */
+		timer_master_output_trigger_source_select(TIMER0, TIMER_TRI_OUT_SRC_CC2); //Í¨ 2 Ğ·Ò»Î²È½Æ¥Â¼Îª TRGO 
+{
+	uint16_t pwm_ccr = duty_to_ccr(duty);
+	timer_channel_output_pulse_value_config(TIMER0, LLC_PWM_CH, pwm_ccr);
+	update_adc_trigger_from_pwm(pwm_ccr);
+	uint16_t pwm_ccr = duty_to_ccr(s_cfg.duty);
+	TIMER_CH0CV(TIMER0) = pwm_ccr;
+	update_adc_trigger_from_pwm(pwm_ccr);
     timer_oc_parameter_struct oc;
-    oc.outputstate   = TIMER_CCX_ENABLE;  // Ê¹ÄÜÖ÷Êä³öÍ¨µÀ
+    oc.outputstate   = TIMER_CCX_ENABLE;  // ä½¿èƒ½ä¸»è¾“å‡ºé€šé“
     oc.outputnstate  = TIMER_CCXN_ENABLE;
-    oc.ocpolarity    = TIMER_OC_POLARITY_HIGH; // Í¨µÀ0Êä³ö¼«ĞÔÎª¸ßµçÆ½
-    oc.ocnpolarity   = TIMER_OCN_POLARITY_HIGH;  // Í¨µÀ0NÊä³ö¼«ĞÔÎª¸ßµçÆ½
-    oc.ocidlestate   = TIMER_OC_IDLE_STATE_LOW;   //¿ÕÏĞ×´Ì¬ÏÂÖ÷Êä³öÎªµÍµçÆ½
+    oc.ocpolarity    = TIMER_OC_POLARITY_HIGH; // é€šé“0è¾“å‡ºææ€§ä¸ºé«˜ç”µå¹³
+    oc.ocnpolarity   = TIMER_OCN_POLARITY_HIGH;  // é€šé“0Nè¾“å‡ºææ€§ä¸ºé«˜ç”µå¹³
+    oc.ocidlestate   = TIMER_OC_IDLE_STATE_LOW;   //ç©ºé—²çŠ¶æ€ä¸‹ä¸»è¾“å‡ºä¸ºä½ç”µå¹³
     oc.ocnidlestate  = TIMER_OCN_IDLE_STATE_LOW;
 		//oc.ocnidlestate  = TIMER_OCN_IDLE_STATE_LOW;
-		// Ó¦ÓÃÅäÖÃµ½TIMER0µÄÍ¨µÀ0,ÅäÖÃ¶¨Ê±Æ÷Í¨µÀµÄÊä³ö²ÎÊı
+		// åº”ç”¨é…ç½®åˆ°TIMER0çš„é€šé“0,é…ç½®å®šæ—¶å™¨é€šé“çš„è¾“å‡ºå‚æ•°
     timer_channel_output_config(TIMER0, LLC_PWM_CH, &oc);
-		// ÉèÖÃTIMER0µÄLLC_PWM_CHÍ¨µÀµÄÊä³öÄ£Ê½Îª±ê×¼PWMÄ£Ê½£¨TIMER_OC_MODE_PWM0)
-    timer_channel_output_mode_config(TIMER0, LLC_PWM_CH, TIMER_OC_MODE_PWM0); /*TIMER_OC_MODE_PWM0 !< Í¨µÀ»¥²¹Êä³ö×´Ì¬ */
+		// è®¾ç½®TIMER0çš„LLC_PWM_CHé€šé“çš„è¾“å‡ºæ¨¡å¼ä¸ºæ ‡å‡†PWMæ¨¡å¼ï¼ˆTIMER_OC_MODE_PWM0)
+    timer_channel_output_mode_config(TIMER0, LLC_PWM_CH, TIMER_OC_MODE_PWM0); /*TIMER_OC_MODE_PWM0 !< é€šé“äº’è¡¥è¾“å‡ºçŠ¶æ€ */
 		
-		// ÅäÖÃTIMER0µÄLLC_PWM_CHÍ¨µÀµÄ³õÊ¼Âö³åÖµ£¨Õ¼¿Õ±È£©
-		// ²ÎÊı0±íÊ¾³õÊ¼Õ¼¿Õ±ÈÎª0%£¨Êä³öµÍµçÆ½£©£¬³£ÓÃÓÚÈíÆô¶¯»ò°²È«³õÊ¼»¯
+		// é…ç½®TIMER0çš„LLC_PWM_CHé€šé“çš„åˆå§‹è„‰å†²å€¼ï¼ˆå ç©ºæ¯”ï¼‰
+		// å‚æ•°0è¡¨ç¤ºåˆå§‹å ç©ºæ¯”ä¸º0%ï¼ˆè¾“å‡ºä½ç”µå¹³ï¼‰ï¼Œå¸¸ç”¨äºè½¯å¯åŠ¨æˆ–å®‰å…¨åˆå§‹åŒ–
     timer_channel_output_pulse_value_config(TIMER0, LLC_PWM_CH, 0);
-		// ÆôÓÃTIMER0µÄLLC_PWM_CHÍ¨µÀµÄÓ°×Ó¼Ä´æÆ÷£¨TIMER_OC_SHADOW_ENABLE£©
-		// ×÷ÓÃ£ºÈ·±£ÅäÖÃÔÚÏÂÒ»´Î¸üĞÂÊÂ¼şÊ±ÉúĞ§£¬±ÜÃâÔËĞĞÊ±ÅäÖÃ³åÍ»
-		// ¹Ø¼üµã£ºÓ°×Ó¼Ä´æÆ÷ÓÃÓÚ±£Ö¤ÅäÖÃµÄÔ­×ÓĞÔºÍÊµÊ±ĞÔ
+		// å¯ç”¨TIMER0çš„LLC_PWM_CHé€šé“çš„å½±å­å¯„å­˜å™¨ï¼ˆTIMER_OC_SHADOW_ENABLEï¼‰
+		// ä½œç”¨ï¼šç¡®ä¿é…ç½®åœ¨ä¸‹ä¸€æ¬¡æ›´æ–°äº‹ä»¶æ—¶ç”Ÿæ•ˆï¼Œé¿å…è¿è¡Œæ—¶é…ç½®å†²çª
+		// å…³é”®ç‚¹ï¼šå½±å­å¯„å­˜å™¨ç”¨äºä¿è¯é…ç½®çš„åŸå­æ€§å’Œå®æ—¶æ€§
     timer_channel_output_shadow_config(TIMER0, LLC_PWM_CH, TIMER_OC_SHADOW_ENABLE); 
 
-    /* === ÊÖ¶¯³õÊ¼»¯ Break/Deadtime ½á¹¹Ìå£¨ÎŞ para_init °æ±¾£© === */
-		//ËÀÇøÊ±¼äÓë±£»¤ÅäÖÃ
+    /* === æ‰‹åŠ¨åˆå§‹åŒ– Break/Deadtime ç»“æ„ä½“ï¼ˆæ—  para_init ç‰ˆæœ¬ï¼‰ === */
+		//æ­»åŒºæ—¶é—´ä¸ä¿æŠ¤é…ç½®
     timer_break_parameter_struct bk;
-    bk.runoffstate     = TIMER_ROS_STATE_DISABLE ; //ÉèÖÃ¶¨Ê±Æ÷ÔÚÔËĞĞ×´Ì¬ÏÂµÄ¶ÏÂ·ĞĞÎªÎª½ûÓÃ¡£ÕâÒâÎ¶×ÅÔÚÕı³£ÔËĞĞÆÚ¼ä£¬¶ÏÂ·¹¦ÄÜ²»»á´¥·¢¡£
-    bk.ideloffstate    = TIMER_IOS_STATE_DISABLE ; //ÉèÖÃ¶¨Ê±Æ÷ÔÚ¿ÕÏĞ×´Ì¬ÏÂµÄ¶ÏÂ·ĞĞÎªÎª½ûÓÃ¡£Óë runoffstate ÀàËÆ£¬µ«ÔÚ¿ÕÏĞ×´Ì¬ÏÂ²»ÆôÓÃ¶ÏÂ·¹¦ÄÜ¡£
-    bk.protectmode     = TIMER_CCHP_PROT_OFF; //ÉèÖÃ±£»¤Ä£Ê½Îª¹Ø±Õ¡£Õâ±íÊ¾¶¨Ê±Æ÷²»»áÆôÓÃ¶îÍâµÄ±£»¤»úÖÆ¡£
-		//¼ÆËã²¢ÉèÖÃËÀÇøÊ±¼ä£¨Dead Time£©¡£ËÀÇøÊ±¼äÊÇPWMĞÅºÅÖĞ¸ßµçÆ½ºÍµÍµçÆ½Ö®¼äµÄ¼ä¸ô£¬ÓÃÓÚ·ÀÖ¹ÉÏÏÂÇÅ±ÛÍ¬Ê±µ¼Í¨µ¼ÖÂµÄ¶ÌÂ·¡£
+    bk.runoffstate     = TIMER_ROS_STATE_DISABLE ; //è®¾ç½®å®šæ—¶å™¨åœ¨è¿è¡ŒçŠ¶æ€ä¸‹çš„æ–­è·¯è¡Œä¸ºä¸ºç¦ç”¨ã€‚è¿™æ„å‘³ç€åœ¨æ­£å¸¸è¿è¡ŒæœŸé—´ï¼Œæ–­è·¯åŠŸèƒ½ä¸ä¼šè§¦å‘ã€‚
+    bk.ideloffstate    = TIMER_IOS_STATE_DISABLE ; //è®¾ç½®å®šæ—¶å™¨åœ¨ç©ºé—²çŠ¶æ€ä¸‹çš„æ–­è·¯è¡Œä¸ºä¸ºç¦ç”¨ã€‚ä¸ runoffstate ç±»ä¼¼ï¼Œä½†åœ¨ç©ºé—²çŠ¶æ€ä¸‹ä¸å¯ç”¨æ–­è·¯åŠŸèƒ½ã€‚
+    bk.protectmode     = TIMER_CCHP_PROT_OFF; //è®¾ç½®ä¿æŠ¤æ¨¡å¼ä¸ºå…³é—­ã€‚è¿™è¡¨ç¤ºå®šæ—¶å™¨ä¸ä¼šå¯ç”¨é¢å¤–çš„ä¿æŠ¤æœºåˆ¶ã€‚
+		//è®¡ç®—å¹¶è®¾ç½®æ­»åŒºæ—¶é—´ï¼ˆDead Timeï¼‰ã€‚æ­»åŒºæ—¶é—´æ˜¯PWMä¿¡å·ä¸­é«˜ç”µå¹³å’Œä½ç”µå¹³ä¹‹é—´çš„é—´éš”ï¼Œç”¨äºé˜²æ­¢ä¸Šä¸‹æ¡¥è‡‚åŒæ—¶å¯¼é€šå¯¼è‡´çš„çŸ­è·¯ã€‚
     bk.deadtime        = bdtr_deadtime_code_ns(s_cfg.deadtime_ns, tclk);
-		//ÆôÓÃ¶ÏÂ·¹¦ÄÜ¡£µ±¼ì²âµ½Òì³£ĞÅºÅ£¨ÈçBKINÒı½ÅµÄµÍµçÆ½£©Ê±£¬¶¨Ê±Æ÷»á½øÈë¶ÏÂ·×´Ì¬¡£
+		//å¯ç”¨æ–­è·¯åŠŸèƒ½ã€‚å½“æ£€æµ‹åˆ°å¼‚å¸¸ä¿¡å·ï¼ˆå¦‚BKINå¼•è„šçš„ä½ç”µå¹³ï¼‰æ—¶ï¼Œå®šæ—¶å™¨ä¼šè¿›å…¥æ–­è·¯çŠ¶æ€ã€‚
     bk.breakstate      = TIMER_BREAK_ENABLE;
-		//ÉèÖÃ¶ÏÂ·ĞÅºÅµÄ¼«ĞÔÎªµÍµçÆ½ÓĞĞ§¡£ÕâÒâÎ¶×Åµ±BKINÒı½ÅÎªµÍµçÆ½Ê±£¬»á´¥·¢¶ÏÂ·¡£
-    bk.breakpolarity   = TIMER_BREAK_POLARITY_LOW;     // BKIN µÍÓĞĞ§
-		//ÆôÓÃÊä³ö×Ô¶¯×´Ì¬¡£ÔÚ¶ÏÂ·´¥·¢Ê±£¬¶¨Ê±Æ÷µÄÊä³ö»á×Ô¶¯ÇĞ»»µ½Ô¤¶¨ÒåµÄ°²È«×´Ì¬£¨Í¨³£ÊÇ¹Ø±ÕÊä³ö£©¡£
+		//è®¾ç½®æ–­è·¯ä¿¡å·çš„ææ€§ä¸ºä½ç”µå¹³æœ‰æ•ˆã€‚è¿™æ„å‘³ç€å½“BKINå¼•è„šä¸ºä½ç”µå¹³æ—¶ï¼Œä¼šè§¦å‘æ–­è·¯ã€‚
+    bk.breakpolarity   = TIMER_BREAK_POLARITY_LOW;     // BKIN ä½æœ‰æ•ˆ
+		//å¯ç”¨è¾“å‡ºè‡ªåŠ¨çŠ¶æ€ã€‚åœ¨æ–­è·¯è§¦å‘æ—¶ï¼Œå®šæ—¶å™¨çš„è¾“å‡ºä¼šè‡ªåŠ¨åˆ‡æ¢åˆ°é¢„å®šä¹‰çš„å®‰å…¨çŠ¶æ€ï¼ˆé€šå¸¸æ˜¯å…³é—­è¾“å‡ºï¼‰ã€‚
     bk.outputautostate = TIMER_OUTAUTO_ENABLE;				
 
     timer_break_config(TIMER0, &bk);
-		// ÅäÖÃÖ÷Êä³ö´¥·¢Ô´ÎªÍ¨µÀ0µÄ±È½ÏÊä³ö,Í¨¹ıÅäÖÃ´¥·¢Ô´£¬
-		//¶¨Ê±Æ÷¿ÉÒÔÔÚÌØ¶¨ÊÂ¼ş£¨Èç±È½ÏÆ¥Åä£©Ê±Éú³É´¥·¢ĞÅºÅ£¬ÓÃÓÚÍ¬²½ÆäËûÓ²¼şÄ£¿é£¨ÈçADC»òÆäËû¶¨Ê±Æ÷£©¡£
-		timer_master_output_trigger_source_select(TIMER0, TIMER_TRI_OUT_SRC_CC0); //ÔÚÍ¨µÀ 0 ÖĞ·¢ÉúÁËÒ»´Î²¶»ñ»ò±È½ÏÆ¥ÅäÊÂ¼ş£¬´¥·¢Êä³öÎª TRGO ¡£
-		//ÆôÓÃ¶¨Ê±Æ÷µÄ×Ô¶¯ÖØÔØÓ°×Ó¼Ä´æÆ÷¹¦ÄÜ¡£¶¨Ê±Æ÷µÄÖØÔØÖµ»áÔÚÏÂÒ»¸ö¸üĞÂÊÂ¼şÊ±ÉúĞ§£¬È·±£ÅäÖÃµÄÆ½»¬ÇĞ»»¡£
+		// é…ç½®ä¸»è¾“å‡ºè§¦å‘æºä¸ºé€šé“0çš„æ¯”è¾ƒè¾“å‡º,é€šè¿‡é…ç½®è§¦å‘æºï¼Œ
+		//å®šæ—¶å™¨å¯ä»¥åœ¨ç‰¹å®šäº‹ä»¶ï¼ˆå¦‚æ¯”è¾ƒåŒ¹é…ï¼‰æ—¶ç”Ÿæˆè§¦å‘ä¿¡å·ï¼Œç”¨äºåŒæ­¥å…¶ä»–ç¡¬ä»¶æ¨¡å—ï¼ˆå¦‚ADCæˆ–å…¶ä»–å®šæ—¶å™¨ï¼‰ã€‚
+		timer_master_output_trigger_source_select(TIMER0, TIMER_TRI_OUT_SRC_CC0); //åœ¨é€šé“ 0 ä¸­å‘ç”Ÿäº†ä¸€æ¬¡æ•è·æˆ–æ¯”è¾ƒåŒ¹é…äº‹ä»¶ï¼Œè§¦å‘è¾“å‡ºä¸º TRGO ã€‚
+		//å¯ç”¨å®šæ—¶å™¨çš„è‡ªåŠ¨é‡è½½å½±å­å¯„å­˜å™¨åŠŸèƒ½ã€‚å®šæ—¶å™¨çš„é‡è½½å€¼ä¼šåœ¨ä¸‹ä¸€ä¸ªæ›´æ–°äº‹ä»¶æ—¶ç”Ÿæ•ˆï¼Œç¡®ä¿é…ç½®çš„å¹³æ»‘åˆ‡æ¢ã€‚
     timer_auto_reload_shadow_enable(TIMER0);
-		//ÅäÖÃ¶¨Ê±Æ÷µÄÖ÷Êä³ö¹¦ÄÜ¡£ÆôÓÃºó£¬¶¨Ê±Æ÷¿ÉÒÔÊä³öĞÅºÅµ½Ö¸¶¨µÄÒı½Å»òÄ£¿é
+		//é…ç½®å®šæ—¶å™¨çš„ä¸»è¾“å‡ºåŠŸèƒ½ã€‚å¯ç”¨åï¼Œå®šæ—¶å™¨å¯ä»¥è¾“å‡ºä¿¡å·åˆ°æŒ‡å®šçš„å¼•è„šæˆ–æ¨¡å—
     timer_primary_output_config(TIMER0, ENABLE);
     timer_enable(TIMER0);
 
-    llc_pwm_set_duty(s_cfg.duty); /* Èç¹ûÄã×ß 50% ¹Ì¶¨£¬ÕâÀïÖ±½ÓÉè 0.5f ¼´¿É */
+    llc_pwm_set_duty(s_cfg.duty); /* å¦‚æœä½ èµ° 50% å›ºå®šï¼Œè¿™é‡Œç›´æ¥è®¾ 0.5f å³å¯ */
 }
 
-/* 	ÆµÂÊÔÚÏß¸üĞÂ£ºÍ¬Ê±¸üĞÂ ARR ºÍ CCR£¬±£³ÖÕ¼¿Õ±È ,ARR£¨Auto-Reload Register£¬×Ô¶¯ÖØ×°ÔØ¼Ä´æÆ÷£©
-		CCR£¨Capture/Compare Register£¬²¶»ñ/±È½Ï¼Ä´æÆ÷£©*/
-//¸Ãº¯ÊıµÄ×÷ÓÃÊÇ½«Ò»¸ö¸¡µãÊı±íÊ¾µÄÕ¼¿Õ±È£¨ d £©×ª»»ÎªÒ»¸ö16Î»ÎŞ·ûºÅÕûÊı£¨ uint16_t £©£¬ÓÃÓÚÅäÖÃPWM£¨Âö¿íµ÷ÖÆ£©µÄCCR£¨²¶»ñ/±È½Ï¼Ä´æÆ÷£©Öµ¡£
+/* 	é¢‘ç‡åœ¨çº¿æ›´æ–°ï¼šåŒæ—¶æ›´æ–° ARR å’Œ CCRï¼Œä¿æŒå ç©ºæ¯” ,ARRï¼ˆAuto-Reload Registerï¼Œè‡ªåŠ¨é‡è£…è½½å¯„å­˜å™¨ï¼‰
+		CCRï¼ˆCapture/Compare Registerï¼Œæ•è·/æ¯”è¾ƒå¯„å­˜å™¨ï¼‰*/
+//è¯¥å‡½æ•°çš„ä½œç”¨æ˜¯å°†ä¸€ä¸ªæµ®ç‚¹æ•°è¡¨ç¤ºçš„å ç©ºæ¯”ï¼ˆ d ï¼‰è½¬æ¢ä¸ºä¸€ä¸ª16ä½æ— ç¬¦å·æ•´æ•°ï¼ˆ uint16_t ï¼‰ï¼Œç”¨äºé…ç½®PWMï¼ˆè„‰å®½è°ƒåˆ¶ï¼‰çš„CCRï¼ˆæ•è·/æ¯”è¾ƒå¯„å­˜å™¨ï¼‰å€¼ã€‚
 static inline uint16_t duty_to_ccr(float d)
 { 
 	d=clampf(d,0.0f,0.99f); 
@@ -176,7 +200,7 @@ void llc_pwm_outputs_enable(bool en)
 }
 
 void llc_pwm_break(bool en){
-    timer_primary_output_config(TIMER0, en ? DISABLE : ENABLE);  // en=1 Ïàµ±ÓÚ¡°É²Í£¡±
+    timer_primary_output_config(TIMER0, en ? DISABLE : ENABLE);  // en=1 ç›¸å½“äºâ€œåˆ¹åœâ€
 }
 void llc_pwm_set_freq(uint32_t f_hz)
 { 
@@ -188,17 +212,17 @@ void llc_pwm_set_freq(uint32_t f_hz)
 	s_period=(tclk/f_hz)-1U;
 	TIMER_CAR(TIMER0)=s_period; 
 	
-	/* ±£³Öµ±Ç°Õ¼¿Õ±È£¨»ò¹Ì¶¨ 50%£ºÖ±½ÓÓÃ s_period/2£© */
+	/* ä¿æŒå½“å‰å ç©ºæ¯”ï¼ˆæˆ–å›ºå®š 50%ï¼šç›´æ¥ç”¨ s_period/2ï¼‰ */
 	TIMER_CH0CV(TIMER0) = duty_to_ccr(s_cfg.duty);
-	/* Èô LLC_PWM_CH ²»ÊÇ CH0£¬Çë¸Ä³É¶ÔÓ¦µÄ TIMER_CHxCV ºê */
+	/* è‹¥ LLC_PWM_CH ä¸æ˜¯ CH0ï¼Œè¯·æ”¹æˆå¯¹åº”çš„ TIMER_CHxCV å® */
 }
 
 uint32_t llc_pwm_get_period_ns(void)
 {
-    uint32_t tclk = timer0_clk_hz();                 // TIM ÄÚ²¿Ê±ÖÓ Hz
-    uint32_t arr  = TIMER_CAR(TIMER0);               // µ±Ç° ARR
-    // ÄãµÄ set_freq ÓÃµÄÊÇ±ßÑØ¼ÆÊı£ºf = tclk/(ARR+1)
-    // ÖÜÆÚ(ns) = 1e9 * (ARR+1) / tclk
+    uint32_t tclk = timer0_clk_hz();                 // TIM å†…éƒ¨æ—¶é’Ÿ Hz
+    uint32_t arr  = TIMER_CAR(TIMER0);               // å½“å‰ ARR
+    // ä½ çš„ set_freq ç”¨çš„æ˜¯è¾¹æ²¿è®¡æ•°ï¼šf = tclk/(ARR+1)
+    // å‘¨æœŸ(ns) = 1e9 * (ARR+1) / tclk
     if (tclk == 0U) 
 			return 0U;
     uint64_t ns = (1000000000ULL * (uint64_t)(arr + 1U)) / (uint64_t)tclk;
@@ -207,5 +231,5 @@ uint32_t llc_pwm_get_period_ns(void)
 
 uint32_t llc_pwm_get_deadtime_ns(void)
 {
-    return s_cfg.deadtime_ns; // Ö±½Ó»Ø´«ÄãÅäÖÃ½øÀ´µÄËÀÇø£¨ns£©
+    return s_cfg.deadtime_ns; // ç›´æ¥å›ä¼ ä½ é…ç½®è¿›æ¥çš„æ­»åŒºï¼ˆnsï¼‰
 }

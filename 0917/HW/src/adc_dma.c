@@ -25,26 +25,26 @@ static inline void adc_multi_store_frame(const uint16_t *src){
 static void dma_cfg(void){
     rcu_periph_clock_enable(RCU_DMA0);
     dma_parameter_struct d = {0}; 
-		dma_deinit(DMA0, DMA_CH0);  // ¸´Î» DMA0 µÄÍ¨µÀ 0£¬½«Æä¼Ä´æÆ÷»Ö¸´µ½Ä¬ÈÏ×´Ì¬
-    d.periph_addr=(uint32_t)&ADC_RDATA(ADC0);   // ÉèÖÃÍâÉèµØÖ·£¬Ö¸Ïò ADC0 µÄ¹æÔòÊý¾Ý¼Ä´æÆ÷
-    d.periph_inc=DMA_PERIPH_INCREASE_DISABLE;  // ½ûÖ¹ÍâÉèµØÖ·×ÔÔö£¬Ã¿´Î¶¼´ÓÍ¬Ò»¸ö ADC Êý¾Ý¼Ä´æÆ÷¶ÁÈ¡
-    d.memory_addr=(uint32_t)s_buf;     // ÉèÖÃÄÚ´æµØÖ·£¬Ö¸ÏòÓÃÓÚ»º´æ×ª»»½á¹ûµÄÊý×é
-    d.memory_inc=DMA_MEMORY_INCREASE_ENABLE;  // ÔÊÐíÄÚ´æµØÖ·×ÔÔö£¬Á¬ÐøÐ´Èë»º³åÇøµÄÃ¿¸öÔªËØ
-    d.periph_width=DMA_PERIPHERAL_WIDTH_16BIT;  // Ö¸¶¨ÍâÉèÊý¾Ý¿í¶ÈÎª 16 Î»£¬¶ÔÓ¦ ADC Êä³ö¿í¶È
-    d.memory_width=DMA_MEMORY_WIDTH_16BIT;    // Ö¸¶¨ÄÚ´æ´æ´¢¿í¶ÈÎª 16 Î»£¬ÓëÍâÉè¿í¶È±£³ÖÒ»ÖÂ
+		dma_deinit(DMA0, DMA_CH0);  // å¤ä½ DMA0 çš„é€šé“ 0ï¼Œå°†å…¶å¯„å­˜å™¨æ¢å¤åˆ°é»˜è®¤çŠ¶æ€
+    d.periph_addr=(uint32_t)&ADC_RDATA(ADC0);   // è®¾ç½®å¤–è®¾åœ°å€ï¼ŒæŒ‡å‘ ADC0 çš„è§„åˆ™æ•°æ®å¯„å­˜å™¨
+    d.periph_inc=DMA_PERIPH_INCREASE_DISABLE;  // ç¦æ­¢å¤–è®¾åœ°å€è‡ªå¢žï¼Œæ¯æ¬¡éƒ½ä»ŽåŒä¸€ä¸ª ADC æ•°æ®å¯„å­˜å™¨è¯»å–
+    d.memory_addr=(uint32_t)s_buf;     // è®¾ç½®å†…å­˜åœ°å€ï¼ŒæŒ‡å‘ç”¨äºŽç¼“å­˜è½¬æ¢ç»“æžœçš„æ•°ç»„
+    d.memory_inc=DMA_MEMORY_INCREASE_ENABLE;  // å…è®¸å†…å­˜åœ°å€è‡ªå¢žï¼Œè¿žç»­å†™å…¥ç¼“å†²åŒºçš„æ¯ä¸ªå…ƒç´ 
+    d.periph_width=DMA_PERIPHERAL_WIDTH_16BIT;  // æŒ‡å®šå¤–è®¾æ•°æ®å®½åº¦ä¸º 16 ä½ï¼Œå¯¹åº” ADC è¾“å‡ºå®½åº¦
+    d.memory_width=DMA_MEMORY_WIDTH_16BIT;    // æŒ‡å®šå†…å­˜å­˜å‚¨å®½åº¦ä¸º 16 ä½ï¼Œä¸Žå¤–è®¾å®½åº¦ä¿æŒä¸€è‡´
     //d.number=6;
-		//d.number=ADC_MULTI_CHANNEL_COUNT * 2U;  // Ã¿´Î DMA Ñ­»·Òª´«Êä 6 ¸öÊý¾ÝÏî£¬¶ÔÓ¦ 6 ¸ö¹æÔòÍ¨µÀµÄ½á¹û,Õâ±ßÅäÖÃÁËË«»º³åÇø
-    d.number=ADC_TIM0_TRIGGERED_COUNT  * 2U;  // ÅäÖÃË«»º³åÇø£¬Ã¿´Î DMA Ñ­»·´«Êä 6*2=12 ¸öÊý¾ÝÏî£¬Ç° 6 ¸öÓÃÓÚ°ë´«Êä£¨HTF£©£¬ºó 6 ¸öÓÃÓÚÈ«´«Êä£¨FTF£©£¬±ãÓÚË«»º³å´¦Àí
-    d.priority=DMA_PRIORITY_HIGH;   // ½«¸ÃÍ¨µÀÓÅÏÈ¼¶ÉèÎª¸ß£¬¼õÉÙ±»ÆäËû DMA ÈÎÎñÇÀÕ¼µÄ¸ÅÂÊ
-		d.direction=DMA_PERIPHERAL_TO_MEMORY;  // ÉèÖÃ´«Êä·½Ïò£º´ÓÍâÉè¶ÁÊý¾ÝÐ´ÈëÄÚ´æ
-    dma_init(DMA0, DMA_CH0, d);   // ÒÀ¾ÝÒÔÉÏ²ÎÊý³õÊ¼»¯ DMA0 Í¨µÀ 0
-    dma_circulation_enable(DMA0, DMA_CH0);   // Ê¹ÄÜÑ­»·Ä£Ê½£¬DMA ÔÚÍê³ÉÒ»ÂÖ´«Êäºó×Ô¶¯ÖØÐÂ¿ªÊ¼
+		//d.number=ADC_MULTI_CHANNEL_COUNT * 2U;  // æ¯æ¬¡ DMA å¾ªçŽ¯è¦ä¼ è¾“ 6 ä¸ªæ•°æ®é¡¹ï¼Œå¯¹åº” 6 ä¸ªè§„åˆ™é€šé“çš„ç»“æžœ,è¿™è¾¹é…ç½®äº†åŒç¼“å†²åŒº
+    d.number=ADC_TIM0_TRIGGERED_COUNT  * 2U;  // é…ç½®åŒç¼“å†²åŒºï¼Œæ¯æ¬¡ DMA å¾ªçŽ¯ä¼ è¾“ 6*2=12 ä¸ªæ•°æ®é¡¹ï¼Œå‰ 6 ä¸ªç”¨äºŽåŠä¼ è¾“ï¼ˆHTFï¼‰ï¼ŒåŽ 6 ä¸ªç”¨äºŽå…¨ä¼ è¾“ï¼ˆFTFï¼‰ï¼Œä¾¿äºŽåŒç¼“å†²å¤„ç†
+    d.priority=DMA_PRIORITY_HIGH;   // å°†è¯¥é€šé“ä¼˜å…ˆçº§è®¾ä¸ºé«˜ï¼Œå‡å°‘è¢«å…¶ä»– DMA ä»»åŠ¡æŠ¢å çš„æ¦‚çŽ‡
+		d.direction=DMA_PERIPHERAL_TO_MEMORY;  // è®¾ç½®ä¼ è¾“æ–¹å‘ï¼šä»Žå¤–è®¾è¯»æ•°æ®å†™å…¥å†…å­˜
+    dma_init(DMA0, DMA_CH0, d);   // ä¾æ®ä»¥ä¸Šå‚æ•°åˆå§‹åŒ– DMA0 é€šé“ 0
+    dma_circulation_enable(DMA0, DMA_CH0);   // ä½¿èƒ½å¾ªçŽ¯æ¨¡å¼ï¼ŒDMA åœ¨å®Œæˆä¸€è½®ä¼ è¾“åŽè‡ªåŠ¨é‡æ–°å¼€å§‹
     //dma_channel_enable(DMA0, DMA_CH0);
 		
-    // ¿ªÆô DMA0 Í¨µÀ0 µÄ¡°È«´«ÊäÍê³É¡±ÖÐ¶Ï£¨FTF£©£¬ÓÃÓÚÔÚËùÓÐÅäÖÃµÄÑù±¾´«ÊäÍê³Éºó´¥·¢»Øµ÷£¬ÊÊºÏÒ»´ÎÐÔ´¦ÀíÍêÕûÊý¾Ý¡£
+    // å¼€å¯ DMA0 é€šé“0 çš„â€œå…¨ä¼ è¾“å®Œæˆâ€ä¸­æ–­ï¼ˆFTFï¼‰ï¼Œç”¨äºŽåœ¨æ‰€æœ‰é…ç½®çš„æ ·æœ¬ä¼ è¾“å®ŒæˆåŽè§¦å‘å›žè°ƒï¼Œé€‚åˆä¸€æ¬¡æ€§å¤„ç†å®Œæ•´æ•°æ®ã€‚
     dma_interrupt_enable(DMA0, DMA_CH0, DMA_INT_FTF); 
 
-    // ¿ªÆô DMA0 Í¨µÀ0 µÄ¡°°ë´«ÊäÍê³É¡±ÖÐ¶Ï£¨HTF£©£¬ÓÃÓÚÔÚ°ë»º³åÇøÐ´ÂúÊ±ÌáÇ°ÏìÓ¦£¬ÊÊºÏË«»º³å»òÁ÷Ë®Ïß´¦Àí³¡¾°£¬Ìá¸ßÊý¾Ý´¦ÀíÊµÊ±ÐÔ¡£
+    // å¼€å¯ DMA0 é€šé“0 çš„â€œåŠä¼ è¾“å®Œæˆâ€ä¸­æ–­ï¼ˆHTFï¼‰ï¼Œç”¨äºŽåœ¨åŠç¼“å†²åŒºå†™æ»¡æ—¶æå‰å“åº”ï¼Œé€‚åˆåŒç¼“å†²æˆ–æµæ°´çº¿å¤„ç†åœºæ™¯ï¼Œæé«˜æ•°æ®å¤„ç†å®žæ—¶æ€§ã€‚
     dma_interrupt_enable(DMA0, DMA_CH0, DMA_INT_HTF);  
 
     dma_interrupt_flag_clear(DMA0, DMA_CH0, DMA_INT_FLAG_G);
@@ -53,17 +53,17 @@ static void dma_cfg(void){
 void adc_multi_init_dma(uint32_t trig_src){
     analog_pins(); 
     dma_cfg();
-    // ÉèÖÃ DMA0 Í¨µÀ0ÖÐ¶ÏÓÅÏÈ¼¶Îª 1£¨´Î¸ß£©£¬ÇÀÕ¼ÓÅÏÈ¼¶Îª 1£¬ÏìÓ¦ÓÅÏÈ¼¶Îª 0£¬È·±£ ADC ²É¼¯Êý¾Ý¼°Ê±´¦Àí£¬±ÜÃâÊý¾Ý¶ªÊ§
+    // è®¾ç½® DMA0 é€šé“0ä¸­æ–­ä¼˜å…ˆçº§ä¸º 1ï¼ˆæ¬¡é«˜ï¼‰ï¼ŒæŠ¢å ä¼˜å…ˆçº§ä¸º 1ï¼Œå“åº”ä¼˜å…ˆçº§ä¸º 0ï¼Œç¡®ä¿ ADC é‡‡é›†æ•°æ®åŠæ—¶å¤„ç†ï¼Œé¿å…æ•°æ®ä¸¢å¤±
     nvic_irq_enable(DMA0_Channel0_IRQn, 1U, 0U); 
     rcu_periph_clock_enable(RCU_ADC0);
     rcu_adc_clock_config(RCU_CKADC_CKAPB2_DIV6);
     adc_deinit(ADC0);
-    adc_mode_config(ADC_MODE_FREE); //ÉèÖÃ ADC Îª×ÔÓÉÔËÐÐÄ£Ê½£¨¶ÀÁ¢¹¤×÷£©¡£
-    adc_special_function_config(ADC0, ADC_SCAN_MODE, ENABLE); //ÆôÓÃÉ¨ÃèÄ£Ê½£¬Ö§³Ö¶àÍ¨µÀ²É¼¯¡£
-    adc_special_function_config(ADC0, ADC_CONTINUOUS_MODE, DISABLE); // ½ûÓÃÁ¬ÐøÄ£Ê½
-    adc_data_alignment_config(ADC0, ADC_DATAALIGN_RIGHT);//ÉèÖÃÊý¾Ý¶ÔÆë·½Ê½ÎªÓÒ¶ÔÆë¡£
+    adc_mode_config(ADC_MODE_FREE); //è®¾ç½® ADC ä¸ºè‡ªç”±è¿è¡Œæ¨¡å¼ï¼ˆç‹¬ç«‹å·¥ä½œï¼‰ã€‚
+    adc_special_function_config(ADC0, ADC_SCAN_MODE, ENABLE); //å¯ç”¨æ‰«ææ¨¡å¼ï¼Œæ”¯æŒå¤šé€šé“é‡‡é›†ã€‚
+	timer_event_software_generate(LLC_PWM_TIMER, TIMER_EVENT_SRC_CH2G); //Ê±Â¼É¿Í¬ ADC È·Ê±Ò»Ô¡
+    adc_data_alignment_config(ADC0, ADC_DATAALIGN_RIGHT);//è®¾ç½®æ•°æ®å¯¹é½æ–¹å¼ä¸ºå³å¯¹é½ã€‚
 
-    adc_channel_length_config(ADC0, ADC_REGULAR_CHANNEL, ADC_TIM0_TRIGGERED_COUNT);  // ÅäÖÃ ADC µÄ³£¹æÍ¨µÀÊýÁ¿¡£
+    adc_channel_length_config(ADC0, ADC_REGULAR_CHANNEL, ADC_TIM0_TRIGGERED_COUNT);  // é…ç½® ADC çš„å¸¸è§„é€šé“æ•°é‡ã€‚
     adc_regular_channel_config(ADC0, 0, VOUT_SENSE_CH,     ADC_SAMPLETIME_41POINT5); 
     adc_regular_channel_config(ADC0, 1, ADC_ISENSE_CH,     ADC_SAMPLETIME_7POINT5); 
     //adc_regular_channel_config(ADC0, 2, ADC_TSENSE_CH,     ADC_SAMPLETIME_55POINT5);
@@ -72,8 +72,8 @@ void adc_multi_init_dma(uint32_t trig_src){
     //adc_regular_channel_config(ADC0, 5, T_SENSE_LLCMOS_CH, ADC_SAMPLETIME_55POINT5);
 
     adc_external_trigger_source_config(ADC0, ADC_REGULAR_CHANNEL, trig_src);
-		//adc_external_trigger_edge_config(ADC0, ADC_REGULAR_CHANNEL, ADC_EXTTRIG_EDGE_RISING); // ÉÏÉýÑØ´¥·¢
-		ADC_CTL1(ADC0) |= (0x01 << 10); // EXTEN=01£¨ÉÏÉýÑØ´¥·¢£©
+		//adc_external_trigger_edge_config(ADC0, ADC_REGULAR_CHANNEL, ADC_EXTTRIG_EDGE_RISING); // ä¸Šå‡æ²¿è§¦å‘
+		ADC_CTL1(ADC0) |= (0x01 << 10); // EXTEN=01ï¼ˆä¸Šå‡æ²¿è§¦å‘ï¼‰
     adc_external_trigger_config(ADC0, ADC_REGULAR_CHANNEL, ENABLE);
 
     adc_enable(ADC0); 
@@ -84,8 +84,8 @@ void adc_multi_init_dma(uint32_t trig_src){
 
 void adc_multi_start(void)
 { 
-	//adc_software_trigger_enable(ADC0, ADC_REGULAR_CHANNEL); ÆôÓÃ ADC0 µÄÈí¼þ´¥·¢¹¦ÄÜ£¬Æô¶¯³£¹æÍ¨µÀµÄ²ÉÑù¡£
-	timer_event_software_generate(LLC_PWM_TIMER, TIMER_EVENT_SRC_CH0G); //¶¨Ê±Æ÷ÊÂ¼þµÄÉú³É¿ÉÒÔÓÃÓÚÍ¬²½ ADC ²ÉÑù»òÆäËûÍâÉè²Ù×÷£¬È·±£Ê±ÐòÒ»ÖÂÐÔ¡£
+	//adc_software_trigger_enable(ADC0, ADC_REGULAR_CHANNEL); å¯ç”¨ ADC0 çš„è½¯ä»¶è§¦å‘åŠŸèƒ½ï¼Œå¯åŠ¨å¸¸è§„é€šé“çš„é‡‡æ ·ã€‚
+	timer_event_software_generate(LLC_PWM_TIMER, TIMER_EVENT_SRC_CH0G); //å®šæ—¶å™¨äº‹ä»¶çš„ç”Ÿæˆå¯ä»¥ç”¨äºŽåŒæ­¥ ADC é‡‡æ ·æˆ–å…¶ä»–å¤–è®¾æ“ä½œï¼Œç¡®ä¿æ—¶åºä¸€è‡´æ€§ã€‚
 }
 void adc_multi_copy(void){
     adc_multi_frame_t frame;
