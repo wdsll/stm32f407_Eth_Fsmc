@@ -165,9 +165,9 @@ void llc_pwm_init(const llc_pwm_cfg_t* cfg){
 		timer_oc_parameter_struct oc_mid = oc;
 		oc_mid.outputstate  = TIMER_CCX_DISABLE;
 		oc_mid.outputnstate = TIMER_CCXN_DISABLE;
-    timer_channel_output_config(TIMER0, TIMER_CH_2, &oc_mid);
+    timer_channel_output_config(TIMER0, TIMER_CH_2, &oc_mid); // 应用配置到TIMER0的通道2
 		timer_channel_output_mode_config(TIMER0, TIMER_CH_2, TIMER_OC_MODE_PWM0);
-		timer_channel_output_pulse_value_config(TIMER0, TIMER_CH_2, 0);
+		timer_channel_output_pulse_value_config(TIMER0, TIMER_CH_2, 0); // 设置初始脉冲值为0
 		timer_channel_output_shadow_config(TIMER0, TIMER_CH_2, TIMER_OC_SHADOW_ENABLE);
 		//死区时间与保护配置
     timer_break_parameter_struct bk;

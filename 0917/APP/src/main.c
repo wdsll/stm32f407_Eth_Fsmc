@@ -908,8 +908,11 @@ void llc_app_tick_1khz(void)
 				{
 					s_llc_app.entry_ms = g_ms; // 可用于入门延时(若需要)
 				}
-				pfc_hw_set_relay(true);
-				llc_state_enter(ST_LLC_RUN);
+				else if((uint32_t)(g_ms - s_llc_app.entry_ms) >= LLC_START_DELAY_MS)
+				{
+					pfc_hw_set_relay(true);
+					llc_state_enter(ST_LLC_RUN);
+				}
 			}
 			else{
 				 s_llc_app.entry_ms = 0U;
@@ -1035,13 +1038,13 @@ int main(void){
     while(1){
 			uint32_t pending_ticks = 0U;
 			float  duty0, duty1; //PA3 PA1捕获的值
-			//__disable_irq();
+			__disable_irq();
 			if(s_control_tick_pending > 0U)
 			{
 					pending_ticks = s_control_tick_pending; //pending_ticks ：用于逐个处理待执行的控制任务。
 					s_control_tick_pending = 0U;  //记录待处理的控制周期任务数量。
 			}
-			//__enable_irq();
+			__enable_irq();
 			while(pending_ticks-- > 0U)
 			{
 					control_loop_tick_1khz();
