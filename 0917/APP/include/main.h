@@ -56,7 +56,7 @@
 #define LLC_SOFTSTART_ENABLE        (1)
 #endif
 /* ==== LLC_SOFTSTART ==== */
-#define LLC_SOFTSTART_DURATION_MS     30U      // 软启动总时长
+#define LLC_SOFTSTART_DURATION_MS     100U      // 软启动总时长
 #define LLC_SOFTSTART_START_DUTY      0.10f    // 起始占空（0~1）
 #define LLC_SOFTSTART_TARGET_DUTY     0.50f    // 默认目标占空（0~1），可在 begin() 传入覆盖
 #define LLC_SOFTSTART_FAILSAFE_DUTY   0.00f    // 故障时退回占空

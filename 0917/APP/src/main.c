@@ -101,16 +101,19 @@ typedef struct
 
 typedef struct
 {
-	bool active;
-	bool pause;
-	uint32_t start_ms;
-	uint32_t duration_ms;
-	float start_duty;
-	float target_duty;
+	bool active;  //是否激活软启动
+	bool pause;  // 是否暂停软启动
+	uint32_t paused_elapsed_ms;  // 暂停时已运行的毫秒数
+	uint32_t start_ms;  //启动时间（毫秒）
+	uint32_t duration_ms; // 软启动持续时间（毫秒）
+	float start_duty; //起始占空比
+	float target_duty; //目标占空比
 	
 // 运行时计算得到的安全上下限
 	float    duty_min_safe;
 	float    duty_max_safe;
+	
+	float last_duty;
 } llc_softstart_ctx_t;
 
 #if MODULE_TESTS_ACTIVE
@@ -281,12 +284,20 @@ static inline float f_clampf(float x,float lo,float hi)
 
 #if LLC_SOFTSTART_ENABLE
 
-
+/*********************************************************************************************************
+* 函数名称：ss_update_safe_window
+* 函数功能：更新软启动的安全窗口范围
+* 输入参数：void
+* 输出参数：void
+* 返 回 值：void
+* 创建日期：2025年10月20
+* 注    意：根据当前PWM周期和死区时间计算软启动的安全占空比范围，避免直通或无效脉宽
+*********************************************************************************************************/
 /* 根据当前周期/死区，计算“有效占空安全窗” */
 static void ss_update_safe_window(void)
 {
-	  uint32_t per_ns = llc_pwm_get_period_ns();
-    uint32_t dt_ns  = llc_pwm_get_deadtime_ns();
+	  uint32_t per_ns = llc_pwm_get_period_ns();  //获取 PWM 周期时间（单位为纳秒）
+    uint32_t dt_ns  = llc_pwm_get_deadtime_ns(); //获取 PWM 死区时间（单位为纳秒）
 	  float guard = 0.0f;
     if (per_ns > 0U && dt_ns <= (UINT32_MAX / 2)) {
         /* 互补两沿都插死区：保守取 2*deadtime */
@@ -296,8 +307,8 @@ static void ss_update_safe_window(void)
 		{
 			guard = 0.0f;
 		}
-		
-		guard += LLC_SOFTSTART_EXTRA_MARGIN; // 经验余量
+
+		guard += LLC_SOFTSTART_EXTRA_MARGIN; //  其中guard为死区时间保护带加上额外经验余量。
 
     /* 下限不超过 0.49，上限不低于 0.51，避免靠近 50% 附近偶发直通/无效脉宽 */
     s_llc_softstart.duty_min_safe = f_clampf(guard, 0.0f, 0.49f);
@@ -315,6 +326,7 @@ static inline float ease_cos(float t)
 static void ss_apply(float duty)
 {
     float d = f_clampf(duty, s_llc_softstart.duty_min_safe, s_llc_softstart.duty_max_safe);
+		s_llc_softstart.last_duty = d;
     llc_pwm_set_duty(d);
 }
 
@@ -333,35 +345,50 @@ static void llc_softstart_reset(void)
 {
 		s_llc_softstart.active = false;
 		s_llc_softstart.pause = false;
+		s_llc_softstart.paused_elapsed_ms = 0U;
 		s_llc_softstart.start_ms = 0U;
 		s_llc_softstart.duration_ms = LLC_SOFTSTART_DURATION_MS;
-		s_llc_softstart.start_duty = f_clampf(LLC_SOFTSTART_START_DUTY, 0.0f, 0.99f);
+	
+		s_llc_softstart.start_duty = f_clampf(LLC_SOFTSTART_START_DUTY, 0.0f, 0.99f);  // 0.1
 
-		s_llc_softstart.target_duty =  f_clampf(LLC_SOFTSTART_TARGET_DUTY, 0.0f, 0.99f);
-		ss_update_safe_window();
-		ss_apply(s_llc_softstart.start_duty);
+		s_llc_softstart.target_duty =  f_clampf(LLC_SOFTSTART_TARGET_DUTY, 0.0f, 0.99f);  //0.5
+	
+	/* 根据当前周期/死区，计算“有效占空安全窗” */
+		ss_update_safe_window(); //更新了 s_llc_softstart.duty_min_safe和s_llc_softstart.duty_max_safe
+		ss_apply(s_llc_softstart.start_duty); //0.1
 }
+
+/*********************************************************************************************************
+* 函数名称：llc_softstart_begin
+* 函数功能：目的是实现一个软启动（soft start）功能，用于平滑地将占空比（duty cycle）从初始值逐步调整到目标值。
+* 输入参数：void
+* 输出参数：void
+* 返 回 值：void
+* 创建日期：2025年10月20
+* 注    意：
+*********************************************************************************************************/
 static void llc_softstart_begin(float target_duty)
 {
-		s_llc_softstart.duration_ms = LLC_SOFTSTART_DURATION_MS;
+		s_llc_softstart.duration_ms = LLC_SOFTSTART_DURATION_MS;  //软启动的总持续时间（毫秒）
 		float start_duty = f_clampf(LLC_SOFTSTART_START_DUTY, 0.0f, 0.99f);
 		float final_duty = f_clampf(target_duty, 0.0f, 0.99f);
-		s_llc_softstart.pause      = false;
+		s_llc_softstart.pause      = false;  //标志位，指示是否暂停软启动,这边是不暂停软启动
 		
 		s_llc_softstart.start_duty = start_duty;
 		s_llc_softstart.target_duty = final_duty;
 		ss_update_safe_window();
+		//如果目标占空比 target_duty 小于或等于初始占空比 start_duty ，或者软启动时间为 0，则直接跳过软启动：
 		if(final_duty <= start_duty || s_llc_softstart.duration_ms == 0U)
 		{
-			s_llc_softstart.active = false;
+			s_llc_softstart.active = false; //标志位，指示软启动是否正在进行,这边是未在进行
 			s_llc_softstart.start_duty = final_duty;
 			s_llc_softstart.target_duty = final_duty;
 			ss_apply(final_duty);
 		}
 		else
 		{
-			s_llc_softstart.active = true;
-			s_llc_softstart.start_ms = g_ms;
+			s_llc_softstart.active = true; //软启动正在进行
+			s_llc_softstart.start_ms = g_ms; //记录当前时间戳 start_ms 
 			ss_apply(start_duty);
 		}
 }
@@ -369,31 +396,96 @@ void llc_softstart_update_target(float new_target_0_1)
 {
     s_llc_softstart.target_duty = f_clampf(new_target_0_1, 0.0f, 0.99f);
 }
+
+/*********************************************************************************************************
+* 函数名称：llc_softstart_set_pause
+* 函数功能：这段代码的主要功能是控制软启动（soft start）的暂停和恢复逻辑。
+* 输入参数：void
+* 输出参数：void
+* 返 回 值：void
+* 创建日期：2025年10月20
+* 注    意：代码通过设置 pause 标志来控制软启动过程的暂停和恢复。
+			暂停逻辑：当 pause 为 true 时，记录当前软启动已经运行的时间（ elapsed ），并将其保存到 paused_elapsed_ms 中，同时标记软启动为暂停状态。
+			恢复逻辑：当 pause 为 false 时，根据之前保存的暂停时间（ paused_elapsed_ms ）重新计算软启动的起始时间（ start_ms ），并恢复软启动过程。
+*********************************************************************************************************/
 void llc_softstart_set_pause(bool pause)
 {
-    s_llc_softstart.pause = pause;
+    if(pause)
+		{
+			if (!s_llc_softstart.pause && s_llc_softstart.active)
+			{
+				//如果软启动未暂停且处于激活状态，计算从开始到当前的时间差
+				uint32_t elapsed = (uint32_t)(g_ms - s_llc_softstart.start_ms);
+				
+				if (elapsed > s_llc_softstart.duration_ms)
+				{
+					elapsed = s_llc_softstart.duration_ms; //确保 elapsed 不超过总持续时间 duration_ms 。
+				}
+				s_llc_softstart.paused_elapsed_ms = elapsed; //保存 elapsed 到 paused_elapsed_ms ，并标记为暂停状态
+			}
+			s_llc_softstart.pause = true;
+		}
+		else
+		{
+			 if (s_llc_softstart.pause && s_llc_softstart.active)
+			 {
+				 //如果软启动处于暂停状态且激活，读取之前保存的 paused_elapsed_ms
+				 uint32_t elapsed = s_llc_softstart.paused_elapsed_ms;  //paused_elapsed_ms ：记录暂停时已经运行的时间
+					if (elapsed > s_llc_softstart.duration_ms)
+					{
+						//确保 elapsed 不超过总持续时间 duration_ms 。 当前软启动已经运行的时间（ elapsed ）
+							elapsed = s_llc_softstart.duration_ms;
+					}
+					if (g_ms >= elapsed)
+					{
+						//根据当前时间 g_ms 和 elapsed 重新计算 start_ms ，确保时间逻辑正确。
+							s_llc_softstart.start_ms = g_ms - elapsed;
+					}
+					else
+					{
+							s_llc_softstart.start_ms = 0U;
+					}
+			 }
+			 s_llc_softstart.pause = false;
+		}
 }
 
 void llc_softstart_abort(void)
 {
     s_llc_softstart.active = false;
     s_llc_softstart.pause = false;
-    ss_update_safe_window(); // 以防期间改过频率/死区
-    ss_apply(f_clampf(LLC_SOFTSTART_FAILSAFE_DUTY, 0.0f, 0.99f));
+		s_llc_softstart.paused_elapsed_ms = 0U;
+    ss_update_safe_window(); // 以防期间改过频率/死区 卡的是周期和死区时间吧
+    ss_apply(f_clampf(LLC_SOFTSTART_FAILSAFE_DUTY, 0.0f, 0.99f)); //0.0
 }
-
+/*********************************************************************************************************
+* 函数名称：llc_softstart_tick
+* 函数功能：该函数用于处理LLC软启动过程中的定时逻辑，包括故障检测、暂停处理、进度计算和占空比调整。
+* 输入参数：void
+* 输出参数：void
+* 返 回 值：void
+* 创建日期：2025年10月20
+* 注    意：如果软启动未激活或处于暂停状态，函数将直接返回；如果检测到故障（已锁存或硬件触发），将中止软启动
+*********************************************************************************************************/
 static void llc_softstart_tick(void)
 {
     if (!s_llc_softstart.active) 
+		{
 			return;
-
+		}
+		
     /* 用你项目已有的故障判据 */
     if (protect_fault_latched() || protect_fault_active_hw()) {
         llc_softstart_abort();
         return;
     }
+		ss_update_safe_window();
 		if (s_llc_softstart.pause) 
+		{
+			ss_apply(s_llc_softstart.last_duty);
 			return;
+		}
+		
 		uint32_t elapsed = (uint32_t)(g_ms - s_llc_softstart.start_ms);
 		if(elapsed >= s_llc_softstart.duration_ms)
 		{

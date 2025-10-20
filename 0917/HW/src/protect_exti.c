@@ -15,7 +15,7 @@ static void protect_fault_trigger(void)
 #define TIMER0_BRK_IRQn_VALUE      TIMER0_BRK_IRQn
 #define TIMER0_BRK_IRQHandler_NAME TIMER0_BRK_IRQHandler
 #endif
-
+//外部中断线啊
 int protect_fault_active_hw(void)
 {
   return gpio_input_bit_get(PROT_GPIO_PORT, PROT_GPIO_PIN) == RESET;

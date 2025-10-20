@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\Objects\0917.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Objects\0917.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6090000: Last Updated: Fri Oct 17 13:35:33 2025
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6090000: Last Updated: Mon Oct 20 08:48:17 2025
 <BR><P>
 <H3>Maximum Stack Usage =        328 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -371,8 +371,8 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[50]"></a>__aeabi_llsl</STRONG> (Thumb, 30 bytes, Stack size 0 bytes, llshl.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dadd
-<LI><a href="#[4e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uldivmod
+<BR><BR>[Called By]<UL><LI><a href="#[4e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uldivmod
+<LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dadd
 <LI><a href="#[53]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_double_epilogue
 <LI><a href="#[5b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_d2ulz
 </UL>
@@ -380,8 +380,8 @@ Global Symbols
 <P><STRONG><a name="[ef]"></a>_ll_shift_l</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, llshl.o(.text), UNUSED)
 
 <P><STRONG><a name="[4f]"></a>__aeabi_llsr</STRONG> (Thumb, 32 bytes, Stack size 0 bytes, llushr.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[5a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_d2uiz
-<LI><a href="#[4e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uldivmod
+<BR><BR>[Called By]<UL><LI><a href="#[4e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uldivmod
+<LI><a href="#[5a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_d2uiz
 <LI><a href="#[53]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_double_epilogue
 <LI><a href="#[5b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_d2ulz
 </UL>
@@ -411,9 +411,9 @@ Global Symbols
 <LI><a href="#[50]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_llsl
 <LI><a href="#[54]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_double_round
 </UL>
-<BR>[Called By]<UL><LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dadd
-<LI><a href="#[59]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_ui2d
+<BR>[Called By]<UL><LI><a href="#[59]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_ui2d
 <LI><a href="#[57]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dmul
+<LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dadd
 </UL>
 
 <P><STRONG><a name="[5b]"></a>__aeabi_d2ulz</STRONG> (Thumb, 48 bytes, Stack size 0 bytes, dfixul.o(.text), UNUSED)
@@ -820,7 +820,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[a7]"></a>llc_app_tick_1khz</STRONG> (Thumb, 180 bytes, Stack size 8 bytes, main.o(.text.llc_app_tick_1khz))
+<P><STRONG><a name="[a7]"></a>llc_app_tick_1khz</STRONG> (Thumb, 184 bytes, Stack size 8 bytes, main.o(.text.llc_app_tick_1khz))
 <BR><BR>[Stack]<UL><LI>Max Depth = 112<LI>Call Chain = llc_app_tick_1khz &rArr; llc_state_enter &rArr; llc_softstart_reset &rArr; ss_update_safe_window &rArr; llc_pwm_get_period_ns &rArr; __aeabi_uldivmod
 </UL>
 <BR>[Calls]<UL><LI><a href="#[a8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_latched
@@ -847,7 +847,7 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[a6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_state_enter
 </UL>
 
-<P><STRONG><a name="[ab]"></a>llc_open_loop_tick</STRONG> (Thumb, 196 bytes, Stack size 64 bytes, llc_open_loop.o(.text.llc_open_loop_tick))
+<P><STRONG><a name="[ab]"></a>llc_open_loop_tick</STRONG> (Thumb, 204 bytes, Stack size 64 bytes, llc_open_loop.o(.text.llc_open_loop_tick))
 <BR><BR>[Stack]<UL><LI>Max Depth = 64<LI>Call Chain = llc_open_loop_tick
 </UL>
 <BR>[Calls]<UL><LI><a href="#[ac]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__hardfp__fabsf
@@ -869,17 +869,13 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[bf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ss_update_safe_window
 </UL>
 
-<P><STRONG><a name="[b0]"></a>llc_pwm_init</STRONG> (Thumb, 624 bytes, Stack size 104 bytes, pwm_llc.o(.text.llc_pwm_init))
-<BR><BR>[Stack]<UL><LI>Max Depth = 192<LI>Call Chain = llc_pwm_init &rArr; __aeabi_dadd &rArr; _double_epilogue &rArr; _double_round
+<P><STRONG><a name="[b0]"></a>llc_pwm_init</STRONG> (Thumb, 616 bytes, Stack size 104 bytes, pwm_llc.o(.text.llc_pwm_init))
+<BR><BR>[Stack]<UL><LI>Max Depth = 192<LI>Call Chain = llc_pwm_init &rArr; __aeabi_dmul &rArr; _double_epilogue &rArr; _double_round
 </UL>
 <BR>[Calls]<UL><LI><a href="#[b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_set_duty
-<LI><a href="#[b2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_mode_config
-<LI><a href="#[b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_config
 <LI><a href="#[b5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_break_config
 <LI><a href="#[b7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_auto_reload_shadow_enable
-<LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_ddiv
-<LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dadd
-<LI><a href="#[5a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_d2uiz
+<LI><a href="#[ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_adc_trigger_midpoint_from_arr
 <LI><a href="#[af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer0_clk_hz
 <LI><a href="#[b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_primary_output_config
 <LI><a href="#[b6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_master_output_trigger_source_select
@@ -887,13 +883,18 @@ Global Symbols
 <LI><a href="#[90]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_enable
 <LI><a href="#[b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_shadow_config
 <LI><a href="#[b3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_pulse_value_config
+<LI><a href="#[b2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_mode_config
+<LI><a href="#[b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_config
 <LI><a href="#[59]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_ui2d
 <LI><a href="#[57]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dmul
+<LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_ddiv
+<LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dadd
+<LI><a href="#[5a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_d2uiz
 </UL>
 <BR>[Called By]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[ba]"></a>llc_pwm_outputs_enable</STRONG> (Thumb, 20 bytes, Stack size 0 bytes, pwm_llc.o(.text.llc_pwm_outputs_enable))
+<P><STRONG><a name="[bb]"></a>llc_pwm_outputs_enable</STRONG> (Thumb, 20 bytes, Stack size 0 bytes, pwm_llc.o(.text.llc_pwm_outputs_enable))
 <BR><BR>[Calls]<UL><LI><a href="#[b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_primary_output_config
 </UL>
 <BR>[Called By]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
@@ -901,11 +902,11 @@ Global Symbols
 <LI><a href="#[60]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_trigger
 </UL>
 
-<P><STRONG><a name="[b9]"></a>llc_pwm_set_duty</STRONG> (Thumb, 92 bytes, Stack size 8 bytes, pwm_llc.o(.text.llc_pwm_set_duty))
+<P><STRONG><a name="[b9]"></a>llc_pwm_set_duty</STRONG> (Thumb, 88 bytes, Stack size 8 bytes, pwm_llc.o(.text.llc_pwm_set_duty))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = llc_pwm_set_duty
 </UL>
-<BR>[Calls]<UL><LI><a href="#[bc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_adc_trigger_from_pwm
-<LI><a href="#[bb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;duty_to_ccr
+<BR>[Calls]<UL><LI><a href="#[ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_adc_trigger_midpoint_from_arr
+<LI><a href="#[bc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;duty_to_ccr
 <LI><a href="#[b3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_pulse_value_config
 </UL>
 <BR>[Called By]<UL><LI><a href="#[b0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
@@ -915,9 +916,9 @@ Global Symbols
 <P><STRONG><a name="[bd]"></a>llc_pwm_set_freq</STRONG> (Thumb, 56 bytes, Stack size 16 bytes, pwm_llc.o(.text.llc_pwm_set_freq))
 <BR><BR>[Stack]<UL><LI>Max Depth = 40<LI>Call Chain = llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
 </UL>
-<BR>[Calls]<UL><LI><a href="#[bc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_adc_trigger_from_pwm
+<BR>[Calls]<UL><LI><a href="#[ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_adc_trigger_midpoint_from_arr
 <LI><a href="#[af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer0_clk_hz
-<LI><a href="#[bb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;duty_to_ccr
+<LI><a href="#[bc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;duty_to_ccr
 </UL>
 <BR>[Called By]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
@@ -931,7 +932,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[46]"></a>main</STRONG> (Thumb, 688 bytes, Stack size 128 bytes, main.o(.text.main))
+<P><STRONG><a name="[46]"></a>main</STRONG> (Thumb, 708 bytes, Stack size 128 bytes, main.o(.text.main))
 <BR><BR>[Stack]<UL><LI>Max Depth = 328<LI>Call Chain = main &rArr; debug_printf &rArr; debug_vprintf &rArr; debug_write &rArr; debug_putchar &rArr; debug_usart_send
 </UL>
 <BR>[Calls]<UL><LI><a href="#[ca]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;systick_1ms_init
@@ -944,7 +945,7 @@ Global Symbols
 <LI><a href="#[c5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pb0_pwm_init
 <LI><a href="#[be]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_abort
 <LI><a href="#[bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_set_freq
-<LI><a href="#[ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_outputs_enable
+<LI><a href="#[bb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_outputs_enable
 <LI><a href="#[b0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
 <LI><a href="#[ab]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_open_loop_tick
 <LI><a href="#[cd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_open_loop_running
@@ -979,12 +980,12 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[49]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rcu_periph_clock_enable
 <LI><a href="#[4a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_init
 <LI><a href="#[d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rcu_clock_freq_get
-<LI><a href="#[b2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_mode_config
-<LI><a href="#[b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_config
 <LI><a href="#[b7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_auto_reload_shadow_enable
 <LI><a href="#[8d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_init
 <LI><a href="#[90]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_enable
 <LI><a href="#[b3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_pulse_value_config
+<LI><a href="#[b2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_mode_config
+<LI><a href="#[b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_config
 </UL>
 <BR>[Called By]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
@@ -1195,7 +1196,7 @@ Global Symbols
 <LI><a href="#[c5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pb0_pwm_init
 <LI><a href="#[b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_set_duty
 <LI><a href="#[b0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
-<LI><a href="#[bc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_adc_trigger_from_pwm
+<LI><a href="#[ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;update_adc_trigger_midpoint_from_arr
 </UL>
 
 <P><STRONG><a name="[b4]"></a>timer_channel_output_shadow_config</STRONG> (Thumb, 56 bytes, Stack size 0 bytes, gd32f30x_timer.o(.text.timer_channel_output_shadow_config))
@@ -1252,7 +1253,7 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[b8]"></a>timer_primary_output_config</STRONG> (Thumb, 18 bytes, Stack size 0 bytes, gd32f30x_timer.o(.text.timer_primary_output_config))
-<BR><BR>[Called By]<UL><LI><a href="#[ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_outputs_enable
+<BR><BR>[Called By]<UL><LI><a href="#[bb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_outputs_enable
 <LI><a href="#[b0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
 </UL>
 
@@ -1388,7 +1389,7 @@ Local Symbols
 <BR><BR>[Stack]<UL><LI>Max Depth = 104<LI>Call Chain = llc_state_enter &rArr; llc_softstart_reset &rArr; ss_update_safe_window &rArr; llc_pwm_get_period_ns &rArr; __aeabi_uldivmod
 </UL>
 <BR>[Calls]<UL><LI><a href="#[c3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_app_force_off
-<LI><a href="#[ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_outputs_enable
+<LI><a href="#[bb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_outputs_enable
 <LI><a href="#[c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_open_loop_stop
 <LI><a href="#[c4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_open_loop_start
 <LI><a href="#[bf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ss_update_safe_window
@@ -1446,7 +1447,7 @@ Local Symbols
 <LI><a href="#[c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_reset
 </UL>
 
-<P><STRONG><a name="[bb]"></a>duty_to_ccr</STRONG> (Thumb, 72 bytes, Stack size 0 bytes, pwm_llc.o(.text.duty_to_ccr))
+<P><STRONG><a name="[bc]"></a>duty_to_ccr</STRONG> (Thumb, 72 bytes, Stack size 0 bytes, pwm_llc.o(.text.duty_to_ccr))
 <BR><BR>[Called By]<UL><LI><a href="#[bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_set_freq
 <LI><a href="#[b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_set_duty
 </UL>
@@ -1461,11 +1462,12 @@ Local Symbols
 <LI><a href="#[ae]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_get_period_ns
 </UL>
 
-<P><STRONG><a name="[bc]"></a>update_adc_trigger_from_pwm</STRONG> (Thumb, 32 bytes, Stack size 0 bytes, pwm_llc.o(.text.update_adc_trigger_from_pwm))
+<P><STRONG><a name="[ba]"></a>update_adc_trigger_midpoint_from_arr</STRONG> (Thumb, 68 bytes, Stack size 0 bytes, pwm_llc.o(.text.update_adc_trigger_midpoint_from_arr))
 <BR><BR>[Calls]<UL><LI><a href="#[b3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_pulse_value_config
 </UL>
 <BR>[Called By]<UL><LI><a href="#[bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_set_freq
 <LI><a href="#[b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_set_duty
+<LI><a href="#[b0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
 </UL>
 
 <P><STRONG><a name="[72]"></a>cap_channel_handle_irq</STRONG> (Thumb, 140 bytes, Stack size 8 bytes, icu.o(.text.cap_channel_handle_irq))
@@ -1481,7 +1483,7 @@ Local Symbols
 </UL>
 
 <P><STRONG><a name="[60]"></a>protect_fault_trigger</STRONG> (Thumb, 16 bytes, Stack size 0 bytes, protect_exti.o(.text.protect_fault_trigger))
-<BR><BR>[Calls]<UL><LI><a href="#[ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_outputs_enable
+<BR><BR>[Calls]<UL><LI><a href="#[bb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_outputs_enable
 </UL>
 <BR>[Called By]<UL><LI><a href="#[c7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_exti_init
 <LI><a href="#[22]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TIMER0_BRK_IRQHandler
@@ -1502,10 +1504,10 @@ Local Symbols
 </UL>
 
 <P><STRONG><a name="[e3]"></a>_fp_digits</STRONG> (Thumb, 366 bytes, Stack size 64 bytes, printfa.o(i._fp_digits), UNUSED)
-<BR><BR>[Calls]<UL><LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_ddiv
-<LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dadd
-<LI><a href="#[4e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uldivmod
+<BR><BR>[Calls]<UL><LI><a href="#[4e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uldivmod
 <LI><a href="#[57]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dmul
+<LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_ddiv
+<LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dadd
 <LI><a href="#[5b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_d2ulz
 <LI><a href="#[e4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_cdrcmple
 </UL>

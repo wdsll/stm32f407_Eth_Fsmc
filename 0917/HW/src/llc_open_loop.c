@@ -217,7 +217,7 @@ void llc_open_loop_tick(llc_open_loop_ctrl_t *ctrl)
 		}
 		//计算目标频率与当前频率的差值（ diff ）和步进值（ step ）
 		float diff = seg->stop_hz - ctrl->f_cmd;
-    float step = seg->slew_hz_per_ms;
+    float step = fabsf(seg->slew_hz_per_ms);
 		//如果步进值无效（<=0），直接跳到目标频率并进入保持状态。
 		if (step <= 0.0f) {
 			ctrl->f_cmd = seg->stop_hz; //设置目标频率为分段的停止频率
@@ -252,6 +252,29 @@ void llc_open_loop_tick(llc_open_loop_ctrl_t *ctrl)
 						ctrl->f_cmd += step;
 				}
 				return;
+		}
+		else if(diff < 0.0f)  //当频率差值小于0时，根据差值的绝对值与步长的关系进行不同的处理
+		{
+			float abs_diff = fabsf(diff);
+			if (abs_diff <= step) 
+			{
+				ctrl->f_cmd = seg->stop_hz;
+				ctrl->holding = true;
+				ctrl->hold_elapsed_ms = 0U;
+				if (seg->hold_time_ms == 0U) 
+				{
+					if (!llc_open_loop_advance(ctrl)) 
+					{
+						return;
+					}
+					continue;
+				}
+			}
+			else 
+			{
+				ctrl->f_cmd -= step;
+			}
+			return;	
 		}
 		//默认进入保持状态，并根据是否需要保持时间决定是否前进。
 		ctrl->holding = true; //保持状态标志
