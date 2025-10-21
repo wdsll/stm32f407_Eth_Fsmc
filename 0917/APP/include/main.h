@@ -1,28 +1,36 @@
 /*********************************************************************************************************
-* Ä£¿éÃû³Æ£ºmain.h
-* Õª    Òª£ºÖ÷Ä£¿é
-* µ±Ç°°æ±¾£º1.0.0
-* ×÷    Õß£ºRengar
-* Íê³ÉÈÕÆÚ£º2025Äê10ÔÂ08ÈÕ 
-* ÄÚ    Èİ£º
-* ×¢    Òâ£º                                                                  
+* æ¨¡å—åç§°ï¼šmain.h
+* æ‘˜    è¦ï¼šä¸»æ¨¡å—
+* å½“å‰ç‰ˆæœ¬ï¼š1.0.0
+* ä½œ    è€…ï¼šRengar
+* å®Œæˆæ—¥æœŸï¼š2025å¹´10æœˆ08æ—¥ 
+* å†…    å®¹ï¼š
+* æ³¨    æ„ï¼š                                                                  
 **********************************************************************************************************
-* È¡´ú°æ±¾£º
-* ×÷    Õß£º
-* Íê³ÉÈÕÆÚ£º
-* ĞŞ¸ÄÄÚÈİ£º
-* ĞŞ¸ÄÎÄ¼ş£º
+* å–ä»£ç‰ˆæœ¬ï¼š
+* ä½œ    è€…ï¼š
+* å®Œæˆæ—¥æœŸï¼š
+* ä¿®æ”¹å†…å®¹ï¼š
+* ä¿®æ”¹æ–‡ä»¶ï¼š
 *********************************************************************************************************/
 #ifndef _MAIN_H_
 #define _MAIN_H_
 
 /*********************************************************************************************************
-*                                              °üº¬Í·ÎÄ¼ş
+*                                              åŒ…å«å¤´æ–‡ä»¶
 *********************************************************************************************************/
 #include "gd32f30x_conf.h"
 #include <stdint.h>
 /*********************************************************************************************************
-*                                              ºê¶¨Òå
+/* ==== Auxiliary supply monitoring ==== */
+#define AUX_3V3_MIN_V            (3.05f)
+#define AUX_3V3_RECOVER_V        (3.20f)
+#define AUX_VBAT_MIN_V           (12.0f)
+#define AUX_VBAT_RECOVER_V       (12.8f)
+#define AUX_FAULT_ASSERT_MS      (5U)
+#define AUX_RECOVER_ASSERT_MS    (50U)
+
+*                                              å®å®šä¹‰
 *********************************************************************************************************/
 /* ==== Voltage sense dividers (top to bus, bottom to gnd) ==== */
 #define VBUS_RTOP_OHM       (200000.0f)
@@ -37,7 +45,7 @@
 #define VBT_RBOT_OHM        (10000.0f)
 
 /* ==== Current sense ==== */
-#define ISHUNT_OHM          (0.005f)   /* 5 m¦¸ */
+#define ISHUNT_OHM          (0.005f)   /* 5 mÎ© */
 #define IAMP_GAIN           (19.6f)   /* INA gain */
 
 /* ==== Control targets/thresholds ==== */
@@ -56,13 +64,13 @@
 #define LLC_SOFTSTART_ENABLE        (1)
 #endif
 /* ==== LLC_SOFTSTART ==== */
-#define LLC_SOFTSTART_DURATION_MS     100U      // ÈíÆô¶¯×ÜÊ±³¤
-#define LLC_SOFTSTART_START_DUTY      0.10f    // ÆğÊ¼Õ¼¿Õ£¨0~1£©
-#define LLC_SOFTSTART_TARGET_DUTY     0.50f    // Ä¬ÈÏÄ¿±êÕ¼¿Õ£¨0~1£©£¬¿ÉÔÚ begin() ´«Èë¸²¸Ç
-#define LLC_SOFTSTART_FAILSAFE_DUTY   0.00f    // ¹ÊÕÏÊ±ÍË»ØÕ¼¿Õ
-#define LLC_SOFTSTART_USE_COSINE_EASE 1        // 1: ÓàÏÒSÇúÏß£»0: Ö¸ÊıÇúÏß
-#define LLC_SOFTSTART_EXP_K           3.0f     // Ö¸Êı¶¸ÇÍ¶È£¨Ô½´óÇ°ÆÚÔ½»º£©
-#define LLC_SOFTSTART_EXTRA_MARGIN      (0.01f)   /* °²È«´°¶îÍâÓàÁ¿£¨·À¶¶£© */
+#define LLC_SOFTSTART_DURATION_MS     100U      // è½¯å¯åŠ¨æ€»æ—¶é•¿
+#define LLC_SOFTSTART_START_DUTY      0.10f    // èµ·å§‹å ç©ºï¼ˆ0~1ï¼‰
+#define LLC_SOFTSTART_TARGET_DUTY     0.50f    // é»˜è®¤ç›®æ ‡å ç©ºï¼ˆ0~1ï¼‰ï¼Œå¯åœ¨ begin() ä¼ å…¥è¦†ç›–
+#define LLC_SOFTSTART_FAILSAFE_DUTY   0.00f    // æ•…éšœæ—¶é€€å›å ç©º
+#define LLC_SOFTSTART_USE_COSINE_EASE 1        // 1: ä½™å¼¦Sæ›²çº¿ï¼›0: æŒ‡æ•°æ›²çº¿
+#define LLC_SOFTSTART_EXP_K           3.0f     // æŒ‡æ•°é™¡å³­åº¦ï¼ˆè¶Šå¤§å‰æœŸè¶Šç¼“ï¼‰
+#define LLC_SOFTSTART_EXTRA_MARGIN      (0.01f)   /* å®‰å…¨çª—é¢å¤–ä½™é‡ï¼ˆé˜²æŠ–ï¼‰ */
 /* ==== LLC frequency window ==== */
 #define LLC_F_MIN_HZ        (85000.0f)
 #define LLC_F_MAX_HZ        (130000.0f)
@@ -87,16 +95,16 @@
 #define PB0_PIN        GPIO_PIN_0
 #define PB0_PWM_BASE_HZ     (20000U)
 
-/* ===== PA3 & PA1 BOTH as timer input capture (no ADC on these) =====  ½»Á÷µÄÕ¼¿Õ±ÈºÍÄ¸ÏßµÄÕ¼¿Õ±È*/ 
+/* ===== PA3 & PA1 BOTH as timer input capture (no ADC on these) =====  äº¤æµçš„å ç©ºæ¯”å’Œæ¯çº¿çš„å ç©ºæ¯”*/ 
 #define CAP0_TIMER     TIMER1
-#define CAP0_CH        TIMER_CH_3     /* PA3 ¡ú CH0 (adjust if needed) */
+#define CAP0_CH        TIMER_CH_3     /* PA3 â†’ CH0 (adjust if needed) */
 #define CAP0_PORT      GPIOA
 #define CAP0_PIN       GPIO_PIN_3
 #define CAP0_IRQN      TIMER1_IRQn
 #define CAP0_INT_CH    TIMER_INT_CH3
 
 #define CAP1_TIMER     TIMER1
-#define CAP1_CH        TIMER_CH_1     /* PA1 ¡ú CH1 (adjust if needed) */
+#define CAP1_CH        TIMER_CH_1     /* PA1 â†’ CH1 (adjust if needed) */
 #define CAP1_PORT      GPIOA
 #define CAP1_PIN       GPIO_PIN_1
 #define CAP1_IRQN      TIMER1_IRQn
@@ -135,14 +143,14 @@
 #define PFC_VBUS_DROPOUT_MS         (100U)
 #define PFC_RESTART_DELAY_MS        (1000U)
 /*********************************************************************************************************
-*                                              Ã¶¾Ù½á¹¹Ìå
+*                                              æšä¸¾ç»“æ„ä½“
 *********************************************************************************************************/
 typedef enum 
 { 
 	ST_IDLE=0, ST_WAIT_VBUS, ST_LLC_RUN, ST_FAULT 
 } llc_state_t;
-//vmeas£ºÊµ¼Ê²âÁ¿µ½µÄµçÑ¹ 
-//integ£º»ı·ÖÆ÷µÄµ±Ç°ÀÛ»ıÖµ£¨»ı·Ö×´Ì¬£©£¬Í¨³£»áÔÚ±¥ºÍ»òÄ£Ê½ÇĞ»»Ê±ÇåÁã»òÈíÏŞÖÆÒÔ·À·çup¡£
+//vmeasï¼šå®é™…æµ‹é‡åˆ°çš„ç”µå‹ 
+//integï¼šç§¯åˆ†å™¨çš„å½“å‰ç´¯ç§¯å€¼ï¼ˆç§¯åˆ†çŠ¶æ€ï¼‰ï¼Œé€šå¸¸ä¼šåœ¨é¥±å’Œæˆ–æ¨¡å¼åˆ‡æ¢æ—¶æ¸…é›¶æˆ–è½¯é™åˆ¶ä»¥é˜²é£upã€‚
 typedef struct {
     float vref, vmeas;
     float kp, ki, integ;
@@ -151,7 +159,7 @@ typedef struct {
 
 
 /*********************************************************************************************************
-*                                              APIº¯ÊıÉùÃ÷
+*                                              APIå‡½æ•°å£°æ˜
 *********************************************************************************************************/
 
 
