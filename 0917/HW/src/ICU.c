@@ -22,7 +22,8 @@
 /*********************************************************************************************************
 *                                              宏定义
 *********************************************************************************************************/
-
+#define CAP_TIMEOUT_MULTIPLIER   4U
+#define CAP_MIN_TIMEOUT_TICKS    (0x10000U)
 
 /*********************************************************************************************************
 *                                              枚举结构体
@@ -36,6 +37,7 @@ typedef struct
 	uint32_t polarity_bit;
 	uint32_t rise;
 	uint32_t period;
+	uint32_t timeout_deadline;
 	float duty;
 	uint8_t expect_fall;
 	uint8_t have_rise;
@@ -49,7 +51,8 @@ enum
 	CAP_CH_COUNT
 };
 
-static volatile cap_channel_state_t s_cap_channels[CAP_CH_COUNT];
+
+
 /*********************************************************************************************************
 *                                              内部变量定义
 *********************************************************************************************************/
@@ -58,6 +61,9 @@ static volatile cap_channel_state_t s_cap_channels[CAP_CH_COUNT];
 *                                              内部函数声明
 *********************************************************************************************************/
 static inline void cap_set_polarity(uint32_t timer,const volatile cap_channel_state_t* ch,uint16_t polarity);
+
+static volatile cap_channel_state_t s_cap_channels[CAP_CH_COUNT];
+static volatile uint32_t s_timer1_overflow = 0U;
 /*********************************************************************************************************
 *                                              内部函数实现
 *********************************************************************************************************/
@@ -87,6 +93,72 @@ static inline uint32_t cap_polarity_bit(uint16_t ch) // 返回通道优先级控制位
 			return 0;
 	}
 }
+
+static inline uint32_t cap_timer_overflow_get(uint32_t timer)
+{
+	if (timer == TIMER1) {
+		return s_timer1_overflow;
+	}
+	return 0U;
+}
+
+static inline void cap_timer_overflow_increment(uint32_t timer)
+{
+	if (timer == TIMER1) {
+		++s_timer1_overflow;
+	}
+}
+
+static inline uint32_t cap_timer_now(uint32_t timer)
+{
+	return (cap_timer_overflow_get(timer) << 16) | TIMER_CNT(timer);
+}
+
+static inline uint32_t cap_extend_timestamp(uint32_t timer, uint16_t capture)
+{
+	//其目的是将两个16位的计时器值（ timer 和 capture ）组合成一个32位的时间戳
+	return (cap_timer_overflow_get(timer) << 16) | capture;
+}
+/*********************************************************************************************************
+* 函数名称：cap_timeout_window
+* 函数功能：主要目的是根据输入的 period_ticks （周期时间刻度）计算并返回一个“超时窗口”值。
+这个窗口值会被限制在一个合理的范围内，避免过大或过小的情况
+* 输入参数：void
+* 输出参数：void
+* 返 回 值：void
+* 创建日期：2025年09月30日
+* 注    意：表明这是一个静态内联函数，通常用于优化性能，避免函数调用的开销。
+*********************************************************************************************************/
+static inline uint32_t cap_timeout_window(uint32_t period_ticks)
+{
+	uint32_t base = period_ticks;
+	if (base == 0U) {
+					base = CAP_MIN_TIMEOUT_TICKS;
+	}
+	uint64_t window = (uint64_t)base * CAP_TIMEOUT_MULTIPLIER;
+	if (window < CAP_MIN_TIMEOUT_TICKS) {
+					window = CAP_MIN_TIMEOUT_TICKS;
+	} else if (window > 0xFFFFFFFFULL) {
+					window = 0xFFFFFFFFULL;
+	}
+	return (uint32_t)window;
+}
+
+
+
+static inline void cap_channel_handle_timeout(volatile cap_channel_state_t* ch, uint32_t now)
+{
+	if (!ch->have_rise) {
+		return;
+	}
+	if ((int32_t)(now - ch->timeout_deadline) >= 0) {
+		ch->have_rise = 0U;
+		ch->expect_fall = 0U;
+		ch->period = 0U;
+		ch->duty = 0.0f;
+		ch->updated = 1U;
+	}
+}
 /*********************************************************************************************************
 * 函数名称：cap_channel_reset_state
 * 函数功能：重置通道状态
@@ -104,6 +176,7 @@ static inline void cap_channel_reset_state(volatile cap_channel_state_t* ch, uin
 	ch->polarity_bit = cap_polarity_bit(channel);
 	ch->rise = 0U;
 	ch->period = 0U;
+	ch->timeout_deadline = 0U;
 	ch->duty = 0.0f;
 	ch->expect_fall = 0U;
 	ch->have_rise = 0U;
@@ -112,20 +185,22 @@ static inline void cap_channel_reset_state(volatile cap_channel_state_t* ch, uin
 /*********************************************************************************************************
 * 函数名称：cap_channel_handle_irq
 * 函数功能：
-* 输入参数：void
+* 输入参数：volatile cap_channel_state_t* ch ：指向捕获通道状态的指针，包含定时器、通道号、时间戳等信息。
 * 输出参数：void
 * 返 回 值：void
 * 创建日期：2025年09月30日
-* 注    意：
+* 注    意：它的主要功能是测量输入信号的周期和占空比，并通过捕获上升沿和下降沿的时间戳来计算这些参数。
 *********************************************************************************************************/
 static inline void cap_channel_handle_irq(volatile cap_channel_state_t* ch)
 {
-	uint32_t now = timer_channel_capture_value_register_read(ch->timer,ch->channel);
-	if(ch->expect_fall)
+	uint32_t capture  = timer_channel_capture_value_register_read(ch->timer,ch->channel); //读取捕获值和扩展时间戳： capture ：当前捕获的原始值。
+	uint32_t timestamp = cap_extend_timestamp(ch->timer, capture); //使用 cap_extend_timestamp 扩展时间戳，确保时间戳的范围足够大。
+	if(ch->expect_fall)  //则计算高电平时间（ high_ticks ）和占空比（ duty ）。
 	{
-		uint32_t high_ticks = (now - ch->rise)&0xFFFFU;
 		ch->expect_fall = 0U;
-		cap_set_polarity(ch->timer, ch, TIMER_IC_POLARITY_RISING);
+		cap_set_polarity(ch->timer, ch, TIMER_IC_POLARITY_RISING); //cap_set_polarity ：设置捕获极性（上升沿或下降沿）。
+		uint32_t high_ticks = timestamp  - ch->rise; //high_ticks ：高电平持续时间（从上升沿到下降沿的时间差）。
+		
 		float duty = 0.0f;
 		if(ch->period != 0U)
 		{
@@ -142,17 +217,20 @@ static inline void cap_channel_handle_irq(volatile cap_channel_state_t* ch)
 		ch->duty = duty;
 		ch->updated = 1U;
 	}
-	else
+	else //则记录上升沿时间戳（ ch->rise ），并设置下一次捕获为下降沿。
 	{
 		if(ch->have_rise)
 		{
-			ch->period = (now - ch->rise)&0xFFFFU;
+			ch->period = timestamp - ch->rise;
 		}
-		ch->rise = now;
+		ch->rise = timestamp;
 		ch->have_rise = 1U;
 		ch->expect_fall = 1U;
 		cap_set_polarity(ch->timer,ch,TIMER_IC_POLARITY_FALLING);
 	}
+	//cap_timeout_window ：计算超时窗口，用于检测信号丢失。
+	//设置 timeout_deadline 防止信号丢失或异常情况下的无限等待
+	 ch->timeout_deadline = timestamp + cap_timeout_window(ch->period);
 }
 
 /*********************************************************************************************************
@@ -213,7 +291,7 @@ void cap_pa01_init()
 	ic.icpolarity  = TIMER_IC_POLARITY_RISING; 			// 初始捕获上升沿
 	ic.icselection = TIMER_IC_SELECTION_DIRECTTI;   // 直接输入模式。
 	ic.icprescaler = TIMER_IC_PSC_DIV1;  //输入捕获不分频	
-	ic.icfilter    = 0; //无滤波
+	ic.icfilter    = 0; //无滤波  8
 	timer_input_capture_config(CAP0_TIMER, CAP0_CH, &ic);
 	timer_input_capture_config(CAP1_TIMER, CAP1_CH, &ic);
 
@@ -225,6 +303,9 @@ void cap_pa01_init()
 	
 	timer_interrupt_enable(CAP0_TIMER, CAP0_INT_CH);
 	timer_interrupt_enable(CAP1_TIMER, CAP1_INT_CH);
+	//是启用 CAP0_TIMER 的上升沿中断（ TIMER_INT_UP ）
+	timer_interrupt_enable(CAP0_TIMER, TIMER_INT_UP);
+	 
 	timer_enable(CAP0_TIMER);
 	
 	cap_channel_reset_state(&s_cap_channels[CAP_CH_INDEX_PA3],CAP0_TIMER,CAP0_CH,CAP0_INT_CH);
@@ -234,6 +315,16 @@ void cap_pa01_init()
 //通过捕获输入信号的上升沿和下降沿，计算输入信号的周期（ period ）和占空比（ duty ）
 void TIMER1_IRQHandler()
 {
+	if(SET == timer_interrupt_flag_get(CAP0_TIMER, TIMER_INT_UP))
+	{
+		timer_interrupt_flag_clear(CAP0_TIMER,TIMER_INT_UP);
+		cap_timer_overflow_increment(CAP0_TIMER); //并调用 cap_timer_overflow_increment 函数增加定时器的溢出计数。
+		//获取当前定时器的计数值 now ，并调用 cap_channel_handle_timeout 函数处理两个通道（ CAP_CH_INDEX_PA3 和 CAP_CH_INDEX_PA1 ）的超时逻辑
+		uint32_t now = cap_timer_now(CAP0_TIMER); 
+		cap_channel_handle_timeout(&s_cap_channels[CAP_CH_INDEX_PA3], now);
+		cap_channel_handle_timeout(&s_cap_channels[CAP_CH_INDEX_PA1], now);
+	}
+	
 	volatile cap_channel_state_t* ch0 = &s_cap_channels[CAP_CH_INDEX_PA3];
 	if(SET == timer_interrupt_flag_get(ch0->timer,ch0->int_flag))
 	{

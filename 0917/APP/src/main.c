@@ -186,6 +186,17 @@ static bool s_pfc_hw_relay = false;
 static llc_t s_llc;
 static llc_app_ctx_t s_llc_app;
 static pfc_app_ctx_t s_pfc_app;
+
+static aux_power_monitor_t s_aux_power = {
+	.v3v3_v = 0.0f,
+	.vbat_v = 0.0f,
+	.v3v3_min_v = AUX_V3V3_OK_MIN_V,
+	.vbat_min_v = AUX_VBAT_OK_MIN_V,
+	.last_update_ms = 0U,
+	.drop_detected_ms = 0U,
+	.restore_detected_ms = 0U,
+	.power_ok = false,
+};
 #if LLC_SOFTSTART_ENABLE
 static llc_softstart_ctx_t s_llc_softstart;
 #endif
@@ -213,6 +224,7 @@ static volatile uint32_t s_tick_drop_count = 0U; /* 被丢弃的 tick 计数 */
 /*********************************************************************************************************
 *                                              内部函数声明
 *********************************************************************************************************/
+static void aux_power_monitor_update(float v3v3_v, float vbat_v);
 static void llc_softstart_reset(void);
 static void llc_softstart_begin(float target_duty);
 static void llc_softstart_tick(void);
@@ -276,12 +288,84 @@ static inline float conv_adc_to_i(uint16_t raw){
 		float v1 = v - 0.17;              // 去偏置
     return v1 / (ISHUNT_OHM * IAMP_GAIN);
 }
+
+static void aux_power_monitor_update(float v3v3_v, float vbat_v)
+{
+	s_aux_power.v3v3_v = v3v3_v;
+	s_aux_power.vbat_v = vbat_v;
+	
+	if(v3v3_v < s_aux_power.v3v3_min_v){
+		s_aux_power.v3v3_min_v = v3v3_v;
+	}
+	
+	if(vbat_v < s_aux_power.vbat_min_v)
+	{
+		s_aux_power.vbat_min_v = vbat_v;
+	}
+	
+	bool aux_ok = (v3v3_v >= AUX_V3V3_OK_MIN_V) && (vbat_v >= AUX_VBAT_OK_MIN_V);
+	
+	if(aux_ok)
+	{
+		if(!s_aux_power.power_ok)
+		{
+			s_aux_power.restore_detected_ms = g_ms;
+		}
+	}
+	else{
+		if(s_aux_power.power_ok)
+		{
+			s_aux_power.drop_detected_ms = g_ms;
+		}
+	}
+	s_aux_power.power_ok = aux_ok;
+	s_aux_power.last_update_ms = g_ms;
+}
+
 static inline float f_absf(float x){ return x < 0 ? -x : x; }
 static inline float f_minf(float a,float b){ return a < b ? a : b; }
 static inline float f_maxf(float a,float b){ return a > b ? a : b; }
 static inline float f_clampf(float x,float lo,float hi)
 { return x<lo?lo:(x>hi?hi:x); }
 
+static inline uint32_t elapsed_since(uint32_t start_ms)
+{
+	return (start_ms == 0U) ? 0U : (uint32_t)(g_ms - start_ms);
+}
+
+static inline bool elapsed_reached(uint32_t start_ms, uint32_t duration_ms)
+{
+	if(duration_ms == 0)
+	{
+		return true;
+	}
+	if(start_ms == 0)
+	{
+		return false;
+	}
+	return elapsed_since(start_ms) >= duration_ms;
+}
+
+static inline bool aux_power_ok_now(void)
+{
+    return s_aux_power.power_ok;
+}
+
+static inline bool aux_power_ok_stable_since(uint32_t ms)
+{
+    /* 恢复去抖：要求 power_ok=true 且恢复时间记过阈值 */
+    if (!s_aux_power.power_ok) return false;
+    if (s_aux_power.restore_detected_ms == 0U) return false;
+    return (uint32_t)(g_ms - s_aux_power.restore_detected_ms) >= ms;
+}
+
+static inline bool aux_power_brownout_stable(uint32_t ms)
+{
+    /* 掉电去抖：要求 power_ok=false 且掉电时间记过阈值 */
+    if (s_aux_power.power_ok) return false;
+    if (s_aux_power.drop_detected_ms == 0U) return false;
+    return (uint32_t)(g_ms - s_aux_power.drop_detected_ms) >= ms;
+}
 #if LLC_SOFTSTART_ENABLE
 
 /*********************************************************************************************************
@@ -372,11 +456,14 @@ static void llc_softstart_begin(float target_duty)
 		s_llc_softstart.duration_ms = LLC_SOFTSTART_DURATION_MS;  //软启动的总持续时间（毫秒）
 		float start_duty = f_clampf(LLC_SOFTSTART_START_DUTY, 0.0f, 0.99f);
 		float final_duty = f_clampf(target_duty, 0.0f, 0.99f);
+	
 		s_llc_softstart.pause      = false;  //标志位，指示是否暂停软启动,这边是不暂停软启动
-		
+		s_llc_softstart.paused_elapsed_ms = 0U;
+	
 		s_llc_softstart.start_duty = start_duty;
 		s_llc_softstart.target_duty = final_duty;
 		ss_update_safe_window();
+	
 		//如果目标占空比 target_duty 小于或等于初始占空比 start_duty ，或者软启动时间为 0，则直接跳过软启动：
 		if(final_duty <= start_duty || s_llc_softstart.duration_ms == 0U)
 		{
@@ -384,6 +471,7 @@ static void llc_softstart_begin(float target_duty)
 			s_llc_softstart.start_duty = final_duty;
 			s_llc_softstart.target_duty = final_duty;
 			ss_apply(final_duty);
+			return;
 		}
 		else
 		{
@@ -487,7 +575,7 @@ static void llc_softstart_tick(void)
 		}
 		
 		uint32_t elapsed = (uint32_t)(g_ms - s_llc_softstart.start_ms);
-		if(elapsed >= s_llc_softstart.duration_ms)
+		if(elapsed >= s_llc_softstart.duration_ms)  // 软启动持续时间（毫秒）
 		{
 			s_llc_softstart.active = false;
 			ss_apply(s_llc_softstart.target_duty);
@@ -711,7 +799,7 @@ static void pfc_state_enter(pfc_state_t next)
 	switch(next)
 	{
 		case PFC_ST_IDLE:
-			pfc_hw_set_enable(s_pfc_app.enable_cmd);
+			pfc_hw_set_enable(false);
 
 			break;
 		case PFC_ST_READY:
@@ -778,10 +866,19 @@ void pfc_app_tick_1khz(float vbus_v)
 		pfc_state_enter(PFC_ST_FAULT);
 		 return;
 	}
-	
+		/* 任何时刻辅源棕断稳定 → 直接退回 IDLE 并关断硬件 */
+	if (aux_power_brownout_stable(AUX_DROP_DEBOUNCE_MS)){
+			if (s_pfc_app.state != PFC_ST_IDLE) pfc_state_enter(PFC_ST_IDLE);
+			goto STATE_SWITCH_END;
+	}
+
 	switch(s_pfc_app.state)
 	{
 		case PFC_ST_IDLE:
+			        /* 必须先保证辅源已经恢复且去抖通过 */
+        if (!aux_power_ok_stable_since(AUX_OK_DEBOUNCE_MS)){
+            break;
+        }
 			if(!s_pfc_app.enable_cmd)
 			{
 				if(s_pfc_hw_enabled)
@@ -800,8 +897,6 @@ void pfc_app_tick_1khz(float vbus_v)
 				}
 				pfc_hw_set_enable(true);
 			}
-			
-			
 			//输入电压 vbus_v 达到目标值（ PFC_VBUS_READY_V ），并保持一段时间（ PFC_READY_DELAY_MS ）进入ready状态
 			if(vbus_v>=PFC_VBUS_READY_V)
 			{
@@ -861,6 +956,9 @@ void pfc_app_tick_1khz(float vbus_v)
 			}
 			break;
 		}
+	STATE_SWITCH_END:
+    /* no-op */
+    return;
 }
 
 pfc_state_t pfc_app_state(void)
@@ -919,7 +1017,8 @@ static void llc_state_enter(llc_state_t next)
 	{
 		case ST_IDLE:
 #if LLC_USE_OPEN_LOOP
-			llc_open_loop_stop(&s_llc_open_loop);
+		llc_open_loop_stop(&s_llc_open_loop);
+		s_llc_open_loop_completed = false;
 #endif
 			llc_softstart_reset();
 			pfc_app_force_off();  
@@ -928,9 +1027,22 @@ static void llc_state_enter(llc_state_t next)
 			s_llc.integ = 0.0f;
 			s_llc.f_cmd = s_llc.f_min;
 			break;
+	  case ST_WAIT_AUX:  /* 新增：只在辅源稳定后才进入 WAIT_VBUS */
+#if LLC_USE_OPEN_LOOP
+        llc_open_loop_stop(&s_llc_open_loop);
+        s_llc_open_loop_completed = false;
+#endif
+        llc_softstart_reset();
+        pfc_app_force_off();
+        llc_pwm_outputs_enable(0);
+        
+        s_llc.integ = 0.0f;
+        s_llc.f_cmd = s_llc.f_min;
+        break;
 		case ST_WAIT_VBUS:
 #if LLC_USE_OPEN_LOOP
 			llc_open_loop_stop(&s_llc_open_loop);
+		s_llc_open_loop_completed = false;
 #endif
 			llc_softstart_reset();
 			pfc_app_request_start(); //记录请求的起始时间
@@ -960,6 +1072,10 @@ static void llc_state_enter(llc_state_t next)
 		case ST_FAULT:
 				
 		default:	
+#if LLC_USE_OPEN_LOOP
+			llc_open_loop_stop(&s_llc_open_loop);
+			s_llc_open_loop_completed = false;
+#endif
 			llc_softstart_reset();
 			pfc_app_force_off();
 			llc_pwm_outputs_enable(0);
@@ -973,7 +1089,7 @@ void llc_app_init()
 	llc_state_enter(ST_WAIT_VBUS);
 }
 /*********************************************************************************************************
-* 函数名称：llc_state_enter
+* 函数名称：llc_app_tick_1khz
 * 函数功能：状态机切换函数，用于控制 LLC（谐振变换器）的不同工作状态
 * 输入参数：next
 * 输出参数：void
@@ -988,11 +1104,24 @@ void llc_app_tick_1khz(void)
 		llc_state_enter(ST_FAULT);
 		return;
 	}
+	
+	/* 统一的辅源棕断保护：任意态只要辅源掉线稳定，就回 WAIT_AUX */
+	if (aux_power_brownout_stable(AUX_DROP_DEBOUNCE_MS)){
+			llc_state_enter(ST_WAIT_AUX);
+			return;
+	}
+	
 	switch(s_llc_app.state)
 	{
 		case ST_IDLE:
 			llc_state_enter(ST_WAIT_VBUS);
 			break;
+		case ST_WAIT_AUX:
+        /* 辅源恢复去抖后，才允许去等 PFC/母线 */
+        if (aux_power_ok_stable_since(AUX_OK_DEBOUNCE_MS)){
+            llc_state_enter(ST_WAIT_VBUS);
+        }
+        break;
 		case ST_WAIT_VBUS:
 			if(pfc_app_ready() && (s_llc.vmeas >= LLC_ENTRY_V)) 
 			{
@@ -1014,6 +1143,11 @@ void llc_app_tick_1khz(void)
 		case ST_LLC_RUN:
 			 // 运行中：不就绪或电压跌破“进入阈值-迟滞”→ 退回等待
 			//如果任一条件成立（PFC未就绪 或 电压过低），则调用 llc_state_enter(ST_WAIT_VBUS) ，切换至等待VBUS状态。
+				if(!aux_power_ok_now()){
+					pfc_hw_set_relay(0);
+					llc_state_enter(ST_WAIT_AUX);
+					break;
+        }
 			if(!pfc_app_ready()||s_llc.vmeas<(LLC_ENTRY_V-PFC_VBUS_READY_HYST_V))
 			{
 				pfc_hw_set_relay(0);
@@ -1050,7 +1184,14 @@ void SysTick_Handler(void){
 static void control_loop_tick_1khz(void){
     /* 1 kHz control */
     adc_multi_copy(); 
+		adc_multi_sample_aux_1khz();
+	
     float vout = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
+		//float v3v3 = (g_adc_multi.v3v3_raw * VREF_ADC) / 4095.0f;
+		float v3v3 = conv_adc_to_v_div(g_adc_multi.v3v3_raw,V3V3_RTOP_OHM,V3V3_RBOT_OHM);
+		float vbat = conv_adc_to_v_div(g_adc_multi.vbt_raw, VBT_RTOP_OHM, VBT_RBOT_OHM);
+	
+		aux_power_monitor_update(v3v3, vbat);
     s_llc.vmeas = vout;
 		pfc_app_tick_1khz(vout);
 		llc_app_tick_1khz();
@@ -1085,6 +1226,7 @@ static void control_loop_tick_1khz(void){
 int main(void){
 	
 	  InitRCU();
+		nvic_priority_group_set(NVIC_PRIGROUP_PRE2_SUB2);
 	  debug_printf_init(DEBUG_PRINTF_DEFAULT_BAUDRATE);
 	  debug_printf("Debug console initialized @%lu baud\n", (unsigned long)DEBUG_PRINTF_DEFAULT_BAUDRATE);
 

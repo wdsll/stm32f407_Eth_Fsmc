@@ -212,7 +212,9 @@ void llc_open_loop_tick(llc_open_loop_ctrl_t *ctrl)
 				continue;
 			}
 			//否则，增加保持时间计数器（ hold_elapsed_ms ）并返回。
-			ctrl->hold_elapsed_ms++;
+			 if (ctrl->hold_elapsed_ms < UINT32_MAX) {
+				ctrl->hold_elapsed_ms++;
+			 }		
 			return;
 		}
 		//计算目标频率与当前频率的差值（ diff ）和步进值（ step ）
@@ -258,9 +260,11 @@ void llc_open_loop_tick(llc_open_loop_ctrl_t *ctrl)
 			float abs_diff = fabsf(diff);
 			if (abs_diff <= step) 
 			{
+				//控制器的命令频率设置为分段停止频率，并标记控制器为保持状态，同时重置保持时间计数器。
 				ctrl->f_cmd = seg->stop_hz;
 				ctrl->holding = true;
 				ctrl->hold_elapsed_ms = 0U;
+				//如果段的保持时间为0，则尝试通过调用llc_open_loop_advance函数推进控制逻辑。
 				if (seg->hold_time_ms == 0U) 
 				{
 					if (!llc_open_loop_advance(ctrl)) 

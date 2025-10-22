@@ -22,20 +22,44 @@ static void update_adc_trigger_from_pwm(uint16_t pwm_ccr)
 	timer_channel_output_pulse_value_config(TIMER0, TIMER_CH_2, midpoint);
 }
 */
+/*********************************************************************************************************
+* 函数名称：set_adc_trigger_phase
+* 函数功能：该函数的主要目的是根据输入的相位值（ phase_0_1 ）设置定时器（ TIMER0 ）的通道2（ TIMER_CH_2 ）的输出脉冲值（ ccr2 ），
+	从而控制ADC（模数转换器）的触发相位。
+* 输入参数：					
+* 输出参数：
+* 返 回 值：
+* 创建日期：2025年10月20日
+* 注    意：
+*********************************************************************************************************/
 static void set_adc_trigger_phase(float phase_0_1)
 {
 	if (phase_0_1 < 0.f) 
-		phase_0_1 = 0.f;
-	 if (phase_0_1 > 1.f) 
-		 phase_0_1 = 1.f;
-	 uint32_t arr = TIMER_CAR(TIMER0);
-	 uint32_t ccr2 = (uint32_t)((phase_0_1 * (float)(arr + 1U)) + 0.5f);
-	 
-	  if (ccr2 == 0U && arr > 0U) 
-			ccr2 = 1U;
-    if (ccr2 >= arr)            
-			ccr2 = arr - 1U;
-		timer_channel_output_pulse_value_config(TIMER0, TIMER_CH_2, (uint16_t)ccr2);
+	{
+	phase_0_1 = 0.f;
+	}
+
+  if (phase_0_1 > 1.f) 
+  {
+	  phase_0_1 = 1.f;
+  }
+	//获取定时器 TIMER0 的自动重装载值（ arr ），即定时器的周期值。
+	uint32_t arr = TIMER_CAR(TIMER0);
+	if(arr == 0U)
+	{
+		//如果 arr 为0，说明定时器未配置或无效，此时直接设置通道2的输出脉冲值为0并返回。
+		timer_channel_output_pulse_value_config(TIMER0, TIMER_CH_2, 0U);
+		return;
+	}
+	uint32_t period_ticks = arr + 1U;
+	
+	uint32_t ccr2 = (uint32_t)((phase_0_1 * (float)(arr + 1U)) + 0.5f);
+
+	if (ccr2 == 0U && arr > 0U) 
+		ccr2 = 1U;
+	if (ccr2 >= arr)            
+		ccr2 = arr - 1U;
+	timer_channel_output_pulse_value_config(TIMER0, TIMER_CH_2, (uint16_t)ccr2);
 }
 
 static inline void update_adc_trigger_midpoint_from_arr(void)
@@ -203,9 +227,23 @@ void llc_pwm_init(const llc_pwm_cfg_t* cfg){
 //该函数的作用是将一个浮点数表示的占空比（ d ）转换为一个16位无符号整数（ uint16_t ），用于配置PWM（脉宽调制）的CCR（捕获/比较寄存器）值。
 static inline uint16_t duty_to_ccr(float d)
 { 
-	d=clampf(d,0.0f,0.99f); 
-	return (uint16_t)(d*s_period); 
+	float duty = clampf(d,0.0f,0.99f); 
+	uint32_t arr = TIMER_CAR(TIMER0);
+	if(arr == 0)
+	{
+		return (duty > 0.0f) ? 1U : 0U;
+	}
+	uint32_t period_ticks = arr + 1U;
+	uint32_t ccr = (uint32_t)((duty * (float)period_ticks) + 0.5f);
+	if (ccr >= period_ticks) {
+		ccr = period_ticks - 1U;
+	}
+	if (ccr > 0xFFFFU) {
+		ccr = 0xFFFFU;
+	}
+	return ccr; 
 }
+
 void llc_pwm_set_duty(float d)
 { 
 	float duty = clampf(d, 0.0f, 0.99f);
@@ -214,6 +252,7 @@ void llc_pwm_set_duty(float d)
 	timer_channel_output_pulse_value_config(TIMER0, LLC_PWM_CH, pwm_ccr); 
 	update_adc_trigger_midpoint_from_arr();
 }
+
 void llc_pwm_outputs_enable(bool en)
 { 
 	timer_primary_output_config(TIMER0, en?ENABLE:DISABLE); 
@@ -224,18 +263,38 @@ void llc_pwm_break(bool en){
 }
 void llc_pwm_set_freq(uint32_t f_hz)
 { 
-	if(!f_hz) 
-			return;
-	s_cfg.pwm_hz=f_hz; 
-	uint32_t tclk=timer0_clk_hz(); 
-	//s_period=(tclk/(2U*f_hz))-1U;
-//计算 PWM 周期值 s_period	
-	s_period=(tclk/f_hz)-1U;
-	TIMER_CAR(TIMER0)=s_period; 
+	if (f_hz == 0U) {
+		return;
+	}
+	uint32_t tclk = timer0_clk_hz();
+	if (tclk == 0U) {
+		return;
+	}
+	uint32_t ticks = tclk / f_hz;
+	if (ticks < 2U) {
+		ticks = 2U;
+	}
+	if (ticks > 0x10000U) {
+		ticks = 0x10000U;
+	}
+	s_period = ticks - 1U;
+	TIMER_CAR(TIMER0) = s_period;
+	s_cfg.pwm_hz = tclk / ticks;
+	uint32_t deadtime = bdtr_deadtime_code_ns(s_cfg.deadtime_ns, tclk);
+	// 读取定时器TIMER0的死区时间配置寄存器（TIMER_CCHP）
+	uint32_t cchp = TIMER_CCHP(TIMER0); 
+	// 清除原有的死区时间配置位
+	cchp &= ~TIMER_CCHP_DTCFG;
+	// 设置新的死区时间配置位
+	cchp |= deadtime;
+	// 将更新后的配置写回死区时间寄存器
+	TIMER_CCHP(TIMER0) = cchp;
+	// 根据占空比（s_cfg.duty）计算PWM的比较寄存器值（pwm_ccr）
 	uint16_t pwm_ccr = duty_to_ccr(s_cfg.duty);
-	
-	TIMER_CH0CV(TIMER0) = pwm_ccr;
-	update_adc_trigger_midpoint_from_arr();  // 固定触发在周期中点（与占空解耦）
+	// // 配置定时器TIMER0的通道（LLC_PWM_CH）的输出脉冲值
+	timer_channel_output_pulse_value_config(TIMER0, LLC_PWM_CH, pwm_ccr);
+	// 更新ADC触发的中点位置
+	update_adc_trigger_midpoint_from_arr(); 
 }
 
 uint32_t llc_pwm_get_period_ns(void)

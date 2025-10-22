@@ -140,7 +140,7 @@ void TIMER6_IRQHandler(void)
 	{
 		timer_interrupt_flag_clear(TIMER6,TIMER_INT_FLAG_UP);
 	}
-	//g_ms++;	
+
 	s_iCnt1000++;
 	if(s_iCnt1000>=1000)
 	{

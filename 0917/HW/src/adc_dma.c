@@ -5,6 +5,8 @@ volatile adc_multi_frame_t g_adc_multi;
 
 // Ensure s_buf is large enough for double buffering
 //static uint16_t s_buf[ADC_MULTI_CHANNEL_COUNT * 2];
+static void adc_aux_init(void);
+static uint16_t adc_aux_read_channel(uint8_t channel, uint32_t sample_time);
 
 static void analog_pins(void){
     rcu_periph_clock_enable(RCU_GPIOA);
@@ -50,6 +52,30 @@ static void dma_cfg(void){
     dma_interrupt_flag_clear(DMA0, DMA_CH0, DMA_INT_FLAG_G);
 }
 		
+static void adc_aux_init(void){
+    rcu_periph_clock_enable(RCU_ADC1);
+    adc_deinit(ADC1);
+    adc_mode_config(ADC_MODE_FREE);
+    adc_data_alignment_config(ADC1, ADC_DATAALIGN_RIGHT);
+    adc_special_function_config(ADC1, ADC_SCAN_MODE, DISABLE);
+    adc_special_function_config(ADC1, ADC_CONTINUOUS_MODE, DISABLE);
+    adc_channel_length_config(ADC1, ADC_REGULAR_CHANNEL, 1U);
+    adc_external_trigger_source_config(ADC1, ADC_REGULAR_CHANNEL, ADC0_1_2_EXTTRIG_REGULAR_NONE);
+    adc_external_trigger_config(ADC1, ADC_REGULAR_CHANNEL, DISABLE);
+    adc_enable(ADC1);
+    adc_calibration_enable(ADC1);
+}
+
+static uint16_t adc_aux_read_channel(uint8_t channel, uint32_t sample_time){
+    adc_regular_channel_config(ADC1, 0U, channel, sample_time);
+    adc_flag_clear(ADC1, ADC_FLAG_EOC);
+    adc_software_trigger_enable(ADC1, ADC_REGULAR_CHANNEL);
+    while(RESET == adc_flag_get(ADC1, ADC_FLAG_EOC)){}
+    uint16_t value = adc_regular_data_read(ADC1);
+    adc_flag_clear(ADC1, ADC_FLAG_EOC);
+    return value;
+}
+
 void adc_multi_init_dma(uint32_t trig_src){
     analog_pins(); 
     dma_cfg();
@@ -80,6 +106,8 @@ void adc_multi_init_dma(uint32_t trig_src){
 		adc_calibration_enable(ADC0);
     adc_dma_mode_enable(ADC0);
 		dma_channel_enable(DMA0, DMA_CH0);
+		
+		 adc_aux_init();
 }
 
 void adc_multi_start(void)
@@ -88,13 +116,21 @@ void adc_multi_start(void)
 	timer_event_software_generate(LLC_PWM_TIMER, TIMER_EVENT_SRC_UPG); //用 UPG 能保证“下一次 ADC 触发”与定时器的 PWM 相位绝对同步。
 	
 }
+
+void adc_multi_sample_aux_1khz(void)
+{
+    uint16_t v3v3 = adc_aux_read_channel(AD_3V3_CH, ADC_SAMPLETIME_55POINT5);
+    uint16_t vbt = adc_aux_read_channel(VBT_SENSE_CH, ADC_SAMPLETIME_55POINT5);
+    s_latched.v3v3_raw = v3v3;
+    s_latched.vbt_raw = vbt;
+}
 void adc_multi_copy(void){
     adc_multi_frame_t frame;
     frame.vout_raw   = s_latched.vout_raw;
     frame.isense_raw = s_latched.isense_raw;
    // frame.tsense_raw = s_latched.tsense_raw;
-    //frame.v3v3_raw   = s_latched.v3v3_raw;
-   // frame.vbt_raw    = s_latched.vbt_raw;
+    frame.v3v3_raw   = s_latched.v3v3_raw;
+    frame.vbt_raw    = s_latched.vbt_raw;
    // frame.t_llc_raw  = s_latched.t_llc_raw;
     g_adc_multi = frame;
 }

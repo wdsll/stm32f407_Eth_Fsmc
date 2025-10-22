@@ -33,9 +33,17 @@
 /* Dividers for voltage ADC channels */
 #define VOUT_RTOP_OHM       (200000.0f)   /* PA5 */
 #define VOUT_RBOT_OHM       (10000.0f)
-#define VBT_RTOP_OHM        (200000.0f)   /* PC5 */
+#define VBT_RTOP_OHM        (200000.0f)   /* PC4 */
 #define VBT_RBOT_OHM        (10000.0f)
 
+#define V3V3_RTOP_OHM        (10000.0f)   /* PC5 */
+#define V3V3_RBOT_OHM        (5100.0f)
+/* ==== Auxiliary supply monitoring thresholds ==== */
+#define AUX_V3V3_OK_MIN_V     (3.0f)
+#define AUX_VBAT_OK_MIN_V     (10.0f)
+
+#define AUX_OK_DEBOUNCE_MS          30U     /* 辅源恢复消抖时间 */
+#define AUX_DROP_DEBOUNCE_MS        5U      /* 辅源掉电消抖时间（更快） */
 /* ==== Current sense ==== */
 #define ISHUNT_OHM          (0.005f)   /* 5 mΩ */
 #define IAMP_GAIN           (19.6f)   /* INA gain */
@@ -108,7 +116,7 @@
 #define VOUT_SENSE_CH      ADC_CHANNEL_5   /* PA5 */
 #define ADC_ISENSE_CH      ADC_CHANNEL_6   /* PA6 */
 #define ADC_TSENSE_CH      ADC_CHANNEL_7   /* PA7 */
-#define AD_3V3_CH          ADC_CHANNEL_14  /* PC4 */
+#define AD_3V3_CH          ADC_CHANNEL_14  /* PC4 */ 
 #define VBT_SENSE_CH       ADC_CHANNEL_15  /* PC5 */
 #define T_SENSE_LLCMOS_CH  ADC_CHANNEL_9   /* PB1 */
 
@@ -139,16 +147,27 @@
 *********************************************************************************************************/
 typedef enum 
 { 
-	ST_IDLE=0, ST_WAIT_VBUS, ST_LLC_RUN, ST_FAULT 
+	ST_IDLE=0, ST_WAIT_AUX, ST_WAIT_VBUS, ST_LLC_RUN, ST_FAULT 
 } llc_state_t;
 //vmeas：实际测量到的电压 
 //integ：积分器的当前累积值（积分状态），通常会在饱和或模式切换时清零或软限制以防风up。
 typedef struct {
-    float vref, vmeas;
-    float kp, ki, integ;
-    float f_min, f_max, f_cmd, f_slew;
+	float vref, vmeas;
+	float kp, ki, integ;
+	float f_min, f_max, f_cmd, f_slew;
 } llc_t;
 
+typedef struct
+{
+	float v3v3_v;
+	float vbat_v;
+	float v3v3_min_v;
+	float vbat_min_v;
+	uint32_t last_update_ms;
+	uint32_t drop_detected_ms; //电压下降被检测到的时间戳
+	uint32_t restore_detected_ms; //电压恢复被检测到的时间戳
+	bool power_ok;
+} aux_power_monitor_t;
 
 /*********************************************************************************************************
 *                                              API函数声明

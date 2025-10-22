@@ -25,5 +25,5 @@ void adc_multi_init_dma(uint32_t trig_src /* e.g. ADC_EXTTRIG_REGULAR_T0_CH2 */)
 void adc_multi_start(void);
 void adc_multi_copy(void);
 
-
+void adc_multi_sample_aux_1khz(void);
 #endif
