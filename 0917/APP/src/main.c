@@ -96,6 +96,7 @@ typedef struct
 	uint32_t entry_ms;
 	uint32_t vbus_ok_since_ms; //表示总线电压自从变为ok后的时间点，如果未稳定通常约定为0
 	uint32_t dropout_since_ms; //表示发生掉电/失稳时间的时间点，用来判断是否需要进入减载或者重试逻辑
+	uint32_t startup_cmd_ms;   
 	bool enable_cmd;
 } pfc_app_ctx_t;
 
@@ -205,10 +206,17 @@ static llc_softstart_ctx_t s_llc_softstart;
 static llc_open_loop_ctrl_t s_llc_open_loop;
 static bool s_llc_open_loop_completed = false;
 static float s_llc_open_loop_final_freq = LLC_F_INIT_HZ;
+/* ---------- LLC open-loop soft-start profile ---------- */
+/* 实际参数：
+ * 启动频率：130 kHz
+ * 稳态频率： 90 kHz
+ * 频率变化： Δf = 40 kHz
+ * 变化斜率： 1 kHz/ms → 总耗时约 40 ms
+ * 保持时间： 100 ms
+ */
 static const llc_open_loop_segment_t s_llc_open_loop_profile[] = {
-	{ .start_hz = LLC_F_MIN_HZ, .stop_hz = LLC_F_INIT_HZ, .slew_hz_per_ms = LLC_F_SLEW_HZ, .hold_time_ms = 200U },
-	{ .start_hz = LLC_F_INIT_HZ, .stop_hz = LLC_F_MAX_HZ, .slew_hz_per_ms = 500.0f, .hold_time_ms = 200U },
-	{ .start_hz = LLC_F_MAX_HZ, .stop_hz = LLC_F_INIT_HZ, .slew_hz_per_ms = 500.0f, .hold_time_ms = 0U },
+	{ .start_hz = LLC_F_MAX_HZ, .stop_hz = LLC_F_INIT_HZ, .slew_hz_per_ms = LLC_F_SLEW_HZ, .hold_time_ms = 100U },
+	{ .start_hz = LLC_F_INIT_HZ, .stop_hz = LLC_F_INIT_HZ, .slew_hz_per_ms = 0, .hold_time_ms = 0U },
 };
 #endif
 
@@ -332,7 +340,7 @@ static inline uint32_t elapsed_since(uint32_t start_ms)
 {
 	return (start_ms == 0U) ? 0U : (uint32_t)(g_ms - start_ms);
 }
-
+//该函数用于判断从给定的起始时间（毫秒）开始，是否已经经过了指定的持续时间（毫秒）
 static inline bool elapsed_reached(uint32_t start_ms, uint32_t duration_ms)
 {
 	if(duration_ms == 0)
@@ -350,7 +358,15 @@ static inline bool aux_power_ok_now(void)
 {
     return s_aux_power.power_ok;
 }
-
+/*********************************************************************************************************
+* 函数名称：aux_power_ok_stable_since
+* 函数功能：用于判断辅助电源是否在指定的时间范围内稳定恢复。
+* 输入参数：ms
+* 输出参数：void
+* 返 回 值：bool
+* 创建日期：2025年10月21日
+* 注    意： 
+*********************************************************************************************************/
 static inline bool aux_power_ok_stable_since(uint32_t ms)
 {
     /* 恢复去抖：要求 power_ok=true 且恢复时间记过阈值 */
@@ -358,7 +374,15 @@ static inline bool aux_power_ok_stable_since(uint32_t ms)
     if (s_aux_power.restore_detected_ms == 0U) return false;
     return (uint32_t)(g_ms - s_aux_power.restore_detected_ms) >= ms;
 }
-
+/*********************************************************************************************************
+* 函数名称：aux_power_brownout_stable
+* 函数功能：检查辅助电源掉电是否稳定
+* 输入参数：ms
+* 输出参数：void
+* 返 回 值：bool
+* 创建日期：2025年10月21日
+* 注    意：返回true表示掉电稳定，false表示不稳定 
+*********************************************************************************************************/
 static inline bool aux_power_brownout_stable(uint32_t ms)
 {
     /* 掉电去抖：要求 power_ok=false 且掉电时间记过阈值 */
@@ -366,6 +390,8 @@ static inline bool aux_power_brownout_stable(uint32_t ms)
     if (s_aux_power.drop_detected_ms == 0U) return false;
     return (uint32_t)(g_ms - s_aux_power.drop_detected_ms) >= ms;
 }
+
+
 #if LLC_SOFTSTART_ENABLE
 
 /*********************************************************************************************************
@@ -424,46 +450,92 @@ static inline float ease_exp(float t, float k)
     if (denom < 1e-6f) return t;
     return (1.0f - expf(-k * t)) / denom;
 }
-
+/*********************************************************************************************************
+* 函数名称：llc_softstart_reset 开环版本
+* 函数功能：复位软启动上下文：清除状态、暂停标志、时间戳。
+						重设软启动参数：起始占空比、目标占空比、持续时间。
+						计算当前安全占空窗：防止直通。
+						立即应用初始占空比（通常为低占空起步）
+* 输入参数：void
+* 输出参数：void
+* 返 回 值：void
+* 创建日期：2025年10月20
+* 注    意：开环模式下（LLC_USE_OPEN_LOOP=1）
+*********************************************************************************************************/
 static void llc_softstart_reset(void)
 {
+	/* ========== 1. 清除内部状态标志 ========== */
 		s_llc_softstart.active = false;
 		s_llc_softstart.pause = false;
 		s_llc_softstart.paused_elapsed_ms = 0U;
 		s_llc_softstart.start_ms = 0U;
 		s_llc_softstart.duration_ms = LLC_SOFTSTART_DURATION_MS;
-	
+	/* ========== 2. 设置初始/目标占空比 ========== */
 		s_llc_softstart.start_duty = f_clampf(LLC_SOFTSTART_START_DUTY, 0.0f, 0.99f);  // 0.1
 
 		s_llc_softstart.target_duty =  f_clampf(LLC_SOFTSTART_TARGET_DUTY, 0.0f, 0.99f);  //0.5
 	
 	/* 根据当前周期/死区，计算“有效占空安全窗” */
+	/* ========== 3. 计算安全占空窗口 ========== */
 		ss_update_safe_window(); //更新了 s_llc_softstart.duty_min_safe和s_llc_softstart.duty_max_safe
+	
+	/* 确保初始占空在安全范围内 */
+	    if (s_llc_softstart.start_duty < s_llc_softstart.duty_min_safe)
+        s_llc_softstart.start_duty = s_llc_softstart.duty_min_safe;
+    else if (s_llc_softstart.start_duty > s_llc_softstart.duty_max_safe)
+        s_llc_softstart.start_duty = s_llc_softstart.duty_max_safe;
+	
+	/* ========== 4. 应用初始占空比 ========== */
 		ss_apply(s_llc_softstart.start_duty); //0.1
+		s_llc_softstart.last_duty = s_llc_softstart.start_duty;
+	/* ========== 5. 调试日志（可选） ========== */
+#if defined(DEBUG_PRINTF_LLCSOFTSTART)
+    debug_printf("[LLC-OpenLoop-SS] reset: start=%.3f target=%.3f dur=%lu ms safe[%.3f, %.3f]\n",
+                 s_llc_softstart.start_duty,
+                 s_llc_softstart.target_duty,
+                 (unsigned long)s_llc_softstart.duration_ms,
+                 s_llc_softstart.duty_min_safe,
+                 s_llc_softstart.duty_max_safe);
+#endif
 }
 
 /*********************************************************************************************************
 * 函数名称：llc_softstart_begin
 * 函数功能：目的是实现一个软启动（soft start）功能，用于平滑地将占空比（duty cycle）从初始值逐步调整到目标值。
-* 输入参数：void
+* 输入参数：target_duty —— 目标占空比（0.0~1.0）
 * 输出参数：void
 * 返 回 值：void
-* 创建日期：2025年10月20
-* 注    意：
+* 创建日期：2025年10月22
+* 注    意：LLC_USE_OPEN_LOOP 模式下
 *********************************************************************************************************/
 static void llc_softstart_begin(float target_duty)
 {
+	 /* ========== 1. 参数初始化 ========== */
 		s_llc_softstart.duration_ms = LLC_SOFTSTART_DURATION_MS;  //软启动的总持续时间（毫秒）
+		/* 起始与目标占空比安全钳位 */
 		float start_duty = f_clampf(LLC_SOFTSTART_START_DUTY, 0.0f, 0.99f);
 		float final_duty = f_clampf(target_duty, 0.0f, 0.99f);
 	
+		/* ========== 2. 清状态标志 ========== */
 		s_llc_softstart.pause      = false;  //标志位，指示是否暂停软启动,这边是不暂停软启动
 		s_llc_softstart.paused_elapsed_ms = 0U;
 	
 		s_llc_softstart.start_duty = start_duty;
 		s_llc_softstart.target_duty = final_duty;
+	/* ========== 3. 计算安全占空窗 ========== */
 		ss_update_safe_window();
+	/* 强制占空比落入安全范围 */
+	  if (s_llc_softstart.start_duty < s_llc_softstart.duty_min_safe)
+        s_llc_softstart.start_duty = s_llc_softstart.duty_min_safe;
+    else if (s_llc_softstart.start_duty > s_llc_softstart.duty_max_safe)
+        s_llc_softstart.start_duty = s_llc_softstart.duty_max_safe;
+
+    if (s_llc_softstart.target_duty < s_llc_softstart.duty_min_safe)
+        s_llc_softstart.target_duty = s_llc_softstart.duty_min_safe;
+    else if (s_llc_softstart.target_duty > s_llc_softstart.duty_max_safe)
+        s_llc_softstart.target_duty = s_llc_softstart.duty_max_safe;
 	
+	/* ========== 4. 判定是否跳过软启动 ========== */
 		//如果目标占空比 target_duty 小于或等于初始占空比 start_duty ，或者软启动时间为 0，则直接跳过软启动：
 		if(final_duty <= start_duty || s_llc_softstart.duration_ms == 0U)
 		{
@@ -471,6 +543,10 @@ static void llc_softstart_begin(float target_duty)
 			s_llc_softstart.start_duty = final_duty;
 			s_llc_softstart.target_duty = final_duty;
 			ss_apply(final_duty);
+			s_llc_softstart.last_duty    = final_duty;
+#if defined(DEBUG_PRINTF_LLCSOFTSTART)
+        debug_printf("[LLC-SS] skipped: fixed duty=%.3f (no ramp)\n", final_duty);
+#endif
 			return;
 		}
 		else
@@ -478,6 +554,20 @@ static void llc_softstart_begin(float target_duty)
 			s_llc_softstart.active = true; //软启动正在进行
 			s_llc_softstart.start_ms = g_ms; //记录当前时间戳 start_ms 
 			ss_apply(start_duty);
+			s_llc_softstart.last_duty = start_duty;
+			#if defined(DEBUG_PRINTF_LLCSOFTSTART) && (DEBUG_PRINTF_LLCSOFTSTART)
+    debug_printf("[LLC-SS] begin: start=%.3f, target=%.3f, dur=%lu ms, safe[%.3f, %.3f], mode=%s\n",
+                 s_llc_softstart.start_duty,
+                 s_llc_softstart.target_duty,
+                 (unsigned long)s_llc_softstart.duration_ms,
+                 s_llc_softstart.duty_min_safe,
+                 s_llc_softstart.duty_max_safe,
+								 #if defined(LLC_SOFTSTART_USE_COSINE_EASE) && (LLC_SOFTSTART_USE_COSINE_EASE)
+                 "cosine");
+#else
+                 "exp");
+#endif
+#endif
 		}
 }
 void llc_softstart_update_target(float new_target_0_1)
@@ -567,20 +657,30 @@ static void llc_softstart_tick(void)
         llc_softstart_abort();
         return;
     }
+		 /* 更新安全窗口（频率变化时死区可能变化） */
 		ss_update_safe_window();
+		/* 若暂停，则保持当前占空比不变 */
 		if (s_llc_softstart.pause) 
 		{
 			ss_apply(s_llc_softstart.last_duty);
 			return;
 		}
-		
+		 /* 计算已运行时间 */
 		uint32_t elapsed = (uint32_t)(g_ms - s_llc_softstart.start_ms);
+		
+		 /* 若软启动时间到达或超时 → 锁定目标占空 */
 		if(elapsed >= s_llc_softstart.duration_ms)  // 软启动持续时间（毫秒）
 		{
 			s_llc_softstart.active = false;
 			ss_apply(s_llc_softstart.target_duty);
+			s_llc_softstart.last_duty = s_llc_softstart.target_duty;
+#if defined(DEBUG_PRINTF_LLCSOFTSTART) 
+        debug_printf("[LLC-SS] done: duty=%.3f after %lu ms\n",
+                     s_llc_softstart.target_duty, (unsigned long)elapsed);
+#endif
 			return;
 		}
+		 /* 计算进度 (0.0~1.0) */
 		float progress = (s_llc_softstart.duration_ms > 0U) ? ((float)elapsed / (float)s_llc_softstart.duration_ms) : 1.0f;
 
 		
@@ -594,7 +694,9 @@ static void llc_softstart_tick(void)
 		//使用线性插值公式计算当前占空比
 		float duty = s_llc_softstart.start_duty +
 								 (s_llc_softstart.target_duty - s_llc_softstart.start_duty) * k;
+		duty = f_clampf(duty, s_llc_softstart.duty_min_safe, s_llc_softstart.duty_max_safe);
 		ss_apply(duty);
+		s_llc_softstart.last_duty = duty;
 }
 
 #else
@@ -795,7 +897,7 @@ static void pfc_state_enter(pfc_state_t next)
 	s_pfc_app.entry_ms = g_ms;
 	s_pfc_app.vbus_ok_since_ms = 0U;
 	s_pfc_app.dropout_since_ms = 0U;
-	
+	s_pfc_app.startup_cmd_ms = 0U;
 	switch(next)
 	{
 		case PFC_ST_IDLE:
@@ -824,6 +926,7 @@ void pfc_app_init()
 	s_pfc_app.entry_ms = g_ms;
 	s_pfc_app.vbus_ok_since_ms = 0U;
 	s_pfc_app.dropout_since_ms = 0U;
+	s_pfc_app.startup_cmd_ms = 0U;
 	s_pfc_app.enable_cmd = false;
 	pfc_hw_set_enable(false);
 	//pfc_hw_set_relay(false);
@@ -831,8 +934,16 @@ void pfc_app_init()
 //该函数的目的是在启动某种请求时，确保系统状态正确，并记录请求的起始时间（如果系统当前不处于空闲状态）。
 void pfc_app_request_start(void)
 {
-	s_pfc_app.enable_cmd = true;
-	if(s_pfc_app.state != PFC_ST_IDLE)
+  if(!s_pfc_app.enable_cmd)
+	{
+		s_pfc_app.enable_cmd = true;
+	}
+	if(s_pfc_app.state == PFC_ST_IDLE)
+	{
+		s_pfc_app.startup_cmd_ms = 0U;
+		s_pfc_app.entry_ms = g_ms;
+	}
+	else
 	{
 		s_pfc_app.entry_ms = g_ms;
 	}
@@ -859,51 +970,74 @@ void pfc_app_force_off()
 void pfc_app_tick_1khz(float vbus_v)
 {
 	s_pfc_bus_v = vbus_v;
+	// 检查是否存在故障（硬件故障或锁存故障）
 	bool fault_active = protect_fault_latched()||protect_fault_active_hw();
 	//排除故障状态
 	if(fault_active && s_pfc_app.state != PFC_ST_FAULT)
 	{
 		pfc_state_enter(PFC_ST_FAULT);
-		 return;
+		return;
 	}
 		/* 任何时刻辅源棕断稳定 → 直接退回 IDLE 并关断硬件 */
 	if (aux_power_brownout_stable(AUX_DROP_DEBOUNCE_MS)){
-			if (s_pfc_app.state != PFC_ST_IDLE) pfc_state_enter(PFC_ST_IDLE);
-			goto STATE_SWITCH_END;
+			if (s_pfc_app.state != PFC_ST_IDLE) 
+				pfc_state_enter(PFC_ST_IDLE);
+			return;
 	}
 
 	switch(s_pfc_app.state)
 	{
 		case PFC_ST_IDLE:
-			        /* 必须先保证辅源已经恢复且去抖通过 */
-        if (!aux_power_ok_stable_since(AUX_OK_DEBOUNCE_MS)){
-            break;
-        }
+			 /* 必须先保证辅源已经恢复且去抖通过 */
+			if (!aux_power_ok_stable_since(AUX_OK_DEBOUNCE_MS)){
+				s_pfc_app.startup_cmd_ms = 0U;
+				// 如果硬件已启用，则禁用硬件
+				if(s_pfc_hw_enabled)
+				{
+					pfc_hw_set_enable(false);
+					s_pfc_hw_enabled = false; // 更新状态
+				}
+				s_pfc_app.vbus_ok_since_ms = 0U;
+				break;
+			}
+			// 检查是否收到禁用命令
 			if(!s_pfc_app.enable_cmd)
 			{
 				if(s_pfc_hw_enabled)
 				{
 					pfc_hw_set_enable(false);
+					s_pfc_hw_enabled = false; // 更新状态
 				}
+				// 重置启动命令计时器和电压稳定计时器
+				s_pfc_app.startup_cmd_ms = 0U;
 				s_pfc_app.vbus_ok_since_ms = 0U;
+				break;
+			}
+			// 如果启动命令计时器未初始化，则初始化
+			if(s_pfc_app.startup_cmd_ms == 0U)
+			{
+				s_pfc_app.startup_cmd_ms = g_ms;
+			}
+			//PFC_STARTUP_DELAY_MS ：启动延时，确保 PFC 硬件在启用前等待足够时间。
+			// 检查是否达到启动延时
+			if(!elapsed_reached(s_pfc_app.startup_cmd_ms, PFC_STARTUP_DELAY_MS))
+			{
 				break;
 			}
 			if(!s_pfc_hw_enabled)
 			{
-				//用示波器测量从使能信号（ pfc_hw_set_enable(true) ）到输出电压稳定的实际时间,将延时设为实测时间的 1.2-1.5倍 以留余量。
-				if((uint32_t)(g_ms - s_pfc_app.entry_ms)<PFC_STARTUP_DELAY_MS)
-				{
-					break;
-				}
 				pfc_hw_set_enable(true);
+				s_pfc_hw_enabled = true; // 更新状态
 			}
 			//输入电压 vbus_v 达到目标值（ PFC_VBUS_READY_V ），并保持一段时间（ PFC_READY_DELAY_MS ）进入ready状态
 			if(vbus_v>=PFC_VBUS_READY_V)
 			{
+				// 如果电压稳定计时器未初始化，则初始化
 				if(s_pfc_app.vbus_ok_since_ms == 0U)
 				{
 					s_pfc_app.vbus_ok_since_ms = g_ms;
 				}
+				// 检查是否达到电压稳定延时 
 				else if((uint32_t)(g_ms - s_pfc_app.vbus_ok_since_ms) >= PFC_READY_DELAY_MS)
 				{
 					pfc_state_enter(PFC_ST_READY);
@@ -911,10 +1045,11 @@ void pfc_app_tick_1khz(float vbus_v)
 			}
 			else
 			{
-				s_pfc_app.vbus_ok_since_ms = 0; // 重新计时
+				s_pfc_app.vbus_ok_since_ms = 0; // 如果电压未达标，则重置电压稳定计时器
 			}
 			break;
 		case PFC_ST_READY:
+			// 检查是否收到禁用命令
 			if(!s_pfc_app.enable_cmd)
 			{
 				pfc_state_enter(PFC_ST_IDLE);
@@ -923,14 +1058,17 @@ void pfc_app_tick_1khz(float vbus_v)
 	//输入电压低于阈值（ PFC_VBUS_READY_V - PFC_VBUS_READY_HYST_V ），并持续一定时间（ PFC_VBUS_DROPOUT_MS ）。
 			if(vbus_v >= (PFC_VBUS_READY_V - PFC_VBUS_READY_HYST_V))
 			{
+				// 如果电压达标，则重置掉电计时器
 				s_pfc_app.dropout_since_ms = 0U;
 			}
 			else
 			{
+				//// 如果掉电计时器未初始化，则初始化
 				if(s_pfc_app.dropout_since_ms == 0U)
 				{
 					s_pfc_app.dropout_since_ms = g_ms;
 				}
+				// 检查是否达到掉电延时
 				else if((uint32_t)(g_ms - s_pfc_app.dropout_since_ms)>=PFC_VBUS_DROPOUT_MS)
 				{
 					pfc_state_enter(PFC_ST_IDLE);
@@ -949,6 +1087,7 @@ void pfc_app_tick_1khz(float vbus_v)
 			}
 			else if(!fault_active)
 			{
+				// 检查是否达到重启延时
 				if((uint32_t)(g_ms - s_pfc_app.entry_ms)>= PFC_RESTART_DELAY_MS)
 				{
 					pfc_state_enter(PFC_ST_IDLE);
@@ -956,9 +1095,6 @@ void pfc_app_tick_1khz(float vbus_v)
 			}
 			break;
 		}
-	STATE_SWITCH_END:
-    /* no-op */
-    return;
 }
 
 pfc_state_t pfc_app_state(void)
@@ -1008,36 +1144,39 @@ void llc_step(llc_t* l){
 *********************************************************************************************************/
 static void llc_state_enter(llc_state_t next)
 {
+	// 更新 LLC 状态和进入时间
 	s_llc_app.state = next;
 	s_llc_app.entry_ms = g_ms;
 	#if Bus_Adj
 	bus_vol_adj_reset();   //重置总线电压调整逻辑 百分之五十的占空比
 	#endif
+	// 根据目标状态执行相应的初始化或清理操作
 	switch(next)
 	{
 		case ST_IDLE:
 #if LLC_USE_OPEN_LOOP
-		llc_open_loop_stop(&s_llc_open_loop);
+		llc_open_loop_stop(&s_llc_open_loop); // 停止开环控制（如果启用）
 		s_llc_open_loop_completed = false;
 #endif
-			llc_softstart_reset();
-			pfc_app_force_off();  
-			llc_pwm_outputs_enable(0);
-		
-			s_llc.integ = 0.0f;
-			s_llc.f_cmd = s_llc.f_min;
+			llc_softstart_reset(); // 重置软启动
+			pfc_app_force_off();   // 强制关闭 PFC
+			llc_pwm_outputs_enable(0); // 禁用 PWM 输出
+			pfc_hw_set_relay(false); // 关闭继电器
+			s_llc.integ = 0.0f; // 重置积分项
+			s_llc.f_cmd = s_llc.f_min; // 设置频率为最大值
 			break;
 	  case ST_WAIT_AUX:  /* 新增：只在辅源稳定后才进入 WAIT_VBUS */
 #if LLC_USE_OPEN_LOOP
         llc_open_loop_stop(&s_llc_open_loop);
         s_llc_open_loop_completed = false;
 #endif
-        llc_softstart_reset();
-        pfc_app_force_off();
-        llc_pwm_outputs_enable(0);
+        llc_softstart_reset(); // 重置软启动
+        pfc_app_force_off();   // 强制关闭 PFC
+				pfc_hw_set_relay(false); // 关闭继电器
+        llc_pwm_outputs_enable(0); // 禁用 PWM 输出
         
-        s_llc.integ = 0.0f;
-        s_llc.f_cmd = s_llc.f_min;
+        s_llc.integ = 0.0f;  // 重置积分项
+        s_llc.f_cmd = s_llc.f_min; // 设置频率为最大值
         break;
 		case ST_WAIT_VBUS:
 #if LLC_USE_OPEN_LOOP
@@ -1046,6 +1185,7 @@ static void llc_state_enter(llc_state_t next)
 #endif
 			llc_softstart_reset();
 			pfc_app_request_start(); //记录请求的起始时间
+			pfc_hw_set_relay(false);
 			llc_pwm_outputs_enable(0);
 			s_llc.integ = 0.0f;
 			s_llc.f_cmd = s_llc.f_min;
@@ -1064,7 +1204,7 @@ static void llc_state_enter(llc_state_t next)
 		}
 		
 #else
-			s_llc.f_cmd = f_clampf(LLC_F_INIT_HZ, s_llc.f_min, s_llc.f_max);
+			s_llc.f_cmd = f_clampf(LLC_F_MAX_HZ, s_llc.f_min, s_llc.f_max);
 #endif
 			llc_softstart_begin(LLC_PWM_DUTY);
 			llc_pwm_outputs_enable(1);
@@ -1078,6 +1218,7 @@ static void llc_state_enter(llc_state_t next)
 #endif
 			llc_softstart_reset();
 			pfc_app_force_off();
+			pfc_hw_set_relay(false);
 			llc_pwm_outputs_enable(0);
 			s_llc.f_cmd = s_llc.f_min;
 			break;
@@ -1086,7 +1227,7 @@ static void llc_state_enter(llc_state_t next)
 
 void llc_app_init()
 {
-	llc_state_enter(ST_WAIT_VBUS);
+	llc_state_enter(ST_WAIT_AUX);
 }
 /*********************************************************************************************************
 * 函数名称：llc_app_tick_1khz
@@ -1256,12 +1397,12 @@ int main(void){
     /* LLC control default。初始化LLC的控制参数，包括目标电压、PID参数、频率范围和初始频率。*/
     s_llc = (llc_t){ 
 			.vref=VBUS_TARGET_V, .vmeas=0.0f, .kp=0.01f, .ki=0.0005f,
-      .f_min=LLC_F_MIN_HZ, .f_max=LLC_F_MAX_HZ, .f_cmd=LLC_F_INIT_HZ, .f_slew=LLC_F_SLEW_HZ 
+      .f_min=LLC_F_MIN_HZ, .f_max=LLC_F_MAX_HZ, .f_cmd=LLC_F_MAX_HZ, .f_slew=LLC_F_SLEW_HZ 
 		};
 #if LLC_USE_OPEN_LOOP
 		llc_open_loop_init(&s_llc_open_loop, s_llc_open_loop_profile, sizeof(s_llc_open_loop_profile)/sizeof(s_llc_open_loop_profile[0]));
 		s_llc_open_loop_completed = false;
-		s_llc_open_loop_final_freq = f_clampf(llc_open_loop_get_freq(&s_llc_open_loop), s_llc.f_min, s_llc.f_max);
+		s_llc_open_loop_final_freq = f_clampf(LLC_F_INIT_HZ, s_llc.f_min, s_llc.f_max);
 #endif
 		pfc_app_init();
 		llc_app_init();

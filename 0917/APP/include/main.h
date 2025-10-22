@@ -44,6 +44,10 @@
 
 #define AUX_OK_DEBOUNCE_MS          30U     /* 辅源恢复消抖时间 */
 #define AUX_DROP_DEBOUNCE_MS        5U      /* 辅源掉电消抖时间（更快） */
+
+#ifndef AUX_POWER_MONITOR_ENABLE
+#define AUX_POWER_MONITOR_ENABLE    (1)
+#endif
 /* ==== Current sense ==== */
 #define ISHUNT_OHM          (0.005f)   /* 5 mΩ */
 #define IAMP_GAIN           (19.6f)   /* INA gain */
@@ -74,8 +78,10 @@
 /* ==== LLC frequency window ==== */
 #define LLC_F_MIN_HZ        (85000.0f)
 #define LLC_F_MAX_HZ        (130000.0f)
-#define LLC_F_INIT_HZ       (130000.0f)
-#define LLC_F_SLEW_HZ       (1000.0f)
+#define LLC_F_INIT_HZ       (90000.0f)
+#define LLC_F_SLEW_HZ       (500.0f)
+
+#define DEBUG_PRINTF_LLCSOFTSTART 1
 /*******************************************Board pin list********************************************************************/
 /* TIMER0 (TIM1) complementary PWM */
 #define LLC_PWM_TIMER  TIMER0

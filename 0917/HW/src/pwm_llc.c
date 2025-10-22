@@ -296,16 +296,20 @@ void llc_pwm_set_freq(uint32_t f_hz)
 	// 更新ADC触发的中点位置
 	update_adc_trigger_midpoint_from_arr(); 
 }
-
+//周期(ns) = 1e9 × (ARR + 1) / tclk
 uint32_t llc_pwm_get_period_ns(void)
 {
+	/* 获取定时器实际时钟频率 (Hz)，内部已考虑预分频与倍频 */
     uint32_t tclk = timer0_clk_hz();                 // TIM 内部时钟 Hz
     uint32_t arr  = TIMER_CAR(TIMER0);               // 当前 ARR
+	
     // 你的 set_freq 用的是边沿计数：f = tclk/(ARR+1)
     // 周期(ns) = 1e9 * (ARR+1) / tclk
     if (tclk == 0U) 
 			return 0U;
     uint64_t ns = (1000000000ULL * (uint64_t)(arr + 1U)) / (uint64_t)tclk;
+		    if (ns > 0xFFFFFFFFULL)
+        ns = 0xFFFFFFFFULL;
     return (uint32_t)ns;
 }
 
