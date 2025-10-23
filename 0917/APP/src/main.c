@@ -340,6 +340,21 @@ static inline uint32_t elapsed_since(uint32_t start_ms)
 {
 	return (start_ms == 0U) ? 0U : (uint32_t)(g_ms - start_ms);
 }
+
+static inline void delay_ms_block(uint16_t ms)
+{
+    uint32_t start = g_ms;
+    while ((uint32_t)(g_ms - start) < ms) { __NOP(); }
+}
+
+/* 发送一个清除脉冲给外部锁存电路 */
+void protect_hw_clear_pulse(uint16_t pulse_ms)
+{
+    gpio_bit_set(GPIOC, GPIO_PIN_12);
+    delay_ms_block(pulse_ms ? pulse_ms : 10);
+    gpio_bit_reset(GPIOC, GPIO_PIN_12);
+}
+
 //该函数用于判断从给定的起始时间（毫秒）开始，是否已经经过了指定的持续时间（毫秒）
 static inline bool elapsed_reached(uint32_t start_ms, uint32_t duration_ms)
 {
@@ -555,14 +570,14 @@ static void llc_softstart_begin(float target_duty)
 			s_llc_softstart.start_ms = g_ms; //记录当前时间戳 start_ms 
 			ss_apply(start_duty);
 			s_llc_softstart.last_duty = start_duty;
-			#if defined(DEBUG_PRINTF_LLCSOFTSTART) && (DEBUG_PRINTF_LLCSOFTSTART)
+#if defined(DEBUG_PRINTF_LLCSOFTSTART) && (DEBUG_PRINTF_LLCSOFTSTART)
     debug_printf("[LLC-SS] begin: start=%.3f, target=%.3f, dur=%lu ms, safe[%.3f, %.3f], mode=%s\n",
                  s_llc_softstart.start_duty,
                  s_llc_softstart.target_duty,
                  (unsigned long)s_llc_softstart.duration_ms,
                  s_llc_softstart.duty_min_safe,
                  s_llc_softstart.duty_max_safe,
-								 #if defined(LLC_SOFTSTART_USE_COSINE_EASE) && (LLC_SOFTSTART_USE_COSINE_EASE)
+#if defined(LLC_SOFTSTART_USE_COSINE_EASE) && (LLC_SOFTSTART_USE_COSINE_EASE)
                  "cosine");
 #else
                  "exp");
@@ -970,6 +985,7 @@ void pfc_app_force_off()
 void pfc_app_tick_1khz(float vbus_v)
 {
 	s_pfc_bus_v = vbus_v;
+	static uint8_t s_pfc_clear_sent = 0;  // 防抖，只发一次
 	// 检查是否存在故障（硬件故障或锁存故障）
 	bool fault_active = protect_fault_latched()||protect_fault_active_hw();
 	//排除故障状态
@@ -1078,20 +1094,30 @@ void pfc_app_tick_1khz(float vbus_v)
 		case PFC_ST_FAULT:
 			
 		default:
-			if(!s_pfc_app.enable_cmd)
+			if(!fault_active)
 			{
-				if(!fault_active)
-				{
-					pfc_state_enter(PFC_ST_IDLE);
+			 /* 用户撤销使能也允许退出 FAULT */ /* 条件 1：用户撤销 enable 且 BKIN 已经释放 → 直接回 IDLE */
+				if (!s_pfc_app.enable_cmd && !protect_fault_active_hw()) {
+						pfc_state_enter(PFC_ST_IDLE);
+						s_pfc_clear_sent = 0;
 				}
-			}
-			else if(!fault_active)
-			{
-				// 检查是否达到重启延时
-				if((uint32_t)(g_ms - s_pfc_app.entry_ms)>= PFC_RESTART_DELAY_MS)
+				
+				/* 条件 2：允许自动重试：BKIN已高 + 辅源稳定 + 达到重试延时 */
+				if(!protect_fault_active_hw()&&aux_power_ok_stable_since(AUX_OK_DEBOUNCE_MS)&&(uint32_t)(g_ms - s_pfc_app.entry_ms)>= PFC_RESTART_DELAY_MS)
 				{
+					 if (protect_fault_latched()) 
+					 {
+						 protect_clear_fault();
+					 }
+					 if (!s_pfc_clear_sent) {
+							protect_hw_clear_pulse(10);
+							s_pfc_clear_sent = 1;
+           }
 					pfc_state_enter(PFC_ST_IDLE);
+					 s_pfc_clear_sent = 0;  // 复位节流
+					 break;
 				}
+
 			}
 			break;
 		}
@@ -1163,7 +1189,7 @@ static void llc_state_enter(llc_state_t next)
 			llc_pwm_outputs_enable(0); // 禁用 PWM 输出
 			pfc_hw_set_relay(false); // 关闭继电器
 			s_llc.integ = 0.0f; // 重置积分项
-			s_llc.f_cmd = s_llc.f_min; // 设置频率为最大值
+			s_llc.f_cmd = s_llc.f_max; // 设置频率为最大值
 			break;
 	  case ST_WAIT_AUX:  /* 新增：只在辅源稳定后才进入 WAIT_VBUS */
 #if LLC_USE_OPEN_LOOP
@@ -1176,7 +1202,7 @@ static void llc_state_enter(llc_state_t next)
         llc_pwm_outputs_enable(0); // 禁用 PWM 输出
         
         s_llc.integ = 0.0f;  // 重置积分项
-        s_llc.f_cmd = s_llc.f_min; // 设置频率为最大值
+        s_llc.f_cmd = s_llc.f_max; // 设置频率为最大值
         break;
 		case ST_WAIT_VBUS:
 #if LLC_USE_OPEN_LOOP
@@ -1188,7 +1214,7 @@ static void llc_state_enter(llc_state_t next)
 			pfc_hw_set_relay(false);
 			llc_pwm_outputs_enable(0);
 			s_llc.integ = 0.0f;
-			s_llc.f_cmd = s_llc.f_min;
+			s_llc.f_cmd = s_llc.f_max;
 			break;
 		case ST_LLC_RUN:
 			s_llc.integ = 0.0f;
@@ -1220,7 +1246,7 @@ static void llc_state_enter(llc_state_t next)
 			pfc_app_force_off();
 			pfc_hw_set_relay(false);
 			llc_pwm_outputs_enable(0);
-			s_llc.f_cmd = s_llc.f_min;
+			s_llc.f_cmd = s_llc.f_max;
 			break;
 	}
 }
@@ -1240,12 +1266,15 @@ void llc_app_init()
 *********************************************************************************************************/
 void llc_app_tick_1khz(void)
 {
+	 static uint8_t s_llc_clear_sent = 0;
+	
 	if(protect_fault_latched() || protect_fault_active_hw()||pfc_app_state() == PFC_ST_FAULT)
 	{
 		llc_state_enter(ST_FAULT);
 		return;
 	}
 	
+
 	/* 统一的辅源棕断保护：任意态只要辅源掉线稳定，就回 WAIT_AUX */
 	if (aux_power_brownout_stable(AUX_DROP_DEBOUNCE_MS)){
 			llc_state_enter(ST_WAIT_AUX);
@@ -1296,9 +1325,26 @@ void llc_app_tick_1khz(void)
 			}
 			break;
 		case ST_FAULT:
+			
 		default:
-			break;
-	}	
+			{
+				bool hw_active = protect_fault_active_hw();
+				bool sw_latched = protect_fault_latched();
+				bool aux_ok = aux_power_ok_stable_since(AUX_OK_DEBOUNCE_MS);
+
+				/* 满足恢复条件再清一次硬件锁存 */
+				if (!hw_active && aux_ok && elapsed_reached(s_llc_app.entry_ms, PFC_RESTART_DELAY_MS)) {
+						if (sw_latched) 
+							protect_clear_fault();
+						if (!s_llc_clear_sent) {
+								protect_hw_clear_pulse(10);
+								s_llc_clear_sent = 1;
+						}
+						llc_state_enter(ST_WAIT_AUX);  // 先回到等辅源，再走 WAIT_VBUS → RUN
+						s_llc_clear_sent = 0;
+				}
+			} break;
+    }	
 }
 
 llc_state_t llc_app_state(void)
@@ -1344,15 +1390,20 @@ static void control_loop_tick_1khz(void){
 		{
 			llc_softstart_tick();
 #if LLC_USE_OPEN_LOOP
+		/* ---------- 开环扫频过程 ---------- */
 		if(!s_llc_open_loop_completed)
 		{
 			llc_open_loop_tick(&s_llc_open_loop);
 			float freq = f_clampf(llc_open_loop_get_freq(&s_llc_open_loop),s_llc.f_min,s_llc.f_max);
 			s_llc.f_cmd = freq;
+			 /* 判断是否已停止运行（即扫频完成） */
 			if(!llc_open_loop_running(&s_llc_open_loop))
 			{
 				s_llc_open_loop_final_freq = freq;
 				s_llc_open_loop_completed = true;
+#if defined(DEBUG_PRINTF_LLC_OPENLOOP)
+        debug_printf("[LLC-OpenLoop] completed: %.1f Hz\n", freq);
+#endif
 			}
 		}
 #else
@@ -1370,7 +1421,7 @@ int main(void){
 		nvic_priority_group_set(NVIC_PRIGROUP_PRE2_SUB2);
 	  debug_printf_init(DEBUG_PRINTF_DEFAULT_BAUDRATE);
 	  debug_printf("Debug console initialized @%lu baud\n", (unsigned long)DEBUG_PRINTF_DEFAULT_BAUDRATE);
-
+		systick_1ms_init();
     /* LLC complementary PWM 配置LLC的PWM频率 、死区时间和占空比，并初始化PWM模块*/
     llc_pwm_cfg_t lcfg = { .pwm_hz=LLC_PWM_BASE_HZ, .deadtime_ns=LLC_PWM_DEAD_NS, .duty=LLC_PWM_DUTY };
     llc_pwm_init(&lcfg);
@@ -1393,6 +1444,13 @@ int main(void){
 
     /* Protection EXTI PC11 */
     protect_exti_init();
+		
+		/* after protect_exti_init(); */
+if (!protect_fault_active_hw() && protect_fault_latched()) {
+    /* BKIN已高、电路无真故障，但软件还记着旧标志 → 清软件 + 清硬件锁存 */
+    protect_clear_fault();
+    protect_hw_clear_pulse(10);   // 10ms 够用；你的硬件若更慢可调到 20ms
+}
 
     /* LLC control default。初始化LLC的控制参数，包括目标电压、PID参数、频率范围和初始频率。*/
     s_llc = (llc_t){ 
@@ -1406,7 +1464,7 @@ int main(void){
 #endif
 		pfc_app_init();
 		llc_app_init();
-		systick_1ms_init();
+	
 #if MODULE_TESTS_ACTIVE
 		module_tests_init();
 #endif

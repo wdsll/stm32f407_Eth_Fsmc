@@ -82,6 +82,8 @@
 #define LLC_F_SLEW_HZ       (500.0f)
 
 #define DEBUG_PRINTF_LLCSOFTSTART 1
+
+#define DEBUG_PRINTF_LLC_OPENLOOP 1
 /*******************************************Board pin list********************************************************************/
 /* TIMER0 (TIM1) complementary PWM */
 #define LLC_PWM_TIMER  TIMER0
@@ -126,19 +128,15 @@
 #define VBT_SENSE_CH       ADC_CHANNEL_15  /* PC5 */
 #define T_SENSE_LLCMOS_CH  ADC_CHANNEL_9   /* PB1 */
 
-/* PC11 EXTI protection */
-#define PROT_GPIO_PORT     GPIOC
-#define PROT_GPIO_PIN      GPIO_PIN_11
-#define PROT_EXTI_LINE     EXTI_11
 
 
-#define PFC_MAIN_RELAY_PORT     GPIOA
-#define PFC_MAIN_RELAY_PIN     	GPIO_PIN_12 
-#define PFC_MAIN_RELAY_RCU			RCU_GPIOA
+#define PFC_MAIN_RELAY_PORT     GPIOB
+#define PFC_MAIN_RELAY_PIN     	GPIO_PIN_14 
+#define PFC_MAIN_RELAY_RCU			RCU_GPIOB
 
-#define PFC_EN_PORT     GPIOA
+#define PFC_EN_PORT     GPIOC
 #define PFC_EN_PIN     	GPIO_PIN_10  
-#define PFC_EN_RCU			RCU_GPIOA
+#define PFC_EN_RCU			RCU_GPIOC
 //#define PROT_EXTI_LINE     EXTI_11
 
 /* ==== PFC control thresholds ==== */

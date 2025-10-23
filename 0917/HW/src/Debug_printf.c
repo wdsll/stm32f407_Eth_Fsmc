@@ -17,19 +17,19 @@
 #endif
 
 #ifndef DEBUG_USART_GPIO_PORT
-#define DEBUG_USART_GPIO_PORT     GPIOA
+#define DEBUG_USART_GPIO_PORT     GPIOB
 #endif
 
 #ifndef DEBUG_USART_GPIO_RCU
-#define DEBUG_USART_GPIO_RCU      RCU_GPIOA
+#define DEBUG_USART_GPIO_RCU      RCU_GPIOB
 #endif
 
 #ifndef DEBUG_USART_TX_PIN
-#define DEBUG_USART_TX_PIN        GPIO_PIN_9
+#define DEBUG_USART_TX_PIN        GPIO_PIN_10
 #endif
 
 #ifndef DEBUG_USART_RX_PIN
-#define DEBUG_USART_RX_PIN        GPIO_PIN_10
+#define DEBUG_USART_RX_PIN        GPIO_PIN_11
 #endif
 
 #ifndef DEBUG_PRINTF_BUFFER_SIZE

@@ -53,20 +53,21 @@ typedef struct {
     uint32_t hold_elapsed_ms;  ///< 当前分段时间累计（ms）
     bool running; ///< 运行标志
     bool holding;///< 保持状态标志
+		bool completed;                          /**< 是否全部分段完成 */
 } llc_open_loop_ctrl_t;
 
 /*********************************************************************************************************
 *                                              API函数声明
 *********************************************************************************************************/
-
+/* 初始化控制器 */
 void llc_open_loop_init(llc_open_loop_ctrl_t *ctrl,const llc_open_loop_segment_t *segments,size_t segment_count);
-
+/* 启动开环控制 */
 void llc_open_loop_start(llc_open_loop_ctrl_t *ctrl);
-
+/* 停止开环控制 */
 void llc_open_loop_stop(llc_open_loop_ctrl_t *ctrl);
-
+/* 每 1ms 调用一次的更新函数 */
 void llc_open_loop_tick(llc_open_loop_ctrl_t *ctrl);
-
+/* 是否仍在运行 */
 bool llc_open_loop_running(const llc_open_loop_ctrl_t *ctrl);
 
 static inline float llc_open_loop_get_freq(const llc_open_loop_ctrl_t *ctrl)
