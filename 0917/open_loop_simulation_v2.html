@@ -455,6 +455,12 @@
             closeHelp: document.getElementById('close-help'),
             okHelp: document.getElementById('ok-help')
         };
+        const eventBindingStatus = {
+            startButton: false,
+            stopButton: false,
+            helpButtons: false,
+            chartLegends: false
+        };
 
         // 初始化图表
         function initChart() {
@@ -1389,35 +1395,46 @@
             }
             
             // 启动/停止按钮
-            elements.startBtn.addEventListener('click', startSimulation);
-            elements.stopBtn.addEventListener('click', stopSimulation);
-            
+            if (elements.startBtn) {
+                elements.startBtn.addEventListener('click', startSimulation);
+                eventBindingStatus.startButton = true;
+            }
+            if (elements.stopBtn) {
+                elements.stopBtn.addEventListener('click', stopSimulation);
+                eventBindingStatus.stopButton = true;
+            }
+
             // 帮助模态框
-            elements.helpBtn.addEventListener('click', () => {
-                elements.helpModal.classList.remove('hidden');
-            });
-            
-            elements.closeHelp.addEventListener('click', () => {
-                elements.helpModal.classList.add('hidden');
-            });
-            
-            elements.okHelp.addEventListener('click', () => {
-                elements.helpModal.classList.add('hidden');
-            });
-            
-            // 点击模态框外部关闭
-            elements.helpModal.addEventListener('click', (e) => {
-                if (e.target === elements.helpModal) {
+            if (elements.helpBtn && elements.helpModal && elements.closeHelp && elements.okHelp) {
+                elements.helpBtn.addEventListener('click', () => {
+                    elements.helpModal.classList.remove('hidden');
+                });
+
+                elements.closeHelp.addEventListener('click', () => {
                     elements.helpModal.classList.add('hidden');
-                }
-            });
-            
+                });
+
+                elements.okHelp.addEventListener('click', () => {
+                    elements.helpModal.classList.add('hidden');
+                });
+
+                // 点击模态框外部关闭
+                elements.helpModal.addEventListener('click', (e) => {
+                    if (e.target === elements.helpModal) {
+                        elements.helpModal.classList.add('hidden');
+                    }
+                });
+
+                eventBindingStatus.helpButtons = true;
+            }
+
             // 图表图例按钮
-            document.querySelectorAll('.chart-legend-btn').forEach(btn => {
+            const legendButtons = document.querySelectorAll('.chart-legend-btn');
+            legendButtons.forEach(btn => {
                 btn.addEventListener('click', function() {
                     const target = this.dataset.target;
                     let datasetIndex;
-                    
+
                     switch(target) {
                         case 'duty': datasetIndex = 0; break;
                         case 'frequency': datasetIndex = 1; break;
@@ -1434,10 +1451,13 @@
                     } else {
                         this.classList.remove('opacity-50');
                     }
-                    
+
                     parametersChart.update();
                 });
             });
+            if (legendButtons.length > 0) {
+                eventBindingStatus.chartLegends = true;
+            }
         }
 
         // 初始化页面
@@ -1504,17 +1524,32 @@
             
             // 初始化事件监听器
             initEventListeners();
-            
-            // 验证启动按钮事件监听器
-            if (elements.startBtn && typeof elements.startBtn.onclick === 'function') {
-                addLog('启动按钮事件监听器绑定成功', 'success');
-            } else {
-                addLog('错误: 启动按钮事件监听器绑定失败', 'error');
-                elements.faultStatusLed.className = 'w-4 h-4 rounded-full bg-red-500';
-                elements.startBtn.disabled = true;
-                elements.startBtn.title = '事件监听器绑定失败';
-                elements.startBtn.classList.add('cursor-not-allowed');
+
+            if (!eventBindingStatus.startButton) {
+                addLog('错误: 未能绑定启动按钮事件监听器', 'error');
+                if (elements.faultStatusLed) {
+                    elements.faultStatusLed.className = 'w-4 h-4 rounded-full bg-red-500';
+                }
+                if (elements.startBtn) {
+                    elements.startBtn.disabled = true;
+                    elements.startBtn.title = '事件监听器绑定失败';
+                    elements.startBtn.classList.add('cursor-not-allowed');
+                }
                 return;
+            } else {
+                addLog('启动按钮事件监听器绑定成功', 'success');
+            }
+
+            if (!eventBindingStatus.stopButton) {
+                addLog('警告: 未绑定停止按钮事件监听器', 'warning');
+            }
+
+            if (!eventBindingStatus.helpButtons) {
+                addLog('警告: 帮助弹窗按钮未绑定事件监听器', 'warning');
+            }
+
+            if (!eventBindingStatus.chartLegends) {
+                addLog('警告: 图例按钮未绑定事件监听器', 'warning');
             }
             
             // 验证控制模式切换功能
