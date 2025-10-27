@@ -21,6 +21,16 @@
 
 #define Bus_Adj 0
 
+/* ======================== Bring-up configuration ======================== */
+/* Keep PFC control bypassed so that the firmware only exercises the LLC open-loop sweep for hardware validation. */
+#define LLC_BRINGUP_OPEN_LOOP_ONLY   1
+
+#if LLC_BRINGUP_OPEN_LOOP_ONLY
+#define LLC_BYPASS_PFC_CONTROL      1
+#else
+#define LLC_BYPASS_PFC_CONTROL      0
+#endif
+
 /* 控制循环参数（1 kHz） */
 #define CONTROL_LOOP_HZ            (1000U)
 #define CONTROL_LOOP_DT_S          (1.0f / (float)CONTROL_LOOP_HZ)
@@ -75,6 +85,8 @@ typedef struct
 } protect_clear_pulse_ctx_t;
 
 static protect_clear_pulse_ctx_t s_protect_clear_pulse = { false, 0U, 0U };
+
+#if AUX_POWER_MONITOR_ENABLE
 static aux_power_monitor_t s_aux_power = {
 	.v3v3_v = 0.0f,
 	.vbat_v = 0.0f,
@@ -85,6 +97,19 @@ static aux_power_monitor_t s_aux_power = {
 	.restore_detected_ms = 0U,
 	.power_ok = false,
 };
+#else
+static aux_power_monitor_t s_aux_power = {
+	.v3v3_v = 0.0f,
+	.vbat_v = 0.0f,
+	.v3v3_min_v = AUX_V3V3_OK_MIN_V,
+	.vbat_min_v = AUX_VBAT_OK_MIN_V,
+	.last_update_ms = 0U,
+	.drop_detected_ms = 0U,
+	.restore_detected_ms = 0U,
+	.power_ok = true,
+};
+#endif
+	
 
 /*********************************************************************************************************
 *                                              内部变量定义
@@ -189,38 +214,6 @@ static inline float conv_adc_to_i(uint16_t raw){
     return v1 / (ISHUNT_OHM * IAMP_GAIN);
 }
 
-static void aux_power_monitor_update(float v3v3_v, float vbat_v)
-{
-	s_aux_power.v3v3_v = v3v3_v;
-	s_aux_power.vbat_v = vbat_v;
-	
-	if(v3v3_v < s_aux_power.v3v3_min_v){
-		s_aux_power.v3v3_min_v = v3v3_v;
-	}
-	
-	if(vbat_v < s_aux_power.vbat_min_v)
-	{
-		s_aux_power.vbat_min_v = vbat_v;
-	}
-	
-	bool aux_ok = (v3v3_v >= AUX_V3V3_OK_MIN_V) && (vbat_v >= AUX_VBAT_OK_MIN_V);
-	
-	if(aux_ok)
-	{
-		if(!s_aux_power.power_ok)
-		{
-			s_aux_power.restore_detected_ms = g_ms;
-		}
-	}
-	else{
-		if(s_aux_power.power_ok)
-		{
-			s_aux_power.drop_detected_ms = g_ms;
-		}
-	}
-	s_aux_power.power_ok = aux_ok;
-	s_aux_power.last_update_ms = g_ms;
-}
 
 static inline float f_absf(float x){ return x < 0 ? -x : x; }
 static inline float f_minf(float a,float b){ return a < b ? a : b; }
@@ -273,9 +266,50 @@ static inline bool elapsed_reached(uint32_t start_ms, uint32_t duration_ms)
 	return elapsed_since(start_ms) >= duration_ms;
 }
 
+static void aux_power_monitor_update(float v3v3_v, float vbat_v)
+{
+#if AUX_POWER_MONITOR_ENABLE
+	s_aux_power.v3v3_v = v3v3_v;
+	s_aux_power.vbat_v = vbat_v;
+	
+	if(v3v3_v < s_aux_power.v3v3_min_v){
+		s_aux_power.v3v3_min_v = v3v3_v;
+	}
+	
+	if(vbat_v < s_aux_power.vbat_min_v)
+	{
+		s_aux_power.vbat_min_v = vbat_v;
+	}
+	
+	bool aux_ok = (v3v3_v >= AUX_V3V3_OK_MIN_V) && (vbat_v >= AUX_VBAT_OK_MIN_V);
+	
+	if(aux_ok)
+	{
+		if(!s_aux_power.power_ok)
+		{
+			s_aux_power.restore_detected_ms = g_ms;
+		}
+	}
+	else{
+		if(s_aux_power.power_ok)
+		{
+			s_aux_power.drop_detected_ms = g_ms;
+		}
+	}
+	s_aux_power.power_ok = aux_ok;
+	s_aux_power.last_update_ms = g_ms;
+#else
+	(void)v3v3_v;
+	(void)vbat_v;
+#endif
+}
 static inline bool aux_power_ok_now(void)
 {
+	#if AUX_POWER_MONITOR_ENABLE
     return s_aux_power.power_ok;
+	#else
+		return true;
+	#endif
 }
 /*********************************************************************************************************
 * 函数名称：aux_power_ok_stable_since
@@ -288,10 +322,15 @@ static inline bool aux_power_ok_now(void)
 *********************************************************************************************************/
 static inline bool aux_power_ok_stable_since(uint32_t ms)
 {
+	#if AUX_POWER_MONITOR_ENABLE
     /* 恢复去抖：要求 power_ok=true 且恢复时间记过阈值 */
     if (!s_aux_power.power_ok) return false;
     if (s_aux_power.restore_detected_ms == 0U) return false;
     return (uint32_t)(g_ms - s_aux_power.restore_detected_ms) >= ms;
+	#else
+		(void)ms;
+		return false;
+	#endif
 }
 /*********************************************************************************************************
 * 函数名称：aux_power_brownout_stable
@@ -659,7 +698,19 @@ static void pfc_hw_set_relay(bool closed)  //PA12
 		(void)closed;
 	#endif
 }
-
+#if LLC_BYPASS_PFC_CONTROL
+static void pfc_state_enter(pfc_state_t next)
+{
+	(void)next;
+	s_pfc_app.state = PFC_ST_READY;
+	s_pfc_app.entry_ms = g_ms;
+	s_pfc_app.vbus_ok_since_ms = g_ms;
+	s_pfc_app.dropout_since_ms = 0U;
+	s_pfc_app.startup_cmd_ms = g_ms;
+	s_pfc_app.enable_cmd = true;
+	pfc_hw_set_enable(false);
+}
+#else
 static void pfc_state_enter(pfc_state_t next)
 {
 	s_pfc_app.state = next;
@@ -686,23 +737,42 @@ static void pfc_state_enter(pfc_state_t next)
 			break;
 	}
 }
+#endif
 
 void pfc_app_init()
 {
 	pfc_hw_init();
 	s_pfc_bus_v = 0.0f;
+	
+#if LLC_BYPASS_PFC_CONTROL
+	s_pfc_app.state = PFC_ST_READY;
+	s_pfc_app.entry_ms = g_ms;
+	s_pfc_app.vbus_ok_since_ms = g_ms;
+	s_pfc_app.dropout_since_ms = 0U;
+	s_pfc_app.startup_cmd_ms = g_ms;
+	s_pfc_app.enable_cmd = true;
+	
+#else
 	s_pfc_app.state = PFC_ST_IDLE;
 	s_pfc_app.entry_ms = g_ms;
 	s_pfc_app.vbus_ok_since_ms = 0U;
 	s_pfc_app.dropout_since_ms = 0U;
 	s_pfc_app.startup_cmd_ms = 0U;
 	s_pfc_app.enable_cmd = false;
+#endif
 	pfc_hw_set_enable(false);
-	//pfc_hw_set_relay(false);
 }
 //该函数的目的是在启动某种请求时，确保系统状态正确，并记录请求的起始时间（如果系统当前不处于空闲状态）。
 void pfc_app_request_start(void)
 {
+#if LLC_BYPASS_PFC_CONTROL
+	s_pfc_app.enable_cmd = true;
+	s_pfc_app.state = PFC_ST_READY;
+	s_pfc_app.entry_ms = g_ms;
+	s_pfc_app.vbus_ok_since_ms = g_ms;
+	s_pfc_app.startup_cmd_ms = g_ms;
+	return;
+#else
   if(!s_pfc_app.enable_cmd)
 	{
 		s_pfc_app.enable_cmd = true;
@@ -716,18 +786,40 @@ void pfc_app_request_start(void)
 	{
 		s_pfc_app.entry_ms = g_ms;
 	}
+#endif
 }
 
 void pfc_app_force_off()
 {
+#if LLC_BYPASS_PFC_CONTROL
+	s_pfc_app.enable_cmd = true;
+	s_pfc_app.state = PFC_ST_READY;
+	s_pfc_app.entry_ms = g_ms;
+	s_pfc_app.vbus_ok_since_ms = g_ms;
+	s_pfc_app.startup_cmd_ms = g_ms;
+	return;
+#else
 	s_pfc_app.enable_cmd = false;
 	if(s_pfc_app.state != PFC_ST_IDLE)
 	{
 		 pfc_state_enter(PFC_ST_IDLE);
 	}
+#endif
 }
 void pfc_app_tick_1khz(float vbus_v)
 {
+#if LLC_BYPASS_PFC_CONTROL
+	s_pfc_bus_v = vbus_v;
+	s_pfc_app.enable_cmd = true;
+	if(s_pfc_app.state != PFC_ST_READY)
+	{
+		s_pfc_app.state = PFC_ST_READY;
+		s_pfc_app.entry_ms = g_ms;
+		s_pfc_app.vbus_ok_since_ms = g_ms;
+		s_pfc_app.startup_cmd_ms = g_ms;
+	}
+	return;
+#else
 	s_pfc_bus_v = vbus_v;
 	static uint8_t s_pfc_clear_sent = 0;  // 防抖，只发一次
 	// 检查是否存在故障（硬件故障或锁存故障）
@@ -844,6 +936,7 @@ void pfc_app_tick_1khz(float vbus_v)
 			}
 			break;
 		}
+#endif
 }
 
 pfc_state_t pfc_app_state(void)
@@ -853,7 +946,11 @@ pfc_state_t pfc_app_state(void)
 
 bool pfc_app_ready(void)
 {
+#if LLC_BYPASS_PFC_CONTROL
+        return true;
+#else
 	return s_pfc_app.state == PFC_ST_READY;
+#endif
 }
 
 float pfc_bus_voltage(void)
@@ -947,6 +1044,8 @@ static void llc_state_enter(llc_state_t next)
 #endif
 			llc_softstart_begin(LLC_PWM_DUTY);
 			llc_pwm_outputs_enable(1);
+			// 添加调试信息输出
+			debug_printf("[LLC] Starting open loop control. Initial frequency: %.1f Hz\n", s_llc.f_cmd);
 			break;
 		case ST_FAULT:
 				
@@ -994,7 +1093,11 @@ void llc_app_tick_1khz(void)
         }
         break;
 		case ST_WAIT_VBUS:
+#if LLC_BYPASS_PFC_CONTROL
+			if(s_llc.vmeas >= LLC_ENTRY_V) 
+#else
 			if(pfc_app_ready() && (s_llc.vmeas >= LLC_ENTRY_V)) 
+#endif
 			{
 				if (s_llc_app.entry_ms == 0U) 
 				{
@@ -1017,7 +1120,11 @@ void llc_app_tick_1khz(void)
 					llc_state_enter(ST_WAIT_AUX);
 					break;
         }
+#if LLC_BYPASS_PFC_CONTROL
+			if(s_llc.vmeas<(LLC_ENTRY_V-PFC_VBUS_READY_HYST_V))
+#else
 			if(!pfc_app_ready()||s_llc.vmeas<(LLC_ENTRY_V-PFC_VBUS_READY_HYST_V))
+#endif
 			{
 				pfc_hw_set_relay(0);
 				llc_state_enter(ST_WAIT_VBUS);

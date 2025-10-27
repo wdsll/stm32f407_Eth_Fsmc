@@ -46,7 +46,7 @@
 #define AUX_DROP_DEBOUNCE_MS        5U      /* 辅源掉电消抖时间（更快） */
 
 #ifndef AUX_POWER_MONITOR_ENABLE
-#define AUX_POWER_MONITOR_ENABLE    (1)
+#define AUX_POWER_MONITOR_ENABLE    (0)
 #endif
 /* ==== Current sense ==== */
 #define ISHUNT_OHM          (0.005f)   /* 5 mΩ */
@@ -85,6 +85,8 @@
 #define DEBUG_PRINTF_LLCSOFTSTART 1
 
 #define DEBUG_PRINTF_LLC_OPENLOOP 1
+
+#define DEBUG_PRINTF_PFC_STATE 1
 
 /* ==== Interrupt priority scheme (NVIC_PRIGROUP_PRE2_SUB2) ==== */
 #define IRQ_PRIO_FAULT_PREEMPT        (0U)
@@ -155,6 +157,7 @@ static inline uint8_t irq_priority_encode(uint8_t preempt, uint8_t sub)
 #define PFC_EN_PORT     GPIOC
 #define PFC_EN_PIN     	GPIO_PIN_10  
 #define PFC_EN_RCU			RCU_GPIOC
+
 /* --- PFC 改进：更宽松的 READY 退出门限与延时 --- */
 #ifndef PFC_VBUS_DROPOUT_THRESHOLD_V
 #define PFC_VBUS_DROPOUT_THRESHOLD_V   (PFC_VBUS_READY_V - 15.0f) /* 例如 345V */
@@ -179,8 +182,9 @@ static inline uint8_t irq_priority_encode(uint8_t preempt, uint8_t sub)
 #define PFC_VBUS_READY_HYST_V       (10.0f)
 #define PFC_READY_DELAY_MS          (200U)
 #define PFC_STARTUP_DELAY_MS        (20U)
-#define PFC_VBUS_DROPOUT_MS         (100U)
+#define PFC_VBUS_DROPOUT_MS         (200U)
 #define PFC_RESTART_DELAY_MS        (1000U)
+#define PFC_VBUS_DROPOUT_THRESHOLD  (PFC_VBUS_READY_V - 15.0f)  /* 345V, increased from 350V */
 /*********************************************************************************************************
 *                                              枚举结构体
 *********************************************************************************************************/
