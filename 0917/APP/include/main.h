@@ -65,10 +65,11 @@
 #define LLC_PWM_DUTY        (0.50f)
 
 #ifndef LLC_SOFTSTART_ENABLE
-#define LLC_SOFTSTART_ENABLE        (1)
+#define LLC_SOFTSTART_ENABLE        (0)
 #endif
 /* ==== LLC_SOFTSTART ==== */
 #define LLC_SOFTSTART_DURATION_MS     100U      // 软启动总时长
+#define LLC_SOFTSTART_MIN_DURATION_MS 20U  
 #define LLC_SOFTSTART_START_DUTY      0.10f    // 起始占空（0~1）
 #define LLC_SOFTSTART_TARGET_DUTY     0.50f    // 默认目标占空（0~1），可在 begin() 传入覆盖
 #define LLC_SOFTSTART_FAILSAFE_DUTY   0.00f    // 故障时退回占空
@@ -84,6 +85,23 @@
 #define DEBUG_PRINTF_LLCSOFTSTART 1
 
 #define DEBUG_PRINTF_LLC_OPENLOOP 1
+
+/* ==== Interrupt priority scheme (NVIC_PRIGROUP_PRE2_SUB2) ==== */
+#define IRQ_PRIO_FAULT_PREEMPT        (0U)
+#define IRQ_PRIO_FAULT_SUB            (0U)
+#define IRQ_PRIO_DMA_PREEMPT          (1U)
+#define IRQ_PRIO_DMA_SUB              (0U)
+#define IRQ_PRIO_SYSTICK_PREEMPT      (2U)
+#define IRQ_PRIO_SYSTICK_SUB          (0U)
+#define IRQ_PRIO_MEASURE_PREEMPT      (2U)
+#define IRQ_PRIO_MEASURE_SUB          (1U)
+#define IRQ_PRIO_BACKGROUND_PREEMPT   (3U)
+#define IRQ_PRIO_BACKGROUND_SUB       (0U)
+
+static inline uint8_t irq_priority_encode(uint8_t preempt, uint8_t sub)
+{
+    return (uint8_t)(((uint32_t)preempt << 2U) | ((uint32_t)sub & 0x03U));
+}
 /*******************************************Board pin list********************************************************************/
 /* TIMER0 (TIM1) complementary PWM */
 #define LLC_PWM_TIMER  TIMER0
@@ -137,7 +155,24 @@
 #define PFC_EN_PORT     GPIOC
 #define PFC_EN_PIN     	GPIO_PIN_10  
 #define PFC_EN_RCU			RCU_GPIOC
-//#define PROT_EXTI_LINE     EXTI_11
+/* --- PFC 改进：更宽松的 READY 退出门限与延时 --- */
+#ifndef PFC_VBUS_DROPOUT_THRESHOLD_V
+#define PFC_VBUS_DROPOUT_THRESHOLD_V   (PFC_VBUS_READY_V - 15.0f) /* 例如 345V */
+#endif
+
+#ifndef PFC_VBUS_DROPOUT_MS_NEW
+#define PFC_VBUS_DROPOUT_MS_NEW        (200U)                     /* 退出延时加长 */
+#endif
+
+/* LLC 启动前，PFC READY 需稳定一小段时间，避免竞态 */
+#ifndef PFC_READY_STABLE_BEFORE_LLC_MS
+#define PFC_READY_STABLE_BEFORE_LLC_MS (50U)
+#endif
+
+/* 在 IDLE→READY 判定中，对“明显掉回”才清零计时的缓冲带 */
+#ifndef PFC_VBUS_OK_RESET_MARGIN_V
+#define PFC_VBUS_OK_RESET_MARGIN_V     (5.0f)
+#endif
 
 /* ==== PFC control thresholds ==== */
 #define PFC_VBUS_READY_V            (360.0f)

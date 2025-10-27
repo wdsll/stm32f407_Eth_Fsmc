@@ -299,8 +299,8 @@ void cap_pa01_init()
 	//timer_interrupt_flag_clear(CAP0_TIMER, CAP0_INT_CH | CAP1_INT_CH  | TIMER_INT_UP);
 	//清除CAP0_TIMER的中断标志（包括CAP0、CAP1、更新和触发中断）
 	timer_interrupt_flag_clear(CAP0_TIMER, CAP0_INT_CH | CAP1_INT_CH | TIMER_INT_UP | TIMER_INT_TRG);
-	nvic_irq_enable(CAP0_IRQN, 2, 0); /* 只需使能 CAP0_IRQN（TIMER1 IRQ），因为 CAP0 和 CAP1 共用同一个中断向量 */
-	
+	//nvic_irq_enable(CAP0_IRQN, 2, 0); /* 只需使能 CAP0_IRQN（TIMER1 IRQ），因为 CAP0 和 CAP1 共用同一个中断向量 */
+	nvic_irq_enable(CAP0_IRQN, IRQ_PRIO_MEASURE_PREEMPT, IRQ_PRIO_MEASURE_SUB); 
 	timer_interrupt_enable(CAP0_TIMER, CAP0_INT_CH);
 	timer_interrupt_enable(CAP1_TIMER, CAP1_INT_CH);
 	//是启用 CAP0_TIMER 的上升沿中断（ TIMER_INT_UP ）

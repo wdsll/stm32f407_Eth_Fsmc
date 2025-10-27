@@ -607,6 +607,11 @@
               <FileType>5</FileType>
               <FilePath>.\HW\include\debug_printf.h</FilePath>
             </File>
+            <File>
+              <FileName>pfc_control.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\HW\src\pfc_control.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

@@ -28,7 +28,8 @@ void protect_exti_init(void){
 	
 	timer_interrupt_flag_clear(TIMER0,TIMER_INT_FLAG_BRK);
 	timer_interrupt_enable(TIMER0,TIMER_INT_BRK);
-	nvic_irq_enable(TIMER0_BRK_IRQn_VALUE,1,0);
+	//nvic_irq_enable(TIMER0_BRK_IRQn_VALUE,1,0);
+	nvic_irq_enable(TIMER0_BRK_IRQn_VALUE, IRQ_PRIO_FAULT_PREEMPT, IRQ_PRIO_FAULT_SUB);
 	gpio_init(HARD_PRO_CL_GPIO_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, HARD_PRO_CL_GPIO_PIN);
   gpio_bit_reset(HARD_PRO_CL_GPIO_PORT, HARD_PRO_CL_GPIO_PIN);
 	

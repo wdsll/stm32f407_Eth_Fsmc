@@ -6,6 +6,9 @@ typedef enum {
         PFC_ST_FAULT
 } pfc_state_t;
 
+
+
+
 void pfc_app_init(void);
 void pfc_app_request_start(void);
 void pfc_app_force_off(void);

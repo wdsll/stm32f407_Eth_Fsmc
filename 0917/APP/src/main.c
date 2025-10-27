@@ -1,21 +1,5 @@
 
 /*********************************************************************************************************
-* 模块名称：main.c
-* 摘    要：
-* 当前版本：1.0.0
-* 作    者：Rengar
-* 完成日期：2025年09月24日  
-* 内    容：
-* 注    意：                                                                  
-**********************************************************************************************************
-* 取代版本：
-* 作    者：
-* 完成日期：
-* 修改内容：
-* 修改文件：
-*********************************************************************************************************/
-
-/*********************************************************************************************************
 *                                              包含头文件
 *********************************************************************************************************/
 #include "main.h"
@@ -30,52 +14,18 @@
 #include "llc_open_loop.h"
 #include "pfc_control.h"
 /*********************************************************************************************************
-*                                              模块测试配置
-*********************************************************************************************************/
-#ifndef ENABLE_ADC_TEST
-#define ENABLE_ADC_TEST              0
-#endif
-
-#ifndef ENABLE_PWM_TEST
-#define ENABLE_PWM_TEST              0
-#endif
-
-#ifndef ENABLE_ICU_TEST
-#define ENABLE_ICU_TEST              0
-#endif
-
-#ifndef ENABLE_PFC_TEST
-#define ENABLE_PFC_TEST              0
-#endif
-
-#ifndef ENABLE_LLC_TEST
-#define ENABLE_LLC_TEST              0
-#endif
-
-#if (ENABLE_ADC_TEST || ENABLE_PWM_TEST || ENABLE_ICU_TEST || ENABLE_PFC_TEST || ENABLE_LLC_TEST)
-#define MODULE_TESTS_ACTIVE          1
-#else
-#define MODULE_TESTS_ACTIVE          0
-#endif
-
-#if ENABLE_PWM_TEST
-#define PWM_TEST_SWEEP_PERIOD_MS      1000U
-#endif
-
-#if ENABLE_PFC_TEST
-#define PFC_TEST_TOGGLE_PERIOD_MS     5000U
-#endif
-
-#if ENABLE_LLC_TEST
-#define LLC_TEST_TOGGLE_PERIOD_MS     5000U
-#endif
-/*********************************************************************************************************
 *                                              宏定义
 *********************************************************************************************************/
 
 #define LLC_USE_OPEN_LOOP 1
 
 #define Bus_Adj 0
+
+/* 控制循环参数（1 kHz） */
+#define CONTROL_LOOP_HZ            (1000U)
+#define CONTROL_LOOP_DT_S          (1.0f / (float)CONTROL_LOOP_HZ)
+/* 主循环一次最多处理的 tick，超过将计数为丢弃（避免主循环长时间占用） */
+#define MAX_TICKS_PER_LOOP         (5U)
 /*********************************************************************************************************
 *                                              枚举结构体
 *********************************************************************************************************/
@@ -117,65 +67,25 @@ typedef struct
 	float last_duty;
 } llc_softstart_ctx_t;
 
-#if MODULE_TESTS_ACTIVE
 typedef struct
 {
-#if ENABLE_ADC_TEST
-    struct {
-        float vout_v;
-        float isense_a;
-        float v3v3_v;
-        float vbat_v;
-        float t_llc_v;
-        uint16_t raw_vout;
-        uint16_t raw_isense;
-        uint16_t raw_tsense;
-        uint16_t raw_v3v3;
-        uint16_t raw_vbat;
-        uint16_t raw_t_llc;
-    } adc;
-#endif
-#if ENABLE_PWM_TEST
-    struct {
-        float pb0_duty;
-        float llc_freq_hz;
-        uint32_t sweep_phase;
-    } pwm;
-#endif
-#if ENABLE_ICU_TEST
-    struct {
-        float pa0_duty;
-        float pa1_duty;
-        uint32_t last_update_ms;
-    } icu;
-#endif
-#if ENABLE_PFC_TEST
-    struct {
-        pfc_state_t state;
-        bool enable_cmd;
-        bool hw_fault;
-        float bus_voltage;
-        uint32_t last_toggle_ms;
-    } pfc;
-#endif
-#if ENABLE_LLC_TEST
-    struct {
-        llc_state_t state;
-        float freq_cmd;
-        float vref;
-        float vmeas;
-        uint32_t last_toggle_ms;
-    } llc;
-#endif
-}module_tests_ctx_t;
+        bool active;
+        uint16_t duration_ms;
+        uint32_t start_ms;
+} protect_clear_pulse_ctx_t;
 
-static volatile module_tests_ctx_t s_module_tests;
-static void module_tests_init(void);
-static void module_tests_tick_1khz(float vbus_v);
-#else
-static inline void module_tests_init(void) { }
-static inline void module_tests_tick_1khz(float vbus_v) { (void)vbus_v; }
-#endif
+static protect_clear_pulse_ctx_t s_protect_clear_pulse = { false, 0U, 0U };
+static aux_power_monitor_t s_aux_power = {
+	.v3v3_v = 0.0f,
+	.vbat_v = 0.0f,
+	.v3v3_min_v = AUX_V3V3_OK_MIN_V,
+	.vbat_min_v = AUX_VBAT_OK_MIN_V,
+	.last_update_ms = 0U,
+	.drop_detected_ms = 0U,
+	.restore_detected_ms = 0U,
+	.power_ok = false,
+};
+
 /*********************************************************************************************************
 *                                              内部变量定义
 *********************************************************************************************************/
@@ -188,16 +98,7 @@ static llc_t s_llc;
 static llc_app_ctx_t s_llc_app;
 static pfc_app_ctx_t s_pfc_app;
 
-static aux_power_monitor_t s_aux_power = {
-	.v3v3_v = 0.0f,
-	.vbat_v = 0.0f,
-	.v3v3_min_v = AUX_V3V3_OK_MIN_V,
-	.vbat_min_v = AUX_VBAT_OK_MIN_V,
-	.last_update_ms = 0U,
-	.drop_detected_ms = 0U,
-	.restore_detected_ms = 0U,
-	.power_ok = false,
-};
+
 #if LLC_SOFTSTART_ENABLE
 static llc_softstart_ctx_t s_llc_softstart;
 #endif
@@ -206,14 +107,6 @@ static llc_softstart_ctx_t s_llc_softstart;
 static llc_open_loop_ctrl_t s_llc_open_loop;
 static bool s_llc_open_loop_completed = false;
 static float s_llc_open_loop_final_freq = LLC_F_INIT_HZ;
-/* ---------- LLC open-loop soft-start profile ---------- */
-/* 实际参数：
- * 启动频率：130 kHz
- * 稳态频率： 90 kHz
- * 频率变化： Δf = 40 kHz
- * 变化斜率： 1 kHz/ms → 总耗时约 40 ms
- * 保持时间： 100 ms
- */
 static const llc_open_loop_segment_t s_llc_open_loop_profile[] = {
 	{ .start_hz = LLC_F_MAX_HZ, .stop_hz = LLC_F_INIT_HZ, .slew_hz_per_ms = LLC_F_SLEW_HZ, .hold_time_ms = 100U },
 	{ .start_hz = LLC_F_INIT_HZ, .stop_hz = LLC_F_INIT_HZ, .slew_hz_per_ms = 0, .hold_time_ms = 0U },
@@ -223,11 +116,7 @@ static const llc_open_loop_segment_t s_llc_open_loop_profile[] = {
 volatile uint32_t g_ms=0;
 static volatile uint32_t s_control_tick_pending = 0U;
 
-/* 控制循环参数（1 kHz） */
-#define CONTROL_LOOP_HZ            (1000U)
-#define CONTROL_LOOP_DT_S          (1.0f / (float)CONTROL_LOOP_HZ)
-/* 主循环一次最多处理的 tick，超过将计数为丢弃（避免主循环长时间占用） */
-#define MAX_TICKS_PER_LOOP         (5U)
+
 static volatile uint32_t s_tick_drop_count = 0U; /* 被丢弃的 tick 计数 */
 /*********************************************************************************************************
 *                                              内部函数声明
@@ -239,6 +128,8 @@ static void llc_softstart_tick(void);
 
 static void llc_state_enter(llc_state_t next);
 static void pfc_state_enter(pfc_state_t next);
+static void protect_hw_clear_pulse_tick(void);
+static void protect_clear_gpio_init(void); // ← 新增：清锁存脚初始化
 
 static void pfc_hw_init(void);
 static void pfc_hw_set_enable(bool en);
@@ -273,7 +164,8 @@ void systick_1ms_init(void){
 		SysTick->CTRL = 0U;  //先禁用 SysTick。
 		SysTick->LOAD = reload; //设置重载值。
 		SysTick->VAL  = 0U; //清除当前计数值。
-    NVIC_SetPriority(SysTick_IRQn, 0x0F);
+    //NVIC_SetPriority(SysTick_IRQn, 0x0F);
+		NVIC_SetPriority(SysTick_IRQn, irq_priority_encode(IRQ_PRIO_SYSTICK_PREEMPT, IRQ_PRIO_SYSTICK_SUB));
 		//设置 SysTick 的时钟源。如果该位被置 1，表示使用处理器时钟（HCLK）；如果为 0，表示使用 HCLK 的 8 分频。
 		//控制 SysTick 中断的启用。如果该位被置 1，表示允许 SysTick 定时器在计数到 0 时触发中断。
 		//控制 SysTick 定时器的启用。如果该位被置 1，表示启动定时器计数。
@@ -341,18 +233,30 @@ static inline uint32_t elapsed_since(uint32_t start_ms)
 	return (start_ms == 0U) ? 0U : (uint32_t)(g_ms - start_ms);
 }
 
-static inline void delay_ms_block(uint16_t ms)
-{
-    uint32_t start = g_ms;
-    while ((uint32_t)(g_ms - start) < ms) { __NOP(); }
-}
-
-/* 发送一个清除脉冲给外部锁存电路 */
 void protect_hw_clear_pulse(uint16_t pulse_ms)
 {
+    uint16_t duration = pulse_ms;
+    if (duration == 0U) {
+        duration = 10U;
+    }
+
     gpio_bit_set(GPIOC, GPIO_PIN_12);
-    delay_ms_block(pulse_ms ? pulse_ms : 10);
-    gpio_bit_reset(GPIOC, GPIO_PIN_12);
+    s_protect_clear_pulse.active = true;
+    s_protect_clear_pulse.duration_ms = duration;
+    s_protect_clear_pulse.start_ms = g_ms;
+}
+
+static void protect_hw_clear_pulse_tick(void)
+{
+    if (!s_protect_clear_pulse.active) {
+        return;
+    }
+
+    if ((uint32_t)(g_ms - s_protect_clear_pulse.start_ms) >= s_protect_clear_pulse.duration_ms) {
+        gpio_bit_reset(GPIOC, GPIO_PIN_12);
+        s_protect_clear_pulse.active = false;
+        s_protect_clear_pulse.start_ms = 0U;
+    }
 }
 
 //该函数用于判断从给定的起始时间（毫秒）开始，是否已经经过了指定的持续时间（毫秒）
@@ -409,15 +313,6 @@ static inline bool aux_power_brownout_stable(uint32_t ms)
 
 #if LLC_SOFTSTART_ENABLE
 
-/*********************************************************************************************************
-* 函数名称：ss_update_safe_window
-* 函数功能：更新软启动的安全窗口范围
-* 输入参数：void
-* 输出参数：void
-* 返 回 值：void
-* 创建日期：2025年10月20
-* 注    意：根据当前PWM周期和死区时间计算软启动的安全占空比范围，避免直通或无效脉宽
-*********************************************************************************************************/
 /* 根据当前周期/死区，计算“有效占空安全窗” */
 static void ss_update_safe_window(void)
 {
@@ -465,18 +360,6 @@ static inline float ease_exp(float t, float k)
     if (denom < 1e-6f) return t;
     return (1.0f - expf(-k * t)) / denom;
 }
-/*********************************************************************************************************
-* 函数名称：llc_softstart_reset 开环版本
-* 函数功能：复位软启动上下文：清除状态、暂停标志、时间戳。
-						重设软启动参数：起始占空比、目标占空比、持续时间。
-						计算当前安全占空窗：防止直通。
-						立即应用初始占空比（通常为低占空起步）
-* 输入参数：void
-* 输出参数：void
-* 返 回 值：void
-* 创建日期：2025年10月20
-* 注    意：开环模式下（LLC_USE_OPEN_LOOP=1）
-*********************************************************************************************************/
 static void llc_softstart_reset(void)
 {
 	/* ========== 1. 清除内部状态标志 ========== */
@@ -513,16 +396,6 @@ static void llc_softstart_reset(void)
                  s_llc_softstart.duty_max_safe);
 #endif
 }
-
-/*********************************************************************************************************
-* 函数名称：llc_softstart_begin
-* 函数功能：目的是实现一个软启动（soft start）功能，用于平滑地将占空比（duty cycle）从初始值逐步调整到目标值。
-* 输入参数：target_duty —— 目标占空比（0.0~1.0）
-* 输出参数：void
-* 返 回 值：void
-* 创建日期：2025年10月22
-* 注    意：LLC_USE_OPEN_LOOP 模式下
-*********************************************************************************************************/
 static void llc_softstart_begin(float target_duty)
 {
 	 /* ========== 1. 参数初始化 ========== */
@@ -651,15 +524,6 @@ void llc_softstart_abort(void)
     ss_update_safe_window(); // 以防期间改过频率/死区 卡的是周期和死区时间吧
     ss_apply(f_clampf(LLC_SOFTSTART_FAILSAFE_DUTY, 0.0f, 0.99f)); //0.0
 }
-/*********************************************************************************************************
-* 函数名称：llc_softstart_tick
-* 函数功能：该函数用于处理LLC软启动过程中的定时逻辑，包括故障检测、暂停处理、进度计算和占空比调整。
-* 输入参数：void
-* 输出参数：void
-* 返 回 值：void
-* 创建日期：2025年10月20
-* 注    意：如果软启动未激活或处于暂停状态，函数将直接返回；如果检测到故障（已锁存或硬件触发），将中止软启动
-*********************************************************************************************************/
 static void llc_softstart_tick(void)
 {
     if (!s_llc_softstart.active) 
@@ -729,122 +593,6 @@ static void llc_softstart_tick(void)
                 /* Soft-start disabled. Nothing to do. */
 }
 #endif /* LLC_SOFTSTART_ENABLE */
-#if MODULE_TESTS_ACTIVE
-
-static void module_tests_init(void)
-{
-#if ENABLE_PWM_TEST
-    s_module_tests.pwm.pb0_duty = 0.0f;
-    s_module_tests.pwm.llc_freq_hz = s_llc.f_cmd;
-    s_module_tests.pwm.sweep_phase = 0U;
-    pb0_pwm_set_duty(0.0f);
-#endif
-#if ENABLE_PFC_TEST
-    s_module_tests.pfc.state = s_pfc_app.state;
-    s_module_tests.pfc.enable_cmd = s_pfc_app.enable_cmd;
-    s_module_tests.pfc.hw_fault = false;
-    s_module_tests.pfc.bus_voltage = 0.0f;
-    s_module_tests.pfc.last_toggle_ms = g_ms;
-#endif
-#if ENABLE_LLC_TEST
-    s_module_tests.llc.state = s_llc_app.state;
-    s_module_tests.llc.freq_cmd = s_llc.f_cmd;
-    s_module_tests.llc.vref = s_llc.vref;
-    s_module_tests.llc.vmeas = s_llc.vmeas;
-    s_module_tests.llc.last_toggle_ms = g_ms;
-#endif
-
-#if ENABLE_ICU_TEST
-    s_module_tests.icu.pa0_duty = 0.0f;
-    s_module_tests.icu.pa1_duty = 0.0f;
-    s_module_tests.icu.last_update_ms = g_ms;
-#endif
-}
-static void module_tests_tick_1khz(float vbus_v)
-{
-#if ENABLE_ADC_TEST
-    s_module_tests.adc.raw_vout = g_adc_multi.vout_raw;
-    s_module_tests.adc.raw_isense = g_adc_multi.isense_raw;
-    s_module_tests.adc.raw_tsense = g_adc_multi.tsense_raw;
-    s_module_tests.adc.raw_v3v3 = g_adc_multi.v3v3_raw;
-    s_module_tests.adc.raw_vbat = g_adc_multi.vbt_raw;
-    s_module_tests.adc.raw_t_llc = g_adc_multi.t_llc_raw;
-    s_module_tests.adc.vout_v = vbus_v;
-    s_module_tests.adc.isense_a = conv_adc_to_i(g_adc_multi.isense_raw);
-    s_module_tests.adc.v3v3_v = (g_adc_multi.v3v3_raw * VREF_ADC) / 4095.0f;
-    s_module_tests.adc.vbat_v = conv_adc_to_v_div(g_adc_multi.vbt_raw, VBT_RTOP_OHM, VBT_RBOT_OHM);
-    s_module_tests.adc.t_llc_v = (g_adc_multi.t_llc_raw * VREF_ADC) / 4095.0f;
-#endif
-
-#if ENABLE_PWM_TEST
-//通过相位递增和分段计算，实现了占空比的平滑变化。
-    uint32_t phase = (s_module_tests.pwm.sweep_phase + 1U) % PWM_TEST_SWEEP_PERIOD_MS;
-    s_module_tests.pwm.sweep_phase = phase;
-    uint32_t half = PWM_TEST_SWEEP_PERIOD_MS / 2U;
-    float duty;
-    if(half == 0U)
-    {
-        duty = 0.5f;
-    }
-    else if(phase < half)
-    {
-        duty = (float)phase / (float)half;
-    }
-    else
-    {
-        duty = (float)(PWM_TEST_SWEEP_PERIOD_MS - phase) / (float)half;
-    }
-    duty = f_clampf(duty, 0.0f, 1.0f);
-    pb0_pwm_set_duty(duty);
-    s_module_tests.pwm.pb0_duty = duty;
-    s_module_tests.pwm.llc_freq_hz = s_llc.f_cmd;
-#endif
-
-#if ENABLE_PFC_TEST
-    bool hw_fault = protect_fault_latched() || protect_fault_active_hw();
-    s_module_tests.pfc.hw_fault = hw_fault;
-    s_module_tests.pfc.state = s_pfc_app.state;
-    s_module_tests.pfc.enable_cmd = s_pfc_app.enable_cmd;
-    s_module_tests.pfc.bus_voltage = vbus_v;
-    if(!hw_fault && (uint32_t)(g_ms - s_module_tests.pfc.last_toggle_ms) >= PFC_TEST_TOGGLE_PERIOD_MS)
-    {
-        if(s_pfc_app.enable_cmd)
-        {
-            pfc_app_force_off();
-        }
-        else
-        {
-            pfc_app_request_start();
-        }
-        s_module_tests.pfc.last_toggle_ms = g_ms;
-    }
-#endif
-#if ENABLE_LLC_TEST
-    s_module_tests.llc.state = s_llc_app.state;
-    s_module_tests.llc.freq_cmd = s_llc.f_cmd;
-    s_module_tests.llc.vref = s_llc.vref;
-    s_module_tests.llc.vmeas = s_llc.vmeas;
-    bool faults_active = protect_fault_latched() || protect_fault_active_hw();
-    if(!faults_active && (uint32_t)(g_ms - s_module_tests.llc.last_toggle_ms) >= LLC_TEST_TOGGLE_PERIOD_MS)
-    {
-        if(s_llc_app.state == ST_LLC_RUN)
-        {
-            llc_state_enter(ST_WAIT_VBUS);
-        }
-        else if(s_llc_app.state == ST_WAIT_VBUS)
-        {
-            llc_state_enter(ST_LLC_RUN);
-        }
-        s_module_tests.llc.last_toggle_ms = g_ms;
-    }
-    if(faults_active)
-    {
-        s_module_tests.llc.last_toggle_ms = g_ms;
-    }
-#endif
-    (void)vbus_v;
-}
-#endif
 
 static void pfc_hw_init(void)
 {
@@ -864,6 +612,12 @@ static void pfc_hw_init(void)
 	s_pfc_hw_relay = false;
 }
 
+/* PFC READY 且已在 READY 态保持一小段时间，供 LLC 启动前做最后确认 */
+static inline bool pfc_ready_for_llc(void)
+{
+    return (s_pfc_app.state == PFC_ST_READY) &&
+           elapsed_reached(s_pfc_app.entry_ms, PFC_READY_STABLE_BEFORE_LLC_MS);
+}
 static void pfc_hw_set_enable(bool en)
 {
 	if(s_pfc_hw_enabled == en)
@@ -972,16 +726,6 @@ void pfc_app_force_off()
 		 pfc_state_enter(PFC_ST_IDLE);
 	}
 }
-/*********************************************************************************************************
-* 函数名称：pfc_app_tick_1khz
-* 函数功能：其主要目的是根据输入电压（ vbus_v ）和系统状态（如故障、使能命令等）动态调整 PFC 的工作状态，
-	确保系统在安全、高效的状态下运行。
-* 输入参数：vbus_v
-* 输出参数：void
-* 返 回 值：void
-* 创建日期：2025年10月09日
-* 注    意：有启动延时、达标保持、迟滞、READY 消抖和充电超时五道保障，现场表现会更“稳且可预期
-*********************************************************************************************************/
 void pfc_app_tick_1khz(float vbus_v)
 {
 	s_pfc_bus_v = vbus_v;
@@ -1016,7 +760,7 @@ void pfc_app_tick_1khz(float vbus_v)
 				s_pfc_app.vbus_ok_since_ms = 0U;
 				break;
 			}
-			// 检查是否收到禁用命令
+			/* 未使能 → 保持硬件关闭并清计时 */
 			if(!s_pfc_app.enable_cmd)
 			{
 				if(s_pfc_hw_enabled)
@@ -1035,34 +779,22 @@ void pfc_app_tick_1khz(float vbus_v)
 				s_pfc_app.startup_cmd_ms = g_ms;
 			}
 			//PFC_STARTUP_DELAY_MS ：启动延时，确保 PFC 硬件在启用前等待足够时间。
-			// 检查是否达到启动延时
-			if(!elapsed_reached(s_pfc_app.startup_cmd_ms, PFC_STARTUP_DELAY_MS))
-			{
-				break;
-			}
-			if(!s_pfc_hw_enabled)
-			{
-				pfc_hw_set_enable(true);
-				s_pfc_hw_enabled = true; // 更新状态
-			}
-			//输入电压 vbus_v 达到目标值（ PFC_VBUS_READY_V ），并保持一段时间（ PFC_READY_DELAY_MS ）进入ready状态
-			if(vbus_v>=PFC_VBUS_READY_V)
-			{
-				// 如果电压稳定计时器未初始化，则初始化
-				if(s_pfc_app.vbus_ok_since_ms == 0U)
-				{
-					s_pfc_app.vbus_ok_since_ms = g_ms;
-				}
-				// 检查是否达到电压稳定延时 
-				else if((uint32_t)(g_ms - s_pfc_app.vbus_ok_since_ms) >= PFC_READY_DELAY_MS)
-				{
-					pfc_state_enter(PFC_ST_READY);
-				}
-			}
-			else
-			{
-				s_pfc_app.vbus_ok_since_ms = 0; // 如果电压未达标，则重置电压稳定计时器
-			}
+    /* 达到启动延时后，允许上电驱动 */
+    if (elapsed_reached(s_pfc_app.startup_cmd_ms, PFC_STARTUP_DELAY_MS) && !s_pfc_hw_enabled) {
+        pfc_hw_set_enable(true);
+        s_pfc_hw_enabled = true;
+    }
+		    /* 电压达到 READY 门限后开始计稳定时间；仅在“明显回落”时才清零 */
+    if (vbus_v >= PFC_VBUS_READY_V) {
+        if (s_pfc_app.vbus_ok_since_ms == 0U) {
+            s_pfc_app.vbus_ok_since_ms = g_ms;
+        } else if (elapsed_reached(s_pfc_app.vbus_ok_since_ms, PFC_READY_DELAY_MS)) {
+            pfc_state_enter(PFC_ST_READY);
+        }
+    } else if (vbus_v < (PFC_VBUS_READY_V - PFC_VBUS_OK_RESET_MARGIN_V)) {
+        /* 只有明显回落才清零，避免轻微抖动导致频繁清零 */
+        s_pfc_app.vbus_ok_since_ms = 0U;
+    }
 			break;
 		case PFC_ST_READY:
 			// 检查是否收到禁用命令
@@ -1071,25 +803,16 @@ void pfc_app_tick_1khz(float vbus_v)
 				pfc_state_enter(PFC_ST_IDLE);
 				break;
 			}
-	//输入电压低于阈值（ PFC_VBUS_READY_V - PFC_VBUS_READY_HYST_V ），并持续一定时间（ PFC_VBUS_DROPOUT_MS ）。
-			if(vbus_v >= (PFC_VBUS_READY_V - PFC_VBUS_READY_HYST_V))
-			{
-				// 如果电压达标，则重置掉电计时器
-				s_pfc_app.dropout_since_ms = 0U;
-			}
-			else
-			{
-				//// 如果掉电计时器未初始化，则初始化
-				if(s_pfc_app.dropout_since_ms == 0U)
-				{
-					s_pfc_app.dropout_since_ms = g_ms;
-				}
-				// 检查是否达到掉电延时
-				else if((uint32_t)(g_ms - s_pfc_app.dropout_since_ms)>=PFC_VBUS_DROPOUT_MS)
-				{
-					pfc_state_enter(PFC_ST_IDLE);
-				}
-			}
+    /* 使用更低的阈值 + 更长的掉电延时，减少抖动引起的退出 */
+    if (vbus_v >= PFC_VBUS_DROPOUT_THRESHOLD_V) {
+        s_pfc_app.dropout_since_ms = 0U;
+    } else {
+        if (s_pfc_app.dropout_since_ms == 0U) {
+            s_pfc_app.dropout_since_ms = g_ms;
+        } else if (elapsed_reached(s_pfc_app.dropout_since_ms, PFC_VBUS_DROPOUT_MS_NEW)) {
+            pfc_state_enter(PFC_ST_IDLE);
+        }
+    }
 			break;
 		case PFC_ST_FAULT:
 			
@@ -1158,16 +881,6 @@ void llc_step(llc_t* l){
     else 
 			l->f_cmd = f_req; // 否则一步到位：直接把下发频率设为目标
 }
-
-/*********************************************************************************************************
-* 函数名称：llc_state_enter
-* 函数功能：状态机切换函数，用于控制 LLC（谐振变换器）的不同工作状态
-* 输入参数：next
-* 输出参数：void
-* 返 回 值：void
-* 创建日期：202年10月09日
-* 注    意：当 LLC 需要从一个状态切换到另一个状态时，此函数会被调用，执行相应的初始化或清理操作。
-*********************************************************************************************************/
 static void llc_state_enter(llc_state_t next)
 {
 	// 更新 LLC 状态和进入时间
@@ -1255,15 +968,6 @@ void llc_app_init()
 {
 	llc_state_enter(ST_WAIT_AUX);
 }
-/*********************************************************************************************************
-* 函数名称：llc_app_tick_1khz
-* 函数功能：状态机切换函数，用于控制 LLC（谐振变换器）的不同工作状态
-* 输入参数：next
-* 输出参数：void
-* 返 回 值：void
-* 创建日期：2025年10月09日
-* 注    意：当 LLC 需要从一个状态切换到另一个状态时，此函数会被调用，执行相应的初始化或清理操作。
-*********************************************************************************************************/
 void llc_app_tick_1khz(void)
 {
 	 static uint8_t s_llc_clear_sent = 0;
@@ -1274,8 +978,6 @@ void llc_app_tick_1khz(void)
 		return;
 	}
 	
-
-	/* 统一的辅源棕断保护：任意态只要辅源掉线稳定，就回 WAIT_AUX */
 	if (aux_power_brownout_stable(AUX_DROP_DEBOUNCE_MS)){
 			llc_state_enter(ST_WAIT_AUX);
 			return;
@@ -1287,7 +989,6 @@ void llc_app_tick_1khz(void)
 			llc_state_enter(ST_WAIT_VBUS);
 			break;
 		case ST_WAIT_AUX:
-        /* 辅源恢复去抖后，才允许去等 PFC/母线 */
         if (aux_power_ok_stable_since(AUX_OK_DEBOUNCE_MS)){
             llc_state_enter(ST_WAIT_VBUS);
         }
@@ -1311,8 +1012,6 @@ void llc_app_tick_1khz(void)
 			}
 			break;
 		case ST_LLC_RUN:
-			 // 运行中：不就绪或电压跌破“进入阈值-迟滞”→ 退回等待
-			//如果任一条件成立（PFC未就绪 或 电压过低），则调用 llc_state_enter(ST_WAIT_VBUS) ，切换至等待VBUS状态。
 				if(!aux_power_ok_now()){
 					pfc_hw_set_relay(0);
 					llc_state_enter(ST_WAIT_AUX);
@@ -1356,18 +1055,6 @@ void SysTick_Handler(void){
     g_ms++;
     s_control_tick_pending++;
 }
-
-/*********************************************************************************************************
-* 函数名称：control_loop_tick_1khz
-* 函数功能：主要用于实时控制电力电子系统中的功率转换模块
-* 输入参数：next
-* 输出参数：void
-* 返 回 值：void
-* 创建日期：2025年10月09日
-* 注    意：数据采集与转换：通过ADC读取输出电压的原始数据，并将其转换为实际的电压值。
-						根据系统状态（如LLC是否运行）执行不同的控制逻辑
-						动态调整LLC的工作频率，确保系统稳定运行。
-*********************************************************************************************************/
 static void control_loop_tick_1khz(void){
     /* 1 kHz control */
     adc_multi_copy(); 
@@ -1410,13 +1097,11 @@ static void control_loop_tick_1khz(void){
 			llc_step(&s_llc);
 #endif
 		}
-#if MODULE_TESTS_ACTIVE
-    module_tests_tick_1khz(vout);
-#endif
     llc_pwm_set_freq((uint32_t)s_llc.f_cmd);
+		protect_hw_clear_pulse_tick();
 }
 int main(void){
-	
+
 	  InitRCU();
 		nvic_priority_group_set(NVIC_PRIGROUP_PRE2_SUB2);
 	  debug_printf_init(DEBUG_PRINTF_DEFAULT_BAUDRATE);
@@ -1440,7 +1125,7 @@ int main(void){
     adc_multi_start();
 
     /* PA0 & PA1 input capture */
-    cap_pa01_init();
+    //cap_pa01_init();
 
     /* Protection EXTI PC11 */
     protect_exti_init();
@@ -1465,9 +1150,6 @@ if (!protect_fault_active_hw() && protect_fault_latched()) {
 		pfc_app_init();
 		llc_app_init();
 	
-#if MODULE_TESTS_ACTIVE
-		module_tests_init();
-#endif
     while(1){
 			uint32_t pending_ticks = 0U;
 			float  duty0, duty1; //PA3 PA1捕获的值
@@ -1488,30 +1170,17 @@ if (!protect_fault_active_hw() && protect_fault_latched()) {
 						pending_ticks = MAX_TICKS_PER_LOOP;
 					}
 			}
-			if(cap_pa0_read_duty(&duty0)){
-					(void)duty0; /* TODO: convert ticks->Hz using TIMER1 clock if? */
-#if MODULE_TESTS_ACTIVE && ENABLE_ICU_TEST
-					s_module_tests.icu.pa0_duty = duty0;
-					s_module_tests.icu.last_update_ms = g_ms;
-#endif
-			}
-			 if(cap_pa1_read_duty(&duty1)){
-					(void)duty1;
-#if MODULE_TESTS_ACTIVE && ENABLE_ICU_TEST
-					s_module_tests.icu.pa1_duty = duty1;
-					s_module_tests.icu.last_update_ms = g_ms;
-#endif
-			}
-			//if(protect_fault_latched()){
-				//检测到故障（通过PC11中断），则关闭LLC的PWM输出，并标记需要进一步处理故障。
-				//  llc_pwm_outputs_enable(0);
-					/* TODO: fault handling */
+			//if(cap_pa0_read_duty(&duty0)){
+			//		(void)duty0; /* TODO: convert ticks->Hz using TIMER1 clock if? */
 			//}
-			if(llc_app_state() == ST_FAULT)
-			{
-				llc_pwm_outputs_enable(0);
-			}
-			__NOP();
+			// if(cap_pa1_read_duty(&duty1)){
+			//		(void)duty1;
+			//}
+			//if(llc_app_state() == ST_FAULT)
+			//{
+			//	llc_pwm_outputs_enable(0);
+			//}
+			//__NOP();
     }
 }
 

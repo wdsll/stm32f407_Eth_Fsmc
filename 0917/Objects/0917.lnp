@@ -34,6 +34,7 @@
 ".\objects\protect_exti.o"
 ".\objects\llc_open_loop.o"
 ".\objects\debug_printf.o"
+".\objects\pfc_control.o"
 ".\objects\gd32f30x_it.o"
 ".\objects\systick.o"
 ".\objects\startup_gd32f30x_hd.o"
