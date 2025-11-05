@@ -8,7 +8,7 @@
 
 
 #define HARD_PRO_CL_GPIO_PORT    GPIOC          // HARD_PRO_CL£¨Çå³ýËø´æ£©Êä³ö
-#define HARD_PRO_CL_GPIO_PIN     GPIO_PIN_12
+#define HARD_PRO_CL_GPIO_PIN     GPIO_PIN_11
 
 #if defined(GD32F30X_XD) || defined(GD32F30X_CL)
 #define TIMER0_BRK_IRQn_VALUE      TIMER0_BRK_TIMER8_IRQn

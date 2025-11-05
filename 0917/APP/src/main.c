@@ -1153,6 +1153,64 @@ void llc_app_tick_1khz(void)
     }	
 }
 
+void llc_app_tick_1khz_withoutVbus(void)
+{
+	/* 只处理 LLC：不看母线电压、不看AUX，仅做故障保护 + 固定延时启动 + 开环/软启动推进 */
+    static uint8_t s_llc_clear_sent = 0;
+    static bool    ol_started = false;  /* 防止在 RUN 状态下重复 open-loop start */
+	    if (protect_fault_latched() || protect_fault_active_hw()
+#if !LLC_BYPASS_PFC_CONTROL
+        || pfc_app_state() == PFC_ST_FAULT
+#endif
+        )
+    {
+        if (s_llc_app.state != ST_FAULT) {
+            llc_state_enter(ST_FAULT);
+            ol_started = false;
+        }
+        return;
+    }
+		switch (s_llc_app.state)
+		{
+			  /* 这些状态统一当作“等待固定启动延时”，不做任何母线/AUX判断 */
+        case ST_IDLE:
+        case ST_WAIT_AUX:
+        case ST_WAIT_VBUS:
+				{
+            if (s_llc_app.entry_ms == 0U) {
+                s_llc_app.entry_ms = g_ms;
+            }
+            if (elapsed_reached(s_llc_app.entry_ms, LLC_START_DELAY_MS)) {
+                pfc_hw_set_relay(true);              /* 若未接硬件或宏未定义，此函数内部已做空操作保护 */
+                llc_state_enter(ST_LLC_RUN);         /* 进入 RUN：在 llc_state_enter 中会做一次性初始化 */
+                ol_started = false;
+            }
+        } break;
+
+        case ST_LLC_RUN:
+						break;
+						case ST_FAULT:
+        default:
+        {
+            /* 自动重试：故障脚释放 + 到达重试延时 → 清软件/硬件锁存，回到 IDLE 等延时再起 */
+            bool hw_active = protect_fault_active_hw();
+            if (!hw_active && elapsed_reached(s_llc_app.entry_ms, PFC_RESTART_DELAY_MS)) {
+                if (protect_fault_latched()) {
+                    protect_clear_fault();
+                }
+                if (!s_llc_clear_sent) {
+                    protect_hw_clear_pulse(10); /* 10 ms；按你锁存清除时序需要可调 */
+                    s_llc_clear_sent = 1;
+                }
+                pfc_hw_set_relay(false);
+                llc_state_enter(ST_IDLE);
+                s_llc_clear_sent = 0;
+                ol_started = false;
+            }
+        } 
+				break;
+		}
+}
 llc_state_t llc_app_state(void)
 {
 	return s_llc_app.state;
@@ -1165,17 +1223,19 @@ void SysTick_Handler(void){
 static void control_loop_tick_1khz(void){
     /* 1 kHz control */
     adc_multi_copy(); 
-		adc_multi_sample_aux_1khz();
+		//adc_multi_sample_aux_1khz();
 	
     float vout = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
 		//float v3v3 = (g_adc_multi.v3v3_raw * VREF_ADC) / 4095.0f;
-		float v3v3 = conv_adc_to_v_div(g_adc_multi.v3v3_raw,V3V3_RTOP_OHM,V3V3_RBOT_OHM);
-		float vbat = conv_adc_to_v_div(g_adc_multi.vbt_raw, VBT_RTOP_OHM, VBT_RBOT_OHM);
+		//float v3v3 = conv_adc_to_v_div(g_adc_multi.v3v3_raw,V3V3_RTOP_OHM,V3V3_RBOT_OHM);
+		//float vbat = conv_adc_to_v_div(g_adc_multi.vbt_raw, VBT_RTOP_OHM, VBT_RBOT_OHM);
 	
-		aux_power_monitor_update(v3v3, vbat);
+		//aux_power_monitor_update(v3v3, vbat);
     s_llc.vmeas = vout;
-		pfc_app_tick_1khz(vout);
-		llc_app_tick_1khz();
+		//pfc_app_tick_1khz(vout);
+		//llc_app_tick_1khz();
+	  //llc_state_enter(ST_LLC_RUN);
+		llc_app_tick_1khz_withoutVbus();
 		bool llc_running = (llc_app_state() == ST_LLC_RUN);
 #if Bus_Adj
 		bus_vol_adj_tick(vout, llc_running);
@@ -1211,20 +1271,22 @@ int main(void){
 
 	  InitRCU();
 		nvic_priority_group_set(NVIC_PRIGROUP_PRE2_SUB2);
+
 	  debug_printf_init(DEBUG_PRINTF_DEFAULT_BAUDRATE);
 	  debug_printf("Debug console initialized @%lu baud\n", (unsigned long)DEBUG_PRINTF_DEFAULT_BAUDRATE);
+	
 		systick_1ms_init();
     /* LLC complementary PWM 配置LLC的PWM频率 、死区时间和占空比，并初始化PWM模块*/
     llc_pwm_cfg_t lcfg = { .pwm_hz=LLC_PWM_BASE_HZ, .deadtime_ns=LLC_PWM_DEAD_NS, .duty=LLC_PWM_DUTY };
     llc_pwm_init(&lcfg);
 
     /* Aux PWM on PB0 */
-		pb0_pwm_init(PB0_PWM_BASE_HZ);
+		//pb0_pwm_init(PB0_PWM_BASE_HZ);
 		
 		#if Bus_Adj
 		bus_vol_adj_init();
 		#else
-		pb0_pwm_set_duty(0.5f);
+		//pb0_pwm_set_duty(0.5f);
 		#endif
 		
     /* ADC multi (PA3/PA1 removed) triggered by TIMER0 CH2 for coherence */

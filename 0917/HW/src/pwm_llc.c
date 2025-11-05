@@ -295,6 +295,10 @@ void llc_pwm_set_freq(uint32_t f_hz)
 	timer_channel_output_pulse_value_config(TIMER0, LLC_PWM_CH, pwm_ccr);
 	// 更新ADC触发的中点位置
 	update_adc_trigger_midpoint_from_arr(); 
+	
+	timer_event_software_generate(TIMER0, TIMER_EVENT_SRC_UPG);
+
+	//timer_generate_event(TIMER0, TIMER_EVENT_SRC_UPG);
 }
 //周期(ns) = 1e9 × (ARR + 1) / tclk
 uint32_t llc_pwm_get_period_ns(void)
