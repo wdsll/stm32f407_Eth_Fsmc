@@ -392,6 +392,11 @@
               <FileType>5</FileType>
               <FilePath>.\Readme.txt</FilePath>
             </File>
+            <File>
+              <FileName>LLC开环 bring_up模式.txt</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\LLC开环 bring_up模式.txt</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

@@ -65,7 +65,7 @@
 #define LLC_PWM_DUTY        (0.50f)
 
 #ifndef LLC_SOFTSTART_ENABLE
-#define LLC_SOFTSTART_ENABLE        (1)
+#define LLC_SOFTSTART_ENABLE        (0)
 #endif
 /* ==== LLC_SOFTSTART ==== */
 #define LLC_SOFTSTART_DURATION_MS     100U      // 软启动总时长
@@ -81,6 +81,7 @@
 #define LLC_F_MAX_HZ        (130000.0f)
 #define LLC_F_INIT_HZ       (87500.0f)
 #define LLC_F_SLEW_HZ       (500.0f)
+#define LLC_F_DEBUG_HZ      (130000.0f)
 
 #define DEBUG_PRINTF_LLCSOFTSTART 1
 
@@ -149,7 +150,7 @@ static inline uint8_t irq_priority_encode(uint8_t preempt, uint8_t sub)
 #define T_SENSE_LLCMOS_CH  ADC_CHANNEL_9   /* PB1 */
 
 
-#if 0
+#if 1
 #define PFC_MAIN_RELAY_PORT     GPIOB
 #define PFC_MAIN_RELAY_PIN     	GPIO_PIN_14 
 #define PFC_MAIN_RELAY_RCU			RCU_GPIOB

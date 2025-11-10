@@ -116,9 +116,9 @@ void adc_multi_start(void)
 void adc_multi_sample_aux_1khz(void)
 {
     uint16_t v3v3 = adc_aux_read_channel(AD_3V3_CH, ADC_SAMPLETIME_55POINT5);
-    uint16_t vbt = adc_aux_read_channel(VBT_SENSE_CH, ADC_SAMPLETIME_55POINT5);
+   // uint16_t vbt = adc_aux_read_channel(VBT_SENSE_CH, ADC_SAMPLETIME_55POINT5);
     s_latched.v3v3_raw = v3v3;
-    s_latched.vbt_raw = vbt;
+   // s_latched.vbt_raw = vbt;
 }
 void adc_multi_copy(void){
     adc_multi_frame_t frame;

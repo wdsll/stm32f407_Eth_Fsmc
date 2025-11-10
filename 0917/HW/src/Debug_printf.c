@@ -9,11 +9,11 @@
 #include <stdio.h>
 
 #ifndef DEBUG_USART_PERIPH
-#define DEBUG_USART_PERIPH        USART0
+#define DEBUG_USART_PERIPH        USART2
 #endif
 
 #ifndef DEBUG_USART_RCU
-#define DEBUG_USART_RCU           RCU_USART0
+#define DEBUG_USART_RCU           RCU_USART2
 #endif
 
 #ifndef DEBUG_USART_GPIO_PORT

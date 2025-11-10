@@ -121,6 +121,11 @@ static uint8_t bdtr_deadtime_code_ns(uint32_t dead_ns, uint32_t clk)
 static void pins_init(void){
     rcu_periph_clock_enable(RCU_GPIOA); 
 		rcu_periph_clock_enable(RCU_GPIOB);
+	
+	gpio_init(LLC_H_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, LLC_H_PIN);
+	gpio_bit_reset(LLC_H_PORT, LLC_H_PIN);
+	gpio_init(LLC_L_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, LLC_L_PIN);
+	gpio_bit_reset(LLC_L_PORT, LLC_L_PIN);
     gpio_init(LLC_H_PORT, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, LLC_H_PIN);
     gpio_init(LLC_L_PORT, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, LLC_L_PIN);
     gpio_init(BKIN_PORT,  GPIO_MODE_IPU,  GPIO_OSPEED_50MHZ, BKIN_PIN);
@@ -195,8 +200,8 @@ void llc_pwm_init(const llc_pwm_cfg_t* cfg){
 		timer_channel_output_shadow_config(TIMER0, TIMER_CH_2, TIMER_OC_SHADOW_ENABLE);
 		//死区时间与保护配置
     timer_break_parameter_struct bk;
-    bk.runoffstate     = TIMER_ROS_STATE_DISABLE ; //设置定时器在运行状态下的断路行为为禁用。这意味着在正常运行期间，断路功能不会触发。
-    bk.ideloffstate    = TIMER_IOS_STATE_DISABLE ; //设置定时器在空闲状态下的断路行为为禁用。与 runoffstate 类似，但在空闲状态下不启用断路功能。
+    bk.runoffstate     = TIMER_ROS_STATE_ENABLE ; //设置定时器在运行状态下的断路行为为禁用。这意味着在正常运行期间，断路功能不会触发。
+    bk.ideloffstate    = TIMER_IOS_STATE_ENABLE ; //设置定时器在空闲状态下的断路行为为禁用。与 runoffstate 类似，但在空闲状态下不启用断路功能。
     bk.protectmode     = TIMER_CCHP_PROT_OFF; //设置保护模式为关闭。这表示定时器不会启用额外的保护机制。
 		//计算并设置死区时间（Dead Time）。死区时间是PWM信号中高电平和低电平之间的间隔，用于防止上下桥臂同时导通导致的短路。
     bk.deadtime        = bdtr_deadtime_code_ns(s_cfg.deadtime_ns, tclk);
@@ -205,7 +210,7 @@ void llc_pwm_init(const llc_pwm_cfg_t* cfg){
 		//设置断路信号的极性为低电平有效。这意味着当BKIN引脚为低电平时，会触发断路。
     bk.breakpolarity   = TIMER_BREAK_POLARITY_LOW;     // BKIN 低有效
 		//启用输出自动状态。在断路触发时，定时器的输出会自动切换到预定义的安全状态（通常是关闭输出）。
-    bk.outputautostate = TIMER_OUTAUTO_ENABLE;				
+    bk.outputautostate = TIMER_OUTAUTO_DISABLE;				
 
     timer_break_config(TIMER0, &bk);
 		// 配置主输出触发源为通道0的比较输出,通过配置触发源，TIMER_TRI_OUT_SRC_O2CPRE
@@ -213,13 +218,16 @@ void llc_pwm_init(const llc_pwm_cfg_t* cfg){
 		timer_master_output_trigger_source_select(TIMER0, TIMER_TRI_OUT_SRC_O2CPRE); //在通道 0 中发生了一次捕获或比较匹配事件，触发输出为 TRGO 。
 		//启用定时器的自动重载影子寄存器功能。定时器的重载值会在下一个更新事件时生效，确保配置的平滑切换。
     timer_auto_reload_shadow_enable(TIMER0);
+		//timer_event_software_generate(TIMER0, TIMER_EVENT_SRC_UPG);   // 装载影子
 		//配置定时器的主输出功能。启用后，定时器可以输出信号到指定的引脚或模块
-    timer_primary_output_config(TIMER0, ENABLE);
+    //timer_primary_output_config(TIMER0, DISABLE);
+		
     timer_enable(TIMER0);
 
-    llc_pwm_set_duty(s_cfg.duty); /* 如果你走 50% 固定，这里直接设 0.5f 即可 */
+    //llc_pwm_set_duty(s_cfg.duty); /* 如果你走 50% 固定，这里直接设 0.5f 即可 */
 		
 		update_adc_trigger_midpoint_from_arr();  
+		 llc_pwm_outputs_enable(0);  
 }
 
 /* 	频率在线更新：同时更新 ARR 和 CCR，保持占空比 ,ARR（Auto-Reload Register，自动重装载寄存器）
@@ -296,7 +304,7 @@ void llc_pwm_set_freq(uint32_t f_hz)
 	// 更新ADC触发的中点位置
 	update_adc_trigger_midpoint_from_arr(); 
 	
-	timer_event_software_generate(TIMER0, TIMER_EVENT_SRC_UPG);
+	//timer_event_software_generate(TIMER0, TIMER_EVENT_SRC_UPG);
 
 	//timer_generate_event(TIMER0, TIMER_EVENT_SRC_UPG);
 }
