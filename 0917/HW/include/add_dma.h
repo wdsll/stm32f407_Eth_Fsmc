@@ -26,4 +26,8 @@ void adc_multi_start(void);
 void adc_multi_copy(void);
 
 void adc_multi_sample_aux_1khz(void);
+
+/* ADC1通道14测试函数 */
+uint16_t adc1_channel14_test(void);
+uint16_t adc1_channel14_multiple_samples(uint16_t sample_count, uint16_t *samples);
 #endif

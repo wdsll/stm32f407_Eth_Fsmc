@@ -1,59 +1,135 @@
 #include "add_dma.h"
 #include "main.h"
-
+#include "systick.h"
 volatile adc_multi_frame_t g_adc_multi;
 
-// Ensure s_buf is large enough for double buffering
-//static uint16_t s_buf[ADC_MULTI_CHANNEL_COUNT * 2];
-static void adc_aux_init(void);
-static uint16_t adc_aux_read_channel(uint8_t channel, uint32_t sample_time);
+// ADCçŠ¶æ€æ ‡å¿—
+static uint8_t adc0_initialized = 0;
+static uint8_t adc1_initialized = 0;
 
-static void analog_pins(void){
+/*********************************************************************************************************
+* ADC0ç›¸å…³å‡½æ•° - DMA/å®šæ—¶å™¨è§¦å‘æ¨¡å¼ï¼ˆé«˜é€Ÿé‡‡é›†ï¼‰
+*********************************************************************************************************/
+
+/* ADC0æ¨¡æ‹Ÿå¼•è„šåˆå§‹åŒ– */
+static void adc0_analog_pins_init(void)
+{
     rcu_periph_clock_enable(RCU_GPIOA);
     rcu_periph_clock_enable(RCU_GPIOB);
-    rcu_periph_clock_enable(RCU_GPIOC);
+    
+    /* ADC0é€šé“é…ç½® */
     gpio_init(GPIOA, GPIO_MODE_AIN, GPIO_OSPEED_50MHZ, GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7);
     gpio_init(GPIOB, GPIO_MODE_AIN, GPIO_OSPEED_50MHZ, GPIO_PIN_1);
-    gpio_init(GPIOC, GPIO_MODE_AIN, GPIO_OSPEED_50MHZ, GPIO_PIN_4|GPIO_PIN_5);
 }
-static inline void adc_multi_store_frame(const uint16_t *src){
-    s_latched.vout_raw   = src[0];
-    s_latched.isense_raw = src[1];
-    //s_latched.tsense_raw = src[2];
-    //s_latched.v3v3_raw   = src[3];
-    //s_latched.vbt_raw    = src[4];
-    //s_latched.t_llc_raw  = src[5];
-}
-static void dma_cfg(void){
+
+/* ADC0 DMAé…ç½® */
+static void adc0_dma_cfg(void)
+{
     rcu_periph_clock_enable(RCU_DMA0);
     dma_parameter_struct d = {0}; 
-		dma_deinit(DMA0, DMA_CH0);  // ¸´Î» DMA0 µÄÍ¨µÀ 0£¬½«Æä¼Ä´æÆ÷»Ö¸´µ½Ä¬ÈÏ×´Ì¬
-    d.periph_addr=(uint32_t)&ADC_RDATA(ADC0);   // ÉèÖÃÍâÉèµØÖ·£¬Ö¸Ïò ADC0 µÄ¹æÔòÊı¾İ¼Ä´æÆ÷
-    d.periph_inc=DMA_PERIPH_INCREASE_DISABLE;  // ½ûÖ¹ÍâÉèµØÖ·×ÔÔö£¬Ã¿´Î¶¼´ÓÍ¬Ò»¸ö ADC Êı¾İ¼Ä´æÆ÷¶ÁÈ¡
-    d.memory_addr=(uint32_t)s_buf;     // ÉèÖÃÄÚ´æµØÖ·£¬Ö¸ÏòÓÃÓÚ»º´æ×ª»»½á¹ûµÄÊı×é
-    d.memory_inc=DMA_MEMORY_INCREASE_ENABLE;  // ÔÊĞíÄÚ´æµØÖ·×ÔÔö£¬Á¬ĞøĞ´Èë»º³åÇøµÄÃ¿¸öÔªËØ
-    d.periph_width=DMA_PERIPHERAL_WIDTH_16BIT;  // Ö¸¶¨ÍâÉèÊı¾İ¿í¶ÈÎª 16 Î»£¬¶ÔÓ¦ ADC Êä³ö¿í¶È
-    d.memory_width=DMA_MEMORY_WIDTH_16BIT;    // Ö¸¶¨ÄÚ´æ´æ´¢¿í¶ÈÎª 16 Î»£¬ÓëÍâÉè¿í¶È±£³ÖÒ»ÖÂ
-    //d.number=6;
-		//d.number=ADC_MULTI_CHANNEL_COUNT * 2U;  // Ã¿´Î DMA Ñ­»·Òª´«Êä 6 ¸öÊı¾İÏî£¬¶ÔÓ¦ 6 ¸ö¹æÔòÍ¨µÀµÄ½á¹û,Õâ±ßÅäÖÃÁËË«»º³åÇø
-    d.number=ADC_TIM0_TRIGGERED_COUNT  * 2U;  // ÅäÖÃË«»º³åÇø£¬Ã¿´Î DMA Ñ­»·´«Êä 2*2=4 ¸öÊı¾İÏî£¬Ç° 2 ¸öÓÃÓÚ°ë´«Êä£¨HTF£©£¬ºó 2 ¸öÓÃÓÚÈ«´«Êä£¨FTF£©£¬±ãÓÚË«»º³å´¦Àí
-    d.priority=DMA_PRIORITY_HIGH;   // ½«¸ÃÍ¨µÀÓÅÏÈ¼¶ÉèÎª¸ß£¬¼õÉÙ±»ÆäËû DMA ÈÎÎñÇÀÕ¼µÄ¸ÅÂÊ
-		d.direction=DMA_PERIPHERAL_TO_MEMORY;  // ÉèÖÃ´«Êä·½Ïò£º´ÓÍâÉè¶ÁÊı¾İĞ´ÈëÄÚ´æ
-    dma_init(DMA0, DMA_CH0, d);   // ÒÀ¾İÒÔÉÏ²ÎÊı³õÊ¼»¯ DMA0 Í¨µÀ 0
-    dma_circulation_enable(DMA0, DMA_CH0);   // Ê¹ÄÜÑ­»·Ä£Ê½£¬DMA ÔÚÍê³ÉÒ»ÂÖ´«Êäºó×Ô¶¯ÖØĞÂ¿ªÊ¼
-    //dma_channel_enable(DMA0, DMA_CH0);
+		dma_deinit(DMA0, DMA_CH0);
+    d.periph_addr = (uint32_t)&ADC_RDATA(ADC0);
+    d.periph_inc = DMA_PERIPH_INCREASE_DISABLE;
+    d.memory_addr = (uint32_t)s_buf;
+    d.memory_inc = DMA_MEMORY_INCREASE_ENABLE;
+    d.periph_width = DMA_PERIPHERAL_WIDTH_16BIT;
+    d.memory_width = DMA_MEMORY_WIDTH_16BIT;
+    d.number = ADC_TIM0_TRIGGERED_COUNT * 2U;
+    d.priority = DMA_PRIORITY_HIGH;
+		d.direction = DMA_PERIPHERAL_TO_MEMORY;
+    dma_init(DMA0, DMA_CH0, d);
+    dma_circulation_enable(DMA0, DMA_CH0);
 		
-    // ¿ªÆô DMA0 Í¨µÀ0 µÄ¡°È«´«ÊäÍê³É¡±ÖĞ¶Ï£¨FTF£©£¬ÓÃÓÚÔÚËùÓĞÅäÖÃµÄÑù±¾´«ÊäÍê³Éºó´¥·¢»Øµ÷£¬ÊÊºÏÒ»´ÎĞÔ´¦ÀíÍêÕûÊı¾İ¡£
-    dma_interrupt_enable(DMA0, DMA_CH0, DMA_INT_FTF); 
-
-    // ¿ªÆô DMA0 Í¨µÀ0 µÄ¡°°ë´«ÊäÍê³É¡±ÖĞ¶Ï£¨HTF£©£¬ÓÃÓÚÔÚ°ë»º³åÇøĞ´ÂúÊ±ÌáÇ°ÏìÓ¦£¬ÊÊºÏË«»º³å»òÁ÷Ë®Ïß´¦Àí³¡¾°£¬Ìá¸ßÊı¾İ´¦ÀíÊµÊ±ĞÔ¡£
-    dma_interrupt_enable(DMA0, DMA_CH0, DMA_INT_HTF);  
-
+    dma_interrupt_enable(DMA0, DMA_CH0, DMA_INT_FTF);
+    dma_interrupt_enable(DMA0, DMA_CH0, DMA_INT_HTF);
+	
     dma_interrupt_flag_clear(DMA0, DMA_CH0, DMA_INT_FLAG_G);
 }
-		
-static void adc_aux_init(void){
+
+/* ADC0åˆå§‹åŒ– - DMA/å®šæ—¶å™¨è§¦å‘æ¨¡å¼ */
+void adc0_dma_init(uint32_t trig_src)
+{
+    if(adc0_initialized) {
+        return; // é¿å…é‡å¤åˆå§‹åŒ–
+    }
+    
+    adc0_analog_pins_init();
+    adc0_dma_cfg();
+    
+    // è®¾ç½®DMAä¸­æ–­ä¼˜å…ˆçº§
+    nvic_irq_enable(DMA0_Channel0_IRQn, 1U, 0U);
+    
+    // ADC0æ—¶é’Ÿå’Œé…ç½®
+    rcu_periph_clock_enable(RCU_ADC0);
+    rcu_adc_clock_config(RCU_CKADC_CKAPB2_DIV8); // 10MHzå®‰å…¨æ—¶é’Ÿ
+    adc_deinit(ADC0);
+    adc_mode_config(ADC_MODE_FREE);
+    adc_special_function_config(ADC0, ADC_SCAN_MODE, ENABLE);
+    adc_special_function_config(ADC0, ADC_CONTINUOUS_MODE, DISABLE);
+    adc_data_alignment_config(ADC0, ADC_DATAALIGN_RIGHT);
+
+    adc_channel_length_config(ADC0, ADC_REGULAR_CHANNEL, ADC_TIM0_TRIGGERED_COUNT);
+    adc_regular_channel_config(ADC0, 0, VOUT_SENSE_CH, ADC_SAMPLETIME_41POINT5);
+    adc_regular_channel_config(ADC0, 1, ADC_ISENSE_CH, ADC_SAMPLETIME_7POINT5);
+
+    adc_external_trigger_source_config(ADC0, ADC_REGULAR_CHANNEL, trig_src);
+    adc_external_trigger_config(ADC0, ADC_REGULAR_CHANNEL, ENABLE);
+
+    adc_enable(ADC0);
+	adc_calibration_enable(ADC0);
+    adc_dma_mode_enable(ADC0);
+	dma_channel_enable(DMA0, DMA_CH0);
+	
+	adc0_initialized = 1;
+}
+
+/* ADC0å¯åŠ¨DMAé‡‡é›† */
+void adc0_dma_start(void)
+{
+    if(!adc0_initialized) {
+        return;
+    }
+    // å®šæ—¶å™¨è§¦å‘ADC0é‡‡é›†
+    timer_event_software_generate(LLC_PWM_TIMER, TIMER_EVENT_SRC_UPG);
+}
+
+/* ADC0çŠ¶æ€æ£€æŸ¥ */
+uint8_t adc0_is_initialized(void)
+{
+    return adc0_initialized;
+}
+
+/*********************************************************************************************************
+* ADC1ç›¸å…³å‡½æ•° - è½¯ä»¶è§¦å‘æ¨¡å¼ï¼ˆä½é€Ÿé‡‡é›†ï¼‰
+*********************************************************************************************************/
+
+/* ADC1æ¨¡æ‹Ÿå¼•è„šåˆå§‹åŒ– */
+static void adc1_analog_pins_init(void)
+{
+    //debug_printf("[ADC1-PINS] Initializing GPIO pins for ADC1\n");
+    
+    rcu_periph_clock_enable(RCU_GPIOC);
+   // debug_printf("[ADC1-PINS] GPIOC clock enabled\n");
+    
+    /* ADC1é€šé“é…ç½® */
+    //debug_printf("[ADC1-PINS] Configuring PC4 (ADC1_CH14) and PC5 (ADC1_CH15) as analog inputs\n");
+    gpio_init(GPIOC, GPIO_MODE_AIN, GPIO_OSPEED_50MHZ, GPIO_PIN_4|GPIO_PIN_5);
+    
+   // debug_printf("[ADC1-PINS] GPIO pin initialization completed\n");
+}
+
+/* ADC1åˆå§‹åŒ– - è½¯ä»¶è§¦å‘æ¨¡å¼ */
+void adc1_aux_init(void)
+{
+    if(adc1_initialized) {
+        return; // é¿å…é‡å¤åˆå§‹åŒ–
+    }
+    
+    adc1_analog_pins_init();
+    
     rcu_periph_clock_enable(RCU_ADC1);
+    rcu_adc_clock_config(RCU_CKADC_CKAPB2_DIV6); // 10MHzå®‰å…¨æ—¶é’Ÿ
+    
     adc_deinit(ADC1);
     adc_mode_config(ADC_MODE_FREE);
     adc_data_alignment_config(ADC1, ADC_DATAALIGN_RIGHT);
@@ -61,81 +137,239 @@ static void adc_aux_init(void){
     adc_special_function_config(ADC1, ADC_CONTINUOUS_MODE, DISABLE);
     adc_channel_length_config(ADC1, ADC_REGULAR_CHANNEL, 1U);
     adc_external_trigger_source_config(ADC1, ADC_REGULAR_CHANNEL, ADC0_1_2_EXTTRIG_REGULAR_NONE);
-    adc_external_trigger_config(ADC1, ADC_REGULAR_CHANNEL, DISABLE);
+    adc_external_trigger_config(ADC1, ADC_REGULAR_CHANNEL, ENABLE);  // å…³é”®ä¿®å¤ï¼šè½¯ä»¶è§¦å‘éœ€è¦ä½¿èƒ½å¤–éƒ¨è§¦å‘
+    
+    /* å…³é”®ä¿®å¤ï¼šå…ˆä½¿èƒ½ADC1ï¼Œç„¶åç­‰å¾…ç¨³å®šï¼Œå†è¿›è¡Œæ ¡å‡† */
+    
+    /* ä½¿èƒ½ADC1å¹¶æ£€æŸ¥çŠ¶æ€ */
     adc_enable(ADC1);
+    
+    // ç­‰å¾…ADC1å°±ç»ªï¼ˆæ£€æŸ¥ADCONä½ï¼‰
+    #define ADC_ENABLE_TIMEOUT 1000U
+    uint32_t adc_enable_timeout = ADC_ENABLE_TIMEOUT;
+    while(((ADC_CTL1(ADC1) & ADC_CTL1_ADCON) == 0) && (adc_enable_timeout > 0U)) {
+        adc_enable_timeout--;
+    }
+    if(adc_enable_timeout == 0U) {
+        return;
+    }
+    
+    // å…³é”®ä¿®å¤ï¼šé‡æ–°é…ç½®ADC1ï¼Œå› ä¸ºæ ¡å‡†å¯èƒ½ä¼šé‡ç½®é…ç½®
+    adc_mode_config(ADC_MODE_FREE);
+    adc_data_alignment_config(ADC1, ADC_DATAALIGN_RIGHT);
+    adc_special_function_config(ADC1, ADC_SCAN_MODE, DISABLE);
+    adc_special_function_config(ADC1, ADC_CONTINUOUS_MODE, DISABLE);
+    adc_channel_length_config(ADC1, ADC_REGULAR_CHANNEL, 1U);
+    adc_external_trigger_source_config(ADC1, ADC_REGULAR_CHANNEL, ADC0_1_2_EXTTRIG_REGULAR_NONE);
+    adc_external_trigger_config(ADC1, ADC_REGULAR_CHANNEL, ENABLE);  // å…³é”®ä¿®å¤ï¼šè½¯ä»¶è§¦å‘éœ€è¦ä½¿èƒ½å¤–éƒ¨è§¦å‘
+    
+    // é‡è¦ï¼šç­‰å¾…ADCç¨³å®šï¼ˆè‡³å°‘2ä¸ªADCæ—¶é’Ÿå‘¨æœŸï¼‰
+    delay_ms(1);
+    
+    /* æ‰§è¡ŒADC1æ ¡å‡†å¹¶æ£€æŸ¥çŠ¶æ€ */
     adc_calibration_enable(ADC1);
-}
+    
+    // ç­‰å¾…æ ¡å‡†å®Œæˆï¼ˆæ£€æŸ¥RSTCLBä½æ¸…é›¶ï¼‰
+    #define ADC_CALIBRATION_TIMEOUT 50000U  // å¢åŠ è¶…æ—¶æ—¶é—´
+    uint32_t cal_timeout = ADC_CALIBRATION_TIMEOUT;
+    while(((ADC_CTL1(ADC1) & ADC_CTL1_RSTCLB) != 0) && (cal_timeout > 0U)) {
+        cal_timeout--;
+    }
+    
+    if(cal_timeout == 0U) {
+        // å¼ºåˆ¶æ¸…é™¤æ ¡å‡†çŠ¶æ€
+        ADC_CTL1(ADC1) &= ~ADC_CTL1_RSTCLB;
+    }
+    
+    // å…³é”®ä¿®å¤ï¼šæ ¡å‡†å®Œæˆåé‡æ–°é…ç½®ADC1
+    adc_mode_config(ADC_MODE_FREE);
+    adc_data_alignment_config(ADC1, ADC_DATAALIGN_RIGHT);
+    adc_special_function_config(ADC1, ADC_SCAN_MODE, DISABLE);
+    adc_special_function_config(ADC1, ADC_CONTINUOUS_MODE, DISABLE);
+    adc_channel_length_config(ADC1, ADC_REGULAR_CHANNEL, 1U);
+    adc_external_trigger_source_config(ADC1, ADC_REGULAR_CHANNEL, ADC0_1_2_EXTTRIG_REGULAR_NONE);
+    adc_external_trigger_config(ADC1, ADC_REGULAR_CHANNEL, ENABLE);
+    
+    // å…³é”®ä¿®å¤ï¼šæ¸…é™¤å¯èƒ½å­˜åœ¨çš„EOCæ ‡å¿—
+    if(ADC_STAT(ADC1) & ADC_STAT_EOC) {
+        adc_flag_clear(ADC1, ADC_FLAG_EOC);
+    }
+    
+    adc1_initialized = 1;
+ }
+ 
 
-static uint16_t adc_aux_read_channel(uint8_t channel, uint32_t sample_time){
+
+/* ADC1å•é€šé“è¯»å– */
+uint16_t adc1_aux_read_channel(uint8_t channel, uint32_t sample_time)
+{
+    if(!adc1_initialized) {
+        return 0xFFFF;
+    }
+    
+    // æ£€æŸ¥ADC1çŠ¶æ€å¯„å­˜å™¨
+    uint32_t ctl0 = ADC_CTL0(ADC1);
+    uint32_t ctl1 = ADC_CTL1(ADC1);
+    uint32_t stat = ADC_STAT(ADC1);
+    
     adc_regular_channel_config(ADC1, 0U, channel, sample_time);
     adc_flag_clear(ADC1, ADC_FLAG_EOC);
+    
+    // å…³é”®ä¿®å¤ï¼šæ£€æŸ¥å¹¶æ¸…é™¤å¯èƒ½å­˜åœ¨çš„EOCæ ‡å¿—
+    if(adc_flag_get(ADC1, ADC_FLAG_EOC)) {
+        adc_flag_clear(ADC1, ADC_FLAG_EOC);
+    }
+    
+    // è½¯ä»¶è§¦å‘è½¬æ¢
     adc_software_trigger_enable(ADC1, ADC_REGULAR_CHANNEL);
-    while(RESET == adc_flag_get(ADC1, ADC_FLAG_EOC)){}
+    
+    // å…³é”®ä¿®å¤ï¼šæ£€æŸ¥SWRCSTä½æ˜¯å¦è¢«æ­£ç¡®è®¾ç½®
+    if((ctl1 & ADC_CTL1_SWRCST) == 0) {
+        // é‡æ–°å°è¯•è§¦å‘
+        adc_software_trigger_enable(ADC1, ADC_REGULAR_CHANNEL);
+        ctl1 = ADC_CTL1(ADC1);
+    }
+    
+    // æ·»åŠ è¶…æ—¶ä¿æŠ¤
+    #define ADC_CONVERSION_TIMEOUT 100000U
+    uint32_t timeout = ADC_CONVERSION_TIMEOUT;
+    
+    while((RESET == adc_flag_get(ADC1, ADC_FLAG_EOC)) && (timeout > 0U)){
+        timeout--;
+    }
+    
+    if(timeout == 0U) {
+        return 0xFFFF;
+    }
+    
     uint16_t value = adc_regular_data_read(ADC1);
     adc_flag_clear(ADC1, ADC_FLAG_EOC);
+    
     return value;
 }
 
-void adc_multi_init_dma(uint32_t trig_src){
-    analog_pins(); 
-    dma_cfg();
-    // ÉèÖÃ DMA0 Í¨µÀ0ÖĞ¶ÏÓÅÏÈ¼¶Îª 1£¨´Î¸ß£©£¬ÇÀÕ¼ÓÅÏÈ¼¶Îª 1£¬ÏìÓ¦ÓÅÏÈ¼¶Îª 0£¬È·±£ ADC ²É¼¯Êı¾İ¼°Ê±´¦Àí£¬±ÜÃâÊı¾İ¶ªÊ§
-    nvic_irq_enable(DMA0_Channel0_IRQn, 1U, 0U); 
-    rcu_periph_clock_enable(RCU_ADC0);
-    rcu_adc_clock_config(RCU_CKADC_CKAPB2_DIV6);
-    adc_deinit(ADC0);
-    adc_mode_config(ADC_MODE_FREE); //ÉèÖÃ ADC Îª×ÔÓÉÔËĞĞÄ£Ê½£¨¶ÀÁ¢¹¤×÷£©¡£
-    adc_special_function_config(ADC0, ADC_SCAN_MODE, ENABLE); //ÆôÓÃÉ¨ÃèÄ£Ê½£¬Ö§³Ö¶àÍ¨µÀ²É¼¯¡£
-    adc_special_function_config(ADC0, ADC_CONTINUOUS_MODE, DISABLE); // ½ûÓÃÁ¬ĞøÄ£Ê½
-    adc_data_alignment_config(ADC0, ADC_DATAALIGN_RIGHT);//ÉèÖÃÊı¾İ¶ÔÆë·½Ê½ÎªÓÒ¶ÔÆë¡£
+/* ADC1å®šæœŸé‡‡æ ·å‡½æ•° */
+void adc1_sample_aux_1khz(void)
+{
+    if(!adc1_initialized) {
+        return;
+    }
+    
+    uint16_t v3v3 = adc1_aux_read_channel(AD_3V3_CH, ADC_SAMPLETIME_55POINT5);
+    uint16_t vbt = adc1_aux_read_channel(VBT_SENSE_CH, ADC_SAMPLETIME_55POINT5);
+    s_latched.v3v3_raw = v3v3;
+    s_latched.vbt_raw = vbt;
+}
 
-    adc_channel_length_config(ADC0, ADC_REGULAR_CHANNEL, ADC_TIM0_TRIGGERED_COUNT);  // ÅäÖÃ ADC µÄ³£¹æÍ¨µÀÊıÁ¿¡£
-    adc_regular_channel_config(ADC0, 0, VOUT_SENSE_CH,     ADC_SAMPLETIME_41POINT5); 
-    adc_regular_channel_config(ADC0, 1, ADC_ISENSE_CH,     ADC_SAMPLETIME_7POINT5); 
+/* ADC1çŠ¶æ€æ£€æŸ¥ */
+uint8_t adc1_is_initialized(void)
+{
+    return adc1_initialized;
+}
 
-    adc_external_trigger_source_config(ADC0, ADC_REGULAR_CHANNEL, trig_src);
-		//adc_external_trigger_edge_config(ADC0, ADC_REGULAR_CHANNEL, ADC_EXTTRIG_EDGE_RISING); // ÉÏÉıÑØ´¥·¢
-		ADC_CTL1(ADC0) |= (0x01 << 10); // EXTEN=01£¨ÉÏÉıÑØ´¥·¢£©
-    adc_external_trigger_config(ADC0, ADC_REGULAR_CHANNEL, ENABLE);
+/*********************************************************************************************************
+* æ•°æ®å¸§å¤„ç†å‡½æ•°
+*********************************************************************************************************/
 
-    adc_enable(ADC0); 
-		adc_calibration_enable(ADC0);
-    adc_dma_mode_enable(ADC0);
-		dma_channel_enable(DMA0, DMA_CH0);
-		
-		 adc_aux_init();
+static inline void adc_multi_store_frame(const uint16_t *src)
+{
+    s_latched.vout_raw   = src[0];
+    s_latched.isense_raw = src[1];
+    s_latched.tsense_raw = src[2];
+    s_latched.v3v3_raw   = src[3];
+    s_latched.vbt_raw    = src[4];
+    s_latched.t_llc_raw  = src[5];
+}
+
+void adc_multi_copy(void)
+{
+    adc_multi_frame_t frame;
+    frame.vout_raw   = s_latched.vout_raw;
+    frame.isense_raw = s_latched.isense_raw;
+    g_adc_multi = frame;
+}
+
+/*********************************************************************************************************
+* å…¼å®¹æ€§å‡½æ•°ï¼ˆä¿æŒåŸæœ‰æ¥å£ï¼‰
+*********************************************************************************************************/
+
+void adc_multi_init_dma(uint32_t trig_src)
+{
+    adc0_dma_init(trig_src);
 }
 
 void adc_multi_start(void)
-{ 
-	//adc_software_trigger_enable(ADC0, ADC_REGULAR_CHANNEL); ÆôÓÃ ADC0 µÄÈí¼ş´¥·¢¹¦ÄÜ£¬Æô¶¯³£¹æÍ¨µÀµÄ²ÉÑù¡£
-	timer_event_software_generate(LLC_PWM_TIMER, TIMER_EVENT_SRC_UPG); //ÓÃ UPG ÄÜ±£Ö¤¡°ÏÂÒ»´Î ADC ´¥·¢¡±Óë¶¨Ê±Æ÷µÄ PWM ÏàÎ»¾ø¶ÔÍ¬²½¡£
-	
+{
+    adc0_dma_start();
+    adc1_aux_init();
 }
 
 void adc_multi_sample_aux_1khz(void)
 {
-    uint16_t v3v3 = adc_aux_read_channel(AD_3V3_CH, ADC_SAMPLETIME_55POINT5);
-   // uint16_t vbt = adc_aux_read_channel(VBT_SENSE_CH, ADC_SAMPLETIME_55POINT5);
-    s_latched.v3v3_raw = v3v3;
-   // s_latched.vbt_raw = vbt;
+    adc1_sample_aux_1khz();
 }
-void adc_multi_copy(void){
-    adc_multi_frame_t frame;
-    frame.vout_raw   = s_latched.vout_raw;
-    frame.isense_raw = s_latched.isense_raw;
 
-    g_adc_multi = frame;
+/*********************************************************************************************************
+* ADC1é€šé“14æµ‹è¯•å‡½æ•°
+*********************************************************************************************************/
+
+uint16_t adc1_channel14_test(void)
+{
+    debug_printf("[ADC1-14] Starting channel 14 test\n");
+    
+    if(!adc1_initialized) {
+        debug_printf("[ADC1-14] ADC1 not initialized, calling init...\n");
+        adc1_aux_init();
+    }
+    
+    debug_printf("[ADC1-14] Reading channel 14 (AD_3V3_CH = %d)\n", AD_3V3_CH);
+    uint16_t adc_value = adc1_aux_read_channel(AD_3V3_CH, ADC_SAMPLETIME_55POINT5);
+    
+    if(adc_value == 0xFFFF) {
+        debug_printf("[ADC1-14] ERROR: Channel 14 read failed\n");
+    } else {
+        debug_printf("[ADC1-14] SUCCESS: Channel 14 value = %d (0x%04X)\n", adc_value, adc_value);
+    }
+    
+    return adc_value;
 }
+
+uint16_t adc1_channel14_multiple_samples(uint16_t sample_count, uint16_t *samples)
+{
+    if(samples == NULL || sample_count == 0) {
+        return 0;
+    }
+    
+    if(!adc1_initialized) {
+        adc1_aux_init();
+    }
+    
+    uint16_t successful_samples = 0;
+    
+    for(uint16_t i = 0; i < sample_count; i++) {
+        uint16_t adc_value = adc1_aux_read_channel(AD_3V3_CH, ADC_SAMPLETIME_55POINT5);
+        
+        if(adc_value != 0xFFFF) {
+            samples[successful_samples] = adc_value;
+            successful_samples++;
+        }
+    }
+    
+    return successful_samples;
+}
+
+/*********************************************************************************************************
+* DMAä¸­æ–­å¤„ç†å‡½æ•°
+*********************************************************************************************************/
 
 void DMA0_Channel0_IRQHandler(void)
 {
-		if(dma_interrupt_flag_get(DMA0, DMA_CH0, DMA_INT_FLAG_HTF)){
-			dma_interrupt_flag_clear(DMA0, DMA_CH0, DMA_INT_FLAG_HTF);
-			adc_multi_store_frame(&s_buf[0]);
+    if(dma_interrupt_flag_get(DMA0, DMA_CH0, DMA_INT_FLAG_HTF)){
+        dma_interrupt_flag_clear(DMA0, DMA_CH0, DMA_INT_FLAG_HTF);
+        adc_multi_store_frame(&s_buf[0]);
     }
     if(dma_interrupt_flag_get(DMA0, DMA_CH0, DMA_INT_FLAG_FTF)){
-				dma_interrupt_flag_clear(DMA0, DMA_CH0, DMA_INT_FLAG_FTF);
+		dma_interrupt_flag_clear(DMA0, DMA_CH0, DMA_INT_FLAG_FTF);
         adc_multi_store_frame(&s_buf[ADC_TIM0_TRIGGERED_COUNT]);
     }
     dma_interrupt_flag_clear(DMA0, DMA_CH0, DMA_INT_FLAG_G);

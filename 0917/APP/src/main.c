@@ -143,6 +143,20 @@ static volatile uint32_t s_control_tick_pending = 0U;
 
 
 static volatile uint32_t s_tick_drop_count = 0U; /* 被丢弃的 tick 计数 */
+
+
+void delay_ms(uint32_t duration_ms)
+{
+    if (duration_ms == 0U) {
+        return;
+    }
+
+    uint32_t start_ms = g_ms;
+    while ((uint32_t)(g_ms - start_ms) < duration_ms) {
+        __NOP();
+    }
+}
+
 /*********************************************************************************************************
 *                                              内部函数声明
 *********************************************************************************************************/
@@ -958,6 +972,10 @@ float pfc_bus_voltage(void)
 	return s_pfc_bus_v;
 }
 
+/* ADC1通道14测试函数声明 */
+uint16_t adc1_channel14_test(void);
+uint16_t adc1_channel14_multiple_samples(uint16_t sample_count, uint16_t *samples);
+
 void llc_step(llc_t* l){
 	/* 1) 误差：目标电压 - 实测电压（单位V） */
     float e = l->vref - l->vmeas;
@@ -1174,13 +1192,13 @@ void llc_app_tick_1khz_withoutVbus(void)
 		adc_multi_copy(); 
 		adc_multi_sample_aux_1khz();
 	
-    float vout = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
+    //float vout = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
 		
 		//float v3v3 = (g_adc_multi.v3v3_raw * VREF_ADC) / 4095.0f;
-		float v3v3 = conv_adc_to_v_div(g_adc_multi.v3v3_raw,V3V3_RTOP_OHM,V3V3_RBOT_OHM);
-		float vbat = conv_adc_to_v_div(g_adc_multi.vbt_raw, VBT_RTOP_OHM, VBT_RBOT_OHM);
-		aux_power_monitor_update(v3v3, vbat);
-		s_llc.vmeas = vout;
+		//float v3v3 = conv_adc_to_v_div(g_adc_multi.v3v3_raw,V3V3_RTOP_OHM,V3V3_RBOT_OHM);
+		//float vbat = conv_adc_to_v_div(g_adc_multi.vbt_raw, VBT_RTOP_OHM, VBT_RBOT_OHM);
+		//aux_power_monitor_update(v3v3, vbat);
+		//s_llc.vmeas = vout;
 		switch (s_llc_app.state)
 		{
 			  /* 这些状态统一当作“等待固定启动延时”，不做任何母线/AUX判断 */
@@ -1331,6 +1349,8 @@ if (!protect_fault_active_hw() && protect_fault_latched()) {
 		pfc_app_init();
 		llc_app_init();
 	  pfc_hw_set_relay(true);
+		
+		
     while(1){
 			uint32_t pending_ticks = 0U;
 			float  duty0, duty1; //PA3 PA1捕获的值
@@ -1343,7 +1363,7 @@ if (!protect_fault_active_hw() && protect_fault_latched()) {
 			__enable_irq();
 			while(pending_ticks-- > 0U)
 			{
-					//control_loop_tick_1khz();
+				//control_loop_tick_1khz();
 				llc_app_tick_1khz_withoutVbus();
 				// 防止单次主循环处理过多 tick
 					if(pending_ticks > MAX_TICKS_PER_LOOP)
@@ -1352,17 +1372,6 @@ if (!protect_fault_active_hw() && protect_fault_latched()) {
 						pending_ticks = MAX_TICKS_PER_LOOP;
 					}
 			}
-			//if(cap_pa0_read_duty(&duty0)){
-			//		(void)duty0; /* TODO: convert ticks->Hz using TIMER1 clock if? */
-			//}
-			// if(cap_pa1_read_duty(&duty1)){
-			//		(void)duty1;
-			//}
-			//if(llc_app_state() == ST_FAULT)
-			//{
-			//	llc_pwm_outputs_enable(0);
-			//}
-			//__NOP();
     }
 }
 

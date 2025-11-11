@@ -224,5 +224,5 @@ void llc_app_tick_1khz(void);
 llc_state_t llc_app_state(void);
 void llc_step(llc_t* l);
 static inline float f_clampf(float x,float lo,float hi);
-
+void delay_ms(uint32_t duration_ms);
 #endif
