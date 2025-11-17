@@ -19,6 +19,7 @@
 *********************************************************************************************************/
 #include "ICU.h"
 #include "gd32f30x_timer.h" 
+
 /*********************************************************************************************************
 *                                              宏定义
 *********************************************************************************************************/
@@ -359,3 +360,57 @@ int cap_pa0_read_duty(float* duty){
 int cap_pa1_read_duty(float* duty){
 	return cap_read_duty(CAP_CH_INDEX_PA1, duty);
 }
+
+// 输入：CCR/ARR 捕获结果
+// 输出：估算的母线电压（单位：V）
+static inline float bus_voltage_from_duty(float duty)
+{
+    if (duty < 0.0f) 
+			duty = 0.0f;
+    else if (duty > 1.0f) 
+			duty = 1.0f;
+
+    const float Vref    = 5.0f;   // REF 电压
+    //const float Voffset = 0.0067f;  // 前端偏置
+		const float Voffset = 0.788; 
+    const float Kdiv    = 833.0f / 33U; // (Rup+Rdown)/Rdown ≈ 151.94
+
+    //float Vs   = duty * (Vref - Voffset);
+		float Vs = Vref - (1 - duty)*(Vref - Voffset);
+    if (Vs < 0.0f) 
+			Vs = 0.0f;       // 简单防呆
+
+    float Vbus = Vs * Kdiv;
+    return Vbus;
+}
+float bus_voltage_from_pwm(uint32_t high, uint32_t period)
+{
+    if (period == 0U) {
+        return 0.0f;
+    }
+
+    float D = (float)high / (float)period;  /* 占空比 (0~1) */
+    return bus_voltage_from_duty(D);
+}
+int cap_pa3_read_bus_voltage(float *vbus)
+{
+    float duty;
+    if (!cap_read_duty(CAP_CH_INDEX_PA3, &duty)) {
+        return 0;
+    }
+
+    *vbus = bus_voltage_from_duty(duty);
+    return 1;
+}
+/*
+int cap_pa1_read_bus_voltage(float *vbus)
+{
+    float duty;
+    if (!cap_read_duty(CAP_CH_INDEX_PA1, &duty)) {
+        return 0;
+    }
+
+    *vbus = bus_voltage_from_duty(duty);
+    return 1;
+}
+*/

@@ -192,7 +192,7 @@ void llc_pwm_init(const llc_pwm_cfg_t* cfg){
 		
 		/* === 配置比较器ch2 === */
 		timer_oc_parameter_struct oc_mid = oc;
-		oc_mid.outputstate  = TIMER_CCX_DISABLE;
+		oc_mid.outputstate  = TIMER_CCX_ENABLE;
 		oc_mid.outputnstate = TIMER_CCXN_DISABLE;
     timer_channel_output_config(TIMER0, TIMER_CH_2, &oc_mid); // 应用配置到TIMER0的通道2
 		timer_channel_output_mode_config(TIMER0, TIMER_CH_2, TIMER_OC_MODE_PWM0);
@@ -206,7 +206,7 @@ void llc_pwm_init(const llc_pwm_cfg_t* cfg){
 		//计算并设置死区时间（Dead Time）。死区时间是PWM信号中高电平和低电平之间的间隔，用于防止上下桥臂同时导通导致的短路。
     bk.deadtime        = bdtr_deadtime_code_ns(s_cfg.deadtime_ns, tclk);
 		//启用断路功能。当检测到异常信号（如BKIN引脚的低电平）时，定时器会进入断路状态。
-    bk.breakstate      = TIMER_BREAK_ENABLE;
+    bk.breakstate      = TIMER_BREAK_DISABLE;
 		//设置断路信号的极性为低电平有效。这意味着当BKIN引脚为低电平时，会触发断路。
     bk.breakpolarity   = TIMER_BREAK_POLARITY_LOW;     // BKIN 低有效
 		//启用输出自动状态。在断路触发时，定时器的输出会自动切换到预定义的安全状态（通常是关闭输出）。
@@ -218,7 +218,6 @@ void llc_pwm_init(const llc_pwm_cfg_t* cfg){
 		timer_master_output_trigger_source_select(TIMER0, TIMER_TRI_OUT_SRC_O2CPRE); //在通道 0 中发生了一次捕获或比较匹配事件，触发输出为 TRGO 。
 		//启用定时器的自动重载影子寄存器功能。定时器的重载值会在下一个更新事件时生效，确保配置的平滑切换。
     timer_auto_reload_shadow_enable(TIMER0);
-		//timer_event_software_generate(TIMER0, TIMER_EVENT_SRC_UPG);   // 装载影子
 		//配置定时器的主输出功能。启用后，定时器可以输出信号到指定的引脚或模块
     //timer_primary_output_config(TIMER0, DISABLE);
 		
@@ -261,9 +260,72 @@ void llc_pwm_set_duty(float d)
 	update_adc_trigger_midpoint_from_arr();
 }
 
+/* 强制单臂导通：high_side_on=true 表示高侧常导通；false 表示低侧常导通 */
+static void llc_pwm_force_start(bool high_side_on)
+{
+	 // 1. 禁用主输出 - 安全措施，防止意外输出
+    timer_primary_output_config(TIMER0, DISABLE);
+// 2. 清零PWM脉冲值 - 确保输出为固定电平
+    timer_channel_output_pulse_value_config(TIMER0, LLC_PWM_CH, 0U);
+ // 3. 配置输出模式为固定电平模式
+	timer_channel_output_mode_config(
+    TIMER0, LLC_PWM_CH,
+    high_side_on ? TIMER_OC_MODE_ACTIVE : TIMER_OC_MODE_INACTIVE
+);
+
+ // 4. 强制生成更新事件，确保配置生效
+    timer_flag_clear(TIMER0, TIMER_FLAG_UP);
+    timer_event_software_generate(TIMER0, TIMER_EVENT_SRC_UPG);
+	// 5. 等待更新事件完成
+    while (RESET == timer_flag_get(TIMER0, TIMER_FLAG_UP)) {}
+    timer_flag_clear(TIMER0, TIMER_FLAG_UP);
+
+    TIMER_CNT(TIMER0) = 0U;
+    timer_primary_output_config(TIMER0, ENABLE);
+}
+
+static void llc_pwm_restore_pwm(void)
+{
+    timer_primary_output_config(TIMER0, DISABLE);
+	//恢复PWM模式配置
+    timer_channel_output_mode_config(TIMER0, LLC_PWM_CH, TIMER_OC_MODE_PWM0);
+
+    uint16_t pwm_ccr = duty_to_ccr(s_cfg.duty);
+    timer_channel_output_pulse_value_config(TIMER0, LLC_PWM_CH, pwm_ccr);
+
+    timer_flag_clear(TIMER0, TIMER_FLAG_UP);
+    timer_event_software_generate(TIMER0, TIMER_EVENT_SRC_UPG);
+    while (RESET == timer_flag_get(TIMER0, TIMER_FLAG_UP)) {}
+    timer_flag_clear(TIMER0, TIMER_FLAG_UP);
+//确保PWM周期从0开始，保持波形完整性
+    TIMER_CNT(TIMER0) = 0U;
+    timer_primary_output_config(TIMER0, ENABLE);
+}
+
 void llc_pwm_outputs_enable(bool en)
 { 
-	timer_primary_output_config(TIMER0, en?ENABLE:DISABLE); 
+	//timer_primary_output_config(TIMER0, en?ENABLE:DISABLE); 
+
+		if (en) {
+	/* 可选：低侧常导通 3 ms 给自举充电（需要 delay_ms） */
+    llc_pwm_force_start(1);
+   // delay_ms(1);
+    llc_pwm_restore_pwm();
+		timer_primary_output_config(TIMER0, DISABLE);
+		timer_channel_output_pulse_value_config(TIMER0, LLC_PWM_CH, 0);
+		//timer_event_software_generate(TIMER0, TIMER_EVENT_SRC_UPG);
+		TIMER_CNT(TIMER0) = 0U;
+
+		timer_primary_output_config(TIMER0, ENABLE);
+
+		uint16_t pwm_ccr = duty_to_ccr(s_cfg.duty);
+		timer_channel_output_pulse_value_config(TIMER0, LLC_PWM_CH, pwm_ccr);
+	} else {
+		timer_primary_output_config(TIMER0, DISABLE);
+		timer_channel_output_pulse_value_config(TIMER0, LLC_PWM_CH, 0U);
+		//timer_event_software_generate(TIMER0, TIMER_EVENT_SRC_UPG);
+	}
+	
 }
 
 void llc_pwm_break(bool en){
@@ -304,9 +366,8 @@ void llc_pwm_set_freq(uint32_t f_hz)
 	// 更新ADC触发的中点位置
 	update_adc_trigger_midpoint_from_arr(); 
 	
-	//timer_event_software_generate(TIMER0, TIMER_EVENT_SRC_UPG);
+	timer_event_software_generate(TIMER0, TIMER_EVENT_SRC_UPG);
 
-	//timer_generate_event(TIMER0, TIMER_EVENT_SRC_UPG);
 }
 //周期(ns) = 1e9 × (ARR + 1) / tclk
 uint32_t llc_pwm_get_period_ns(void)

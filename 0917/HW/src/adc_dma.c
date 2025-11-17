@@ -61,7 +61,7 @@ void adc0_dma_init(uint32_t trig_src)
     
     // ADC0时钟和配置
     rcu_periph_clock_enable(RCU_ADC0);
-    rcu_adc_clock_config(RCU_CKADC_CKAPB2_DIV8); // 10MHz安全时钟
+    rcu_adc_clock_config(RCU_CKADC_CKAPB2_DIV6); // 10MHz安全时钟
     adc_deinit(ADC0);
     adc_mode_config(ADC_MODE_FREE);
     adc_special_function_config(ADC0, ADC_SCAN_MODE, ENABLE);
@@ -90,7 +90,7 @@ void adc0_dma_start(void)
         return;
     }
     // 定时器触发ADC0采集
-    timer_event_software_generate(LLC_PWM_TIMER, TIMER_EVENT_SRC_UPG);
+    timer_event_software_generate(LLC_PWM_TIMER, TIMER_EVENT_SRC_CH2G);
 }
 
 /* ADC0状态检查 */
@@ -105,17 +105,10 @@ uint8_t adc0_is_initialized(void)
 
 /* ADC1模拟引脚初始化 */
 static void adc1_analog_pins_init(void)
-{
-    //debug_printf("[ADC1-PINS] Initializing GPIO pins for ADC1\n");
-    
+{   
     rcu_periph_clock_enable(RCU_GPIOC);
-   // debug_printf("[ADC1-PINS] GPIOC clock enabled\n");
-    
     /* ADC1通道配置 */
-    //debug_printf("[ADC1-PINS] Configuring PC4 (ADC1_CH14) and PC5 (ADC1_CH15) as analog inputs\n");
     gpio_init(GPIOC, GPIO_MODE_AIN, GPIO_OSPEED_50MHZ, GPIO_PIN_4|GPIO_PIN_5);
-    
-   // debug_printf("[ADC1-PINS] GPIO pin initialization completed\n");
 }
 
 /* ADC1初始化 - 软件触发模式 */
@@ -153,17 +146,7 @@ void adc1_aux_init(void)
     if(adc_enable_timeout == 0U) {
         return;
     }
-    
-    // 关键修复：重新配置ADC1，因为校准可能会重置配置
-    adc_mode_config(ADC_MODE_FREE);
-    adc_data_alignment_config(ADC1, ADC_DATAALIGN_RIGHT);
-    adc_special_function_config(ADC1, ADC_SCAN_MODE, DISABLE);
-    adc_special_function_config(ADC1, ADC_CONTINUOUS_MODE, DISABLE);
-    adc_channel_length_config(ADC1, ADC_REGULAR_CHANNEL, 1U);
-    adc_external_trigger_source_config(ADC1, ADC_REGULAR_CHANNEL, ADC0_1_2_EXTTRIG_REGULAR_NONE);
-    adc_external_trigger_config(ADC1, ADC_REGULAR_CHANNEL, ENABLE);  // 关键修复：软件触发需要使能外部触发
-    
-    // 重要：等待ADC稳定（至少2个ADC时钟周期）
+
     delay_ms(1);
     
     /* 执行ADC1校准并检查状态 */
@@ -179,20 +162,6 @@ void adc1_aux_init(void)
     if(cal_timeout == 0U) {
         // 强制清除校准状态
         ADC_CTL1(ADC1) &= ~ADC_CTL1_RSTCLB;
-    }
-    
-    // 关键修复：校准完成后重新配置ADC1
-    adc_mode_config(ADC_MODE_FREE);
-    adc_data_alignment_config(ADC1, ADC_DATAALIGN_RIGHT);
-    adc_special_function_config(ADC1, ADC_SCAN_MODE, DISABLE);
-    adc_special_function_config(ADC1, ADC_CONTINUOUS_MODE, DISABLE);
-    adc_channel_length_config(ADC1, ADC_REGULAR_CHANNEL, 1U);
-    adc_external_trigger_source_config(ADC1, ADC_REGULAR_CHANNEL, ADC0_1_2_EXTTRIG_REGULAR_NONE);
-    adc_external_trigger_config(ADC1, ADC_REGULAR_CHANNEL, ENABLE);
-    
-    // 关键修复：清除可能存在的EOC标志
-    if(ADC_STAT(ADC1) & ADC_STAT_EOC) {
-        adc_flag_clear(ADC1, ADC_FLAG_EOC);
     }
     
     adc1_initialized = 1;
@@ -275,10 +244,10 @@ static inline void adc_multi_store_frame(const uint16_t *src)
 {
     s_latched.vout_raw   = src[0];
     s_latched.isense_raw = src[1];
-    s_latched.tsense_raw = src[2];
-    s_latched.v3v3_raw   = src[3];
-    s_latched.vbt_raw    = src[4];
-    s_latched.t_llc_raw  = src[5];
+   // s_latched.tsense_raw = src[2];
+    //s_latched.v3v3_raw   = src[3];
+    //s_latched.vbt_raw    = src[4];
+    //s_latched.t_llc_raw  = src[5];
 }
 
 void adc_multi_copy(void)
@@ -314,15 +283,11 @@ void adc_multi_sample_aux_1khz(void)
 *********************************************************************************************************/
 
 uint16_t adc1_channel14_test(void)
-{
-    debug_printf("[ADC1-14] Starting channel 14 test\n");
-    
-    if(!adc1_initialized) {
-        debug_printf("[ADC1-14] ADC1 not initialized, calling init...\n");
+{   
+    if(!adc1_initialized) {        
         adc1_aux_init();
     }
-    
-    debug_printf("[ADC1-14] Reading channel 14 (AD_3V3_CH = %d)\n", AD_3V3_CH);
+        
     uint16_t adc_value = adc1_aux_read_channel(AD_3V3_CH, ADC_SAMPLETIME_55POINT5);
     
     if(adc_value == 0xFFFF) {
@@ -370,7 +335,7 @@ void DMA0_Channel0_IRQHandler(void)
     }
     if(dma_interrupt_flag_get(DMA0, DMA_CH0, DMA_INT_FLAG_FTF)){
 		dma_interrupt_flag_clear(DMA0, DMA_CH0, DMA_INT_FLAG_FTF);
-        adc_multi_store_frame(&s_buf[ADC_TIM0_TRIGGERED_COUNT]);
+        adc_multi_store_frame(&s_buf[ADC_TIM0_TRIGGERED_COUNT  ]);
     }
     dma_interrupt_flag_clear(DMA0, DMA_CH0, DMA_INT_FLAG_G);
 }

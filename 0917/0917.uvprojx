@@ -397,6 +397,11 @@
               <FileType>5</FileType>
               <FilePath>.\LLC开环 bring_up模式.txt</FilePath>
             </File>
+            <File>
+              <FileName>LLC 电压闭环.txt</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\LLC 电压闭环.txt</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

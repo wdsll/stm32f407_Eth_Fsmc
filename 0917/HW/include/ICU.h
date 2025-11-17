@@ -11,6 +11,10 @@ void cap_pa01_init(void);
 
 int cap_pa0_read_duty(float* duty);  
 int cap_pa1_read_duty(float* duty);
+
+int   cap_pa3_read_bus_voltage(float *vbus);
+float bus_voltage_from_pwm(uint32_t high, uint32_t period);
+
 #ifdef __cplusplus
 }
 #endif

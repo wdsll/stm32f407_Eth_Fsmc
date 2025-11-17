@@ -15,7 +15,7 @@ typedef struct
         float duty_max;
         float duty_cmd;
 } bus_vol_adj_ctrl_t;
-
+typedef float (*bus_vol_adj_vbus_reader_t)(void);
 void pb0_pwm_init(uint32_t pwm_hz);
 void pb0_pwm_set_duty(float duty);
 
@@ -23,6 +23,9 @@ void bus_vol_adj_init(void);
 void bus_vol_adj_reset(void);
 void bus_vol_adj_tick(float vbus, bool enabled);
 
-
+bool  bus_vol_adj_model_valid(void);
+float bus_vol_adj_vbus_from_duty(float duty);
+float bus_vol_adj_duty_from_vbus(float vbus_target);
+void  bus_vol_adj_run_calibration(bus_vol_adj_vbus_reader_t read_vbus);
 #endif
 
