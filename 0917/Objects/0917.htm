@@ -3,9 +3,9 @@
 <title>Static Call Graph - [.\Objects\0917.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Objects\0917.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6090000: Last Updated: Mon Nov 17 15:33:14 2025
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6090000: Last Updated: Tue Nov 18 08:50:38 2025
 <BR><P>
-<H3>Maximum Stack Usage =        312 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
+<H3>Maximum Stack Usage =        352 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
 main &rArr; llc_pwm_init &rArr; bdtr_deadtime_code_ns &rArr; __aeabi_dmul &rArr; _double_epilogue &rArr; _double_round
 <P>
@@ -364,7 +364,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[8e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;bdtr_deadtime_code_ns
 </UL>
 
-<P><STRONG><a name="[bc]"></a>__aeabi_f2d</STRONG> (Thumb, 38 bytes, Stack size 0 bytes, f2d.o(.text))
+<P><STRONG><a name="[bd]"></a>__aeabi_f2d</STRONG> (Thumb, 38 bytes, Stack size 0 bytes, f2d.o(.text))
 <BR><BR>[Called By]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
@@ -868,16 +868,16 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[bd]"></a>llc_step</STRONG> (Thumb, 134 bytes, Stack size 0 bytes, main.o(.text.llc_step))
+<P><STRONG><a name="[bc]"></a>llc_step</STRONG> (Thumb, 204 bytes, Stack size 0 bytes, main.o(.text.llc_step))
 <BR><BR>[Called By]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[46]"></a>main</STRONG> (Thumb, 408 bytes, Stack size 96 bytes, main.o(.text.main))
-<BR><BR>[Stack]<UL><LI>Max Depth = 312<LI>Call Chain = main &rArr; llc_pwm_init &rArr; bdtr_deadtime_code_ns &rArr; __aeabi_dmul &rArr; _double_epilogue &rArr; _double_round
+<P><STRONG><a name="[46]"></a>main</STRONG> (Thumb, 472 bytes, Stack size 136 bytes, main.o(.text.main))
+<BR><BR>[Stack]<UL><LI>Max Depth = 352<LI>Call Chain = main &rArr; llc_pwm_init &rArr; bdtr_deadtime_code_ns &rArr; __aeabi_dmul &rArr; _double_epilogue &rArr; _double_round
 </UL>
 <BR>[Calls]<UL><LI><a href="#[b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;systick_1ms_init
 <LI><a href="#[b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;nvic_priority_group_set
-<LI><a href="#[bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_step
+<LI><a href="#[bc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_step
 <LI><a href="#[b7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_set_freq
 <LI><a href="#[a6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
 <LI><a href="#[a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_app_tick_1khz_withoutVbus
@@ -887,7 +887,7 @@ Global Symbols
 <LI><a href="#[8d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_multi_start
 <LI><a href="#[8c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_multi_init_dma
 <LI><a href="#[bb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_multi_copy
-<LI><a href="#[bc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_f2d
+<LI><a href="#[bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_f2d
 <LI><a href="#[60]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;InitRCU
 <LI><a href="#[ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_hw_set_relay
 </UL>

@@ -1027,24 +1027,38 @@ uint16_t adc1_channel14_test(void);
 uint16_t adc1_channel14_multiple_samples(uint16_t sample_count, uint16_t *samples);
 
 void llc_step(llc_t* l){
-	/* 1) 误差：目标电压 - 实测电压（单位V） */
+    /* 误差：>0 表示电压偏低，需要多给点力 → 频率降低（LLC 频率越低增益越大） */
     float e = l->vref - l->vmeas;
-	/* 2) 积分累加：每个控制周期增加 ki*e（不考虑饱和） */
+
+    /* 积分累加 */
     l->integ += l->ki * e;
-	/* 3) PI输出映射到频率请求：kp*e + I，再加基线 f_min（单位Hz） */
-    float f_req = l->kp * e + l->integ + l->f_min;
-	/* 4) 限幅 */
-    if(f_req < l->f_min)   // 频率下限钳位：不可低于 f_min
-			f_req = l->f_min;
-    if(f_req > l->f_max)   // 频率上限钳位：不可高于 f_max
-			f_req = l->f_max;
-		
-    float df = f_req - l->f_cmd;  // 期望频率与当前下发频率的差值 Δf
-		
-    if(f_absf(df) > l->f_slew)   // 斜率限幅：若 |Δf| 大于每周期最大步长 f_slew
-			l->f_cmd += (df>0?l->f_slew:-l->f_slew); //就按正/负方向只移动 f_slew（限速变频）
-    else 
-			l->f_cmd = f_req; // 否则一步到位：直接把下发频率设为目标
+
+    /* 简单积分限幅，防止 windup，单位近似也按 Hz 数量级来夹 */
+    const float I_MIN = -(l->f_max - l->f_min);
+    const float I_MAX =  (l->f_max - l->f_min);
+    if (l->integ < I_MIN) l->integ = I_MIN;
+    if (l->integ > I_MAX) l->integ = I_MAX;
+
+    /* 控制量 u 表示 “从 f_max 往下扣多少频率” */
+    float u = l->kp * e + l->integ;   // 近似 Hz
+
+    /* 映射关系：
+     *  e > 0 (Vout 低) → u > 0 → f_req = f_max - u → 频率降低 → 增益增大
+     *  e < 0 (Vout 高) → u < 0 → f_req = f_max - u → 频率升高 → 增益减小
+     */
+    float f_req = l->f_max - u;
+
+    /* 频率限幅到 [f_min, f_max] */
+    if (f_req < l->f_min) f_req = l->f_min;
+    if (f_req > l->f_max) f_req = l->f_max;
+
+    /* 斜率限幅：每个 1kHz tick 频率最多变化 f_slew Hz */
+    float df = f_req - l->f_cmd;
+    if (f_absf(df) > l->f_slew) {
+        l->f_cmd += (df > 0 ? l->f_slew : -l->f_slew);
+    } else {
+        l->f_cmd = f_req;
+    }
 }
 //这里完全不再去动 PFC、继电器、软启动，只保留最小的“状态 → PWM 使能 + 频率”。
 static void llc_state_enter(llc_state_t next)
@@ -1230,8 +1244,6 @@ static void control_loop_tick_1khz(void){
 		/* 2. LLC 输出电压反馈（假设 VOUT_SENSE → vout_raw） */
     float vout = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
     s_llc.vmeas = vout;
-	   /* 打印输出电压值 */
-    debug_printf("Vout: %.2f V", vout);
 		//llc_app_tick_1khz();
 		/* 3. LLC 状态机（只关心故障 → RUN/FAULT 切换） */
 		llc_app_tick_1khz_withoutVbus();
@@ -1243,6 +1255,15 @@ static void control_loop_tick_1khz(void){
 
         /* 5. 将频率命令真正下发给 PWM 定时器 */
         llc_pwm_set_freq((uint32_t)s_llc.f_cmd);
+			
+			  /* 6. 调试打印：降低频率，避免串口把 CPU 打爆 */
+				static uint32_t s_dbg_div = 0;
+				if (++s_dbg_div >= 100) {   // 每 100 ms 打一次
+						s_dbg_div = 0;
+						float e = s_llc.vref - s_llc.vmeas;
+						debug_printf("Vout=%.2f V, Vref=%.2f V, e=%.2f V, f_cmd=%.1f Hz\r\n",
+												 s_llc.vmeas, s_llc.vref, e, s_llc.f_cmd);
+				}
 		}
 }
 
@@ -1252,7 +1273,7 @@ int main(void){
 		nvic_priority_group_set(NVIC_PRIGROUP_PRE2_SUB2);
 
 	  debug_printf_init(DEBUG_PRINTF_DEFAULT_BAUDRATE);
-	  debug_printf("Debug console initialized @%lu baud\n", (unsigned long)DEBUG_PRINTF_DEFAULT_BAUDRATE);
+	  //debug_printf("Debug console initialized @%lu baud\n", (unsigned long)DEBUG_PRINTF_DEFAULT_BAUDRATE);
 	
 		systick_1ms_init();
 	//	debug_printf_init(115200);
@@ -1278,8 +1299,8 @@ int main(void){
 			.vref=LLC_VOUT_TARGET_V, 
 			.vmeas=0.0f, 
 			/* 闭环初始参数：偏保守，方便第一次上电看波形 */
-			.kp=0.004f,  // 比原来 0.01 小一截，先稳下来
-			.ki=0.00015f, // 等效连续 Ki ≈ 0.15 1/s
+			.kp=2000.0f,  // 比原来 0.01 小一截，先稳下来
+			.ki=10.0f, // 等效连续 Ki ≈ 0.15 1/s
       .f_min=LLC_F_MIN_HZ, 
 			.f_max=LLC_F_MAX_HZ, 
 			.f_cmd=LLC_F_INIT_HZ, 
