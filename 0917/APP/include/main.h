@@ -77,7 +77,7 @@
 #define LLC_SOFTSTART_EXP_K           3.0f     // 指数陡峭度（越大前期越缓）
 #define LLC_SOFTSTART_EXTRA_MARGIN      (0.01f)   /* 安全窗额外余量（防抖） */
 /* ==== LLC frequency window ==== */
-#define LLC_F_MIN_HZ        (85000.0f)
+#define LLC_F_MIN_HZ        (72000.0f)
 #define LLC_F_MAX_HZ        (130000.0f)
 #define LLC_F_INIT_HZ       (87500.0f)
 #define LLC_F_SLEW_HZ       (500.0f)
@@ -183,7 +183,7 @@ static inline uint8_t irq_priority_encode(uint8_t preempt, uint8_t sub)
 #define PFC_VBUS_READY_V            (360.0f)
 #define PFC_VBUS_READY_HYST_V       (10.0f)
 #define PFC_READY_DELAY_MS          (200U)
-#define PFC_STARTUP_DELAY_MS        (20U)
+#define PFC_STARTUP_DELAY_MS        (2000U)
 #define PFC_VBUS_DROPOUT_MS         (200U)
 #define PFC_RESTART_DELAY_MS        (1000U)
 #define PFC_VBUS_DROPOUT_THRESHOLD  (PFC_VBUS_READY_V - 15.0f)  /* 345V, increased from 350V */

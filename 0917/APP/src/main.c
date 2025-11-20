@@ -41,6 +41,10 @@
 /* LLC 输出电压目标（V），后续闭环只盯这个 */
 #define LLC_VOUT_TARGET_V          54.0f
 
+
+/* Vout IIR 滤波（0<α<=1），建议 0.15~0.25 */
+#define VOUT_IIR_ALPHA             0.20f
+
 /* 新增：用 PWM 捕获结果换算出来的母线电压（单位：V） */
 static float s_pfc_bus_v_from_cap = 0.0f;
 /*********************************************************************************************************
@@ -180,6 +184,8 @@ static void protect_clear_gpio_init(void); // ← 新增：清锁存脚初始化
 static void pfc_hw_init(void);
 static void pfc_hw_set_enable(bool en);
 static void pfc_hw_set_relay(bool closed);
+static void llc_gain_schedule(llc_t* l);            /* 新增：轻/半载增益调度 */
+
 void systick_1ms_init(void);
 
 /*********************************************************************************************************
@@ -278,10 +284,7 @@ static inline float pfc_vbus_from_cap_duty(float duty)
     else if (duty > 1.0f) 
 			duty = 1.0f;
 
-    const float k = 102.75f;  // V / (duty 0~1)
-    const float b = 14.41f;   // V
-
-    return k * duty + b;      // 估算母线电压
+			return 92.993f + 590.54f * duty;   // 5.9054 * 100 ≈ 590.54
 }
 
 
@@ -809,7 +812,7 @@ void pfc_app_init()
 	s_pfc_bus_v = 0.0f;
 	
 #if LLC_BYPASS_PFC_CONTROL
-	s_pfc_app.state = PFC_ST_READY;
+	s_pfc_app.state = PFC_ST_IDLE;
 	s_pfc_app.entry_ms = g_ms;
 	s_pfc_app.vbus_ok_since_ms = g_ms;
 	s_pfc_app.dropout_since_ms = 0U;
@@ -869,6 +872,57 @@ void pfc_app_force_off()
 		 pfc_state_enter(PFC_ST_IDLE);
 	}
 #endif
+}
+void pfc_app_tick_1khz_test()
+{
+	s_pfc_bus_v = s_pfc_bus_v_from_cap;
+	static uint8_t s_pfc_clear_sent = 0;  // 防抖，只发一次
+	
+	switch(s_pfc_app.state)
+	{
+		case PFC_ST_IDLE:
+			/* 未使能 → 保持硬件关闭并清计时 */
+			if(!s_pfc_app.enable_cmd)
+			{
+				if(s_pfc_hw_enabled)
+				{
+					pfc_hw_set_enable(false);
+					s_pfc_hw_enabled = false; // 更新状态
+				}
+				// 重置启动命令计时器和电压稳定计时器
+				s_pfc_app.startup_cmd_ms = 0U;
+				s_pfc_app.vbus_ok_since_ms = 0U;
+				break;
+			}
+			// 如果启动命令计时器未初始化，则初始化
+			if(s_pfc_app.startup_cmd_ms == 0U)
+			{
+				s_pfc_app.startup_cmd_ms = g_ms;
+			}
+			//PFC_STARTUP_DELAY_MS ：启动延时，确保 PFC 硬件在启用前等待足够时间。
+    /* 达到启动延时后，允许上电驱动 */
+    if (elapsed_reached(s_pfc_app.startup_cmd_ms, PFC_STARTUP_DELAY_MS) && !s_pfc_hw_enabled) {
+				if(s_pfc_bus_v > 300.0f)
+				{
+					 pfc_hw_set_enable(true);
+					s_pfc_hw_enabled = true;
+				}
+
+    }
+		break;
+		case PFC_ST_READY:
+			// 检查是否收到禁用命令
+			if(!s_pfc_app.enable_cmd)
+			{
+				pfc_state_enter(PFC_ST_IDLE);
+				break;
+			}
+			break;
+		case PFC_ST_FAULT:
+			
+		default:
+			break;
+	}
 }
 void pfc_app_tick_1khz(float vbus_v)
 {
@@ -1025,7 +1079,66 @@ float pfc_bus_voltage(void)
 /* ADC1通道14测试函数声明 */
 uint16_t adc1_channel14_test(void);
 uint16_t adc1_channel14_multiple_samples(uint16_t sample_count, uint16_t *samples);
+#if 0
+static void llc_gain_schedule(llc_t* l){
+/* 按当前频率代理“负载轻重”：频率越高 → 轻载；提高增益 + 放宽斜率 */
+	const float f = l->f_cmd;
+	const float KP0 = 1000.0f; /* 基线，与初始化一致 */
+	const float KI0 = 10.0f;
 
+    const float F_VERY_LIGHT = 0.93f * LLC_F_MAX_HZ;  // ≈ 0.93 * Fmax
+    const float F_LIGHT      = 0.80f * LLC_F_MAX_HZ;  // ≈ 0.80 * Fmax
+
+	if (f > F_VERY_LIGHT){ /* 极轻载区：曲线最平 */
+		l->kp = KP0 * 3.0f; 
+		l->ki = KI0 * 4.0f; 
+		l->f_slew = fmaxf(l->f_slew, 600.0f); /* Hz/ms */
+	} else if (f > F_LIGHT){ /* 轻载区 */
+		l->kp = KP0 * 2.0f; 
+		l->ki = KI0 * 3.0f; 
+		l->f_slew = fmaxf(l->f_slew, 400.0f);
+	} else { /* 半载及以下 */
+		l->kp = KP0; 
+		l->ki = KI0; 
+		l->f_slew = fmaxf(l->f_slew, 200.0f);
+	}
+}
+#endif
+static void llc_gain_schedule(llc_t* l){
+	  /* 基线：按你现在调好的参数来 */
+    const float KP_BASE = 2000.0f;
+    const float KI_BASE = 10.0f;
+	
+	  const float f_min = l->f_min;
+    const float f_max = l->f_max;
+    const float f     = l->f_cmd;
+	
+	  float span = f_max - f_min;
+    if (span <= 0.0f) {
+        l->kp = KP_BASE;
+        l->ki = KI_BASE;
+        l->f_slew = LLC_F_SLEW_HZ;
+        return;
+    }
+		/* 负载因子: 0.0 = 极轻载(f≈f_max), 1.0 = 最重载(f≈f_min) */
+    float load = (f_max - f) / span;   // f 越低 load 越大
+    if (load < 0.0f) load = 0.0f;
+    if (load > 1.0f) load = 1.0f;
+		/* 重载时适当加大 Kp/Ki，提升带宽 → 更能压 100Hz 纹波
+	 这里给个温和范围：
+	 - Kp: 轻载 0.7× ~ 重载 1.5×
+	 - Ki: 轻载 0.5× ~ 重载 2.0×   */
+    float kp_scale = 0.7f + 0.8f * load;   // 0.7 → 1.5
+    float ki_scale = 0.5f + 1.5f * load;   // 0.5 → 2.0
+		l->kp = KP_BASE * kp_scale;
+    l->ki = KI_BASE * ki_scale;
+		
+		/* 斜率限制：重载时也稍微放宽一点响应速度 */
+    const float SLEW_MIN = 150.0f;    // Hz/ms
+    const float SLEW_MAX = 600.0f;    // Hz/ms
+    l->f_slew = SLEW_MIN + (SLEW_MAX - SLEW_MIN) * load;
+		
+}
 void llc_step(llc_t* l){
     /* 误差：>0 表示电压偏低，需要多给点力 → 频率降低（LLC 频率越低增益越大） */
     float e = l->vref - l->vmeas;
@@ -1103,6 +1216,7 @@ static void llc_state_enter(llc_state_t next)
 void llc_app_init()
 {
 	llc_state_enter(ST_WAIT_VBUS);
+	 /* 初始化时不启动 LLC 延时计数，等 PFC_EN 高了再由
 }
 void llc_app_tick_1khz(void)
 {
@@ -1243,7 +1357,11 @@ static void control_loop_tick_1khz(void){
 		//adc_multi_sample_aux_1khz();
 		/* 2. LLC 输出电压反馈（假设 VOUT_SENSE → vout_raw） */
     float vout = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
-    s_llc.vmeas = vout;
+
+		static float vout_filt = 0.0f;
+		vout_filt += VOUT_IIR_ALPHA * (vout - vout_filt);
+		s_llc.vmeas = vout_filt;
+    //s_llc.vmeas = vout;
 		//llc_app_tick_1khz();
 		/* 3. LLC 状态机（只关心故障 → RUN/FAULT 切换） */
 		llc_app_tick_1khz_withoutVbus();
