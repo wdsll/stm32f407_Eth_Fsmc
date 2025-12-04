@@ -1,0 +1,137 @@
+function [llc_ctrl_cfg, llc_ss_cfg] = llc_init_cfg()
+% llc_init_cfg
+% Initialize LLC controller / soft-start / plant and open-loop sweep.
+%
+% This function:
+%   - Builds structs:
+%         llc_ctrl_cfg : PI controller config
+%         llc_ss_cfg   : soft-start Vref ramp config
+%         llc_ol_cfg   : open-loop frequency sweep config (exported to base)
+%   - Creates Simulink.Bus objects:
+%         LLC_CTRL_CFG, LLC_SS_CFG, LLC_OL_CFG
+%   - Defines plant parameters in base workspace:
+%         LLC_PLANT_F_RES, LLC_PLANT_Q, LLC_PLANT_K
+%   - Exports default configs for Constant blocks:
+%         llc_ctrl_cfg_default, llc_ss_cfg_default, llc_ol_cfg_default
+%
+% Usage:
+%   [ctrl_cfg, ss_cfg] = llc_init_cfg;
+%   % In Simulink Constant blocks, set:
+%   %   Value    = llc_ctrl_cfg_default / llc_ss_cfg_default / llc_ol_cfg_default
+%   %   DataType = Bus: LLC_CTRL_CFG / LLC_SS_CFG / LLC_OL_CFG
+
+%% ===== 1. LLC voltage-loop controller config (PI + IIR + slew) =====
+llc_ctrl_cfg = struct();
+llc_ctrl_cfg.kp     = 1100.0;    % ÿÿÿÿ 294 ÿÿÿÿÿÿÿÿÿÿÿ
+llc_ctrl_cfg.ki     = 1;   % ÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿ Ts
+llc_ctrl_cfg.f_min  = 70e3;     % Hz
+llc_ctrl_cfg.f_max  = 130e3;    % ÿÿÿÿÿÿÿÿÿ 130 kHz ÿ
+llc_ctrl_cfg.f_slew = 1e3;      % ÿÿ 10kHz ÿÿÿÿ 1 kHz
+llc_ctrl_cfg.alpha  = 0.2;      % ÿ Vout IIR ÿÿÿÿÿÿÿÿÿ
+
+% ---- Build Simulink.Bus: LLC_CTRL_CFG ----
+elems_ctrl = repmat(Simulink.BusElement, 1, 6);
+
+elems_ctrl(1).Name     = 'kp';
+elems_ctrl(1).DataType = 'double';
+
+elems_ctrl(2).Name     = 'ki';
+elems_ctrl(2).DataType = 'double';
+
+elems_ctrl(3).Name     = 'f_min';
+elems_ctrl(3).DataType = 'double';
+
+elems_ctrl(4).Name     = 'f_max';
+elems_ctrl(4).DataType = 'double';
+
+elems_ctrl(5).Name     = 'f_slew';
+elems_ctrl(5).DataType = 'double';
+
+elems_ctrl(6).Name     = 'alpha';
+elems_ctrl(6).DataType = 'double';
+
+LLC_CTRL_CFG = Simulink.Bus;
+LLC_CTRL_CFG.Elements = elems_ctrl;
+
+assignin('base', 'LLC_CTRL_CFG', LLC_CTRL_CFG);
+
+%% ===== 2. Soft-start Vref ramp config =====
+% enable = 1: ramp Vref from 0 to vref_target in t_ramp_s seconds.
+% Control tick Ts_s is the same 10 kHz control loop period.
+
+Ts_s = 1/10e3;  % 10 kHz control loop period (s)
+
+llc_ss_cfg = struct();
+llc_ss_cfg.vref_target = 48.0;   % target output voltage (V)
+llc_ss_cfg.t_ramp_s    = 0.03;   % soft-start ramp time (s), here 30 ms
+llc_ss_cfg.Ts_s        = Ts_s;   % control step (s)
+
+% ---- Build Simulink.Bus: LLC_SS_CFG ----
+elems_ss = repmat(Simulink.BusElement, 1, 3);
+
+elems_ss(1).Name     = 'vref_target';
+elems_ss(1).DataType = 'double';
+
+elems_ss(2).Name     = 't_ramp_s';
+elems_ss(2).DataType = 'double';
+
+elems_ss(3).Name     = 'Ts_s';
+elems_ss(3).DataType = 'double';
+
+LLC_SS_CFG = Simulink.Bus;
+LLC_SS_CFG.Elements = elems_ss;
+
+assignin('base', 'LLC_SS_CFG', LLC_SS_CFG);
+
+%% ===== 3. LLC small-signal plant model for LLC_Plant subsystem =====
+% Continuous-time 2nd-order model:
+%   G_llc(s) = K * w0^2 / (s^2 + 2*zeta*w0*s + w0^2)
+% where:
+%   w0   = 2*pi*LLC_PLANT_F_RES
+%   zeta = 1/(2*Q)
+
+LLC_PLANT_F_RES = 87.5e3;        % resonant frequency (Hz)
+LLC_PLANT_Q     = 0.5;           % quality factor
+LLC_PLANT_K     = 0.00098316972754291;  % small-signal gain (auto_calib_llc_gain can update)
+
+assignin('base', 'LLC_PLANT_F_RES', LLC_PLANT_F_RES);
+assignin('base', 'LLC_PLANT_Q',     LLC_PLANT_Q);
+assignin('base', 'LLC_PLANT_K',     LLC_PLANT_K);
+
+%% ===== 4. Open-loop frequency sweep config (for bring-up) =====
+% Used when you bypass PI and sweep f_cmd directly.
+% The sweep runs from f_start to f_end in t_sweep_s seconds
+% with step size equal to Ts_s.
+
+llc_ol_cfg = struct();
+llc_ol_cfg.f_start   = 150e3;   % sweep start frequency (Hz)
+llc_ol_cfg.f_end     = 70e3;    % sweep end frequency (Hz)
+llc_ol_cfg.t_sweep_s = 0.05;    % total sweep time (s)
+llc_ol_cfg.Ts_s      = Ts_s;    % control step (s)
+
+% ---- Build Simulink.Bus: LLC_OL_CFG ----
+elems_ol = repmat(Simulink.BusElement, 1, 4);
+
+elems_ol(1).Name     = 'f_start';
+elems_ol(1).DataType = 'double';
+
+elems_ol(2).Name     = 'f_end';
+elems_ol(2).DataType = 'double';
+
+elems_ol(3).Name     = 't_sweep_s';
+elems_ol(3).DataType = 'double';
+
+elems_ol(4).Name     = 'Ts_s';
+elems_ol(4).DataType = 'double';
+
+LLC_OL_CFG = Simulink.Bus;
+LLC_OL_CFG.Elements = elems_ol;
+
+assignin('base', 'LLC_OL_CFG',         LLC_OL_CFG);
+assignin('base', 'llc_ol_cfg_default', llc_ol_cfg);
+
+%% ===== 5. Export default structs to base workspace =====
+assignin('base', 'llc_ctrl_cfg_default', llc_ctrl_cfg);
+assignin('base', 'llc_ss_cfg_default',   llc_ss_cfg);
+
+end
