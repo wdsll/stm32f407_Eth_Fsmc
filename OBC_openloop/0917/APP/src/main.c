@@ -36,7 +36,6 @@
 #define CONTROL_LOOP_DT_S          (1.0f / (float)CONTROL_LOOP_HZ)
 /* 主循环一次最多处理的 tick，超过将计数为丢弃（避免主循环长时间占用） */
 #define MAX_TICKS_PER_LOOP         (5U)
-static float s_pfc_bus_v_from_cap = 0.0f;
 /*********************************************************************************************************
 *                                              枚举结构体
 *********************************************************************************************************/
@@ -235,46 +234,6 @@ static inline float f_minf(float a,float b){ return a < b ? a : b; }
 static inline float f_maxf(float a,float b){ return a > b ? a : b; }
 static inline float f_clampf(float x,float lo,float hi)
 { return x<lo?lo:(x>hi?hi:x); }
-
-/* 根据 PA3/PA1 捕获到的占空比计算母线电压（单位：V）
- * duty 取值范围 0.0~1.0
- * 公式来源：Vs = D*5.156 - 0.0067;  Vbus = Vs * (805.3/5.3)
- */
-
-static inline float pfc_vbus_from_cap_duty(float duty)
-{
-#if 0
-    if (duty < 0.0f) 
-			duty = 0.0f;
-    else if (duty > 1.0f) 
-			duty = 1.0f;
-
-    const float Vref    = 5.1f;           /* REF 电压 */
-    const float Voffset = 0.788f;          /* 前端偏置 */
-    const float Kdiv    = 833.0f / 33.0f;    /* (Rup+Rdown)/Rdown ≈ 151.94 */
-
-    float Vs = Vref - (float)(1 - duty + 0.0560f)*(Vref - Voffset);
-    if (Vs < 0.0f) 
-			Vs = 0.0f;
-
-    return Vs * Kdiv;   /* 单位：V */
-
-    const float k = 102.75f;
-    const float b = 14.41f;
-
-    float duty = (vbus_target - b) / k;
-    if (duty < 0.0f) duty = 0.0f;
-    else if (duty > 1.0f) duty = 1.0f;
-    return duty;
-#endif
-	  if (duty < 0.0f) 
-			duty = 0.0f;
-    else if (duty > 1.0f) 
-			duty = 1.0f;
-
-			return 92.993f + 590.54f * duty;   // 5.9054 * 100 ≈ 590.54
-}
-
 
 static inline uint32_t elapsed_since(uint32_t start_ms)
 {
@@ -800,7 +759,7 @@ void pfc_app_init()
 	s_pfc_bus_v = 0.0f;
 	
 #if LLC_BYPASS_PFC_CONTROL
-	s_pfc_app.state = PFC_ST_IDLE;
+	s_pfc_app.state = PFC_ST_READY;
 	s_pfc_app.entry_ms = g_ms;
 	s_pfc_app.vbus_ok_since_ms = g_ms;
 	s_pfc_app.dropout_since_ms = 0U;
@@ -860,57 +819,6 @@ void pfc_app_force_off()
 		 pfc_state_enter(PFC_ST_IDLE);
 	}
 #endif
-}
-void pfc_app_tick_1khz_test()
-{
-	s_pfc_bus_v = s_pfc_bus_v_from_cap;
-	static uint8_t s_pfc_clear_sent = 0;  // 防抖，只发一次
-	
-	switch(s_pfc_app.state)
-	{
-		case PFC_ST_IDLE:
-			/* 未使能 → 保持硬件关闭并清计时 */
-			if(!s_pfc_app.enable_cmd)
-			{
-				if(s_pfc_hw_enabled)
-				{
-					pfc_hw_set_enable(false);
-					s_pfc_hw_enabled = false; // 更新状态
-				}
-				// 重置启动命令计时器和电压稳定计时器
-				s_pfc_app.startup_cmd_ms = 0U;
-				s_pfc_app.vbus_ok_since_ms = 0U;
-				break;
-			}
-			// 如果启动命令计时器未初始化，则初始化
-			if(s_pfc_app.startup_cmd_ms == 0U)
-			{
-				s_pfc_app.startup_cmd_ms = g_ms;
-			}
-			//PFC_STARTUP_DELAY_MS ：启动延时，确保 PFC 硬件在启用前等待足够时间。
-    /* 达到启动延时后，允许上电驱动 */
-    if (elapsed_reached(s_pfc_app.startup_cmd_ms, PFC_STARTUP_DELAY_MS) && !s_pfc_hw_enabled) {
-				if(s_pfc_bus_v > 300.0f)
-				{
-					 pfc_hw_set_enable(true);
-					s_pfc_hw_enabled = true;
-				}
-
-    }
-		break;
-		case PFC_ST_READY:
-			// 检查是否收到禁用命令
-			if(!s_pfc_app.enable_cmd)
-			{
-				pfc_state_enter(PFC_ST_IDLE);
-				break;
-			}
-			break;
-		case PFC_ST_FAULT:
-			
-		default:
-			break;
-	}
 }
 void pfc_app_tick_1khz(float vbus_v)
 {
@@ -1176,9 +1084,6 @@ static void llc_state_enter(llc_state_t next)
 void llc_app_init()
 {
 	llc_state_enter(ST_WAIT_VBUS);
-	 /* 初始化时不启动 LLC 延时计数，等 PFC_EN 高了再由
-       llc_app_tick_1khz_withoutVbus() 里面去设置 entry_ms */
-    s_llc_app.entry_ms = 0U;
 }
 void llc_app_tick_1khz(void)
 {
@@ -1268,6 +1173,32 @@ void llc_app_tick_1khz(void)
 
 void llc_app_tick_1khz_withoutVbus(void)
 {
+	/* 只处理 LLC：不看母线电压、不看AUX，仅做故障保护 + 固定延时启动 + 开环/软启动推进 */
+    static uint8_t s_llc_clear_sent = 0;
+    static bool    ol_started = false;  /* 防止在 RUN 状态下重复 open-loop start */
+	    if (protect_fault_latched() || protect_fault_active_hw()
+#if !LLC_BYPASS_PFC_CONTROL
+        || pfc_app_state() == PFC_ST_FAULT
+#endif
+        )
+    {
+        if (s_llc_app.state != ST_FAULT) {
+            llc_state_enter(ST_FAULT);
+            ol_started = false;
+        }
+        return;
+    }
+		
+		//adc_multi_copy(); 
+		//adc_multi_sample_aux_1khz();
+	
+    //float vout = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
+		
+		//float v3v3 = (g_adc_multi.v3v3_raw * VREF_ADC) / 4095.0f;
+		//float v3v3 = conv_adc_to_v_div(g_adc_multi.v3v3_raw,V3V3_RTOP_OHM,V3V3_RBOT_OHM);
+		//float vbat = conv_adc_to_v_div(g_adc_multi.vbt_raw, VBT_RTOP_OHM, VBT_RBOT_OHM);
+		//aux_power_monitor_update(v3v3, vbat);
+		//s_llc.vmeas = vout;
 		switch (s_llc_app.state)
 		{
 			  /* 这些状态统一当作“等待固定启动延时”，不做任何母线/AUX判断 */
@@ -1275,33 +1206,38 @@ void llc_app_tick_1khz_withoutVbus(void)
         case ST_WAIT_AUX:
         case ST_WAIT_VBUS:
 				{
-					  /* 1. 先看 PFC 是否已经 EN 高（由 pfc_hw_set_enable 控制 s_pfc_hw_enabled） */
-            if (!s_pfc_hw_enabled) {
-                /* PFC 还没使能：LLC 绝对不启动，计时清零 */
-                s_llc_app.entry_ms = 0U;
-                // 保险起见，保持 LLC PWM 关闭
-                llc_pwm_outputs_enable(0);
-                break;
-            }
-
-            /* 2. 第一次检测到 PFC 已经 EN 高时，开始计 LLC 的启动延时 */
             if (s_llc_app.entry_ms == 0U) {
                 s_llc_app.entry_ms = g_ms;
             }
-
-            /* 3. PFC_EN 置高之后，延时 LLC_START_DELAY_MS 再进入 RUN */
             if (elapsed_reached(s_llc_app.entry_ms, LLC_START_DELAY_MS)) {
-                llc_state_enter(ST_LLC_RUN);   // 里面会设置 f_cmd，并打开 PWM 输出
+                //pfc_hw_set_relay(true);              /* 若未接硬件或宏未定义，此函数内部已做空操作保护 */
+                llc_state_enter(ST_LLC_RUN);         /* 进入 RUN：在 llc_state_enter 中会做一次性初始化 */
+                ol_started = false;
             }
         } break;
+
         case ST_LLC_RUN:
-					//llc_pwm_set_freq((uint32_t)s_llc.f_cmd);
-					/* 频率真正下发由 control_loop_tick_1khz 统一做 */
+					llc_pwm_set_freq((uint32_t)s_llc.f_cmd);
 						break;
-				case ST_FAULT:
-					
+						case ST_FAULT:
         default:
-         /* 故障恢复逻辑可以后面再加，这里先保持停机 */
+        {
+            /* 自动重试：故障脚释放 + 到达重试延时 → 清软件/硬件锁存，回到 IDLE 等延时再起 */
+            bool hw_active = protect_fault_active_hw();
+            if (!hw_active && elapsed_reached(s_llc_app.entry_ms, PFC_RESTART_DELAY_MS)) {
+                if (protect_fault_latched()) {
+                    protect_clear_fault();
+                }
+                if (!s_llc_clear_sent) {
+                    protect_hw_clear_pulse(10); /* 10 ms；按你锁存清除时序需要可调 */
+                    s_llc_clear_sent = 1;
+                }
+                pfc_hw_set_relay(false);
+                llc_state_enter(ST_IDLE);
+                s_llc_clear_sent = 0;
+                ol_started = false;
+            }
+        } 
 				break;
 		}
 }
@@ -1320,49 +1256,54 @@ static void control_loop_tick_1khz(void){
 		//adc_multi_sample_aux_1khz();
 	
     float vout = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
-	  static float vout_filt = 0.0f;
-    const float VOUT_IIR_ALPHA = 0.20f;
-    vout_filt += VOUT_IIR_ALPHA * (vout - vout_filt);
-    s_llc.vmeas = vout_filt;
 		//float v3v3 = (g_adc_multi.v3v3_raw * VREF_ADC) / 4095.0f;
 		//float v3v3 = conv_adc_to_v_div(g_adc_multi.v3v3_raw,V3V3_RTOP_OHM,V3V3_RBOT_OHM);
 		//float vbat = conv_adc_to_v_div(g_adc_multi.vbt_raw, VBT_RTOP_OHM, VBT_RBOT_OHM);
 	
 		//aux_power_monitor_update(v3v3, vbat);
-    //s_llc.vmeas = vout;
+    s_llc.vmeas = vout;
 		//pfc_app_tick_1khz(vout);
 		//llc_app_tick_1khz();
-		pfc_app_tick_1khz_test();
-		/* 3. LLC 状态机（只关心故障 → RUN/FAULT 切换） */
+	  //llc_state_enter(ST_LLC_RUN);
 		llc_app_tick_1khz_withoutVbus();
 		bool llc_running = (llc_app_state() == ST_LLC_RUN);
+#if Bus_Adj
+		bus_vol_adj_tick(vout, llc_running);
+#endif
 		if(llc_running)
 		{
-			  /* 4. 闭环 PI：根据 Vref - Vmeas 调整频率命令（带斜率限幅） */
-        //llc_step(&s_llc);
-
-        /* 5. 将频率命令真正下发给 PWM 定时器 */
-        llc_pwm_set_freq((uint32_t)s_llc.f_cmd);
-			
-			  /* 6. 调试打印：降低频率，避免串口把 CPU 打爆 */
-				//static uint32_t s_dbg_div = 0;
-				//if (++s_dbg_div >= 100) {   // 每 100 ms 打一次
-						//s_dbg_div = 0;
-						//float e = s_llc.vref - s_llc.vmeas;
-						//debug_printf("Vout=%.2f V, Vref=%.2f V, e=%.2f V, f_cmd=%.1f Hz\r\n",
-												// s_llc.vmeas, s_llc.vref, e, s_llc.f_cmd);
-				}
-		//}
+			llc_softstart_tick();
+#if LLC_USE_OPEN_LOOP
+		/* ---------- 开环扫频过程 ---------- */
+		if(!s_llc_open_loop_completed)
+		{
+			llc_open_loop_tick(&s_llc_open_loop);
+			float freq = f_clampf(llc_open_loop_get_freq(&s_llc_open_loop),s_llc.f_min,s_llc.f_max);
+			s_llc.f_cmd = freq;
+			 /* 判断是否已停止运行（即扫频完成） */
+			if(!llc_open_loop_running(&s_llc_open_loop))
+			{
+				s_llc_open_loop_final_freq = freq;
+				s_llc_open_loop_completed = true;
+#if defined(DEBUG_PRINTF_LLC_OPENLOOP)
+        debug_printf("[LLC-OpenLoop] completed: %.1f Hz\n", freq);
+#endif
+			}
+		}
+#else
+			//llc_step(&s_llc);
+#endif
+		}
+    //llc_pwm_set_freq((uint32_t)s_llc.f_cmd);
+		protect_hw_clear_pulse_tick();
 }
-
-
 int main(void){
 
 	  InitRCU();
 		nvic_priority_group_set(NVIC_PRIGROUP_PRE2_SUB2);
 
 	  debug_printf_init(DEBUG_PRINTF_DEFAULT_BAUDRATE);
-	  //debug_printf("Debug console initialized @%lu baud\n", (unsigned long)DEBUG_PRINTF_DEFAULT_BAUDRATE);
+	  debug_printf("Debug console initialized @%lu baud\n", (unsigned long)DEBUG_PRINTF_DEFAULT_BAUDRATE);
 	
 		systick_1ms_init();
     /* LLC complementary PWM 配置LLC的PWM频率 、死区时间和占空比，并初始化PWM模块*/
@@ -1370,27 +1311,43 @@ int main(void){
     llc_pwm_init(&lcfg);
 
     /* Aux PWM on PB0 */
-		pb0_pwm_init(PB0_PWM_BASE_HZ);
+		//pb0_pwm_init(PB0_PWM_BASE_HZ);
 		
 		#if Bus_Adj
 		bus_vol_adj_init();
 		#else
-		pb0_pwm_set_duty(0.25f);
-	#endif
-		 /* 3. 多路 ADC + DMA，用于采样 Vout 等 */
-		adc_multi_init_dma(ADC0_1_EXTTRIG_REGULAR_T0_CH2); 
-    	adc_multi_start();
+		//pb0_pwm_set_duty(0.5f);
+		#endif
 		
-		cap_pa01_init();
+    /* ADC multi (PA3/PA1 removed) triggered by TIMER0 CH2 for coherence */
+    //adc_multi_init_dma(ADC0_1_EXTTRIG_REGULAR_T0_CH2); 
+    //adc_multi_start();
+
+    /* PA0 & PA1 input capture */
+    //cap_pa01_init();
+
+    /* Protection EXTI PC11 */
+    protect_exti_init();
+		
+		/* after protect_exti_init(); */
+if (!protect_fault_active_hw() && protect_fault_latched()) {
+    /* BKIN已高、电路无真故障，但软件还记着旧标志 → 清软件 + 清硬件锁存 */
+    protect_clear_fault();
+    protect_hw_clear_pulse(10);   // 10ms 够用；你的硬件若更慢可调到 20ms
+}
+
     /* LLC control default。初始化LLC的控制参数，包括目标电压、PID参数、频率范围和初始频率。*/
     s_llc = (llc_t){ 
 			.vref=VBUS_TARGET_V, .vmeas=0.0f, .kp=0.01f, .ki=0.0005f,
       .f_min=LLC_F_MIN_HZ, .f_max=LLC_F_MAX_HZ, .f_cmd=LLC_F_INIT_HZ, .f_slew=LLC_F_SLEW_HZ 
 		};
- /* 5. LLC 状态机：先进入 WAIT_VBUS，等待启动延时到再进 RUN */
-		llc_app_init();
+#if LLC_USE_OPEN_LOOP
+		llc_open_loop_init(&s_llc_open_loop, s_llc_open_loop_profile, sizeof(s_llc_open_loop_profile)/sizeof(s_llc_open_loop_profile[0]));
+		s_llc_open_loop_completed = false;
+		s_llc_open_loop_final_freq = f_clampf(LLC_F_INIT_HZ, s_llc.f_min, s_llc.f_max);
+#endif
 		pfc_app_init();
-
+		llc_app_init();
 	  pfc_hw_set_relay(true);
 		
 		
@@ -1406,8 +1363,8 @@ int main(void){
 			__enable_irq();
 			while(pending_ticks-- > 0U)
 			{
-				control_loop_tick_1khz();
-				//llc_app_tick_1khz_withoutVbus();
+				//control_loop_tick_1khz();
+				llc_app_tick_1khz_withoutVbus();
 				// 防止单次主循环处理过多 tick
 					if(pending_ticks > MAX_TICKS_PER_LOOP)
 					{
@@ -1415,34 +1372,6 @@ int main(void){
 						pending_ticks = MAX_TICKS_PER_LOOP;
 					}
 			}
-/* PA3 捕获占空比 → 母线电压（带简单滤波与有效性判断） */
-			if (cap_pa0_read_duty(&duty0))
-			{
-				/* 忽略极端值（信号丢失/上电毛刺）：根据实测可以再缩窄一点 */
-				const float DUTY_MIN_VALID = 0.01f;
-				const float DUTY_MAX_VALID = 0.99f;
-
-				if (duty0 > DUTY_MIN_VALID && duty0 < DUTY_MAX_VALID)
-				{
-						float vbus_inst = pfc_vbus_from_cap_duty(duty0);
-
-						/* 一阶 IIR 低通滤波：alpha 越小越平滑，越大越跟得快 */
-						const float alpha = 0.2f;
-						s_pfc_bus_v_from_cap =
-								(1.0f - alpha) * s_pfc_bus_v_from_cap +
-								alpha * vbus_inst;
-				}
-				/* else: duty 明显异常，就保持上一帧 s_pfc_bus_v_from_cap 不变 */
-			}
-
-			 if(cap_pa1_read_duty(&duty1)){
-					(void)duty1;
-			}
-			if(llc_app_state() == ST_FAULT)
-			{
-				llc_pwm_outputs_enable(0);
-			}
-			__NOP();
     }
 }
 

@@ -80,7 +80,7 @@
 /* ==== LLC frequency window ==== */
 #define LLC_F_MIN_HZ        (72000.0f)
 #define LLC_F_MAX_HZ        (130000.0f)
-#define LLC_F_INIT_HZ       (75000.0f)
+#define LLC_F_INIT_HZ       (91000.0f)
 #define LLC_F_SLEW_HZ       (500.0f)
 #define LLC_F_DEBUG_HZ      (130000.0f)
 
@@ -184,7 +184,7 @@ static inline uint8_t irq_priority_encode(uint8_t preempt, uint8_t sub)
 #define PFC_VBUS_READY_V            (360.0f)
 #define PFC_VBUS_READY_HYST_V       (10.0f)
 #define PFC_READY_DELAY_MS          (200U)
-#define PFC_STARTUP_DELAY_MS        (2000U)
+#define PFC_STARTUP_DELAY_MS        (20U)
 #define PFC_VBUS_DROPOUT_MS         (200U)
 #define PFC_RESTART_DELAY_MS        (1000U)
 #define PFC_VBUS_DROPOUT_THRESHOLD  (PFC_VBUS_READY_V - 15.0f)  /* 345V, increased from 350V */
