@@ -143,23 +143,47 @@ static inline uint8_t irq_priority_encode(uint8_t preempt, uint8_t sub)
 
 
 /* ADC channel map (PA0/PA1 removed) */
+#define AC_VOL_SAMPLE      ADC_CHANNEL_1   /* PA1 AC 电压采样*/
+#define FAN_CS      			 ADC_CHANNEL_2   //风扇电流/状态采样
+
+#define BUS_VOL_SAMPLE     ADC_CHANNEL_3   //母线电压保护通道（用于 OVP/OCP 计算）
+
 #define VOUT_SENSE_CH      ADC_CHANNEL_5   /* PA5 */
 #define ADC_ISENSE_CH      ADC_CHANNEL_6   /* PA6 */
-#define ADC_TSENSE_CH      ADC_CHANNEL_7   /* PA7 */
-#define AD_3V3_CH          ADC_CHANNEL_14  /* PC4 */ 
-#define VBT_SENSE_CH       ADC_CHANNEL_15  /* PC5 */
-#define T_SENSE_LLCMOS_CH  ADC_CHANNEL_9   /* PB1 */
+#define T_SENSE_PFC_MOS    ADC_CHANNEL_7   /* PA7 PFC MOS 管温度 NTC 采样*/
+#define AD_3V3_CH          ADC_CHANNEL_14  /* PC4 3.3V 模拟电源监测（AD_3V3）*/ 
+#define VBT_SENSE_CH       ADC_CHANNEL_15  /* PC5 电池端电压采样*/
+#define T_SENSE_LLCMOS_CH  ADC_CHANNEL_9   /* PB1 LLC MOS 管温度 NTC 采样*/
 
 
 #if 1
-#define PFC_MAIN_RELAY_PORT     GPIOB
+#define PFC_MAIN_RELAY_PORT     GPIOB  //直流输出继电器控制
 #define PFC_MAIN_RELAY_PIN     	GPIO_PIN_14 
 #define PFC_MAIN_RELAY_RCU			RCU_GPIOB
 #endif 
 
-#define PFC_EN_PORT     GPIOC
+#define PFC_EN_PORT     GPIOC  //PFC 预充/继电器使能控制
 #define PFC_EN_PIN     	GPIO_PIN_10  
 #define PFC_EN_RCU			RCU_GPIOC
+
+#define PFC_FAULT_PORT          GPIOB
+#define PFC_FAULT_PIN           GPIO_PIN_12
+
+#define LLC_EN_PORT             GPIOC
+#define PLLC_EN_PIN             GPIO_PIN_11
+
+//#define PWM_BKIN_PORT           GPIOC
+//#define PWM_BKIN_PIN            GPIO_PIN_12
+
+#define LED_Y_PORT              GPIOC
+#define LED_Y_PIN               GPIO_PIN_7
+#define LED_G_PORT              GPIOC
+#define LED_G_PIN               GPIO_PIN_8
+#define LED_R_PORT              GPIOC
+#define LED_R_PIN               GPIO_PIN_9
+
+#define FAN_CTL_PORT            GPIOC
+#define FAN_CTL_PIN             GPIO_PIN_12
 
 /* --- PFC 改进：更宽松的 READY 退出门限与延时 --- */
 #ifndef PFC_VBUS_DROPOUT_THRESHOLD_V
