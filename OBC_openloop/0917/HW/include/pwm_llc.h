@@ -3,7 +3,7 @@
 
 #include "gd32f30x.h"
 #include <stdint.h>
-//#include <stdbool.h>
+#include <stdbool.h>
 
 
 typedef struct { 

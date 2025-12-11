@@ -617,6 +617,16 @@
               <FileType>1</FileType>
               <FilePath>.\HW\src\pfc_control.c</FilePath>
             </File>
+            <File>
+              <FileName>aux_power.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\HW\src\aux_power.c</FilePath>
+            </File>
+            <File>
+              <FileName>aux_power.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\APP\include\aux_power.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -645,7 +655,7 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>New Group</GroupName>
+          <GroupName>Simulink</GroupName>
         </Group>
         <Group>
           <GroupName>::CMSIS</GroupName>

@@ -3,8 +3,6 @@
 static volatile uint8_t s_fault = 0;
 static volatile uint8_t s_fault_latched = 0;
 
-
-
 /* 触发后的统一处理：置位软件锁存 + 关 PWM（BKIN 已经硬件关，但软件也一起做） */
 static void protect_fault_trigger(void)
 {

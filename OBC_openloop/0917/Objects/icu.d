@@ -33,4 +33,5 @@
   GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_misc.h \
   GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_exmc.h \
   GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_enet.h \
-  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdlib.h
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdlib.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdbool.h

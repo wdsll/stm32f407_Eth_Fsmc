@@ -16,3 +16,5 @@ void pfc_app_tick_1khz(float vbus_v);
 pfc_state_t pfc_app_state(void);
 bool pfc_app_ready(void);
 float pfc_bus_voltage(void);
+static inline bool pfc_ready_for_llc(void);
+void pfc_hw_set_relay(bool closed);

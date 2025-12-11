@@ -85,6 +85,7 @@ void bus_vol_adj_init(void)
 }
 //这段代码的主要目的是实现一个基于比例积分（PI）控制的电压调节器，用于动态调整 PWM（脉宽调制）的占空比，以维持目标总线电压（ target_v ）的稳定。
 //当总线电压（ vbus ）偏离目标值时，代码通过 PI 控制算法计算新的占空比，并通过 pb0_pwm_set_duty 函数设置 PWM 输出。
+/*
 void bus_vol_adj_tick(float vbus,bool enabled)
 {
 	if(!enabled)
@@ -117,3 +118,4 @@ void bus_vol_adj_tick(float vbus,bool enabled)
 		pb0_pwm_set_duty(s_bus_adj.duty_cmd);
 	}
 }
+*/

@@ -21,6 +21,7 @@
 *********************************************************************************************************/
 #include "gd32f30x_conf.h"
 #include <stdint.h>
+#include <stdbool.h>
 /*********************************************************************************************************
 *                                              宏定义
 *********************************************************************************************************/
@@ -239,6 +240,24 @@ typedef struct
 	bool power_ok;
 } aux_power_monitor_t;
 
+
+extern volatile uint32_t g_ms;
+
+static inline uint32_t elapsed_since(uint32_t start_ms)
+{
+  return (start_ms == 0U) ? 0U : (uint32_t)(g_ms - start_ms);
+}
+
+static inline bool elapsed_reached(uint32_t start_ms, uint32_t duration_ms)
+{
+	if (duration_ms == 0) {
+					return true;
+	}
+	if (start_ms == 0) {
+					return false;
+	}
+	return elapsed_since(start_ms) >= duration_ms;
+}
 /*********************************************************************************************************
 *                                              API函数声明
 *********************************************************************************************************/

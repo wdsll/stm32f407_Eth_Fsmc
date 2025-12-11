@@ -1,5 +1,5 @@
-./objects/protect_exti.o: HW/src/protect_exti.c HW/include\protect_exti.h \
-  APP/include\main.h ARM/include\gd32f30x_conf.h \
+./objects/aux_power.o: HW/src/aux_power.c APP/include\aux_power.h \
+  APP/include/main.h ARM/include\gd32f30x_conf.h \
   GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_adc.h \
   GD32_SYSTEM/Firmware/CMSIS/GD/GD32F30x/Include\gd32f30x.h \
   C:/Users/huyan/AppData/Local/Arm/Packs/ARM/CMSIS/5.9.0/CMSIS/Core/Include\core_cm4.h \
@@ -34,4 +34,4 @@
   GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_exmc.h \
   GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_enet.h \
   C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdlib.h \
-  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdbool.h HW/include\pwm_llc.h
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdbool.h
