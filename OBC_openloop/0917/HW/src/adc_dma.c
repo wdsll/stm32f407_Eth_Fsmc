@@ -1,6 +1,7 @@
 #include "add_dma.h"
 #include "main.h"
 #include "systick.h"
+#include "Debug_printf.h"
 volatile adc_multi_frame_t g_adc_multi;
 
 // ADC状态标志

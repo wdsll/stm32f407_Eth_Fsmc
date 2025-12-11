@@ -216,31 +216,6 @@ static inline uint8_t irq_priority_encode(uint8_t preempt, uint8_t sub)
 /*********************************************************************************************************
 *                                              枚举结构体
 *********************************************************************************************************/
-typedef enum 
-{ 
-	ST_IDLE=0, ST_WAIT_AUX, ST_WAIT_VBUS, ST_LLC_RUN, ST_FAULT 
-} llc_state_t;
-//vmeas：实际测量到的电压 
-//integ：积分器的当前累积值（积分状态），通常会在饱和或模式切换时清零或软限制以防风up。
-typedef struct {
-	float vref, vmeas;
-	float kp, ki, integ;
-	float f_min, f_max, f_cmd, f_slew;
-} llc_t;
-
-typedef struct
-{
-	float v3v3_v;
-	float vbat_v;
-	float v3v3_min_v;
-	float vbat_min_v;
-	uint32_t last_update_ms;
-	uint32_t drop_detected_ms; //电压下降被检测到的时间戳
-	uint32_t restore_detected_ms; //电压恢复被检测到的时间戳
-	bool power_ok;
-} aux_power_monitor_t;
-
-
 extern volatile uint32_t g_ms;
 
 static inline uint32_t elapsed_since(uint32_t start_ms)
@@ -263,10 +238,8 @@ static inline bool elapsed_reached(uint32_t start_ms, uint32_t duration_ms)
 *********************************************************************************************************/
 
 
-void llc_app_init(void);
-void llc_app_tick_1khz(void);
-llc_state_t llc_app_state(void);
-void llc_step(llc_t* l);
-static inline float f_clampf(float x,float lo,float hi);
+
+static inline float f_clampf(float x,float lo,float hi)
+{ return x<lo?lo:(x>hi?hi:x); }
 void delay_ms(uint32_t duration_ms);
 #endif

@@ -558,11 +558,6 @@
               <FilePath>.\HW\src\pwm_llc.c</FilePath>
             </File>
             <File>
-              <FileName>pwm_llc.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\HW\include\pwm_llc.h</FilePath>
-            </File>
-            <File>
               <FileName>ICU.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\HW\src\ICU.c</FilePath>
@@ -576,6 +571,11 @@
               <FileName>pwm.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\HW\src\pwm.c</FilePath>
+            </File>
+            <File>
+              <FileName>pwm_llc.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\HW\include\pwm_llc.h</FilePath>
             </File>
             <File>
               <FileName>pwm.h</FileName>
@@ -626,6 +626,16 @@
               <FileName>aux_power.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\APP\include\aux_power.h</FilePath>
+            </File>
+            <File>
+              <FileName>llc_control.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\HW\src\llc_control.c</FilePath>
+            </File>
+            <File>
+              <FileName>llc_control.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\HW\include\llc_control.h</FilePath>
             </File>
           </Files>
         </Group>
