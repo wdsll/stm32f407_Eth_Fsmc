@@ -22,6 +22,19 @@
 #include "gd32f30x_conf.h"
 #include <stdint.h>
 #include <stdbool.h>
+#include <math.h>
+#include "add_dma.h"
+#include "pwm_llc.h"
+#include "RCU.h"
+#include "ICU.h"
+#include "debug_printf.h"
+#include "pwm.h"
+#include "protect_exti.h"
+#include "llc_open_loop.h"
+#include "aux_power.h"
+#include "pfc_control.h"
+#include "llc_control.h"
+#include "llc_soft_start.h"
 /*********************************************************************************************************
 *                                              宏定义
 *********************************************************************************************************/
@@ -66,17 +79,18 @@
 #define LLC_PWM_DUTY        (0.50f)
 
 #ifndef LLC_SOFTSTART_ENABLE
-#define LLC_SOFTSTART_ENABLE        (0)
+#define LLC_SOFTSTART_ENABLE        (1)
 #endif
 /* ==== LLC_SOFTSTART ==== */
-#define LLC_SOFTSTART_DURATION_MS     100U      // 软启动总时长
+#define LLC_SOFTSTART_DURATION_MS     300U      // 软启动总时长
 #define LLC_SOFTSTART_MIN_DURATION_MS 20U  
 #define LLC_SOFTSTART_START_DUTY      0.10f    // 起始占空（0~1）
 #define LLC_SOFTSTART_TARGET_DUTY     0.50f    // 默认目标占空（0~1），可在 begin() 传入覆盖
 #define LLC_SOFTSTART_FAILSAFE_DUTY   0.00f    // 故障时退回占空
 #define LLC_SOFTSTART_USE_COSINE_EASE 1        // 1: 余弦S曲线；0: 指数曲线
 #define LLC_SOFTSTART_EXP_K           3.0f     // 指数陡峭度（越大前期越缓）
-#define LLC_SOFTSTART_EXTRA_MARGIN      (0.01f)   /* 安全窗额外余量（防抖） */
+#define LLC_SOFTSTART_EXTRA_MARGIN      (0.02f)   /* 安全窗额外余量（防抖） */
+#define LLC_SOFTSTART_TICK_MS         (0.1f)
 
 /* ==== LLC frequency window ==== */
 #define LLC_F_MIN_HZ        (72000.0f)

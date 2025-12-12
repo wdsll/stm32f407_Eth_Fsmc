@@ -1,9 +1,6 @@
 #ifndef PWM_LLC_H
 #define PWM_LLC_H
-
-#include "gd32f30x.h"
-#include <stdint.h>
-#include <stdbool.h>
+#include "main.h"
 
 
 typedef struct { 

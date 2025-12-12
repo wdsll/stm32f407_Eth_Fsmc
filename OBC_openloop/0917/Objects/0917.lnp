@@ -1,5 +1,6 @@
 --cpu=Cortex-M4.fp
 ".\objects\main.o"
+".\objects\llc_soft_start.o"
 ".\objects\gd32f30x_adc.o"
 ".\objects\gd32f30x_bkp.o"
 ".\objects\gd32f30x_can.o"
@@ -41,6 +42,7 @@
 ".\objects\systick.o"
 ".\objects\startup_gd32f30x_hd.o"
 ".\objects\system_gd32f30x.o"
+".\objects\mcu_control.o"
 --library_type=microlib --strict --scatter ".\Objects\0917.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers

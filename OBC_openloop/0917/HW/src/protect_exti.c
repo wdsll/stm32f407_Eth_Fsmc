@@ -1,5 +1,5 @@
 #include "protect_exti.h"
-#include "pwm_llc.h"
+
 static volatile uint8_t s_fault = 0;
 static volatile uint8_t s_fault_latched = 0;
 

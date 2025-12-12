@@ -41,5 +41,5 @@
   C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stddef.h \
   C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdarg.h HW/include\pwm.h \
   HW/include\protect_exti.h HW/include\llc_open_loop.h \
-  APP/include\aux_power.h HW/include\pfc_control.h \
-  HW/include\llc_control.h
+  APP/include/aux_power.h APP/include/main.h HW/include\pfc_control.h \
+  HW/include\llc_control.h APP/include/llc_soft_start.h

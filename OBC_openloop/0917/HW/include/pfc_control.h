@@ -1,14 +1,13 @@
+#ifndef PFC_CONTROL_H_
+#define PFC_CONTROL_H_
 #include "main.h"
+
 typedef enum {
         PFC_ST_IDLE = 0,
         //PFC_ST_CHARGING,
         PFC_ST_READY,
         PFC_ST_FAULT
 } pfc_state_t;
-
-
-
-
 void pfc_app_init(void);
 void pfc_app_request_start(void);
 void pfc_app_force_off(void);
@@ -18,3 +17,4 @@ bool pfc_app_ready(void);
 float pfc_bus_voltage(void);
 static inline bool pfc_ready_for_llc(void);
 void pfc_hw_set_relay(bool closed);
+#endif

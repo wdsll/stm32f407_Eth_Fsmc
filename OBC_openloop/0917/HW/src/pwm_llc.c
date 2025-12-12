@@ -1,6 +1,6 @@
 
 #include "pwm_llc.h"
-#include "main.h"
+
 
 //GPIO：高臂、低臂、N 输出都用 AF_PP；BKIN=PB12 用 上拉输入。
 //死区：确认 bdtr_deadtime_code_ns(350ns, 108MHz) 得到约 0x26（≈352ns）。

@@ -1,11 +1,12 @@
+
 /*
  * File: MCU_Control.c
  *
  * Code generated for Simulink model 'MCU_Control'.
  *
- * Model version                  : 1.3
+ * Model version                  : 1.6
  * Simulink Coder version         : 9.3 (R2020a) 18-Nov-2019
- * C/C++ source code generated on : Thu Dec 11 11:03:47 2025
+ * C/C++ source code generated on : Thu Dec 11 15:42:27 2025
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: Intel->x86-64 (Windows64)
@@ -45,7 +46,7 @@ void MCU_Control_step(void)
    *
    *  Store in Global RAM
    */
-  rtb_Step_target_duty1 = ((MCU_Control_M->Timing.clockTick1) * 0.0001);
+  rtb_Step_target_duty1 = ((MCU_Control_M->Timing.clockTick0) * 0.0001);
   MCU_Control_DW.DelayInput1_DSTATE = !(rtb_Step_target_duty1 < 0.0005);
 
   /* Step: '<S1>/Step_target_duty1' */
@@ -165,46 +166,16 @@ void MCU_Control_step(void)
 
   /* Update absolute time for base rate */
   /* The "clockTick0" counts the number of times the code of this task has
-   * been executed. The absolute time is the multiplication of "clockTick0"
-   * and "Timing.stepSize0". Size of "clockTick0" ensures timer will not
-   * overflow during the application lifespan selected.
+   * been executed. The resolution of this integer timer is 0.0001, which is the step size
+   * of the task. Size of "clockTick0" ensures timer will not overflow during the
+   * application lifespan selected.
    */
-  MCU_Control_M->Timing.t[0] =
-    ((time_T)(++MCU_Control_M->Timing.clockTick0)) *
-    MCU_Control_M->Timing.stepSize0;
-
-  {
-    /* Update absolute timer for sample time: [0.0001s, 0.0s] */
-    /* The "clockTick1" counts the number of times the code of this task has
-     * been executed. The resolution of this integer timer is 0.0001, which is the step size
-     * of the task. Size of "clockTick1" ensures timer will not overflow during the
-     * application lifespan selected.
-     */
-    MCU_Control_M->Timing.clockTick1++;
-  }
+  MCU_Control_M->Timing.clockTick0++;
 }
 
 /* Model initialize function */
 void MCU_Control_initialize(void)
 {
-  /* Registration code */
-  {
-    /* Setup solver object */
-    rtsiSetSimTimeStepPtr(&MCU_Control_M->solverInfo,
-                          &MCU_Control_M->Timing.simTimeStep);
-    rtsiSetTPtr(&MCU_Control_M->solverInfo, &rtmGetTPtr(MCU_Control_M));
-    rtsiSetStepSizePtr(&MCU_Control_M->solverInfo,
-                       &MCU_Control_M->Timing.stepSize0);
-    rtsiSetErrorStatusPtr(&MCU_Control_M->solverInfo, (&rtmGetErrorStatus
-      (MCU_Control_M)));
-    rtsiSetRTModelPtr(&MCU_Control_M->solverInfo, MCU_Control_M);
-  }
-
-  rtsiSetSimTimeStep(&MCU_Control_M->solverInfo, MAJOR_TIME_STEP);
-  rtsiSetSolverName(&MCU_Control_M->solverInfo,"FixedStepDiscrete");
-  rtmSetTPtr(MCU_Control_M, &MCU_Control_M->Timing.tArray[0]);
-  MCU_Control_M->Timing.stepSize0 = 0.0001;
-
   /* SystemInitialize for MATLAB Function: '<S1>/llc_vref_softstart_step1' */
   MCU_Control_DW.duration_ms = 300.0;
 }
@@ -220,3 +191,4 @@ void MCU_Control_terminate(void)
  *
  * [EOF]
  */
+

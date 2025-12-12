@@ -1,7 +1,5 @@
 #include "pfc_control.h"
-#include "aux_power.h"
-#include "protect_exti.h"
-#include "debug_printf.h"
+
 
 typedef struct
 {

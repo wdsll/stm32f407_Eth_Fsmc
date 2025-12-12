@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define>USE_STDPERIPH_DRIVER,GD32F30X_HD,__FPU_PRESENT</Define>
               <Undefine></Undefine>
-              <IncludePath>.\APP\include;.\ARM\include;.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include;.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include;.\HW\include;.\GD32_SYSTEM\Firmware\CMSIS</IncludePath>
+              <IncludePath>.\APP\include;.\ARM\include;.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include;.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include;.\HW\include;.\GD32_SYSTEM\Firmware\CMSIS;.\Simulink</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -396,6 +396,16 @@
               <FileName>LLC开环 bring_up模式.txt</FileName>
               <FileType>5</FileType>
               <FilePath>.\LLC开环 bring_up模式.txt</FilePath>
+            </File>
+            <File>
+              <FileName>LLC_soft_start.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\APP\src\LLC_soft_start.c</FilePath>
+            </File>
+            <File>
+              <FileName>LLC_soft_start.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\APP\include\LLC_soft_start.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -666,6 +676,38 @@
         </Group>
         <Group>
           <GroupName>Simulink</GroupName>
+          <Files>
+            <File>
+              <FileName>defines.txt</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Simulink\defines.txt</FilePath>
+            </File>
+            <File>
+              <FileName>MCU_Control.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Simulink\MCU_Control.c</FilePath>
+            </File>
+            <File>
+              <FileName>MCU_Control.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Simulink\MCU_Control.h</FilePath>
+            </File>
+            <File>
+              <FileName>MCU_Control_private.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Simulink\MCU_Control_private.h</FilePath>
+            </File>
+            <File>
+              <FileName>MCU_Control_types.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Simulink\MCU_Control_types.h</FilePath>
+            </File>
+            <File>
+              <FileName>rtwtypes.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Simulink\rtwtypes.h</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>::CMSIS</GroupName>

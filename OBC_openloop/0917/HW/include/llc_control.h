@@ -2,8 +2,7 @@
 #define LLC_CONTROL_H
 
 #include "main.h"
-#include <stdbool.h>
-#include <stdint.h>
+
 typedef enum 
 { 
 	ST_IDLE=0, ST_WAIT_AUX, ST_WAIT_VBUS, ST_LLC_RUN, ST_FAULT 

@@ -1,17 +1,5 @@
 #include "llc_control.h"
 
-#include <math.h>
-
-#include "add_dma.h"
-#include "pwm_llc.h"
-#include "RCU.h"
-#include "ICU.h"
-#include "debug_printf.h"
-#include "pwm.h"
-#include "protect_exti.h"
-#include "llc_open_loop.h"
-#include "aux_power.h"
-#include "pfc_control.h"
 /*********************************************************************************************************
 *                                              内部变量定义
 *********************************************************************************************************/

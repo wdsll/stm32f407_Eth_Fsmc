@@ -1,11 +1,12 @@
+
 /*
  * File: MCU_Control.h
  *
  * Code generated for Simulink model 'MCU_Control'.
  *
- * Model version                  : 1.3
+ * Model version                  : 1.6
  * Simulink Coder version         : 9.3 (R2020a) 18-Nov-2019
- * C/C++ source code generated on : Thu Dec 11 11:03:47 2025
+ * C/C++ source code generated on : Thu Dec 11 15:42:27 2025
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: Intel->x86-64 (Windows64)
@@ -19,8 +20,6 @@
 #ifndef MCU_Control_COMMON_INCLUDES_
 # define MCU_Control_COMMON_INCLUDES_
 #include "rtwtypes.h"
-#include "rtw_continuous.h"
-#include "rtw_solver.h"
 #endif                                 /* MCU_Control_COMMON_INCLUDES_ */
 
 #include "MCU_Control_types.h"
@@ -32,14 +31,6 @@
 
 #ifndef rtmSetErrorStatus
 # define rtmSetErrorStatus(rtm, val)   ((rtm)->errorStatus = (val))
-#endif
-
-#ifndef rtmGetT
-# define rtmGetT(rtm)                  (rtmGetTPtr((rtm))[0])
-#endif
-
-#ifndef rtmGetTPtr
-# define rtmGetTPtr(rtm)               ((rtm)->Timing.t)
 #endif
 
 /* Block states (default storage) for system '<Root>' */
@@ -56,8 +47,7 @@ typedef struct {
 
 /* Real-time Model Data Structure */
 struct tag_RTM_MCU_Control_T {
-  const char_T *errorStatus;
-  RTWSolverInfo solverInfo;
+  const char_T * volatile errorStatus;
 
   /*
    * Timing:
@@ -66,11 +56,6 @@ struct tag_RTM_MCU_Control_T {
    */
   struct {
     uint32_T clockTick0;
-    time_T stepSize0;
-    uint32_T clockTick1;
-    SimTimeStep simTimeStep;
-    time_T *t;
-    time_T tArray[2];
   } Timing;
 };
 
@@ -89,12 +74,6 @@ extern RT_MODEL_MCU_Control_T *const MCU_Control_M;
  * These blocks were eliminated from the model due to optimizations:
  *
  * Block '<Root>/Scope2' : Unused code path elimination
- * Block '<S1>/Const_Vref_nom1' : Unused code path elimination
- * Block '<S1>/Product' : Unused code path elimination
- * Block '<S1>/Scope3' : Unused code path elimination
- * Block '<S1>/Step' : Unused code path elimination
- * Block '<S4>/IIR_smooth ' : Unused code path elimination
- * Block '<S4>/Switch' : Unused code path elimination
  */
 
 /*-
@@ -115,7 +94,6 @@ extern RT_MODEL_MCU_Control_T *const MCU_Control_M;
  * '<S1>'   : 'MCU_Control/open_loop'
  * '<S2>'   : 'MCU_Control/open_loop/Detect Increase'
  * '<S3>'   : 'MCU_Control/open_loop/llc_vref_softstart_step1'
- * '<S4>'   : 'MCU_Control/open_loop/vref_selector_smooth '
  */
 #endif                                 /* RTW_HEADER_MCU_Control_h_ */
 
@@ -124,3 +102,4 @@ extern RT_MODEL_MCU_Control_T *const MCU_Control_M;
  *
  * [EOF]
  */
+
