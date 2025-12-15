@@ -1,83 +1,164 @@
-功率因数校正（PFC）和 LLC 状态机
-## 辅助电源监控
-- 控制器在每个控制周期对 3.3 V 辅助电源轨和 VBAT 进行采样。
-- 只有当这两个测量值均保持在其阈值（分别为 3.0 V 和 10 V）之上时，电源才被视为正常。
-- `aux_power_ok_stable_since()` 函数在辅助电源稳定超过请求的去抖时间（PFC/LLC 使用 30 毫秒）后返回真。
-- `aux_power_brownout_stable()` 函数在辅助电源缺失超过其去抖时间（5 毫秒）后返回真，以确保波动的输入不会重新触发电源阶段。
-## 功率因数校正（PFC）状态机
-- **状态**：`PFC_ST_IDLE`（空闲）、`PFC_ST_READY`（就绪）、`PFC_ST_FAULT`（故障）。
-- **全局规则**：
-- 任何保护故障都会使状态机进入`PFC_ST_FAULT`状态。
-- 辅助电源确认出现低电压会立即强制转换到`PFC_ST_IDLE`状态，并禁用硬件输出。
-- **`PFC_ST_IDLE`**：
-- 等待辅助电源稳定 30 毫秒后才响应使能命令。
-- 一旦检测到使能命令，启动 20 毫秒的启动延迟（`startup_cmd_ms`）；只有在延迟结束后，PFC 使能引脚才会被置位。
-- 监测母线电压，并要求其保持在 360 伏以上 200 毫秒，然后进入`PFC_ST_READY`状态。
-- **`PFC_ST_READY`**：
-- 只要使能命令存在且母线电压保持在 10 伏的滞后窗口内，就保持硬件处于启用状态。
-- 如果使能命令被撤销或母线电压低于 350 伏持续 100 毫秒，状态机将返回到`PFC_ST_IDLE`状态。
-- **`PFC_ST_FAULT`**：
-- 锁定硬件关闭。一旦故障清除，等待 1 秒后返回`PFC_ST_IDLE`状态，以确保有足够的冷却时间。
-## LLC 状态机
-- **状态**：`ST_IDLE`（空闲）、`ST_WAIT_AUX`（等待辅助电源）、`ST_WAIT_VBUS`（等待总线电压）、`ST_LLC_RUN`（LLC 运行）、`ST_FAULT`（故障）。
-- **全局规则**：
-- 任何锁存/保护故障或 PFC 故障都会立即将 LLC 移动到 `ST_FAULT` 状态。
-- 辅助电源确认出现低电压时，LLC 进入 `ST_WAIT_AUX` 状态，在此状态下，PWM 输出和 PFC 请求均关闭，继电器断开。
-- **`ST_IDLE`**：仅在启动时使用；它会立即转到 `ST_WAIT_AUX` 状态，并确保所有输出和主继电器均关闭。
-- **`ST_WAIT_AUX`**：等待辅助电源稳定 30 毫秒，保持继电器断开，并重置软启动/开环辅助功能。一旦电源正常，就进入 `ST_WAIT_VBUS` 状态。
-- **`ST_WAIT_VBUS`**：
-- 请求 PFC 启动，保持继电器断开，并等待总线电压超过 380 伏且 PFC 报告已就绪。
-- 只有当这两个条件持续 100 毫秒时，才闭合继电器并转到 `ST_LLC_RUN` 状态。
-- 当总线电压或 PFC 就绪状态超出允许范围时，会返回等待阶段。
-- **`ST_LLC_RUN`**：
-- 通过软启动或开环配置驱动 LLC。- 当总线电压处于滞后窗口内且辅助电源正常时，保持继电器闭合。
-- 若辅助电源消失，则返回“ST_WAIT_AUX”状态；若功率因数校正准备就绪/总线电压丢失，则返回“ST_WAIT_VBUS”状态。
-- **“ST_FAULT”**：保持所有设备关闭（脉宽调制、继电器、功率因数校正请求），直至外部操作清除故障并重新初始化流程。
-## 互动摘要
-1. LLC 在启动时以及在任何辅助干扰之后进入“ST_WAIT_AUX”状态，以确保在请求 PFC 之前电源稳定。
-2. 功率因数校正器（PFC）在宣布就绪前自行处理启动延迟和总线电压合格问题，从而使 LLC 能够安全地继续运行。
-3. 在辅助电源掉电或出现保护事件时，两台机器会立即进入安全状态，从而确保恢复顺序的一致性。
-
-开环软启动流程概览
-	软启动曲线配置：系统为 LLC 变换器准备了一个由两段组成的开环频率曲线，先以 1kHz/ms 的斜率把开关频率从最大值下拉到初始值并保持 100ms，
-再维持在初始频率上等待闭环接管，为软启动提供目标轨迹。该轨迹由 s_llc_open_loop_profile 常量数组定义。
-
-	初始化阶段：上电时调用 llc_open_loop_init，把曲线段表、段数和初始频率写入控制器结构，同时清零运行状态和保持计时器，确保软启动从第一段的起点频率开始；
-主函数在完成硬件初始化后立刻执行该初始化并缓存初始频率。
-
-	进入运行态触发软启动：当状态机切换到 ST_LLC_RUN 时，如果软启动尚未完成则调用 llc_open_loop_start 重新定位到第一段、拉起运行标志，
-并把当前频率命令设置为曲线段的起始值；若此前已经执行过完整软启动，则直接使用缓存的终止频率，避免重复爬坡。
-
-	1kHz 控制循环内的执行：在控制回路的 1kHz Tick 内，如果 LLC 处于运行态且软启动未完成，就周期性调用 llc_open_loop_tick。
-该函数根据曲线段输出最新的目标频率，并在运行标志变为 false 时把最后的频率缓存下来，方便后续直接切入闭环。
-
-	分段推进与完成判定：llc_open_loop_tick 会按段计算目标频率与当前频率的差值，以设定的斜率逐步逼近段终止值；当到达终点后转入保持阶段并累计保持时间，
-保持到期则通过 llc_open_loop_advance 切换到下一段。若已经是最后一段，函数会清除运行标志并把频率固定在最终值，宣告开环软启动结束。
-
-	异常或停机时的复位：在待机、等待或故障状态下，状态机会调用 llc_open_loop_stop 终止软启动流程、复位段索引与保持计数，以便下次进入运行态时能从预设曲线的第一段重新开始，
-保证软启动过程的可重复性和安全性。
-
-
-# PC11 保护输入验证
-## GPIO 配置摘要
-- `protect_exti_init()` 函数启用 PC11 的保护输入，并配备内部上拉电阻（`GPIO_MODE_IPU`），这样当外部电路处于空闲状态时，微控制器就能检测到逻辑高电平。
-- EXTI 线路配置为下降沿检测（`EXTI_TRIG_FALLING`），当外部电路主动将引脚驱动至低电平时会触发该检测。
-- `protect_fault_active_hw()` 将 PC11 上的逻辑低电平（`RESET`）视为一个活跃的故障。
-综合来看，这些设置表明固件期望保护硬件输出为“低电平激活/集电极开路”类型。因此，外部电路应确保在安全状态下释放 PC11，并且只有在出现故障时才将其拉低。
-## 故障响应路径
-- EXTI10_15 中断处理程序和 `TIMER0_BRK` 处理程序在各自标志被检测到后都会立即调用 `protect_fault_trigger()` 函数。
-- `protect_fault_trigger()` 函数会将软件故障状态（`s_fault = 1`）进行暂存，并立即通过 `llc_pwm_outputs_enable(0)` 函数禁用 LLC PWM 输出。
-- 一旦条件安全，可以通过调用 `protect_clear_fault()` 函数来清除暂存的软件状态，该函数只是将 `s_fault` 重置为 `0`。
-由于脉宽调制禁用操作是在中断处理程序内部直接完成的，因此关机操作是在中断环境中进行的，且不会出现延迟，无论哪个触发源接通了保护信号。
-## 外部电路预期
-该固件假定连接到 PC11 的任何保护电路（例如，光电隔离器或比较器）都具有开漏输出或晶体管输出，在出现故障时会吸收电流。请在原理图中核实以下内容：
-1. PC11 通过一个能够将线路拉低的装置与保护硬件相连接。
-2. 要么没有内置上拉功能，要么其上拉电流与微控制单元（MCU）内部的上拉电流是兼容的。
-3. 默认（无故障）状态会使 PC11 保持高电平，因此微控制器会将其视为安全状态。
-如果外部硬件在出现故障时输出的是高电平，那么可以将比较器/光电晶体管的连接方向进行调整，或者修改固件以使用“GPIO_MODE_IPD”并结合上升沿的 EXTI 来实现逻辑的一致性。
-## 建议的台式机测试流程
-1. 断开电源后，确认 PC11 与保护电路输出之间的连接是否完好，并检查是否存在任何独立的上拉电阻。
-2. 在安全的环境中为板子通电，并使用示波器或逻辑探头监测 PC11，同时切换保护源。空闲状态的电平应保持较高；驱动保护输入端应使线路低于逻辑低阈值，并产生一个 EXTI 中断信号。
-3. 在固件中，在 `protect_fault_trigger()` 函数内部添加临时日志记录（例如，一个调试 GPIO 切换操作），以便观察它会在下降沿或 TIMER0 中断事件发生时立即执行。
-4. 在故障处理完成后，调用 `protect_clear_fault()` 函数（或者触发现有的恢复路径），并确保只有在硬件输入恢复为高电平时，系统才能恢复正常运行。
-> **注意：** 这些检查需要访问物理硬件。它们无法在仅基于固件的构建环境中进行操作。
+功率因数校正（PFC）和 LLC 状态机(v02)
+1. 先回顾一下 PFC 硬件结构（从《PFC ctl》《Main》《Control》三张图看）
+	PFC 控制芯片：U2 NCP1654BD65R2G（图纸里标注 “PFC控制芯片”），引脚：
+		VM / CS / Brown-Out / Vcontrol / Feedback / VCC / Driver 等。
+	栅极驱动：U28 NSG4420i，标注 DRIVER_PFC，连接到 PFC MOS 栅极。
+		MCU 通过排线 J7/J9 和 PFC 板交互的关键信号（出现在 Main + Control 图里）：
+		RELAY_PFC_EN_1 – PFC 继电器 / 预充驱动信号（通过 Q7“Precharge_Driver”）
+		BUS_VOL_ADJ_1 – 通过 FOD8342 线性光耦和一只 817 光耦进 NCP1654 的控制端，用来微调母线电压设定，同时兼做硬件关断通道。
+		BUS_VOL_SAMPLE_2 – PFC 后的 400V 母线采样，经分压到 MCU 侧。
+		AC_VOL_SAMPLE – 输入 AC 电压采样，经分压滤波到 MCU。
+		T_SENSE_PFC_MOS_1 – PFC MOS 管 NTC 温度采样。
+	还有系统共用的：
+		VOUT_SENSE / VBT_SENSE / I_SENSE – 电池电压、电池电流、LLC 输出电压，用来做功率/状态判定。
+		HARD_PRO / HARD_PRO_READ – 来自光耦 / 比较器的硬件保护信号（图里在 BUS_VOL_ADJ 光耦那一块）。
+		PFC 控制芯片本身已经完成 电流整形 + 电压环，所以 MCU 这边更像是“上位机 + 状态机 + 附加保护”。
+2. MCU—PFC 软件需要覆盖的功能块
+	2.1 PFC 启停 / 继电器 & 预充控制
+	涉及信号：RELAY_PFC_EN，BUS_VOL_ADJ，HARD_PRO，BUS_VOL_SAMPLE，AC_VOL_SAMPLE
+	软件要实现一套明确的上电/下电流程：
+	(1)上电前条件判断:采 AC_VOL_SAMPLE，判定是否有有效市电、是否在允许范围（比如 85–265Vac）。
+					  检查系统是否无故障（HARD_PRO 低、温度正常等）。 
+	(2)预充阶段：通过 RELAY_PFC_EN 驱动 Q7，让直流母线通过预充电阻慢慢充到一定电压（例如 200–250V）。
+				 用 BUS_VOL_SAMPLE 实时监测母线电压上升情况：预充超时但母线上不去 → 报“预充失败”，禁止继续上电。上升过快/过高 → 报异常，立即断开预充。
+	(3)闭合主继电器 + 允许 PFC 工作:预充完成后，继续用 RELAY_PFC_EN 闭合主 PFC 继电器（图纸里驱动部分同时负责预充和主继电器）
+									将 BUS_VOL_ADJ 从 0 逐渐拉到对应目标母线电压的值，给 NCP1654 一个“母线电压设定”，等效开启 PFC。
+	(4)停机 & 故障关断:正常停机：先将 BUS_VOL_ADJ 缓慢拉低到 0，使 PFC 停止工作，再断开 RELAY_PFC_EN。
+					   硬件保护触发（HARD_PRO 置位或 MCU 判定严重过压/温度）：
+					   立刻拉低 BUS_VOL_ADJ，断开 RELAY_PFC_EN，同时上报全局故障，禁止自动重启或设置重启策略。
+	这一块可以在 pfc_control.c 里实现一个简单状态机：PFC_OFF → WAIT_AC → PRECHARGE → WAIT_RELAY → RAMP_UP → RUN → FAULT
+	2.2 母线电压目标管理（BUS_VOL_ADJ 闭环/开环控制）
+	涉及信号：BUS_VOL_ADJ，BUS_VOL_SAMPLE，VBT_SENSE，VOUT_SENSE
+	硬件允许 MCU 通过 BUS_VOL_ADJ 远程调节 NCP1654 的电压环设定，所以软件至少要实现：
+	(1)母线目标电压计算:标准恒压模式：固定目标，例如 Vbus_target = 400V。VBUS=PA3ACD*144.3464
+	(2)BUS_VOL_ADJ 输出算法:
+		如果硬件是 MCU PWM + RC 滤波 → BUS_VOL_ADJ：在 pfc_control 里提供一个 pfc_bus_adj_set(float value_0_1)，对应 PWM duty。
+	建立 Vbus_target ? BUS_VOL_ADJ 的标定（简单线性：查表或斜率 + 偏置）VBUS=PA3ACD*144.3464
+	(3)母线电压监测与软闭环:
+		每 1ms 采一次 BUS_VOL_SAMPLE，换算成实际 Vbus(VBUS=BUS_VOL_SAMPLE*144.3464)。
+		待定 允许做一个很慢的 PI（带宽几十 Hz 就够）：目标：校正硬件误差/温漂，让母线长期跟随目标电压而不过冲。
+		开环版本开始先用“开环 + 限幅”，后面有需要再加 PI。
+	(4)与 LLC 的协同:LLC 启动前：先要求 PFC 把 Vbus 拉到“LLC 允许工作最小值”（比如 360V），再放行 LLC。
+					 充电过程中：LLC 想改变工作点时，可以通过一个接口 pfc_set_vbus_target() 请求 PFC 改母线。
+	2.3 采样与估算：输入电压、母线、电流、温度
+	信号：AC_VOL_SAMPLE，BUS_VOL_SAMPLE，T_SENSE_PFC_MOS，VBT_SENSE，I_SENSE，VOUT_SENSE,软件需要一个“慢速采样任务”（比如 1kHz / 500Hz），统一完成：
+	(1)AC电压检测：对 AC_VOL_SAMPLE 做整流/绝对值 + 滑动平均，估算 Vac_RMS。VAC=AC_VOL_SAMPLE*233.38
+				   判定是否有 AC；低压/高压限（欠压不启动，过压停机）。
+	(2)PFC 母线电压:BUS_VOL_SAMPLE → 换算成 400V 母线实际值；VBUS=BUS_VOL_SAMPLE*144.3464
+					状态机中预充完成条件；PFC 运行中的过压/欠压保护；BUS_VOL_ADJ 反馈闭环。
+	(3)PFC mos温度：T_SENSE_PFC_MOS 是 NTC 分压，需要查表/多项式转成温度（°C），设置两级门限：告警温度和关断温度
+	(4)系统输入输出：VBT_SENSE、VOUT_SENSE、I_SENSE 等，虽然是整机共用，但 PFC 这边会用来：
+					 估算当前输入功率 / 输出功率；
+					 决定是否需要限制 PFC 输出（例如电池已接近满电）。
+	2.4 保护与故障管理
+	信号：HARD_PRO，BUS_VOL_SAMPLE，AC_VOL_SAMPLE，T_SENSE_PFC_MOS 等
+	在软件上需要定义一套 PFC 相关的DTC策略：
+	(1)硬件保护输入（Hard_Pro）:由光耦 / 比较器组合成的硬件保护，一旦触发说明外部已经采取了措施（如切断驱动）。
+								MCU 需要：
+									以 EXTI 或轮询方式监测 HARD_PRO；这个版本用EXTI
+									触发时立刻进入 PFC_FAULT 状态，关掉 RELAY_PFC_EN 和 BUS_VOL_ADJ；
+									将故障原因上报到整机故障管理模块，通常需要人工干预/掉电才允许复位。
+	(2)软件保护母线过压：Vbus > Vbus_ovp 时，先拉低 BUS_VOL_ADJ，若仍不降则关掉 PFC。
+						 母线欠压：在 RUN 状态下长期 Vbus < Vbus_uvp，判定 PFC 无力或 AC 掉电。
+						 AC 超限：Vac 低于上电阈值，可以平滑停机；Vac 过高则立即关断。
+						 温度过高：PFC MOS 温度超过阈值时限功率或停机。
+	(3)故障记忆与恢复策略:区分 “可自动恢复” vs “需要掉电/人工确认” 的故障类型。
+						  给 LLC 控制模块暴露接口：pfc_is_fault_latched() / pfc_clear_fault()。
+	
+	2.5 与 LLC / 主状态机的接口
+	结合你现在的 llc_control.c / pfc_control.c 结构，PFC 软件至少要提供：
+		pfc_init() / pfc_enable() / pfc_disable()
+		pfc_set_vbus_target(float vbus) – 内部转成 BUS_VOL_ADJ。
+		pfc_tick_1kHz() – 跑上面的状态机 + 采样 + 保护。
+		pfc_get_vbus() / pfc_get_vac() / pfc_get_temp_pfc() 等只读接口。
+		pfc_is_ready() – 母线电压 OK、无故障，可供 LLC 进入软启。
+		pfc_is_fault() – PFC 故障，LLC 必须停。
+	这样整机顶层状态机里可以写出这样的顺序：等 PFC pfc_is_ready() == true，才调用 llc_softstart_begin()，运行中只要 pfc_is_fault() 为真，就立即关掉 LLC + PFC。
+3. 先看一下 LLC 相关硬件接口（从 Main + Control 两张图里来的）
+	驱动输出：LLC_DRVH+ / LLC_DRVL+：从控制板通过隔离（NSI6602 之类）送到主板 LLC 半桥驱动（高/低臂栅极）。
+			  LLC_EN：使能 LLC 驱动 / 上电控制。
+	采样 & 监控：
+			  VOUT_SENSE_1：LLC 输出电压采样。
+			  VBT_SENSE_1：电池电压采样（整机共用，但 LLC 电压环会参考）。
+			  I_SENSE_1：输出电流采样，用于限流 / CC 模式。
+			  T_SENSE_LLCMOS_1：LLC 主 MOS NTC 温度。
+			  共用的 HARD_PRO_READ / HARD_PRO：硬件保护比较器的输出（PFC + LLC 共用）。
+			  外部条件：母线电压 BUS_VOL_SAMPLE_2（其实在 PFC 章节里，但 LLC 上电要看它）。PFC 状态 / 故障标志（软件接口，非硬件脚）。
+4. LLC 软件需要实现的功能模块
+	4.1 PWM 驱动层：产生 LLC 半桥 PWM 对应：pwm_llc.c + 部分 Timer.c
+	(1)高级定时器配置，
+		使用TIMER0高级定时器：
+			两路互补输出 → 通过隔离后成为 LLC_DRVH+ / LLC_DRVL+。
+			配置死区时间 dt_ns，并保证 软启模块只在安全占空窗内活动（你 MATLAB 里那个 safe window）。
+			使能 BKIN 从硬件比较器 / HARD_PRO 进来，一旦触发立刻关 PWM。
+	(2)频率/占空控制API：
+		llc_pwm_set_freq_khz(float f_khz);
+		llc_pwm_set_duty(float duty_0_1);（一般运行时固定接近 50%，只在软启阶段微调）；
+	自动根据 f_khz 计算周期 per_ns，供软启模块算安全占空窗。
+	(3)输出使能管理:llc_pwm_outputs_enable(bool on);
+					硬件上拉 LLC_EN，并打开/关闭 PWM 输出通道。与整机状态机配合：只有在 PFC 母线就绪 + 无故障 时才允许使能。
+	4.2 LLC 软启动（Soft-start） 对应：llc_soft_start.c / 你刚从 MATLAB 翻译的 llc_softstart_step
+	主要目标：从 0 功率平滑地升到目标占空/频率，避免冲击与跨过死区。
+	(1)占空软启（你已经有的）
+		输入：target_duty、start_cmd、fault、pause_req、per_ns、dt_ns。
+		功能：根据 per_ns & dt_ns 计算安全占空窗 [d_min, d_max]；
+			  从 LLC_SOFTSTART_START_DUTY 以 S 曲线（cos 或 exp）缓慢爬到目标占空；
+			  故障时回退到 FAILSAFE_DUTY 并退出；
+			  暂停/恢复时保持当前 duty 不跳变；
+			  软启结束后置 active_out = 0，把控制权交给正常环路。
+	(2)Vref 软启（可选，但很常用）			
+		将 电压环的目标电压 Vref 从 0 慢慢升到设定值（比如 44V），避免一上电就“满负荷调节”。
+		可以做成一个简单的斜坡或 S 曲线，在 llc_control.c 里实现即可。
+	(3)和状态机的配合
+		LLC状态机只有一个状态是对应软启动的ST_LLC_SOFTSTART：
+			进入时：llc_softstart_begin(target_duty)；
+			运行时：周期性 llc_softstart_tick() + 用 active_out 判断是否完成；
+			软启完成后切到 ST_LLC_RUN 并启用电压环。  
+	4.3	LLC 开环调试 / 功率扫描（Bring-up & Bode）	对应：llc_open_loop.c	
+		硬件刚焊完或做环路建模时，你需要：
+		(1)固定频率/占空运行:llc_open_loop_set_freq(float f_khz);llc_open_loop_enable(bool on);
+	在不开环环路的情况下，仅靠 f_cmd 控制 LLC 输出，便于示波器测波形、量变压器、确认谐振点。
+		(2)扫频/扫占空脚本接口:
+			软件层：支持从 PC/串口或内部脚本控制频率列表，逐点停留一段时间，并记录 VOUT / IOUT / VBUS。
+			你现在 MATLAB 那个 Bode + CSV 也依赖这块：MCU 负责扫频，仿真或外部脚本负责采数据。
+	4.4.闭环控制：CV / CC / CP 模式 对应：llc_control.c
+		(1)电压环（主环）
+			采样 VOUT_SENSE_1，换算出输出电压。高速采样上一版本的PWM触发
+			与目标 Vref 做差，经过数字 PI（带积分限幅与 anti-windup）输出一个 频率指令 f_cmd：
+				误差大 → 降频接近谐振 → 增大增益；
+				误差小 / 过压 → 升频远离谐振 → 降低增益。
+			带频率夹紧：f_min（靠近谐振）和 f_max（轻载/保护）
+		(2)电流环（限流 / CC 模式）（如果你要做 CC）
+			采 I_SENSE_1，设定限值 I_limit。高速采样上一版本的PWM触发
+			两种常见方式：
+				软限流：当 I > I_limit 时，限制 f_cmd 不再下降（相当于限制最大增益）。
+				硬 CC：加入一个电流环 PI，与电压环竞争，选择“最限制”的那一边输出 f_cmd。
+		(3)模式切换,双环竞争
+			CV → CC：充电电流打到 I_limit，切换为恒流模式（电压允许缓慢上升）。
+			CC → CV：接近目标电压时自动回到电压控制。
+			软件上通常用一个简单的条件判断 + 滞回，放在 llc_control_tick() 里。
+		(4)控制周期
+			你现在电压环大约用 1 kHz（1 ms）比较合理，相比 80~150 kHz 的开关频率已经很慢：
+			每次周期：读 ADC → 做滤波 → 更新 PI → 更新 f_cmd → 写到 pwm_llc。
+			需要保证计算时间 << 1ms，避免占用太多 CPU。
+	4.5. 采样与观察值计算 对应：adc_dma.c + llc_control.c 中的处理
+		(1)ADC 通道分配：VOUT_SENSE_1（输出电压），VBT_SENSE_1（电池电压），I_SENSE_1（输出电流），T_SENSE_LLCMOS_1（LLC MOS 温度）
+		(2)滤波和标定：每个量都要有：ADC → 电压/电流/温度 物理量的换算，外加简单低通滤波。
+					   温度用查表或多项式；电压/电流使用比例系数即可。
+		(3)观测接口：给上位机/调试串口提供 llc_get_vout(), llc_get_iout(), llc_get_temp_llc() 等，方便调试
+	4.6 DTC llc侧：大部分保护其实是“全机共用”，但触发时 LLC 一定要立即停：
+		(1)硬件快速保护:通过 BKIN / 外部比较器实现，例如：一次侧过流；次级严重过压；
+						软件响应：在中断任务中检测 HARD_PRO_READ：一旦触发，记录故障原因，设置 LLC_FAULT 状态，禁止再次启动；通知 PFC 和整机上层。
+		(2)软件保护
+			VOUT 过压：> Vout_OVP 时立即升频或停机；
+			I_SENSE 过流：> I_OC（大于 CC 值很多）时判定短路，停机；
+			T_SENSE_LLCMOS 过温：> T_SHUTDOWN 时停机，> T_WARN 时限功率；
+			与 PFC 类似：区分可恢复/不可恢复，挂在统一故障管理模块。
+	4.7 与 PFC / 整机状态机的协同
+		虽然 PFC 已经有一套状态机，但 LLC 这边要配合它工作：
+		(1)启动顺序:只有在pfc_is_ready() == true（母线电压到位，PFC 无故障）,并且自身无故障的时候才会允许进入软启并且使能LLC_EN
+		(2)停机顺序：正常停机：LLC 先软停（升频、减占空 / 降 Vref），然后关闭 PWM，再通知 PFC 可以降母线；
+					 出现 PFC 故障：pfc_is_fault() 为真时，立即停 LLC（保护优先级最高）。
+		(3)功率 / 模式协调
+			根据电池电压/电流、BMS 指令选择 LLC 的 CV/CC 参数；
+			在极低输入电压 / PFC 降额时，限制 LLC 的最大输出功率。

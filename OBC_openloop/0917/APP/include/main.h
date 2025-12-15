@@ -44,6 +44,18 @@
 
 #define VREF_ADC            (3.3f)
 
+
+/* PFC sensing networks 待定未确认*/
+#define PFC_VBUS_RTOP_OHM   (0.0f) 
+#define PFC_VBUS_RBOT_OHM   (1.0f) 
+/* PFC sensing networks - AC side (ZMPT + LM358 后端 RC) */
+//这两个宏只反映“运放输出 → ADC”这一段 1/3 的分压。
+#define PFC_AC_RTOP_OHM     (20000.0f)// R7 + R19
+#define PFC_AC_RBOT_OHM     (10000.0f)// R8
+#define PFC_NTC_PULLUP_OHM  (10000.0f)
+#define PFC_NTC_R0_OHM      (10000.0f)
+#define PFC_NTC_BETA        (3950.0f)
+
 /* Dividers for voltage ADC channels */
 #define VOUT_RTOP_OHM       (200000.0f)   /* PA5 */
 #define VOUT_RBOT_OHM       (10000.0f)
@@ -52,6 +64,8 @@
 
 #define V3V3_RTOP_OHM        (10000.0f)   /* PC5 */
 #define V3V3_RBOT_OHM        (5100.0f)
+
+
 /* ==== Auxiliary supply monitoring thresholds ==== */
 #define AUX_V3V3_OK_MIN_V     (3.0f)
 #define AUX_VBAT_OK_MIN_V     (10.0f)
@@ -99,11 +113,11 @@
 #define LLC_F_SLEW_HZ       (500.0f)
 #define LLC_F_DEBUG_HZ      (130000.0f)
 
-#define DEBUG_PRINTF_LLCSOFTSTART 1
+#define DEBUG_PRINTF_LLCSOFTSTART 0
 
-#define DEBUG_PRINTF_LLC_OPENLOOP 1
+#define DEBUG_PRINTF_LLC_OPENLOOP 0
 
-#define DEBUG_PRINTF_PFC_STATE 1
+#define DEBUG_PRINTF_PFC_STATE 0
 
 /* ==== Interrupt priority scheme (NVIC_PRIGROUP_PRE2_SUB2) ==== */
 #define IRQ_PRIO_FAULT_PREEMPT        (0U)
@@ -171,21 +185,19 @@ static inline uint8_t irq_priority_encode(uint8_t preempt, uint8_t sub)
 #define T_SENSE_LLCMOS_CH  ADC_CHANNEL_9   /* PB1 LLC MOS 管温度 NTC 采样*/
 
 
-#if 1
-#define PFC_MAIN_RELAY_PORT     GPIOB  //直流输出继电器控制
-#define PFC_MAIN_RELAY_PIN     	GPIO_PIN_14 
-#define PFC_MAIN_RELAY_RCU			RCU_GPIOB
-#endif 
+#define OUT_RELAY     GPIOB  //直流输出继电器控制
+#define OUT_RELAY_PIN     	GPIO_PIN_14 
+#define OUT_RELAY_RCU			RCU_GPIOB
 
-#define PFC_EN_PORT     GPIOC  //PFC 预充/继电器使能控制
-#define PFC_EN_PIN     	GPIO_PIN_10  
-#define PFC_EN_RCU			RCU_GPIOC
+#define PFC_MAIN_RELAY_PORT     GPIOC  //PFC 预充/继电器使能控制
+#define PFC_MAIN_RELAY_PIN     	GPIO_PIN_10  
+#define PFC_MAIN_RELAY_RCU			RCU_GPIOC
 
 #define PFC_FAULT_PORT          GPIOB
 #define PFC_FAULT_PIN           GPIO_PIN_12
 
 #define LLC_EN_PORT             GPIOC
-#define PLLC_EN_PIN             GPIO_PIN_11
+#define LLC_EN_PIN             GPIO_PIN_11
 
 //#define PWM_BKIN_PORT           GPIOC
 //#define PWM_BKIN_PIN            GPIO_PIN_12
@@ -251,9 +263,9 @@ static inline bool elapsed_reached(uint32_t start_ms, uint32_t duration_ms)
 *                                              API函数声明
 *********************************************************************************************************/
 
-
-
 static inline float f_clampf(float x,float lo,float hi)
-{ return x<lo?lo:(x>hi?hi:x); }
+{ 
+	return x<lo?lo:(x>hi?hi:x); 
+}
 void delay_ms(uint32_t duration_ms);
 #endif

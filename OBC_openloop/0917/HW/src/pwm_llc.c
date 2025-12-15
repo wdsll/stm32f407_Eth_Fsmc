@@ -1,15 +1,12 @@
-
 #include "pwm_llc.h"
-
-
 //GPIO：高臂、低臂、N 输出都用 AF_PP；BKIN=PB12 用 上拉输入。
 //死区：确认 bdtr_deadtime_code_ns(350ns, 108MHz) 得到约 0x26（≈352ns）。
 //BKIN：短接 PB12→GND，应当瞬时关断（MOE 清）；松开在一个更新周期后自动恢复（因 outputautostate=ENABLE）。
 //变频：调用 llc_pwm_set_freq() 后，示波器看到占空不漂；若固定 50%，把 llc_pwm_set_freq() 里直接设 CCR = ARR/2。
 //#include "gd32f30x_timer.h"
 static llc_pwm_cfg_t s_cfg; 
-static uint32_t s_period=0; 
 
+static uint32_t s_period=0; 
 /*
 static void update_adc_trigger_from_pwm(uint16_t pwm_ccr)
 {

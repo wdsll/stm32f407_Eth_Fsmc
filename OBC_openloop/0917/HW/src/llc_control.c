@@ -32,7 +32,7 @@ static void llc_state_enter(llc_state_t next)
 		llc_open_loop_stop(&s_llc_open_loop); // 停止开环控制（如果启用）
 		s_llc_open_loop_completed = false;
 #endif
-			//llc_softstart_reset(); // 重置软启动
+			llc_softstart_on_fault();
 			pfc_app_force_off();   // 强制关闭 PFC
 			llc_pwm_outputs_enable(0); // 禁用 PWM 输出
 			pfc_hw_set_relay(false); // 关闭继电器
@@ -44,7 +44,7 @@ static void llc_state_enter(llc_state_t next)
         llc_open_loop_stop(&s_llc_open_loop);
         s_llc_open_loop_completed = false;
 #endif
-        //llc_softstart_reset(); // 重置软启动
+        llc_softstart_on_fault();
         pfc_app_force_off();   // 强制关闭 PFC
 				pfc_hw_set_relay(false); // 关闭继电器
         llc_pwm_outputs_enable(0); // 禁用 PWM 输出
@@ -57,7 +57,7 @@ static void llc_state_enter(llc_state_t next)
 			llc_open_loop_stop(&s_llc_open_loop);
 			s_llc_open_loop_completed = false;
 #endif
-			//llc_softstart_reset();
+			llc_softstart_on_fault();
 			pfc_app_request_start(); //记录请求的起始时间
 			pfc_hw_set_relay(false);
 			llc_pwm_outputs_enable(0);
@@ -80,7 +80,7 @@ static void llc_state_enter(llc_state_t next)
 #else
 			s_llc.f_cmd = f_clampf(LLC_F_INIT_HZ, s_llc.f_min, s_llc.f_max);
 #endif
-			//llc_softstart_begin(LLC_PWM_DUTY);
+			llc_softstart_start(LLC_SOFTSTART_TARGET_DUTY);
 			llc_pwm_outputs_enable(1);
 			// 添加调试信息输出
 			//debug_printf("[LLC] Starting open loop control. Initial frequency: %.1f Hz\n", s_llc.f_cmd);
@@ -92,7 +92,7 @@ static void llc_state_enter(llc_state_t next)
 			llc_open_loop_stop(&s_llc_open_loop);
 			s_llc_open_loop_completed = false;
 #endif
-			//llc_softstart_reset();
+			llc_softstart_on_fault();
 			pfc_app_force_off();
 			pfc_hw_set_relay(false);
 			llc_pwm_outputs_enable(0);
@@ -103,6 +103,7 @@ static void llc_state_enter(llc_state_t next)
 
 void llc_app_init()
 {
+	llc_softstart_init();
 	llc_state_enter(ST_WAIT_VBUS);
 }
 
@@ -113,6 +114,7 @@ void llc_app_tick_1khz(void)
 	if(protect_fault_latched() || protect_fault_active_hw()||pfc_app_state() == PFC_ST_FAULT)
 	{
 		llc_state_enter(ST_FAULT);
+		llc_softstart_on_fault();
 		return;
 	}
 	
@@ -154,6 +156,7 @@ void llc_app_tick_1khz(void)
 			}
 			break;
 		case ST_LLC_RUN:
+				llc_softstart_tick_1khz();
 				if(!aux_power_ok_now()){
 					pfc_hw_set_relay(0);
 					llc_state_enter(ST_WAIT_AUX);
@@ -238,6 +241,7 @@ void llc_app_tick_1khz_withoutVbus(void)
         } break;
 
         case ST_LLC_RUN:
+					llc_softstart_tick_1khz();
 					llc_pwm_set_freq((uint32_t)s_llc.f_cmd);
 						break;
 						case ST_FAULT:

@@ -1,0 +1,31 @@
+# LLC软启动状态机设计报告
+
+## 设计目标
+- 在LLC控制状态机内接管软启动流程，确保进入RUN状态时按照预设占空比曲线渐进上电。
+- 在退出运行或进入故障状态时立即终止软启动并回到安全占空比。
+- 保持原有等待Aux、等待母线电压及故障恢复时序。
+
+## 状态机与软启动的交互
+- **初始化**：`llc_app_init` 调用 `llc_softstart_init`，同步软启动上下文并进入 `ST_WAIT_VBUS`。【F:HW/src/llc_control.c?L82-L118】
+- **非运行态防护**：`ST_IDLE`、`ST_WAIT_AUX`、`ST_WAIT_VBUS` 和 `ST_FAULT` 进入时调用 `llc_softstart_on_fault`，将占空比回落到失效安全值并清空软启动计时。【F:HW/src/llc_control.c?L21-L81】
+- **进入运行态**：`ST_LLC_RUN` 入口调用 `llc_softstart_start(LLC_SOFTSTART_TARGET_DUTY)`，在使能PWM输出前设定起始/目标占空比并开始软启动斜坡。【F:HW/src/llc_control.c?L57-L76】
+- **运行态周期任务**：在 `llc_app_tick_1khz` 与 `llc_app_tick_1khz_withoutVbus` 的 `ST_LLC_RUN` 分支内调用 `llc_softstart_tick_1khz`，每毫秒推进占空比并实时刷新安全窗口。【F:HW/src/llc_control.c?L120-L171】【F:HW/src/llc_control.c?L192-L237】
+- **故障处理**：检测到保护或PFC故障即转入 `ST_FAULT`，同时调用 `llc_softstart_on_fault` 中止软启动并输出失效安全占空比。【F:HW/src/llc_control.c?L120-L142】【F:APP/src/LLC_soft_start.c?L155-L196】
+
+## 软启动核心逻辑
+- `llc_softstart_init`：仅首次调用时重置上下文，计算安全占空比窗口并应用起始占空比。【F:APP/src/LLC_soft_start.c?L72-L109】
+- `llc_softstart_start`：包装内部 `llc_softstart_begin`，根据配置重建软启动曲线并记录开始时间。【F:APP/src/LLC_soft_start.c?L113-L154】
+- `llc_softstart_tick_1khz`：保障已初始化后推进软启动；内部处理暂停、故障中止、进度插值（余弦或指数）以及落地至安全占空比区间。【F:APP/src/LLC_soft_start.c?L198-L280】
+- `llc_softstart_on_fault`：在故障或状态机退出运行时调用，直接执行 `llc_softstart_abort` 将PWM占空比拉到 `LLC_SOFTSTART_FAILSAFE_DUTY` 并重置计时。【F:APP/src/LLC_soft_start.c?L155-L196】
+
+## 关键参数
+- 软启动持续时间：`LLC_SOFTSTART_DURATION_MS`（默认300ms）。
+- 起始/目标占空比：`LLC_SOFTSTART_START_DUTY`、`LLC_SOFTSTART_TARGET_DUTY`。
+- 失效安全占空比：`LLC_SOFTSTART_FAILSAFE_DUTY`，用于故障或暂停时的安全输出。
+- 安全窗口：根据PWM周期与死区动态计算，并附加 `LLC_SOFTSTART_EXTRA_MARGIN` 保护系数。【F:APP/src/LLC_soft_start.c?L12-L41】
+
+## 时序概述
+1. 上电后进入 `ST_WAIT_VBUS`，软启动上下文完成初始化。
+2. 满足母线/辅助电压条件并经过启动延时后，进入 `ST_LLC_RUN` 并触发软启动斜坡。
+3. 运行中每1ms调用 `llc_softstart_tick_1khz` 推进占比；若出现故障或掉电，状态机转入故障/等待态并中止软启动。
+4. 故障恢复满足条件后重新回到等待态，下一次进入运行时重新执行软启动。

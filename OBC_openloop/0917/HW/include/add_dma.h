@@ -26,6 +26,8 @@ void adc_multi_start(void);
 void adc_multi_copy(void);
 
 void adc_multi_sample_aux_1khz(void);
+void adc1_aux_init(void);
+uint16_t adc1_aux_read_channel(uint8_t channel, uint32_t sample_time);
 
 /* ADC1通道14测试函数 */
 uint16_t adc1_channel14_test(void);

@@ -13,7 +13,7 @@
 
 /* ======================== Bring-up configuration ======================== */
 /* Keep PFC control bypassed so that the firmware only exercises the LLC open-loop sweep for hardware validation. */
-#define LLC_BRINGUP_OPEN_LOOP_ONLY   1
+#define LLC_BRINGUP_OPEN_LOOP_ONLY   0
 
 #if LLC_BRINGUP_OPEN_LOOP_ONLY
 #define LLC_BYPASS_PFC_CONTROL      1
@@ -55,12 +55,9 @@ static const llc_open_loop_segment_t s_llc_open_loop_profile[] = {
 	{ .start_hz = LLC_F_INIT_HZ, .stop_hz = LLC_F_INIT_HZ, .slew_hz_per_ms = 0, .hold_time_ms = 100U },
 };
 #endif
-
 volatile uint32_t g_ms=0;
 static volatile uint32_t s_control_tick_pending = 0U;
 static volatile uint32_t s_tick_drop_count = 0U; /* 被丢弃的 tick 计数 */
-
-
 void delay_ms(uint32_t duration_ms)
 {
     if (duration_ms == 0U) {
@@ -90,6 +87,7 @@ void systick_config(void)
         while (1){
         }
     }
+		
     /* configure the systick handler priority */
     NVIC_SetPriority(SysTick_IRQn, 0x00U);
 }
@@ -171,20 +169,17 @@ uint16_t adc1_channel14_multiple_samples(uint16_t sample_count, uint16_t *sample
 
 
 static void control_loop_tick_1khz(void){
-    /* 1 kHz control */
-    adc_multi_copy(); 
-		//adc_multi_sample_aux_1khz();
-	
+    /* 1 kHz control */ 
+		adc_multi_sample_aux_1khz();
+		adc_multi_copy(); 
     float vout = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
-		//float v3v3 = (g_adc_multi.v3v3_raw * VREF_ADC) / 4095.0f;
 		float v3v3 = conv_adc_to_v_div(g_adc_multi.v3v3_raw,V3V3_RTOP_OHM,V3V3_RBOT_OHM);
 		float vbat = conv_adc_to_v_div(g_adc_multi.vbt_raw, VBT_RTOP_OHM, VBT_RBOT_OHM);
 	
 		aux_power_monitor_update(v3v3, vbat);
     s_llc.vmeas = vout;
-		//pfc_app_tick_1khz(vout);
-		//llc_app_tick_1khz();
-	  //llc_state_enter(ST_LLC_RUN);
+    pfc_tick_1khz();
+    llc_app_tick_1khz();
 		llc_app_tick_1khz_withoutVbus();
 		bool llc_running = (llc_app_state() == ST_LLC_RUN);
 #if Bus_Adj
@@ -276,8 +271,8 @@ if (!protect_fault_active_hw() && protect_fault_latched()) {
 #endif
 		pfc_app_init();
 		llc_app_init();
-	  pfc_hw_set_relay(true);
-		
+		pfc_disable();
+
 		
     while(1){
 			uint32_t pending_ticks = 0U;

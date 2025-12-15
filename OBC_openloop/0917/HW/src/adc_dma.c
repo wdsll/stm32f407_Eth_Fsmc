@@ -107,9 +107,11 @@ uint8_t adc0_is_initialized(void)
 /* ADC1模拟引脚初始化 */
 static void adc1_analog_pins_init(void)
 {   
+		rcu_periph_clock_enable(RCU_GPIOA);
     rcu_periph_clock_enable(RCU_GPIOC);
     /* ADC1通道配置 */
     gpio_init(GPIOC, GPIO_MODE_AIN, GPIO_OSPEED_50MHZ, GPIO_PIN_4|GPIO_PIN_5);
+    gpio_init(GPIOA, GPIO_MODE_AIN, GPIO_OSPEED_50MHZ, GPIO_PIN_1 | GPIO_PIN_3 | GPIO_PIN_7);
 }
 
 /* ADC1初始化 - 软件触发模式 */
@@ -227,8 +229,10 @@ void adc1_sample_aux_1khz(void)
     
     uint16_t v3v3 = adc1_aux_read_channel(AD_3V3_CH, ADC_SAMPLETIME_55POINT5);
     uint16_t vbt = adc1_aux_read_channel(VBT_SENSE_CH, ADC_SAMPLETIME_55POINT5);
+		uint16_t tpfc = adc1_aux_read_channel(T_SENSE_PFC_MOS, ADC_SAMPLETIME_55POINT5);
     s_latched.v3v3_raw = v3v3;
     s_latched.vbt_raw = vbt;
+		s_latched.tsense_raw = tpfc;
 }
 
 /* ADC1状态检查 */
@@ -245,10 +249,7 @@ static inline void adc_multi_store_frame(const uint16_t *src)
 {
     s_latched.vout_raw   = src[0];
     s_latched.isense_raw = src[1];
-   // s_latched.tsense_raw = src[2];
-    //s_latched.v3v3_raw   = src[3];
-    //s_latched.vbt_raw    = src[4];
-    //s_latched.t_llc_raw  = src[5];
+/* 低速通道在 adc1_sample_aux_1khz() 中采样，这里只搬运定时器触发的高速结果 */
 }
 
 void adc_multi_copy(void)
@@ -256,7 +257,11 @@ void adc_multi_copy(void)
     adc_multi_frame_t frame;
     frame.vout_raw   = s_latched.vout_raw;
     frame.isense_raw = s_latched.isense_raw;
+	  frame.v3v3_raw   = s_latched.v3v3_raw;
+    frame.vbt_raw    = s_latched.vbt_raw;
+    frame.tsense_raw = s_latched.tsense_raw;
     g_adc_multi = frame;
+
 }
 
 /*********************************************************************************************************

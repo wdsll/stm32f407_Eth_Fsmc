@@ -7,6 +7,10 @@
  * ===================================================================*/
 static llc_softstart_ctx_t s_llc_softstart;
 
+static void llc_softstart_reset(void);
+static void llc_softstart_begin(float target_duty);
+static void llc_softstart_tick(void);
+
 /* 根据当前周期/死区，计算“有效占空安全窗” */
 /* Re-compute the "safe" duty window according to PWM period & deadtime.
  * 对应 MATLAB 里的 update_safe_window(per_ns, dt_ns, extra_margin)
@@ -51,10 +55,13 @@ static void ss_apply(float duty)
 /* 指数曲线：0→1 */
 static inline float ease_exp(float t, float k)
 {
-    if (t <= 0.f) return 0.f;
-    if (t >= 1.f) return 1.f;
+    if (t <= 0.f) 
+			return 0.f;
+    if (t >= 1.f) 
+			return 1.f;
     float denom = 1.0f - expf(-k);
-    if (denom < 1e-6f) return t;
+    if (denom < 1e-6f) 
+			return t;
     return (1.0f - expf(-k * t)) / denom;
 }
 
@@ -172,6 +179,33 @@ void llc_softstart_update_target(float new_target_0_1)
     s_llc_softstart.target_duty = f_clampf(new_target_0_1, 0.0f, 0.99f);
 }
 
+void llc_softstart_init(void)
+{
+    if (!s_llc_softstart.initialized) {
+        llc_softstart_reset();
+        s_llc_softstart.initialized = true;
+        s_llc_softstart.initialized = true;
+    }
+}
+
+void llc_softstart_start(float target_duty_0_1)
+{
+    if (!s_llc_softstart.initialized) {
+        llc_softstart_init();
+    }
+
+    llc_softstart_begin(target_duty_0_1);
+}
+
+
+void llc_softstart_on_fault(void)
+{
+    if (!s_llc_softstart.initialized) {
+        return;
+    }
+
+    llc_softstart_abort();
+}
 /*********************************************************************************************************
 * 函数名称：llc_softstart_set_pause
 * 函数功能：这段代码的主要功能是控制软启动（soft start）的暂停和恢复逻辑。
@@ -294,6 +328,14 @@ static void llc_softstart_tick(void)
 		s_llc_softstart.last_duty = duty;
 }
 
+void llc_softstart_tick_1khz(void)
+{
+    if (!s_llc_softstart.initialized) {
+        llc_softstart_init();
+    }
+
+    llc_softstart_tick();
+}
 #else
 
 static void llc_softstart_reset(void)

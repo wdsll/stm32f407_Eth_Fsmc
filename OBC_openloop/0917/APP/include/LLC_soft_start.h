@@ -28,12 +28,14 @@ typedef struct
 /*********************************************************************************************************
 *                                              内部函数声明
 *********************************************************************************************************/
-static void llc_softstart_reset(void);
-static void llc_softstart_begin(float target_duty);
-static void llc_softstart_tick(void);
 
+void llc_softstart_tick_1khz(void);
 void llc_softstart_update_target(float new_target_0_1);
 void llc_softstart_set_pause(bool pause);
 void llc_softstart_abort(void);
+
+void llc_softstart_on_fault(void);
+void llc_softstart_start(float target_duty_0_1);
+void llc_softstart_init(void);
 
 #endif

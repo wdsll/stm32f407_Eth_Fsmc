@@ -407,6 +407,11 @@
               <FileType>5</FileType>
               <FilePath>.\APP\include\LLC_soft_start.h</FilePath>
             </File>
+            <File>
+              <FileName>softstart_state_machine.txt</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\softstart_state_machine.txt</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
