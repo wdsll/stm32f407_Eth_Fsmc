@@ -22,7 +22,7 @@ void pfc_disable(void);
 void pfc_set_vbus_target(float vbus_v);
 void pfc_tick_1khz(void);
 pfc_state_t pfc_state(void);
-
+void pfc_hw_set_main(bool on);
 float pfc_get_vbus(void);
 float pfc_get_vac(void);
 float pfc_get_temp_pfc(void);
@@ -39,5 +39,5 @@ static inline void pfc_app_tick_1khz(float vbus_v) { (void)vbus_v; pfc_tick_1khz
 static inline pfc_state_t pfc_app_state(void) { return pfc_state(); }
 static inline bool pfc_app_ready(void) { return pfc_is_ready(); }
 static inline float pfc_bus_voltage(void) { return pfc_get_vbus(); }
-void pfc_hw_set_relay(bool closed);
+
 #endif

@@ -239,12 +239,12 @@ int main(void){
 		#if Bus_Adj
 		bus_vol_adj_init();
 		#else
-		//pb0_pwm_set_duty(0.5f);
+		pb0_pwm_set_duty(0.5f);
 		#endif
 		
     /* ADC multi (PA3/PA1 removed) triggered by TIMER0 CH2 for coherence */
-    //adc_multi_init_dma(ADC0_1_EXTTRIG_REGULAR_T0_CH2); 
-    //adc_multi_start();
+    adc_multi_init_dma(ADC0_1_EXTTRIG_REGULAR_T0_CH2); 
+    adc_multi_start();
 
     /* PA0 & PA1 input capture */
     //cap_pa01_init();

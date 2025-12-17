@@ -35,7 +35,7 @@ static void llc_state_enter(llc_state_t next)
 			llc_softstart_on_fault();
 			pfc_app_force_off();   // 强制关闭 PFC
 			llc_pwm_outputs_enable(0); // 禁用 PWM 输出
-			pfc_hw_set_relay(false); // 关闭继电器
+			pfc_hw_set_main(false); // 关闭继电器
 			s_llc.integ = 0.0f; // 重置积分项
 			s_llc.f_cmd = s_llc.f_max; // 设置频率为最大值
 			break;
@@ -46,7 +46,7 @@ static void llc_state_enter(llc_state_t next)
 #endif
         llc_softstart_on_fault();
         pfc_app_force_off();   // 强制关闭 PFC
-				pfc_hw_set_relay(false); // 关闭继电器
+				pfc_hw_set_main(false); // 关闭继电器
         llc_pwm_outputs_enable(0); // 禁用 PWM 输出
         
         s_llc.integ = 0.0f;  // 重置积分项
@@ -59,7 +59,7 @@ static void llc_state_enter(llc_state_t next)
 #endif
 			llc_softstart_on_fault();
 			pfc_app_request_start(); //记录请求的起始时间
-			pfc_hw_set_relay(false);
+			pfc_hw_set_main(false);
 			llc_pwm_outputs_enable(0);
 			s_llc.integ = 0.0f;
 			s_llc.f_cmd = s_llc.f_max;
@@ -94,7 +94,7 @@ static void llc_state_enter(llc_state_t next)
 #endif
 			llc_softstart_on_fault();
 			pfc_app_force_off();
-			pfc_hw_set_relay(false);
+			pfc_hw_set_main(false);
 			llc_pwm_outputs_enable(0);
 			s_llc.f_cmd = s_llc.f_max;
 			break;
@@ -146,19 +146,19 @@ void llc_app_tick_1khz(void)
 				}
 				else if((uint32_t)(g_ms - s_llc_app.entry_ms) >= LLC_START_DELAY_MS)
 				{
-					pfc_hw_set_relay(true);
+					pfc_hw_set_main(true);
 					llc_state_enter(ST_LLC_RUN);
 				}
 			}
 			else{
 				 s_llc_app.entry_ms = 0U;
-				 pfc_hw_set_relay(false);
+				 pfc_hw_set_main(false);
 			}
 			break;
 		case ST_LLC_RUN:
 				llc_softstart_tick_1khz();
 				if(!aux_power_ok_now()){
-					pfc_hw_set_relay(0);
+					pfc_hw_set_main(0);
 					llc_state_enter(ST_WAIT_AUX);
 					break;
         }
@@ -168,7 +168,7 @@ void llc_app_tick_1khz(void)
 			if(!pfc_app_ready()||s_llc.vmeas<(LLC_ENTRY_V-PFC_VBUS_READY_HYST_V))
 #endif
 			{
-				pfc_hw_set_relay(0);
+				pfc_hw_set_main(0);
 				llc_state_enter(ST_WAIT_VBUS);
 			}
 			break;
@@ -234,7 +234,7 @@ void llc_app_tick_1khz_withoutVbus(void)
                 s_llc_app.entry_ms = g_ms;
             }
             if (elapsed_reached(s_llc_app.entry_ms, LLC_START_DELAY_MS)) {
-                //pfc_hw_set_relay(true);              /* 若未接硬件或宏未定义，此函数内部已做空操作保护 */
+                //pfc_hw_set_main(true);              /* 若未接硬件或宏未定义，此函数内部已做空操作保护 */
                 llc_state_enter(ST_LLC_RUN);         /* 进入 RUN：在 llc_state_enter 中会做一次性初始化 */
                 ol_started = false;
             }
@@ -257,7 +257,7 @@ void llc_app_tick_1khz_withoutVbus(void)
                     //protect_hw_clear_pulse(10); /* 10 ms；按你锁存清除时序需要可调 */
                     s_llc_clear_sent = 1;
                 }
-                pfc_hw_set_relay(false);
+                pfc_hw_set_main(false);
                 llc_state_enter(ST_IDLE);
                 s_llc_clear_sent = 0;
                 ol_started = false;

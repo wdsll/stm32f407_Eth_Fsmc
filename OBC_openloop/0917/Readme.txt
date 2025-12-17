@@ -1,5 +1,5 @@
 功率因数校正（PFC）和 LLC 状态机(v02)
-1. 先回顾一下 PFC 硬件结构（从《PFC ctl》《Main》《Control》三张图看）
+1.  从《PFC ctl》《Main》《Control》三张图看
 	PFC 控制芯片：U2 NCP1654BD65R2G（图纸里标注 “PFC控制芯片”），引脚：
 		VM / CS / Brown-Out / Vcontrol / Feedback / VCC / Driver 等。
 	栅极驱动：U28 NSG4420i，标注 DRIVER_PFC，连接到 PFC MOS 栅极。
@@ -156,7 +156,7 @@
 			与 PFC 类似：区分可恢复/不可恢复，挂在统一故障管理模块。
 	4.7 与 PFC / 整机状态机的协同
 		虽然 PFC 已经有一套状态机，但 LLC 这边要配合它工作：
-		(1)启动顺序:只有在pfc_is_ready() == true（母线电压到位，PFC 无故障）,并且自身无故障的时候才会允许进入软启并且使能LLC_EN
+		(1)启动顺序:只有在pfc_is_ready() == true（母线电压到位，PFC 无故障）,并且自身无故障的时候才会允许进入 软启并且使能LLC_EN
 		(2)停机顺序：正常停机：LLC 先软停（升频、减占空 / 降 Vref），然后关闭 PWM，再通知 PFC 可以降母线；
 					 出现 PFC 故障：pfc_is_fault() 为真时，立即停 LLC（保护优先级最高）。
 		(3)功率 / 模式协调
