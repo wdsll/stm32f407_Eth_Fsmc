@@ -180,36 +180,6 @@ static void control_loop_tick_1khz(void){
     s_llc.vmeas = vout;
     pfc_tick_1khz();
     llc_app_tick_1khz();
-		llc_app_tick_1khz_withoutVbus();
-		bool llc_running = (llc_app_state() == ST_LLC_RUN);
-#if Bus_Adj
-		bus_vol_adj_tick(vout, llc_running);
-#endif
-		if(llc_running)
-		{
-			//llc_softstart_tick();
-#if LLC_USE_OPEN_LOOP
-		/* ---------- 开环扫频过程 ---------- */
-		if(!s_llc_open_loop_completed)
-		{
-			llc_open_loop_tick(&s_llc_open_loop);
-			float freq = f_clampf(llc_open_loop_get_freq(&s_llc_open_loop),s_llc.f_min,s_llc.f_max);
-			s_llc.f_cmd = freq;
-			 /* 判断是否已停止运行（即扫频完成） */
-			if(!llc_open_loop_running(&s_llc_open_loop))
-			{
-				s_llc_open_loop_final_freq = freq;
-				s_llc_open_loop_completed = true;
-#if defined(DEBUG_PRINTF_LLC_OPENLOOP)
-        debug_printf("[LLC-OpenLoop] completed: %.1f Hz\n", freq);
-#endif
-			}
-		}
-#else
-			//llc_step(&s_llc);
-#endif
-		}
-    //llc_pwm_set_freq((uint32_t)s_llc.f_cmd);
 		protect_hw_clear_pulse_tick();
 }
 
@@ -286,8 +256,7 @@ if (!protect_fault_active_hw() && protect_fault_latched()) {
 			__enable_irq();
 			while(pending_ticks-- > 0U)
 			{
-				//control_loop_tick_1khz();
-				llc_app_tick_1khz_withoutVbus();
+				control_loop_tick_1khz();
 				// 防止单次主循环处理过多 tick
 					if(pending_ticks > MAX_TICKS_PER_LOOP)
 					{

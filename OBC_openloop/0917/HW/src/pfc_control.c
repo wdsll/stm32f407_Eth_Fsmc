@@ -2,7 +2,7 @@
 #include <math.h>
 
 /*********************************************************************************************************
-*                                              å®å®šä¹‰
+*                                              ºê¶¨Òå
 *********************************************************************************************************/
 #define CLAMP(x, lo, hi) (((x) < (lo)) ? (lo) : (((x) > (hi)) ? (hi) : (x)))
 
@@ -10,44 +10,44 @@
 #define PFC_VBUS_ADC_GAIN_V_PER_VIN   (144.3464f)   // VBUS = ADC_V * 144.3464
 #define PFC_AC_ADC_GAIN_V_PER_VIN     (233.38f)     // VAC  = ADC_V * 233.38
 
-/* ä¸Šç”µè‡ªæ£€ï¼šVBUS â‰ˆ 1.414 * VAC */
+/* ÉÏµç×Ô¼ì£ºVBUS ¡Ö 1.414 * VAC */
 #define PFC_VBUS_VAC_RATIO            (1.414f)
-#define PFC_VBUS_VAC_RATIO_TOLERANCE  (0.15f)       // Â±15%
+#define PFC_VBUS_VAC_RATIO_TOLERANCE  (0.15f)       // ¡À15%
 #define PFC_VBUS_VAC_RATIO_STABLE_MS  (50U)
 
-/* è°ƒèŠ‚ç¨³å®šæ€§åˆ¤å®šï¼ˆä½¿èƒ½åï¼‰ */
+/* µ÷½ÚÎÈ¶¨ĞÔÅĞ¶¨£¨Ê¹ÄÜºó£© */
 #define PFC_STABLE_ERROR_V            (5.0f)        // |Vbus-target| <= 5V
-#define PFC_STABLE_TIME_MS            (200U)        // æŒç»­ 200ms æ‰ç®—ç¨³å®š
+#define PFC_STABLE_TIME_MS            (200U)        // ³ÖĞø 200ms ²ÅËãÎÈ¶¨
 /*
-AC ç›¸å…³ 4 ä¸ªå®ï¼šå®šä¹‰ ä»€ä¹ˆç”µå‹èŒƒå›´ æ‰ç®—æ­£å¸¸å¸‚ç”µã€æ‰ç”µå¤šä¹…æ‰ç®—çœŸæ­£æ‰ã€AC è¿‡å‹æ—¶ç«‹åˆ»åœæœºã€‚
-é¢„å……ç›¸å…³ 3 ä¸ªå®ï¼šå®šä¹‰ æ¯çº¿è¦å……åˆ°å¤šå°‘ä¼ æ‰å¸åˆç»§ç”µå™¨ã€å……å¤šä¹…è¿˜ä¸Šä¸å»å°±å®£å‘Šå¤±è´¥ã€ç»§ç”µå™¨å¸åˆåè¦ç­‰å¤šä¹…æ‰å¼€å§‹æ‹‰ BUS_ADJã€‚
-Ready ç›¸å…³ 2 ä¸ªå®ï¼šæ¯çº¿ç”µå‹è¾¾åˆ°å¤šå°‘å¹¶ä¿æŒå¤šä¹…ï¼Œæ‰è®¤ä¸º PFC â€œreadyâ€ï¼Œå¯ä»¥æ”¾è¡Œ LLCã€‚
-æ¯çº¿ä¿æŠ¤ 2 ä¸ªå®ï¼šè¿‡å‹å…³æœºç‚¹ + æ¬ å‹å…³æœºç‚¹ã€‚
-æ¸©åº¦ 2 ä¸ªå®ï¼šé¢„è­¦æ¸©åº¦ï¼ˆä½ è¿˜æ²¡ç”¨ï¼‰å’Œç¡¬å…³æœºæ¸©åº¦ã€‚
-æ•…éšœé‡å¯ 1 ä¸ªå®ï¼šæ•…éšœåæœ€çŸ­ç­‰å¾…å¤šä¹…æ‰å…è®¸å†è¯•ä¸€æ¬¡ã€‚
+AC Ïà¹Ø 4 ¸öºê£º¶¨Òå Ê²Ã´µçÑ¹·¶Î§ ²ÅËãÕı³£ÊĞµç¡¢µôµç¶à¾Ã²ÅËãÕæÕıµô¡¢AC ¹ıÑ¹Ê±Á¢¿ÌÍ£»ú¡£
+Ô¤³äÏà¹Ø 3 ¸öºê£º¶¨Òå Ä¸ÏßÒª³äµ½¶àÉÙ·ü ²ÅÎüºÏ¼ÌµçÆ÷¡¢³ä¶à¾Ã»¹ÉÏ²»È¥¾ÍĞû¸æÊ§°Ü¡¢¼ÌµçÆ÷ÎüºÏºóÒªµÈ¶à¾Ã²Å¿ªÊ¼À­ BUS_ADJ¡£
+Ready Ïà¹Ø 2 ¸öºê£ºÄ¸ÏßµçÑ¹´ïµ½¶àÉÙ²¢±£³Ö¶à¾Ã£¬²ÅÈÏÎª PFC ¡°ready¡±£¬¿ÉÒÔ·ÅĞĞ LLC¡£
+Ä¸Ïß±£»¤ 2 ¸öºê£º¹ıÑ¹¹Ø»úµã + Ç·Ñ¹¹Ø»úµã¡£
+ÎÂ¶È 2 ¸öºê£ºÔ¤¾¯ÎÂ¶È£¨Äã»¹Ã»ÓÃ£©ºÍÓ²¹Ø»úÎÂ¶È¡£
+¹ÊÕÏÖØÆô 1 ¸öºê£º¹ÊÕÏºó×î¶ÌµÈ´ı¶à¾Ã²ÅÔÊĞíÔÙÊÔÒ»´Î¡£
 */
 
 /* ===== Operating thresholds ===== */
-#define PFC_AC_VALID_MIN_VRMS          (85.0f)   //è®¤ä¸ºâ€œæœ‰å¸‚ç”µâ€çš„æœ€ä½æœ‰æ•ˆç”µå‹ï¼ˆRMSï¼‰
-#define PFC_AC_VALID_MAX_VRMS          (265.0f) //è®¤ä¸ºâ€œæ­£å¸¸è¾“å…¥â€çš„æœ€é«˜å¸‚ç”µç”µå‹ï¼ˆRMSï¼‰ï¼Œå¯¹åº” 230Vac æ ‡å‡†ä¸Šé™ã€‚
-#define PFC_AC_LOSS_DEBOUNCE_MS        (200U)   //AC æ£€æµ‹çš„â€œé˜²æŠ–æ—¶é—´â€ã€‚
-#define PFC_AC_OVERVOLTAGE_MARGIN_V    (5.0f)
-#define PFC_PRECHARGE_TARGET_V         (230.0f) //ç›´æµæ¯çº¿é¢„å……å®Œæˆçš„ç›®æ ‡ç”µå‹ã€‚
+#define PFC_AC_VALID_MIN_VRMS          (85.0f)   //ÈÏÎª¡°ÓĞÊĞµç¡±µÄ×îµÍÓĞĞ§µçÑ¹£¨RMS£©
+#define PFC_AC_VALID_MAX_VRMS          (265.0f) //ÈÏÎª¡°Õı³£ÊäÈë¡±µÄ×î¸ßÊĞµçµçÑ¹£¨RMS£©£¬¶ÔÓ¦ 230Vac ±ê×¼ÉÏÏŞ¡£
+#define PFC_AC_LOSS_DEBOUNCE_MS        (200U)   //AC ¼ì²âµÄ¡°·À¶¶Ê±¼ä¡±¡£
+
+#define PFC_PRECHARGE_TARGET_V         (230.0f) //Ö±Á÷Ä¸ÏßÔ¤³äÍê³ÉµÄÄ¿±êµçÑ¹¡£
 #define PFC_PRECHARGE_TIMEOUT_MS       (800U)  //PFC_PRECHARGE_TIMEOUT_MS = 800 ms
-#define PFC_RELAY_SETTLE_MS            (80U)  //ä¸»ç»§ç”µå™¨ä»â€œæ‹‰åˆâ€åˆ°â€œç¨³å®šå¯¼é€šâ€çš„ç­‰å¾…æ—¶é—´ã€‚
-//åœ¨ PFC_ST_RAMP_UP ä¸­ï¼Œå½“ vbus_v >= PFC_TARGET_MIN_V - 5Vï¼ˆæ¯”å¦‚ â‰¥355Vï¼‰ä¸”æŒç»­ä¸€å®šæ—¶é—´ï¼Œå°±è®¤ä¸º PFC å·²ç»ç¨³å®šï¼Œåˆ‡åˆ° RUNï¼Œå…è®¸ LLC å¯åŠ¨ã€‚
-#define PFC_READY_HYSTERESIS_V         (5.0f) //PFCâ€œå·²å°±ç»ªâ€çš„ç”µå‹æ»å›çª—å£,é¿å…æ¯çº¿åœ¨ç›®æ ‡é™„è¿‘è½»å¾®æ³¢åŠ¨æ—¶ï¼Œè®©â€œå°±ç»ª/æœªå°±ç»ªâ€é¢‘ç¹åˆ‡æ¢.
-//é˜²æ­¢åˆšæ‹‰å‡æ—¶çŸ­æš‚ç©¿è¿‡é—¨é™å°±è®© LLC è¯¯åˆ¤â€œæ¯çº¿ OKâ€ï¼Œå¯¼è‡´ LLC ä¸€å¯åŠ¨æ¯çº¿åˆæ‰ã€‚
-#define PFC_READY_STABLE_MS            (80U) //æ¯çº¿ç”µå‹è¦åœ¨â€œå°±ç»ªèŒƒå›´å†…â€æŒç»­çš„æ—¶é—´ã€‚
+#define PFC_RELAY_SETTLE_MS            (80U)  //Ö÷¼ÌµçÆ÷´Ó¡°À­ºÏ¡±µ½¡°ÎÈ¶¨µ¼Í¨¡±µÄµÈ´ıÊ±¼ä¡£
+//ÔÚ PFC_ST_RAMP_UP ÖĞ£¬µ± vbus_v >= PFC_TARGET_MIN_V - 5V£¨±ÈÈç ¡İ355V£©ÇÒ³ÖĞøÒ»¶¨Ê±¼ä£¬¾ÍÈÏÎª PFC ÒÑ¾­ÎÈ¶¨£¬ÇĞµ½ RUN£¬ÔÊĞí LLC Æô¶¯¡£
+#define PFC_READY_HYSTERESIS_V         (5.0f) //PFC¡°ÒÑ¾ÍĞ÷¡±µÄµçÑ¹ÖÍ»Ø´°¿Ú,±ÜÃâÄ¸ÏßÔÚÄ¿±ê¸½½üÇáÎ¢²¨¶¯Ê±£¬ÈÃ¡°¾ÍĞ÷/Î´¾ÍĞ÷¡±Æµ·±ÇĞ»».
+//·ÀÖ¹¸ÕÀ­ÉıÊ±¶ÌÔİ´©¹ıÃÅÏŞ¾ÍÈÃ LLC ÎóÅĞ¡°Ä¸Ïß OK¡±£¬µ¼ÖÂ LLC Ò»Æô¶¯Ä¸ÏßÓÖµô¡£
+#define PFC_READY_STABLE_MS            (80U) //Ä¸ÏßµçÑ¹ÒªÔÚ¡°¾ÍĞ÷·¶Î§ÄÚ¡±³ÖĞøµÄÊ±¼ä¡£
 #define PFC_VBUS_OVP_V                 (430.0f)
 #define PFC_VBUS_UVP_V                 (320.0f)
-//æ¸©åº¦ä¿æŠ¤
+//ÎÂ¶È±£»¤
 #define PFC_TEMP_WARN_C                (100.0f)
 #define PFC_TEMP_FAULT_C               (120.0f)
 
-//é˜²æ­¢åœ¨ç¬æ—¶è¿‡å‹ã€è¿‡æ¸©ç­‰æ•…éšœæƒ…å†µä¸‹é¢‘ç¹é‡å¯ï¼ˆæŠ–åŠ¨ï¼‰ï¼Œç»™ç¡¬ä»¶ç•™ä¸€æ®µâ€œå†·å´ / æ”¾ç”µâ€æ—¶é—´ã€‚
-#define PFC_FAULT_RESTART_MS           (2000U) //å‘ç”Ÿæ•…éšœåï¼Œå…è®¸è‡ªåŠ¨é‡å¯å‰éœ€è¦ç­‰å¾…çš„æ—¶é—´ï¼ˆ2sï¼‰ã€‚
-#define PFC_AC_OVERVOLTAGE_MARGIN_V    (5.0f)  //åœ¨ä¸Šé¢çš„ max åŸºç¡€ä¸ŠåŠ ä¸€ä¸ªâ€œè½¯ä¿æŠ¤ marginâ€ã€‚
+//·ÀÖ¹ÔÚË²Ê±¹ıÑ¹¡¢¹ıÎÂµÈ¹ÊÕÏÇé¿öÏÂÆµ·±ÖØÆô£¨¶¶¶¯£©£¬¸øÓ²¼şÁôÒ»¶Î¡°ÀäÈ´ / ·Åµç¡±Ê±¼ä¡£
+#define PFC_FAULT_RESTART_MS           (2000U) //·¢Éú¹ÊÕÏºó£¬ÔÊĞí×Ô¶¯ÖØÆôÇ°ĞèÒªµÈ´ıµÄÊ±¼ä£¨2s£©¡£
+#define PFC_AC_OVERVOLTAGE_MARGIN_V    (5.0f)  //ÔÚÉÏÃæµÄ max »ù´¡ÉÏ¼ÓÒ»¸ö¡°Èí±£»¤ margin¡±¡£
 /* ===== Bus command shaping ===== */
 #ifndef VBUS_TARGET_V
 #define VBUS_TARGET_V                  (400.0f)
@@ -61,26 +61,26 @@ Ready ç›¸å…³ 2 ä¸ªå®ï¼šæ¯çº¿ç”µå‹è¾¾åˆ°å¤šå°‘å¹¶ä¿æŒå¤šä¹…ï¼Œæ‰è®¤ä¸º PFC 
 #define PFC_RAMP_UP_RATE_V_PER_MS      (2.0f)
 #define PFC_RAMP_DOWN_RATE_V_PER_MS    (4.0f)
 
-/* ===== æ–¹æ¡ˆAï¼švbus_cmd -> å‰é¦ˆ dutyï¼ˆæ¥è‡ªä½ çš„ä»¿çœŸ plant é€†æ˜ å°„ï¼‰===== */
-#define PFC_FF_VBUS_BASE_V             (400.0f)   // ä»¿çœŸé‡Œçš„ VBUS_BASE
-#define PFC_FF_K_DUTY2VBUS_V           (300.0f)   // ä»¿çœŸé‡Œçš„ K_DUTY2VBUSï¼ˆV / dutyï¼‰
+/* ===== ·½°¸A£ºvbus_cmd -> Ç°À¡ duty£¨À´×ÔÄãµÄ·ÂÕæ plant ÄæÓ³Éä£©===== */
+#define PFC_FF_VBUS_BASE_V             (400.0f)   // ·ÂÕæÀïµÄ VBUS_BASE
+#define PFC_FF_K_DUTY2VBUS_V           (300.0f)   // ·ÂÕæÀïµÄ K_DUTY2VBUS£¨V / duty£©
 #define PFC_FF_DUTY_NEUTRAL            (0.50f)
 #define PFC_FF_DUTY_MIN                (0.05f)
 #define PFC_FF_DUTY_MAX                (0.95f)
 
-/* å½“ vbus_cmd ä½äºè¯¥é˜ˆå€¼ï¼Œç›´æ¥æŠŠ PWM å…³æ‰ï¼ˆé¿å…ä¸€ç›´å¡åœ¨ duty_min å¯¼è‡´æ¯çº¿é™ä¸ä¸‹æ¥ï¼‰ */
+/* µ± vbus_cmd µÍÓÚ¸ÃãĞÖµ£¬Ö±½Ó°Ñ PWM ¹Øµô£¨±ÜÃâÒ»Ö±¿¨ÔÚ duty_min µ¼ÖÂÄ¸Ïß½µ²»ÏÂÀ´£© */
 #define PFC_FF_DISABLE_CMD_V           (260.0f)
 /*********************************************************************************************************
-*                                              æšä¸¾ç»“æ„ä½“
+*                                              Ã¶¾Ù½á¹¹Ìå
 *********************************************************************************************************/
 typedef struct {
-    float vac_v; //å½“å‰ AC ç”µå‹â€œç¬æ—¶å€¼/ç­‰æ•ˆå€¼â€ï¼ˆè¿æ”¾è¾“å‡ºæ¢ç®—åˆ°ä¸€æ¬¡ä¾§åçš„ç”µå‹ï¼Œå•ä½ Vï¼‰
-    float vac_rms; //AC ç”µå‹çš„ RMSï¼ˆæœ‰æ•ˆå€¼ï¼Œå•ä½ Vï¼‰ï¼Œå¸¦ä½é€š/å»æŠ–ï¼Œç”¨äºåˆ¤æ–­ AC_OK
-    float vbus_v; //PFC ç›´æµæ¯çº¿ç”µå‹ï¼ˆéš”ç¦»é‡‡æ · + æ”¾å¤§ååç®—åˆ°æ¯çº¿ä¾§ï¼Œå•ä½ Vï¼‰
-    float vbat_v; //ç”µæ± ç«¯ç”µå‹ / DC è¾“å‡ºç«¯ç”µå‹ï¼ˆæ¥è‡ª VBT_SENSEï¼Œå•ä½ Vï¼‰
-    float vout_v; //LLC è¾“å‡ºç”µå‹ï¼ˆæ¥è‡ª VOUT_SENSEï¼Œå•ä½ Vï¼‰
-    float tpfc_c; //PFC åŠŸç‡å™¨ä»¶ NTC æ¸©åº¦ï¼ˆæ¢ç®—åçš„æ‘„æ°åº¦ï¼‰
-	 /* ---- åŸå§‹ ADC ç å€¼ï¼ˆæ–¹ä¾¿è°ƒè¯•/æ ‡å®šï¼‰ ---- */
+    float vac_v; //µ±Ç° AC µçÑ¹¡°Ë²Ê±Öµ/µÈĞ§Öµ¡±£¨ÔË·ÅÊä³ö»»Ëãµ½Ò»´Î²àºóµÄµçÑ¹£¬µ¥Î» V£©
+    float vac_rms; //AC µçÑ¹µÄ RMS£¨ÓĞĞ§Öµ£¬µ¥Î» V£©£¬´øµÍÍ¨/È¥¶¶£¬ÓÃÓÚÅĞ¶Ï AC_OK
+    float vbus_v; //PFC Ö±Á÷Ä¸ÏßµçÑ¹£¨¸ôÀë²ÉÑù + ·Å´óºó·´Ëãµ½Ä¸Ïß²à£¬µ¥Î» V£©
+    float vbat_v; //µç³Ø¶ËµçÑ¹ / DC Êä³ö¶ËµçÑ¹£¨À´×Ô VBT_SENSE£¬µ¥Î» V£©
+    float vout_v; //LLC Êä³öµçÑ¹£¨À´×Ô VOUT_SENSE£¬µ¥Î» V£©
+    float tpfc_c; //PFC ¹¦ÂÊÆ÷¼ş NTC ÎÂ¶È£¨»»ËãºóµÄÉãÊÏ¶È£©
+	 /* ---- Ô­Ê¼ ADC ÂëÖµ£¨·½±ãµ÷ÊÔ/±ê¶¨£© ---- */
     uint16_t vac_raw;
     uint16_t vbus_raw;
     uint16_t tpfc_raw;
@@ -88,9 +88,9 @@ typedef struct {
     uint16_t vout_raw;
 } pfc_measure_t;
 /**
- * @brief PFC æ§åˆ¶ä¸Šä¸‹æ–‡ï¼ˆçŠ¶æ€æœº + å‘½ä»¤ + é‡æµ‹æ•°æ®ï¼‰
+ * @brief PFC ¿ØÖÆÉÏÏÂÎÄ£¨×´Ì¬»ú + ÃüÁî + Á¿²âÊı¾İ£©
  *
- * æ‰€æœ‰ PFC è¿è¡Œæ—¶éœ€è¦è®°ä½çš„å˜é‡éƒ½æ”¶è¿›æ¥ï¼Œæ–¹ä¾¿åœ¨ pfc_tick_1khz() ä¸­ç»Ÿä¸€ç®¡ç†ã€‚
+ * ËùÓĞ PFC ÔËĞĞÊ±ĞèÒª¼Ç×¡µÄ±äÁ¿¶¼ÊÕ½øÀ´£¬·½±ãÔÚ pfc_tick_1khz() ÖĞÍ³Ò»¹ÜÀí¡£
  */
 typedef struct {
     pfc_state_t state;
@@ -101,8 +101,8 @@ typedef struct {
     uint32_t precharge_begin_ms;
     uint32_t fault_since_ms;
 
-    float vbus_target;     /* ä¸Šå±‚ç›®æ ‡ */
-    float vbus_cmd;        /* å†…éƒ¨æ–œå¡å‘½ä»¤ */
+    float vbus_target;     /* ÉÏ²ãÄ¿±ê */
+    float vbus_cmd;        /* ÄÚ²¿Ğ±ÆÂÃüÁî */
 
 
     bool enable_cmd;
@@ -112,13 +112,13 @@ typedef struct {
     uint32_t regulation_stable_since_ms;
     bool bus_matches_ac;
     bool regulation_stable;
-    pfc_measure_t meas; ///< æœ€è¿‘ä¸€æ¬¡é‡‡æ ·çš„ PFC æµ‹é‡æ•°æ®ï¼ˆç”µå‹ã€ç”µæµã€æ¸©åº¦ç­‰ï¼‰
+    pfc_measure_t meas; ///< ×î½üÒ»´Î²ÉÑùµÄ PFC ²âÁ¿Êı¾İ£¨µçÑ¹¡¢µçÁ÷¡¢ÎÂ¶ÈµÈ£©
 } pfc_ctx_t;
 
 static pfc_ctx_t s_pfc;
 
 /*********************************************************************************************************
-*                                              å°å·¥å…·å‡½æ•°
+*                                              Ğ¡¹¤¾ßº¯Êı
 *********************************************************************************************************/
 static float adc_to_v_scaled(uint16_t raw, float gain)
 {
@@ -168,9 +168,9 @@ static void pfc_update_regulation_stability(float target, float vbus)
     }
 }
 /*********************************************************************************************************
-*                                 ç¡¬ä»¶è¾“å‡ºï¼šåˆå¹¶â€œç»§ç”µå™¨+PFCä½¿èƒ½â€ä¸ºä¸€ä¸ªè„š
+*                                 Ó²¼şÊä³ö£ººÏ²¢¡°¼ÌµçÆ÷+PFCÊ¹ÄÜ¡±ÎªÒ»¸ö½Å
 *********************************************************************************************************/
-/* ç»§ç”µå™¨è„šï¼šä¼˜å…ˆç”¨ PFC_MAIN_RELAY_*ï¼Œè‹¥å·¥ç¨‹é‡Œæ²¡å®šä¹‰å¯é€€å› PFC_EN_*ï¼ˆå…¼å®¹ä½ æ—§å·¥ç¨‹ï¼‰ */
+/* ¼ÌµçÆ÷½Å£ºÓÅÏÈÓÃ PFC_MAIN_RELAY_*£¬Èô¹¤³ÌÀïÃ»¶¨Òå¿ÉÍË»Ø PFC_EN_*£¨¼æÈİÄã¾É¹¤³Ì£© */
 #if defined(PFC_MAIN_RELAY_PORT) && defined(PFC_MAIN_RELAY_PIN) && defined(PFC_MAIN_RELAY_RCU)
 #define PFC_MAIN_OUT_PORT   PFC_MAIN_RELAY_PORT
 #define PFC_MAIN_OUT_PIN    PFC_MAIN_RELAY_PIN
@@ -183,24 +183,23 @@ static void pfc_update_regulation_stability(float target, float vbus)
 
 void pfc_hw_set_main(bool on)
 {
-#if defined(PFC_MAIN_OUT_PORT) && defined(PFC_MAIN_OUT_PIN) && defined(PFC_MAIN_OUT_RCU)
     static bool s_last = false;
-    if (s_last == on) return;
-
-      s_last = on;
-
-    rcu_periph_clock_enable(PFC_MAIN_OUT_RCU);
-		gpio_init(PFC_MAIN_OUT_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, PFC_MAIN_OUT_PIN);
-
+		static bool s_gpio_initialized = false;
+    if (s_last == on) 
+			return;
+    s_last = on;
+		if (!s_gpio_initialized)
+		{
+			  rcu_periph_clock_enable(PFC_MAIN_OUT_RCU);
+				gpio_init(PFC_MAIN_OUT_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, PFC_MAIN_OUT_PIN);
+				s_gpio_initialized = true;
+		}
     if (on) 
 			gpio_bit_set(PFC_MAIN_OUT_PORT, PFC_MAIN_OUT_PIN);
     else    
 			gpio_bit_reset(PFC_MAIN_OUT_PORT, PFC_MAIN_OUT_PIN);
-#else
-    (void)closed;
-#endif
 }
-/* ä½ çš„ BUS_ADJ PWMï¼ˆPB0ï¼‰ */
+/* ÄãµÄ BUS_ADJ PWM£¨PB0£© */
 static void pfc_pwm_set(float duty)
 {
     if (duty <= 0.0f) {
@@ -211,7 +210,7 @@ static void pfc_pwm_set(float duty)
     pb0_pwm_set_duty(duty);
 }
 
-/* å…³è¾“å‡ºï¼šPWM=0 + MAIN=0 */
+/* ¹ØÊä³ö£ºPWM=0 + MAIN=0 */
 static void pfc_outputs_off(void)
 {
     pfc_pwm_set(0.0f);
@@ -220,11 +219,11 @@ static void pfc_outputs_off(void)
 }
 
 /*********************************************************************************************************
-*                          æ–¹æ¡ˆAï¼švbus_cmd æ–œå¡ -> duty å‰é¦ˆï¼ˆæ— é—­ç¯ PIï¼‰
+*                          ·½°¸A£ºvbus_cmd Ğ±ÆÂ -> duty Ç°À¡£¨ÎŞ±Õ»· PI£©
 *********************************************************************************************************/
 static float pfc_duty_ff_from_vbus_cmd(float vbus_cmd)
 {
-    /* ä½å‘½ä»¤ç›´æ¥å…³ PWMï¼Œç»™æ¯çº¿æ”¾ç”µ/ä¸‹é™ç©ºé—´ */
+    /* µÍÃüÁîÖ±½Ó¹Ø PWM£¬¸øÄ¸Ïß·Åµç/ÏÂ½µ¿Õ¼ä */
     if (vbus_cmd <= 0.0f || vbus_cmd <= PFC_FF_DISABLE_CMD_V) {
         return 0.0f;
     }
@@ -239,13 +238,13 @@ static float pfc_target_from_battery(float manual_target, float vbat)
 
     float dyn_target = CLAMP(manual_target, PFC_TARGET_MIN_V, PFC_TARGET_MAX_V);
     float bat_target = CLAMP(vbat * PFC_TARGET_FROM_BAT_GAIN, PFC_TARGET_MIN_FROM_BAT_V, PFC_TARGET_MAX_V);
-    /* anti-windupï¼šè‹¥æ‰“é™å¹…ï¼ŒæŠŠç§¯åˆ†å›ç®—åˆ°â€œåˆšå¥½åœ¨é™å¹…è¾¹ç•Œâ€ */
+    /* anti-windup£ºÈô´òÏŞ·ù£¬°Ñ»ı·Ö»ØËãµ½¡°¸ÕºÃÔÚÏŞ·ù±ß½ç¡± */
     if (bat_target > dyn_target) dyn_target = bat_target;
     return dyn_target;
 }
 
 /*********************************************************************************************************
-*                                              çŠ¶æ€æœºè¾…åŠ©
+*                                              ×´Ì¬»ú¸¨Öú
 *********************************************************************************************************/
 static void pfc_state_enter(pfc_state_t next)
 {
@@ -262,18 +261,18 @@ static void pfc_state_enter(pfc_state_t next)
     if (next == PFC_ST_PRECHARGE) {
         s_pfc.precharge_begin_ms = g_ms;
         s_pfc.ready_since_ms = 0U;
-        /* è¢«åŠ¨é¢„å……é˜¶æ®µä¸è¾“å‡º BUS_ADJï¼Œå‘½ä»¤ç”µå‹æ— æ„ä¹‰ï¼Œç½® 0 */
+        /* ±»¶¯Ô¤³ä½×¶Î²»Êä³ö BUS_ADJ£¬ÃüÁîµçÑ¹ÎŞÒâÒå£¬ÖÃ 0 */
         s_pfc.vbus_cmd = 0.0f;
     }
 
     if (next == PFC_ST_RAMP_UP) {
         s_pfc.ready_since_ms = 0U;
-        /* èµ·æ­¥ä»å½“å‰ VBUSï¼Œé¿å…ä¸€ä¸Šæ¥ duty æ‰“æ»¡ */
+        /* Æğ²½´Óµ±Ç° VBUS£¬±ÜÃâÒ»ÉÏÀ´ duty ´òÂú */
         s_pfc.vbus_cmd = s_pfc.meas.vbus_v;
     }
 
     if (next == PFC_ST_RUN) {
-        /* è¿›å…¥ RUN åç»§ç»­ç”¨ ready_since_ms ä½œä¸ºè¿è¡Œä¸­è®¡æ—¶ä¹Ÿæ— æ‰€è°“ï¼Œè¿™é‡Œæ¸…é›¶å³å¯ */
+        /* ½øÈë RUN ºó¼ÌĞøÓÃ ready_since_ms ×÷ÎªÔËĞĞÖĞ¼ÆÊ±Ò²ÎŞËùÎ½£¬ÕâÀïÇåÁã¼´¿É */
         s_pfc.ready_since_ms = 0U;
     }
 }
@@ -298,10 +297,10 @@ static void pfc_sample_inputs(void)
     s_pfc.meas.vout_v  = vout;
     s_pfc.meas.tpfc_c  = tpfc;
 
-    /* ä½ ç›®å‰ vac_rms ç”¨ä½é€šç­‰æ•ˆï¼Œåç»­å¯æ¢çœŸ RMS */
+    /* ÄãÄ¿Ç° vac_rms ÓÃµÍÍ¨µÈĞ§£¬ºóĞø¿É»»Õæ RMS */
     s_pfc.meas.vac_rms = lpf(s_pfc.meas.vac_rms, vac, 0.05f);
-	    /* Î” åˆ¤æ–­ PFC æ¯çº¿â‰ˆ1.414 Ã— Vacï¼ˆæ”¯æŒä¸Šç”µè‡ªæ£€ï¼‰ */
-    /* ä¸Šç”µè‡ªæ£€ï¼šVBUS â‰ˆ 1.414 Ã— VACï¼ˆå¸¦å®¹å·®+ç¨³å®šè®¡æ—¶ï¼‰ */
+	    /* ¦¤ ÅĞ¶Ï PFC Ä¸Ïß¡Ö1.414 ¡Á Vac£¨Ö§³ÖÉÏµç×Ô¼ì£© */
+    /* ÉÏµç×Ô¼ì£ºVBUS ¡Ö 1.414 ¡Á VAC£¨´øÈİ²î+ÎÈ¶¨¼ÆÊ±£© */
     bool ratio_ok = false;
     if (vac > 1.0f) {
         float expected = vac * PFC_VBUS_VAC_RATIO;
@@ -336,13 +335,13 @@ static bool pfc_ac_overvoltage(void)
 static void pfc_handle_fault(const char *reason)
 {
     (void)reason;
-    /* æ•…éšœï¼šå¿…é¡»ç«‹å³é‡Šæ”¾ç»§ç”µå™¨ + BUS_ADJ=0 */
+    /* ¹ÊÕÏ£º±ØĞëÁ¢¼´ÊÍ·Å¼ÌµçÆ÷ + BUS_ADJ=0 */
     pfc_outputs_off();
     pfc_state_enter(PFC_ST_FAULT);
 }
 
 /*********************************************************************************************************
-*                                              å¯¹å¤– API
+*                                              ¶ÔÍâ API
 *********************************************************************************************************/
 void pfc_init(void)
 {
@@ -380,7 +379,7 @@ void pfc_tick_1khz(void)
 {
     pfc_sample_inputs();
 
-    /* ä¿æŠ¤/æ•…éšœ */
+    /* ±£»¤/¹ÊÕÏ */
     if (protect_fault_active_hw() || protect_fault_latched()) {
         pfc_handle_fault("HARD_PRO");
         return;
@@ -407,7 +406,7 @@ void pfc_tick_1khz(void)
         return;
     }
 
-    /* disableï¼šä¼˜é›…åœæœºï¼ˆä¿æŒ MAIN=1ï¼Œvbus_cmd æ–œå¡é™åˆ° 0ï¼›å† MAIN=0ï¼‰ */
+    /* disable£ºÓÅÑÅÍ£»ú£¨±£³Ö MAIN=1£¬vbus_cmd Ğ±ÆÂ½µµ½ 0£»ÔÙ MAIN=0£© */
     if (!s_pfc.enable_cmd) {
         bool keep_main = (s_pfc.state == PFC_ST_WAIT_RELAY) ||
                          (s_pfc.state == PFC_ST_RAMP_UP)   ||
@@ -416,7 +415,7 @@ void pfc_tick_1khz(void)
 
         if (s_pfc.vbus_cmd > 0.0f) {
             s_pfc.vbus_cmd = CLAMP(s_pfc.vbus_cmd - PFC_RAMP_DOWN_RATE_V_PER_MS, 0.0f, PFC_TARGET_MAX_V);
-            /* åªæœ‰åœ¨ç»§ç”µå™¨å·²å¸åˆçš„é˜¶æ®µæ‰å…è®¸ BUS_ADJ è¾“å‡º */
+            /* Ö»ÓĞÔÚ¼ÌµçÆ÷ÒÑÎüºÏµÄ½×¶Î²ÅÔÊĞí BUS_ADJ Êä³ö */
             if (keep_main) {
                 float duty = pfc_duty_ff_from_vbus_cmd(s_pfc.vbus_cmd);
                 pfc_pwm_set(duty);
@@ -430,7 +429,7 @@ void pfc_tick_1khz(void)
         return;
     }
 
-    /* æ­£å¸¸çŠ¶æ€æœº */
+    /* Õı³£×´Ì¬»ú */
     switch (s_pfc.state) {
     case PFC_ST_OFF:
         pfc_outputs_off();
@@ -441,12 +440,12 @@ void pfc_tick_1khz(void)
         break;
     case PFC_ST_WAIT_AC:
         pfc_outputs_off();
-        /* 1) AC èŒƒå›´å¿…é¡» OK */
+        /* 1) AC ·¶Î§±ØĞë OK */
         if (!pfc_ac_ok()) {
             s_pfc.ac_ok_since_ms = 0U;
             break;
         }
-        /* 2) ä¸Šç”µè‡ªæ£€ï¼šVBUS â‰ˆ 1.414Ã—VAC */
+        /* 2) ÉÏµç×Ô¼ì£ºVBUS ¡Ö 1.414¡ÁVAC */
         if (!s_pfc.bus_matches_ac) {
             s_pfc.ac_ok_since_ms = 0U;
             break;
@@ -459,7 +458,7 @@ void pfc_tick_1khz(void)
         break;
 
     case PFC_ST_PRECHARGE:
-        /* é¢„å……é˜¶æ®µï¼šMAIN=0ã€PWM=0ï¼ˆè¢«åŠ¨é¢„å……é ç¡¬ä»¶ï¼‰ */
+        /* Ô¤³ä½×¶Î£ºMAIN=0¡¢PWM=0£¨±»¶¯Ô¤³ä¿¿Ó²¼ş£© */
         pfc_hw_set_main(false);
         pfc_pwm_set(0.0f);
 
@@ -478,7 +477,7 @@ void pfc_tick_1khz(void)
         }
         break;
     case PFC_ST_WAIT_RELAY:
-        /* MAIN æ‹‰èµ·ï¼ˆç»§ç”µå™¨+PFCä½¿èƒ½åŒè„šï¼‰ï¼ŒPWMä»ä¸º0ï¼Œç­‰è§¦ç‚¹ç¨³å®š */
+        /* MAIN À­Æğ£¨¼ÌµçÆ÷+PFCÊ¹ÄÜÍ¬½Å£©£¬PWMÈÔÎª0£¬µÈ´¥µãÎÈ¶¨ */
         pfc_hw_set_main(true);
         pfc_pwm_set(0.0f);
 
@@ -493,7 +492,7 @@ void pfc_tick_1khz(void)
         }
         break;
     case PFC_ST_RAMP_UP: {
-        /* ç»§ç”µå™¨ä¿æŒå¸åˆï¼Œå…è®¸ BUS_ADJ æ‹‰å‡ */
+        /* ¼ÌµçÆ÷±£³ÖÎüºÏ£¬ÔÊĞí BUS_ADJ À­Éı */
         pfc_hw_set_main(true);
 
         if (!pfc_ac_ok()) {
@@ -503,20 +502,20 @@ void pfc_tick_1khz(void)
         }
 
         float target = pfc_target_from_battery(s_pfc.vbus_target, s_pfc.meas.vbat_v);
-        /* vbus_cmd æ–œå¡ */
+        /* vbus_cmd Ğ±ÆÂ */
         if (s_pfc.vbus_cmd < target) {
             s_pfc.vbus_cmd = CLAMP(s_pfc.vbus_cmd + PFC_RAMP_UP_RATE_V_PER_MS, 0.0f, target);
         } else if (s_pfc.vbus_cmd > target) {
             s_pfc.vbus_cmd = CLAMP(s_pfc.vbus_cmd - PFC_RAMP_DOWN_RATE_V_PER_MS, target, PFC_TARGET_MAX_V);
         }
 
-        /* æ–¹æ¡ˆAï¼šå¼€ç¯å‰é¦ˆ duty */
+        /* ·½°¸A£º¿ª»·Ç°À¡ duty */
         float duty = pfc_duty_ff_from_vbus_cmd(s_pfc.vbus_cmd);
         pfc_pwm_set(duty);
-        /* 3) ä½¿èƒ½åï¼šé‡‡æ ·åˆ¤æ–­æ˜¯å¦ç¨³å®šï¼ˆå¯ç”¨äºæ”¾è¡Œ LLCï¼‰ */
+        /* 3) Ê¹ÄÜºó£º²ÉÑùÅĞ¶ÏÊÇ·ñÎÈ¶¨£¨¿ÉÓÃÓÚ·ÅĞĞ LLC£© */
         pfc_update_regulation_stability(target, s_pfc.meas.vbus_v);
 
-        /* Ready åˆ¤å®šï¼šè¾¾åˆ°æœ€å°é—¨é™å¹¶ä¿æŒ */
+        /* Ready ÅĞ¶¨£º´ïµ½×îĞ¡ÃÅÏŞ²¢±£³Ö */
         if (s_pfc.meas.vbus_v >= (PFC_TARGET_MIN_V - PFC_READY_HYSTERESIS_V)) {
             if (s_pfc.ready_since_ms == 0U) {
                 s_pfc.ready_since_ms = g_ms;
@@ -532,7 +531,7 @@ void pfc_tick_1khz(void)
     case PFC_ST_RUN: {
         pfc_hw_set_main(true);
 
-        /* AC æ‰ç”µå»æŠ–ï¼šæ‰ç”µåˆ™å› WAIT_AC å¹¶å…³è¾“å‡º */
+        /* AC µôµçÈ¥¶¶£ºµôµçÔò»Ø WAIT_AC ²¢¹ØÊä³ö */
         if (!pfc_ac_ok()) {
             if (s_pfc.ac_ok_since_ms == 0U) {
                 s_pfc.ac_ok_since_ms = g_ms;
@@ -547,7 +546,7 @@ void pfc_tick_1khz(void)
         }
 
         float target = pfc_target_from_battery(s_pfc.vbus_target, s_pfc.meas.vbat_v);
-        /* vbus_cmd è·Ÿéšç›®æ ‡ï¼ˆæ–œå¡ï¼‰ */
+        /* vbus_cmd ¸úËæÄ¿±ê£¨Ğ±ÆÂ£© */
         float rate = (target > s_pfc.vbus_cmd) ? PFC_RAMP_UP_RATE_V_PER_MS : PFC_RAMP_DOWN_RATE_V_PER_MS;
 
         if (fabsf(target - s_pfc.vbus_cmd) < rate) {
@@ -558,14 +557,14 @@ void pfc_tick_1khz(void)
             s_pfc.vbus_cmd -= rate;
         }
 
-        /* å¼€ç¯å‰é¦ˆ duty */
+        /* ¿ª»·Ç°À¡ duty */
         float duty = pfc_duty_ff_from_vbus_cmd(s_pfc.vbus_cmd);
         pfc_pwm_set(duty);
 
-        /* è°ƒèŠ‚ç¨³å®šæ€§ï¼ˆç”¨äºä½ ä¸Šå±‚é€»è¾‘/æ”¾è¡Œ LLCï¼‰ */
+        /* µ÷½ÚÎÈ¶¨ĞÔ£¨ÓÃÓÚÄãÉÏ²ãÂß¼­/·ÅĞĞ LLC£© */
         pfc_update_regulation_stability(target, s_pfc.meas.vbus_v);
-        /* UVPï¼šè¿è¡Œä¸­æ¯çº¿æ‰å¤ªä½ï¼Œè®¤ä¸ºå¼‚å¸¸ï¼ˆå¯æŒ‰éœ€æ±‚æ”¹æˆå› WAIT_AC æˆ– FAULTï¼‰ */
-        /* UVPï¼šè¿è¡Œä¸­æ¯çº¿æ‰å¤ªä½ */
+        /* UVP£ºÔËĞĞÖĞÄ¸ÏßµôÌ«µÍ£¬ÈÏÎªÒì³££¨¿É°´ĞèÇó¸Ä³É»Ø WAIT_AC »ò FAULT£© */
+        /* UVP£ºÔËĞĞÖĞÄ¸ÏßµôÌ«µÍ */
         if (s_pfc.meas.vbus_v < PFC_VBUS_UVP_V) {
             pfc_handle_fault("VBUS_UV");
         }
@@ -590,7 +589,7 @@ pfc_state_t pfc_state(void) { return s_pfc.state; }
 
 bool pfc_is_ready(void)
 {
-    /* ä½ ä¹Ÿå¯ä»¥æŠŠ regulation_stable ä½œä¸ºâ€œç¨³å®šâ€çš„æ›´ä¸¥æ ¼æ¡ä»¶ */
+    /* ÄãÒ²¿ÉÒÔ°Ñ regulation_stable ×÷Îª¡°ÎÈ¶¨¡±µÄ¸üÑÏ¸ñÌõ¼ş */
     return (s_pfc.state == PFC_ST_RUN) &&
            (s_pfc.meas.vbus_v >= (PFC_TARGET_MIN_V - PFC_READY_HYSTERESIS_V)) &&
            (s_pfc.regulation_stable);
@@ -599,7 +598,7 @@ bool pfc_is_ready(void)
 bool pfc_is_fault(void) { return s_pfc.state == PFC_ST_FAULT; }
 bool pfc_is_fault_latched(void) { return s_pfc.fault_latched; }
 
-/* æ•…éšœæ¸…é™¤ï¼šå¢åŠ å†·å´/æ”¾ç”µç­‰å¾…ï¼ˆPFC_FAULT_RESTART_MSï¼‰ */
+/* ¹ÊÕÏÇå³ı£ºÔö¼ÓÀäÈ´/·ÅµçµÈ´ı£¨PFC_FAULT_RESTART_MS£© */
 void pfc_clear_fault(void)
 {
     if (!s_pfc.fault_latched) return;

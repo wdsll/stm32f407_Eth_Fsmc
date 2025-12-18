@@ -113,10 +113,30 @@
 #define LLC_F_SLEW_HZ       (500.0f)
 #define LLC_F_DEBUG_HZ      (130000.0f)
 
+/* ==== LLC open-loop safe bands ==== */
+#define LLC_VBUS_MIN_START_V         (360.0f)
+#define LLC_VOUT_TARGET_V            (44.0f)
+#define LLC_VOUT_HYST_V              (3.0f)
+#define LLC_VOUT_OVP_V               (48.0f)
+#define LLC_IOUT_OCP_A               (15.0f)
+
+#define LLC_SWEEP_START_HZ           (110000.0f)
+#define LLC_SWEEP_STOP_HZ            (80000.0f)
+#define LLC_SWEEP_STEP_HZ            (400.0f)
+#define LLC_SWEEP_STEP_MS            (5U)
+#define LLC_SWEEP_TIMEOUT_MS         (800U)
+#define LLC_SWEEP_STABLE_COUNT       (5U)
+#define LLC_SWEEP_TARGET_WINDOW_V    (1.0f)
+
+#define LLC_HOLD_ADJUST_HZ           (200.0f)
+#define LLC_HOLD_ADJUST_PERIOD_MS    (10U)
+#define LLC_HOLD_RESCAN_DELTA_V      (5.0f)
+
+#define LLC_STOPPING_FREQ_HOLD_MS    (40U)
+
+
 #define DEBUG_PRINTF_LLCSOFTSTART 0
-
 #define DEBUG_PRINTF_LLC_OPENLOOP 0
-
 #define DEBUG_PRINTF_PFC_STATE 0
 
 /* ==== Interrupt priority scheme (NVIC_PRIGROUP_PRE2_SUB2) ==== */

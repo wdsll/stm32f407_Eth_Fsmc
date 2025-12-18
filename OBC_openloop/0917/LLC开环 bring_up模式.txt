@@ -1,37 +1,64 @@
-# LLC/PFC 控制板硬件 Bring-up 明细
+0) 前置条件（进入 LLC 前）
+PFC ready（母线达到允许范围并稳定）
+Vbus ≥ 目标下限（比如 360V）并保持一段时间（比如 80ms）
+无故障：硬件保护未触发（HARD_PRO）
+LLC 输出端继电器 out_relay（如有）：按硬件时序决定是否先闭合/后闭合
+求稳一般：LLC 启动前先确认 out_relay 状态正确（避免带载突然上电）
 
-本明细面向硬件工程师，结合当前固件的 Bring-up 配置（默认旁路 PFC 闭环，仅执行 LLC 开环扫频）给出上电与调试顺序、量测点以及判定标准。固件在 `InitRCU()` 中将系统时钟配置到 120?MHz，并已在 `main()` 中完成 PWM、ADC、保护等外设初始化，所以下述步骤均以该固件为基础。Bring-up 期间仅需 J-Link/串口调试器、隔离可调电源和基本示波/万用表即可。
+1) LLC 开环状态机
+S0：IDLE/OFF（待机）
+PWM 关闭（HS/LS 全关）、频率命令置为 f_max
+清零软启计数器、扫频计数器、故障锁存标志（或保留锁存，需手动清除）
+转移条件：
+Enable_LLC=1 且 PFC_ready=1 且 no_fault=1 → S1
+S1：PRECHECK（启动前检查）
+读取一次关键量：Vbus/Vout/Iout/温度
+设置 PWM 参数（死区、互补、极性、最小占空保护）
+给一个安全起步频率：f_cmd = f_max(150k)，占空按你的固定策略（通常 LLC 占空 50% 互补）
+转移条件：
+检查通过 → S2
+检查失败（Vbus 太低/硬件故障/温度高）→ FAULT
+S2：SOFTSTART（软启动 300ms，核心是“抑制过冲”）
+软启策略不变还是基于现在的调占空比软启动
+S3：SWEEP（开环扫频/找工作点，可选但很实用）
+目的：
+找到在当前负载（≈10A）下，能把 Vout 拉到 44V 附近的频率点，并给后续 HOLD 用
+常用方式：
+在一个安全区间扫：例如 110k → 80k（不建议一上来扫到 75k，过冲风险大）
+步进：Δf = 200~500 Hz/ms（或者 1~2kHz 每 5~10ms）
+记录：每个频点的 Vout，找到最接近 44V 的 f_best
+转移条件：
+找到 f_best 且 Vout 满足稳定条件 → S4
+超时仍找不到（比如始终上不去/始终过冲）→ STOPPING 或 FAULT
 
-## 1. 上电前静态检查
-1. **电阻分压与采样网络**：确认 VBAT/VBUS/VOUT/3V3 等分压电阻阻值与设计一致，固件默认使用 200?kΩ/10?kΩ（VOUT、VBAT）及 10?kΩ/5.1?kΩ（3V3）比例，任何偏差都会造成 ADC 标定错误。【F:0917/APP/include/main.h?L27-L40】
-2. **电流采样链路**：母线电流是按 5?mΩ 分流电阻与 19.6 倍运放增益解算，检查焊接与极性，避免正负反接。【F:0917/APP/include/main.h?L51-L53】
-3. **保护输入**：PB12（BKIN）默认上拉为安全态，确认外部保护电路不会在空板时拉低，若需要通过继电器短接请确保在上电前断开。【F:0917/HW/include/protect_exti.h?L6-L16】【F:0917/HW/src/protect_exti.c?L8-L41】
+S4：HOLD（开环保持运行）
+f_cmd = f_best（固定频率保持）
+周期性监控：Vout、Iout、Vbus
+如果负载变化导致偏差大：
+轻微：允许小范围“慢调”（比如每 10ms 调 100~200Hz）
+变化很大：回到 S3 重新扫一次（求稳但会慢）
+转移条件：
+Enable_LLC=0 → STOPPING
+PFC_ready=0 或 AC_loss → STOPPING（或直接 FAULT，看硬件要求）
+保护触发 → FAULT
+S5：STOPPING（优雅停机，求稳建议保留）
+目标： 先让能量“软退出”，再关 PWM/继电器，避免输出乱跳/反灌。
+推荐顺序（开环常用）：
+升频到高频（例如直接拉回 150k，保持 20~50ms）→ 把增益压低.PWM 关闭,再释放 out_relay
+转移条件：
+停机完成 → IDLE/OFF
 
-## 2. 辅助电源 Bring-up
-1. **分阶段上电**：仅接入 3.3?V/控制电源与 12?V VBAT，暂不合入高压母线。固件判定 3.3?V ≥?3.0?V、VBAT ≥?10?V 且保持 30?ms 才认为辅助电源稳定，若跌落 5?ms 以上会判定掉电，需要重新计时。【F:0917/APP/include/main.h?L41-L46】【F:0917/APP/src/main.c?L269-L349】
-2. **串口确认**：连接调试串口，复位 MCU 后应看到 `Debug console initialized @...` 日志，说明 RCU、SysTick 正常运行。【F:0917/APP/src/main.c?L1211-L1218】
-3. **PB12 保护状态**：上电后读取串口日志或示波 PB12，若该脚被外部拉低会立即关闭 PWM 并保持 FAULT，需要硬件释放或通过 PC12 发送清除脉冲后再恢复。【F:0917/HW/src/protect_exti.c?L9-L59】【F:0917/APP/src/main.c?L242-L252】【F:0917/APP/src/main.c?L1080-L1150】
+2) 故障处理（FAULT，必须锁存 + 复位策略）
+触发源（典型）
+硬件保护：HARD_PRO / OCP / 短路等（最高优先级）
+Vout OVP（比如 > 46~48V，按你产品定）
+Iout OCP（> 额定+裕量）
+母线异常：Vbus UV/OV、PFC not ready、AC 丢失
+FAULT 动作（求稳版）
+立刻：f_cmd = f_max（可选，但一般来不及）
+立刻关 PWM（HS/LS 全关）
+释放继电器（out_relay / PFC relay 依硬件）
+锁存故障码、记录当时 Vout/Vbus/Iout/f_cmd
+重启策略：
+严重故障（硬件保护/短路/过温）：必须人工清故障
 
-## 3. 时钟与基础外设验证
-1. **时钟树**：确认外部 8?MHz 晶振起振，MCU 通过 PLL×15 输出 120?MHz，AHB=120?MHz，APB1=60?MHz，APB2=120?MHz，确保 Flash 等效等待状态设置为 2 拍以免 HardFault。【F:0917/HW/src/RCU.c?L52-L139】
-2. **PWM 输出空载检查**：固件在 `main()` 中将 LLC 主桥 PWM 初始化为 98.753?kHz、死区 500?ns、占空 50%，但在 WAIT 阶段保持关断，可用示波器确认 PA8/PB13 仅在进入 RUN 后才输出互补波形。【F:0917/APP/include/main.h?L62-L65】【F:0917/APP/src/main.c?L1211-L1233】
-3. **ADC DMA**：确认 PA5/PA6/PA7、PC4/PC5、PB1 均为模拟输入，DMA0 通道 0 配置为循环模式，触发源来自 TIMER0 CH2，同步于 PWM 更新；手动改变 VOUT/VBAT，可在串口调试中读取转换值。【F:0917/HW/src/adc_dma.c?L11-L141】【F:0917/APP/src/main.c?L1166-L1209】
-
-## 4. PFC 回路 Bring-up（旁路模式）
-1. **默认配置**：固件在 `LLC_BRINGUP_OPEN_LOOP_ONLY` 下强制旁路 PFC 状态机，`pfc_app_state()` 直接进入 READY，且不会拉高 PFC_EN，使得早期 Bring-up 仅关注 LLC 功能。【F:0917/APP/src/main.c?L24-L712】【F:0917/APP/src/main.c?L942-L953】
-2. **继电器与驱动**：虽然逻辑不启用 PFC，但硬件仍需确认 PC10（PFC_EN）和 PB14（主继电器）输出级无短路，避免后续闭环调试时损坏。【F:0917/APP/include/main.h?L153-L159】【F:0917/APP/src/main.c?L636-L700】
-3. **准备闭环前的验证**：若需测试 PFC 功能，可暂时清除旁路宏定义，按照状态机阈值（360?V 进入 READY，低于 345?V 且持续 200?ms 退出）逐项验证；硬件需提供可靠的母线电压测量和断路保护。【F:0917/APP/include/main.h?L161-L188】【F:0917/APP/src/main.c?L840-L938】
-
-## 5. LLC 功率级 Bring-up
-1. **状态机顺序**：默认从 WAIT_AUX → WAIT_VBUS → LLC_RUN，且必须满足：辅助电源稳定、（若使能 PFC）VBUS ≥?380?V 且保持 100?ms，才会闭合继电器并进入 RUN；若电压掉到 370?V 以下或检测到掉电则返回等待状态。【F:0917/APP/include/main.h?L55-L66】【F:0917/APP/src/main.c?L981-L1131】
-2. **开环扫频**：进入 RUN 后会按照 `s_llc_open_loop_profile` 从 130?kHz 向 90?kHz 扫频并记录终点频率，期间 `llc_softstart` 将占空从 10% 缓升至 50%，建议使用隔离电源/假负载观察波形与电流，确认谐振网络无异常噪声或过流。【F:0917/APP/src/main.c?L131-L139】【F:0917/APP/include/main.h?L70-L83】【F:0917/APP/src/main.c?L1045-L1203】
-3. **故障恢复**：BKIN 触发或辅助电源掉电时立即转入 FAULT，软件在 PC12 输出 10ms 清除脉冲后尝试复位，硬件需保证保护锁存器与驱动芯片能够响应该脉冲并安全复位。【F:0917/APP/src/main.c?L242-L252】【F:0917/APP/src/main.c?L1080-L1150】
-
-## 6. 建议的 Bring-up 流程小结
-1. 断开主功率通路，仅给控制侧供电 → 确认串口、保护、ADC 工作。
-2. 接入假负载与低压直流，通过调整 VOUT 分压验证 ADC 与软启动逻辑。
-3. 在隔离可调高压下逐步提升 VBUS，观察 WAIT_VBUS → RUN 的转换与继电器吸合。
-4. 监测 PB12/BKIN 与 PC12/清除脉冲的协作，确保过流/保护链条闭合。
-5. 最后才合入整流/PFC，逐步恢复闭环控制并记录实际电压/电流响应。
-
-执行过程中请随时记录关键信号（PA8、PB13、PB12、PC12、VOUT/VBUS）波形，必要时依据固件阈值调整硬件分压或驱动参数，以确保后续闭环调试具备稳定的硬件基础。

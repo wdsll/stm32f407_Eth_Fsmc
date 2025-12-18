@@ -5,7 +5,13 @@
 
 typedef enum 
 { 
-	ST_IDLE=0, ST_WAIT_AUX, ST_WAIT_VBUS, ST_LLC_RUN, ST_FAULT 
+	ST_IDLE=0, 
+	ST_PRECHECK,
+	ST_SOFTSTART,
+	ST_SWEEP,
+	ST_LLC_RUN,
+	ST_STOPPING,
+	ST_FAULT,
 } llc_state_t;
 
 typedef struct
