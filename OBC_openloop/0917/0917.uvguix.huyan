@@ -3649,7 +3649,6 @@
         <PaneID>0</PaneID>
       </Doc>
       <Doc>
-        <Name>.\HW\src\llc_open_loop.c</Name>
         <ColumnNumber>23</ColumnNumber>
         <TopLine>204</TopLine>
         <CurrentLine>20</CurrentLine>
@@ -3757,7 +3756,6 @@
         <PaneID>0</PaneID>
       </Doc>
       <Doc>
-        <Name>HW\include\llc_open_loop.h</Name>
         <ColumnNumber>53</ColumnNumber>
         <TopLine>53</TopLine>
         <CurrentLine>66</CurrentLine>
@@ -3856,7 +3854,6 @@
         <PaneID>0</PaneID>
       </Doc>
       <Doc>
-        <Name>.\HW\src\aux_power.c</Name>
         <ColumnNumber>8</ColumnNumber>
         <TopLine>71</TopLine>
         <CurrentLine>80</CurrentLine>
@@ -3865,7 +3862,6 @@
         <PaneID>0</PaneID>
       </Doc>
       <Doc>
-        <Name>.\APP\include\aux_power.h</Name>
         <ColumnNumber>5</ColumnNumber>
         <TopLine>1</TopLine>
         <CurrentLine>17</CurrentLine>

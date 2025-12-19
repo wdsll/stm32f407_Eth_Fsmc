@@ -1,7 +1,7 @@
 #include "llc_control.h"
 #include "float.h"
 /*********************************************************************************************************
-*                                              ÄÚ²¿±äÁ¿¶¨Òå
+*                                              å†…éƒ¨å˜é‡å®šä¹‰
 *********************************************************************************************************/
 typedef struct {
     float vbus_v;
@@ -30,7 +30,7 @@ enum{
 };
 
 /*********************************************************************************************************
-*                                              ÄÚ²¿º¯ÊıÉùÃ÷
+*                                              å†…éƒ¨å‡½æ•°å£°æ˜
 *********************************************************************************************************/
 static void llc_state_enter(llc_state_t next);
 static void llc_update_measurements(void);
@@ -42,7 +42,7 @@ static bool llc_faults_present(void);
 static void llc_enter_fault(void);
 static void llc_handle_sweep(void);
 /*********************************************************************************************************
-*                                              ¾²Ì¬¹¤¾ß
+*                                              é™æ€å·¥å…·
 *********************************************************************************************************/
 static inline float conv_adc_to_v_div(uint16_t raw, float rtop, float rbot)
 {
@@ -110,34 +110,34 @@ static void llc_enter_fault(void)
     llc_state_enter(ST_FAULT);
 }
 /*********************************************************************************************************
-*                                              ×´Ì¬»úºËĞÄ
+*                                              çŠ¶æ€æœºæ ¸å¿ƒ
 *********************************************************************************************************/
 static void llc_state_enter(llc_state_t next)
 {
-	// ¸üĞÂ LLC ×´Ì¬ºÍ½øÈëÊ±¼ä
+	// æ›´æ–° LLC çŠ¶æ€å’Œè¿›å…¥æ—¶é—´
 	s_llc_app.state = next;
 	s_llc_app.entry_ms = g_ms;
 	#if Bus_Adj
-	bus_vol_adj_reset();   //ÖØÖÃ×ÜÏßµçÑ¹µ÷ÕûÂß¼­ °Ù·ÖÖ®ÎåÊ®µÄÕ¼¿Õ±È
+	bus_vol_adj_reset();   //é‡ç½®æ€»çº¿ç”µå‹è°ƒæ•´é€»è¾‘ ç™¾åˆ†ä¹‹äº”åçš„å ç©ºæ¯”
 	#endif
-	// ¸ù¾İÄ¿±ê×´Ì¬Ö´ĞĞÏàÓ¦µÄ³õÊ¼»¯»òÇåÀí²Ù×÷
+	// æ ¹æ®ç›®æ ‡çŠ¶æ€æ‰§è¡Œç›¸åº”çš„åˆå§‹åŒ–æˆ–æ¸…ç†æ“ä½œ
 	switch(next)
 	{
 		case ST_IDLE:
 			llc_softstart_on_fault();
-			pfc_hw_set_main(false);   // Ç¿ÖÆ¹Ø±Õ PFC
-			llc_pwm_outputs_enable(0); // ½ûÓÃ PWM Êä³ö
-			s_llc.f_cmd = s_llc.f_max; // ÉèÖÃÆµÂÊÎª×î´óÖµ
-		  s_llc_rt.sweep_best_error = FLT_MAX; //ÖØÖÃ×î¼ÑÎó²îÎªÎŞÇî´ó£¬Çå³ıÀúÊ·×îÓÅ½â
-      s_llc_rt.sweep_best_freq = LLC_SWEEP_START_HZ; //ÖØÖÃ×î¼ÑÆµÂÊÎªÉ¨ÃèÆğÊ¼Öµ£¬×¼±¸ÖØĞÂ½øĞĞÆµÂÊÉ¨Ãè
-      s_llc_rt.sweep_stable_hits = 0U; //ÖØÖÃÎÈ¶¨¼ÆÊıÆ÷£¬ÓÃÓÚÅĞ¶ÏÏµÍ³ÊÇ·ñ´ïµ½ÎÈÌ¬
-      s_llc_rt.softstart_begin_ms = 0U;  //ÈíÆô¶¯¿ªÊ¼Ê±¼ä´Á£¬ÓÃÓÚ¿ØÖÆÈíÆô¶¯Ğ±ÆÂ
-      s_llc_rt.stopping_begin_ms = 0U;  //Í£»ú¹ı³Ì¿ªÊ¼Ê±¼ä´Á£¬ÓÃÓÚ¿ØÖÆÍ£»úÊ±Ğò
-      s_llc_rt.hold_last_adjust_ms = 0U; //±£³Ö×îºóµ÷ÕûµÄÊ±¼ä´Á£¬ÓÃÓÚÆµÂÊµ÷ÕûµÄÈ¥¶¶
+			pfc_hw_set_main(false);   // å¼ºåˆ¶å…³é—­ PFC
+			llc_pwm_outputs_enable(0); // ç¦ç”¨ PWM è¾“å‡º
+			s_llc.f_cmd = s_llc.f_max; // è®¾ç½®é¢‘ç‡ä¸ºæœ€å¤§å€¼
+		  s_llc_rt.sweep_best_error = FLT_MAX; //é‡ç½®æœ€ä½³è¯¯å·®ä¸ºæ— ç©·å¤§ï¼Œæ¸…é™¤å†å²æœ€ä¼˜è§£
+      s_llc_rt.sweep_best_freq = LLC_SWEEP_START_HZ; //é‡ç½®æœ€ä½³é¢‘ç‡ä¸ºæ‰«æèµ·å§‹å€¼ï¼Œå‡†å¤‡é‡æ–°è¿›è¡Œé¢‘ç‡æ‰«æ
+      s_llc_rt.sweep_stable_hits = 0U; //é‡ç½®ç¨³å®šè®¡æ•°å™¨ï¼Œç”¨äºåˆ¤æ–­ç³»ç»Ÿæ˜¯å¦è¾¾åˆ°ç¨³æ€
+      s_llc_rt.softstart_begin_ms = 0U;  //è½¯å¯åŠ¨å¼€å§‹æ—¶é—´æˆ³ï¼Œç”¨äºæ§åˆ¶è½¯å¯åŠ¨æ–œå¡
+      s_llc_rt.stopping_begin_ms = 0U;  //åœæœºè¿‡ç¨‹å¼€å§‹æ—¶é—´æˆ³ï¼Œç”¨äºæ§åˆ¶åœæœºæ—¶åº
+      s_llc_rt.hold_last_adjust_ms = 0U; //ä¿æŒæœ€åè°ƒæ•´çš„æ—¶é—´æˆ³ï¼Œç”¨äºé¢‘ç‡è°ƒæ•´çš„å»æŠ–
 			break;
-	  case ST_PRECHECK:  /* ĞÂÔö£ºÖ»ÔÚ¸¨Ô´ÎÈ¶¨ºó²Å½øÈë WAIT_VBUS */
-    llc_pwm_outputs_enable(0); // ½ûÓÃ PWM Êä³ö
-    s_llc.f_cmd = s_llc.f_max; // ÉèÖÃÆµÂÊÎª×î´óÖµ
+	  case ST_PRECHECK:  /* æ–°å¢ï¼šåªåœ¨è¾…æºç¨³å®šåæ‰è¿›å…¥ WAIT_VBUS */
+    llc_pwm_outputs_enable(0); // ç¦ç”¨ PWM è¾“å‡º
+    s_llc.f_cmd = s_llc.f_max; // è®¾ç½®é¢‘ç‡ä¸ºæœ€å¤§å€¼
 		//llc_set_freq(s_llc.f_max);
         break;
 		case ST_SOFTSTART:
@@ -146,7 +146,7 @@ static void llc_state_enter(llc_state_t next)
 			llc_softstart_start(LLC_SOFTSTART_TARGET_DUTY);
 			break;
 		case ST_SWEEP:
-			 s_llc_rt.sweep_best_error = FLT_MAX;  //ÖØÖÃ×î¼ÑÎó²îÎªÎŞÇî´ó£¬Çå³ıÀúÊ·×îÓÅ½â
+			 s_llc_rt.sweep_best_error = FLT_MAX;  //é‡ç½®æœ€ä½³è¯¯å·®ä¸ºæ— ç©·å¤§ï¼Œæ¸…é™¤å†å²æœ€ä¼˜è§£
 			 s_llc_rt.sweep_best_freq = LLC_SWEEP_START_HZ;
 			 s_llc_rt.sweep_stable_hits = 0U;
 			 s_llc_rt.sweep_start_ms = g_ms;
@@ -172,23 +172,23 @@ static void llc_state_enter(llc_state_t next)
 }
 static void llc_handle_sweep(void)
 {
-	//³¬Ê±±£»¤»úÖÆ
+	//è¶…æ—¶ä¿æŠ¤æœºåˆ¶
 		uint32_t elapsed = elapsed_since(s_llc_rt.sweep_start_ms); 
 		if (elapsed_reached(s_llc_rt.sweep_start_ms, LLC_SWEEP_TIMEOUT_MS)) {
 			llc_state_enter(ST_STOPPING);
 			return;
 		}
-		//Ã¿´ÎÑ­»·¶¼¼ÆËãµ±Ç°Êä³öÓëÄ¿±êµÄÆ«²î
-		float err = fabsf(s_llc_rt.meas.vout_v - LLC_VOUT_TARGET_V); //Ê¹ÓÃ fabsf() È·±£Îó²îÊ¼ÖÕÎªÕıÖµ
+		//æ¯æ¬¡å¾ªç¯éƒ½è®¡ç®—å½“å‰è¾“å‡ºä¸ç›®æ ‡çš„åå·®
+		float err = fabsf(s_llc_rt.meas.vout_v - LLC_VOUT_TARGET_V); //ä½¿ç”¨ fabsf() ç¡®ä¿è¯¯å·®å§‹ç»ˆä¸ºæ­£å€¼
 		
 		if (err < s_llc_rt.sweep_best_error) {
 			s_llc_rt.sweep_best_error = err;
-			//Ì°ĞÄ²ßÂÔ£ºÖ»Òª·¢ÏÖ¸üºÃµÄ½â¾ÍÁ¢¼´¸üĞÂ
+			//è´ªå¿ƒç­–ç•¥ï¼šåªè¦å‘ç°æ›´å¥½çš„è§£å°±ç«‹å³æ›´æ–°
 			s_llc_rt.sweep_best_freq = s_llc.f_cmd;
     }
-		//²»ÊÇ×·ÇóÍêÃÀÆ¥Åä£¬¶øÊÇÔÊĞíÒ»¶¨Îó²î·¶Î§
+		//ä¸æ˜¯è¿½æ±‚å®Œç¾åŒ¹é…ï¼Œè€Œæ˜¯å…è®¸ä¸€å®šè¯¯å·®èŒƒå›´
 		if (err <= LLC_SWEEP_TARGET_WINDOW_V) {
-			//ĞèÒªÁ¬Ğø¶à´Î¶¼ÔÚÎó²î·¶Î§ÄÚ²ÅËãÎÈ¶¨,È¥¶¶¶¯£º·ÀÖ¹Ë²Ê±²¨¶¯µ¼ÖÂµÄÎóÅĞ
+			//éœ€è¦è¿ç»­å¤šæ¬¡éƒ½åœ¨è¯¯å·®èŒƒå›´å†…æ‰ç®—ç¨³å®š,å»æŠ–åŠ¨ï¼šé˜²æ­¢ç¬æ—¶æ³¢åŠ¨å¯¼è‡´çš„è¯¯åˆ¤
         if (++s_llc_rt.sweep_stable_hits >= LLC_SWEEP_STABLE_COUNT) {
             llc_state_enter(ST_LLC_RUN);
             return;
@@ -196,18 +196,18 @@ static void llc_handle_sweep(void)
     } else {
         s_llc_rt.sweep_stable_hits = 0U;
     }
-		//¶¨Ê±²½½ø£º°´ÕÕ¹Ì¶¨Ê±¼ä¼ä¸ôµ÷ÕûÆµÂÊ£¬¸øÏµÍ³×ã¹»Ê±¼äÏìÓ¦ 
-		//LLC_SWEEP_STEP_MS £ºÈ·±£Ã¿´ÎÆµÂÊµ÷ÕûºóÏµÍ³ÓĞÊ±¼äÎÈ¶¨
+		//å®šæ—¶æ­¥è¿›ï¼šæŒ‰ç…§å›ºå®šæ—¶é—´é—´éš”è°ƒæ•´é¢‘ç‡ï¼Œç»™ç³»ç»Ÿè¶³å¤Ÿæ—¶é—´å“åº” 
+		//LLC_SWEEP_STEP_MS ï¼šç¡®ä¿æ¯æ¬¡é¢‘ç‡è°ƒæ•´åç³»ç»Ÿæœ‰æ—¶é—´ç¨³å®š
 		if (elapsed_since(s_llc_rt.sweep_last_step_ms) >= LLC_SWEEP_STEP_MS) {
-			//´Ó¸ßÆµÏòµÍÆµÉ¨Ãè£¨LLCÌØĞÔ£ºÆµÂÊÔ½µÍ£¬¹¦ÂÊÔ½´ó£©
+			//ä»é«˜é¢‘å‘ä½é¢‘æ‰«æï¼ˆLLCç‰¹æ€§ï¼šé¢‘ç‡è¶Šä½ï¼ŒåŠŸç‡è¶Šå¤§ï¼‰
         float next_freq = s_llc.f_cmd - LLC_SWEEP_STEP_HZ;
-			// ÔöÇ¿±ß½ç¼ì²é£ºÈ·±£ÆµÂÊÔÚÓĞĞ§·¶Î§ÄÚ
+			// å¢å¼ºè¾¹ç•Œæ£€æŸ¥ï¼šç¡®ä¿é¢‘ç‡åœ¨æœ‰æ•ˆèŒƒå›´å†…
         if (next_freq < LLC_SWEEP_STOP_HZ) {
-					// ´ïµ½É¨ÃèÏÂÏŞ£¬Í£Ö¹É¨Ãè
+					// è¾¾åˆ°æ‰«æä¸‹é™ï¼Œåœæ­¢æ‰«æ
             llc_state_enter(ST_STOPPING);
             return;
         }
-				// ¶îÍâ¼ì²é£ºÈ·±£ÆµÂÊ²»³¬³öÏµÍ³ÔÊĞí·¶Î§
+				// é¢å¤–æ£€æŸ¥ï¼šç¡®ä¿é¢‘ç‡ä¸è¶…å‡ºç³»ç»Ÿå…è®¸èŒƒå›´
 				next_freq = f_clampf(next_freq, s_llc.f_min, s_llc.f_max);
         llc_set_freq(next_freq);
         s_llc_rt.sweep_last_step_ms = g_ms;
@@ -215,7 +215,7 @@ static void llc_handle_sweep(void)
 }
 
 /*********************************************************************************************************
-*                                              ¹«¹²½Ó¿Ú
+*                                              å…¬å…±æ¥å£
 *********************************************************************************************************/
 void llc_app_init()
 {
@@ -225,74 +225,94 @@ void llc_app_init()
 
 void llc_app_tick_1khz(void)
 {
-	llc_update_measurements();
-	
-	if (llc_faults_present()) {
+        llc_update_measurements();
+
+        if (llc_faults_present()) {
       llc_enter_fault();
-  		return;
+                return;
   }
-	bool enable_llc = pfc_is_ready();
-	switch(s_llc_rt.app.state)
-	{
-		case ST_IDLE:
-			if(enable_llc&&llc_precheck_ok())
-			{
-				  llc_state_enter(ST_PRECHECK);
-			}
-			break;
-		case ST_PRECHECK:
-        if (!enable_llc || !llc_precheck_ok()) {
-            llc_enter_fault();
-					break;
-				}
-				llc_state_enter(ST_SOFTSTART);
+        bool pfc_ready = pfc_is_ready();
+        switch(s_llc_rt.app.state)
+        {
+                case ST_IDLE:
+                        if(pfc_ready&&llc_precheck_ok())
+                        {
+                                  llc_state_enter(ST_PRECHECK);
+                        }
+                        break;
+                case ST_PRECHECK:
+        if (!pfc_ready) {
+            llc_state_enter(ST_STOPPING);
+                                        break;
+                                }
+                                if(llc_faults_present()||!llc_precheck_ok())
+                                {
+                                        llc_enter_fault();
+                                        break;
+                                }
+                                if(elapsed_reached(s_llc_app.entry_ms,PFC_READY_STABLE_BEFORE_LLC_MS))
+                                {
+                                        llc_state_enter(ST_SOFTSTART);
+                                }
             break;
-        break;
-		case ST_SOFTSTART:
-			llc_softstart_tick_1khz();
-			if(!enable_llc)
-			{
-				llc_state_enter(ST_STOPPING);
-				break;
-			}
-			if(elapsed_reached(s_llc_rt.softstart_begin_ms,LLC_SOFTSTART_DURATION_MS))
-			{
-				llc_state_enter(ST_SWEEP);
-			}
-			break;
-		case ST_SWEEP:
-			if(!enable_llc)
-			{
-				llc_state_enter(ST_STOPPING);
-				break;
-			}
-			llc_handle_sweep();
-			break;
-		case ST_LLC_RUN:
-			if(!enable_llc||(s_llc_rt.meas.vbus_v<(LLC_VBUS_MIN_START_V-LLC_VOUT_HYST_V)))
-			{
-				llc_state_enter(ST_STOPPING);
-			}
-			float err = s_llc_rt.meas.vout_v - LLC_VOUT_TARGET_V;
-			if(fabsf(err)>LLC_SWEEP_TARGET_WINDOW_V && elapsed_reached(s_llc_rt.hold_last_adjust_ms,LLC_HOLD_ADJUST_PERIOD_MS))
-			{
-				 float delta = (err < 0.0f) ? -LLC_HOLD_ADJUST_HZ : LLC_HOLD_ADJUST_HZ;
-				 llc_set_freq(s_llc.f_cmd + delta);
-				 s_llc_rt.hold_last_adjust_ms = g_ms;
-			}
-			break;
-		case ST_STOPPING:
-			if(elapsed_reached(s_llc_rt.stopping_begin_ms,LLC_STOPPING_FREQ_HOLD_MS))
-			{
-				llc_pwm_outputs_enable(0);
-				llc_state_enter(ST_IDLE);
-			}
-			break;
-		case ST_FAULT:
-			
-		default:
-			break;
-	}
+                case ST_SOFTSTART:
+                        llc_softstart_tick_1khz();
+                        if(!pfc_ready)
+                        {
+                                llc_state_enter(ST_STOPPING);
+                                break;
+                        }
+                        if(llc_faults_present())
+                        {
+                                llc_enter_fault();
+                                break;
+                        }
+                        if(elapsed_reached(s_llc_rt.softstart_begin_ms,LLC_SOFTSTART_DURATION_MS))
+                        {
+                                llc_state_enter(ST_SWEEP);
+                        }
+                        break;
+                case ST_SWEEP:
+                        if(!pfc_ready)
+                        {
+                                llc_state_enter(ST_STOPPING);
+                                break;
+                        }
+                        if(llc_faults_present())
+                        {
+                                llc_enter_fault();
+                                break;
+                        }
+                        llc_handle_sweep();
+                        break;
+                case ST_LLC_RUN:
+                        if(!pfc_ready||(s_llc_rt.meas.vbus_v<(LLC_VBUS_MIN_START_V-LLC_VOUT_HYST_V)))
+                        {
+                                llc_state_enter(ST_STOPPING);
+                                break;
+                        }
+                        {
+                        float err = s_llc_rt.meas.vout_v - LLC_VOUT_TARGET_V;
+                        if(fabsf(err)>LLC_SWEEP_TARGET_WINDOW_V && elapsed_reached(s_llc_rt.hold_last_adjust_ms,LLC_HOLD_ADJUST_PERIOD_MS))
+                        {
+                                 float delta = (err < 0.0f) ? -LLC_HOLD_ADJUST_HZ : LLC_HOLD_ADJUST_HZ;
+                                 llc_set_freq(s_llc.f_cmd + delta);
+                                 s_llc_rt.hold_last_adjust_ms = g_ms;
+                        }
+                        }
+                        break;
+                case ST_STOPPING:
+                        if(elapsed_reached(s_llc_rt.stopping_begin_ms,LLC_STOPPING_FREQ_HOLD_MS))
+                        {
+                                llc_pwm_outputs_enable(0);
+                                llc_state_enter(ST_IDLE);
+                        }
+                        break;
+                case ST_FAULT:
+
+                default:
+                        break;
+        }
 }
 
 

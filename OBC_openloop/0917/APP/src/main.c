@@ -1,33 +1,21 @@
 
 /*********************************************************************************************************
-*                                              °üº¬Í·ÎÄ¼ş
+*                                              åŒ…å«å¤´æ–‡ä»¶
 *********************************************************************************************************/
 #include "main.h"
 /*********************************************************************************************************
-*                                              ºê¶¨Òå
+*                                              å®å®šä¹‰
 *********************************************************************************************************/
-
-#define LLC_USE_OPEN_LOOP 0
 
 #define Bus_Adj 0
 
-/* ======================== Bring-up configuration ======================== */
-/* Keep PFC control bypassed so that the firmware only exercises the LLC open-loop sweep for hardware validation. */
-#define LLC_BRINGUP_OPEN_LOOP_ONLY   0
-
-#if LLC_BRINGUP_OPEN_LOOP_ONLY
-#define LLC_BYPASS_PFC_CONTROL      1
-#else
-#define LLC_BYPASS_PFC_CONTROL      0
-#endif
-
-/* ¿ØÖÆÑ­»·²ÎÊı£¨1 kHz£© */
+/* æ§åˆ¶å¾ªç¯å‚æ•°ï¼ˆ1 kHzï¼‰ */
 #define CONTROL_LOOP_HZ            (1000U)
 #define CONTROL_LOOP_DT_S          (1.0f / (float)CONTROL_LOOP_HZ)
-/* Ö÷Ñ­»·Ò»´Î×î¶à´¦ÀíµÄ tick£¬³¬¹ı½«¼ÆÊıÎª¶ªÆú£¨±ÜÃâÖ÷Ñ­»·³¤Ê±¼äÕ¼ÓÃ£© */
+/* ä¸»å¾ªç¯ä¸€æ¬¡æœ€å¤šå¤„ç†çš„ tickï¼Œè¶…è¿‡å°†è®¡æ•°ä¸ºä¸¢å¼ƒï¼ˆé¿å…ä¸»å¾ªç¯é•¿æ—¶é—´å ç”¨ï¼‰ */
 #define MAX_TICKS_PER_LOOP         (5U)
 /*********************************************************************************************************
-*                                              Ã¶¾Ù½á¹¹Ìå
+*                                              æšä¸¾ç»“æ„ä½“
 *********************************************************************************************************/
 
 
@@ -41,23 +29,14 @@ typedef struct
 static protect_clear_pulse_ctx_t s_protect_clear_pulse = { false, 0U, 0U };
 
 /*********************************************************************************************************
-*                                              ÄÚ²¿±äÁ¿¶¨Òå
+*                                              å†…éƒ¨å˜é‡å®šä¹‰
 *********************************************************************************************************/
 
 
 
-#if LLC_USE_OPEN_LOOP
-static llc_open_loop_ctrl_t s_llc_open_loop;
-static bool s_llc_open_loop_completed = false;
-static float s_llc_open_loop_final_freq = LLC_F_INIT_HZ;
-static const llc_open_loop_segment_t s_llc_open_loop_profile[] = {
-	//{ .start_hz = LLC_F_MAX_HZ, .stop_hz = LLC_F_INIT_HZ, .slew_hz_per_ms = LLC_F_SLEW_HZ, .hold_time_ms = 100U },
-	{ .start_hz = LLC_F_INIT_HZ, .stop_hz = LLC_F_INIT_HZ, .slew_hz_per_ms = 0, .hold_time_ms = 100U },
-};
-#endif
 volatile uint32_t g_ms=0;
 static volatile uint32_t s_control_tick_pending = 0U;
-static volatile uint32_t s_tick_drop_count = 0U; /* ±»¶ªÆúµÄ tick ¼ÆÊı */
+static volatile uint32_t s_tick_drop_count = 0U; /* è¢«ä¸¢å¼ƒçš„ tick è®¡æ•° */
 void delay_ms(uint32_t duration_ms)
 {
     if (duration_ms == 0U) {
@@ -71,13 +50,13 @@ void delay_ms(uint32_t duration_ms)
 }
 
 /*********************************************************************************************************
-*                                              ÄÚ²¿º¯ÊıÉùÃ÷
+*                                              å†…éƒ¨å‡½æ•°å£°æ˜
 *********************************************************************************************************/
 static void protect_hw_clear_pulse_tick(void);
-static void protect_clear_gpio_init(void); // ¡û ĞÂÔö£ºÇåËø´æ½Å³õÊ¼»¯
+static void protect_clear_gpio_init(void); // â† æ–°å¢ï¼šæ¸…é”å­˜è„šåˆå§‹åŒ–
 
 /*********************************************************************************************************
-*                                              ÄÚ²¿º¯ÊıÊµÏÖ
+*                                              å†…éƒ¨å‡½æ•°å®ç°
 *********************************************************************************************************/
 void systick_config(void)
 {
@@ -95,21 +74,21 @@ void systick_1ms_init(void){
 		SystemCoreClockUpdate();    
      uint32_t reload  = SystemCoreClock / 1000U;
 	  if (reload == 0U || reload > SysTick_LOAD_RELOAD_Msk) {
-                                           // Ê§°Ü£ºÆµÂÊÒì³£»ò³¬³ö24Î»
+                                           // å¤±è´¥ï¼šé¢‘ç‡å¼‚å¸¸æˆ–è¶…å‡º24ä½
     }
-		reload -= 1U; //µ÷ÕûÖØÔØÖµ£¬È·±£¶¨Ê±Æ÷ĞĞÎª·ûºÏÔ¤ÆÚ¡£
+		reload -= 1U; //è°ƒæ•´é‡è½½å€¼ï¼Œç¡®ä¿å®šæ—¶å™¨è¡Œä¸ºç¬¦åˆé¢„æœŸã€‚
 		if (reload > SysTick_LOAD_RELOAD_Msk) {
 			reload = SysTick_LOAD_RELOAD_Msk;
 		}
 		
-		SysTick->CTRL = 0U;  //ÏÈ½ûÓÃ SysTick¡£
-		SysTick->LOAD = reload; //ÉèÖÃÖØÔØÖµ¡£
-		SysTick->VAL  = 0U; //Çå³ıµ±Ç°¼ÆÊıÖµ¡£
+		SysTick->CTRL = 0U;  //å…ˆç¦ç”¨ SysTickã€‚
+		SysTick->LOAD = reload; //è®¾ç½®é‡è½½å€¼ã€‚
+		SysTick->VAL  = 0U; //æ¸…é™¤å½“å‰è®¡æ•°å€¼ã€‚
     //NVIC_SetPriority(SysTick_IRQn, 0x0F);
 		NVIC_SetPriority(SysTick_IRQn, irq_priority_encode(IRQ_PRIO_SYSTICK_PREEMPT, IRQ_PRIO_SYSTICK_SUB));
-		//ÉèÖÃ SysTick µÄÊ±ÖÓÔ´¡£Èç¹û¸ÃÎ»±»ÖÃ 1£¬±íÊ¾Ê¹ÓÃ´¦ÀíÆ÷Ê±ÖÓ£¨HCLK£©£»Èç¹ûÎª 0£¬±íÊ¾Ê¹ÓÃ HCLK µÄ 8 ·ÖÆµ¡£
-		//¿ØÖÆ SysTick ÖĞ¶ÏµÄÆôÓÃ¡£Èç¹û¸ÃÎ»±»ÖÃ 1£¬±íÊ¾ÔÊĞí SysTick ¶¨Ê±Æ÷ÔÚ¼ÆÊıµ½ 0 Ê±´¥·¢ÖĞ¶Ï¡£
-		//¿ØÖÆ SysTick ¶¨Ê±Æ÷µÄÆôÓÃ¡£Èç¹û¸ÃÎ»±»ÖÃ 1£¬±íÊ¾Æô¶¯¶¨Ê±Æ÷¼ÆÊı¡£
+		//è®¾ç½® SysTick çš„æ—¶é’Ÿæºã€‚å¦‚æœè¯¥ä½è¢«ç½® 1ï¼Œè¡¨ç¤ºä½¿ç”¨å¤„ç†å™¨æ—¶é’Ÿï¼ˆHCLKï¼‰ï¼›å¦‚æœä¸º 0ï¼Œè¡¨ç¤ºä½¿ç”¨ HCLK çš„ 8 åˆ†é¢‘ã€‚
+		//æ§åˆ¶ SysTick ä¸­æ–­çš„å¯ç”¨ã€‚å¦‚æœè¯¥ä½è¢«ç½® 1ï¼Œè¡¨ç¤ºå…è®¸ SysTick å®šæ—¶å™¨åœ¨è®¡æ•°åˆ° 0 æ—¶è§¦å‘ä¸­æ–­ã€‚
+		//æ§åˆ¶ SysTick å®šæ—¶å™¨çš„å¯ç”¨ã€‚å¦‚æœè¯¥ä½è¢«ç½® 1ï¼Œè¡¨ç¤ºå¯åŠ¨å®šæ—¶å™¨è®¡æ•°ã€‚
 		SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk |  
 								SysTick_CTRL_TICKINT_Msk   |
 								SysTick_CTRL_ENABLE_Msk;
@@ -118,13 +97,13 @@ static inline float conv_adc_to_v_div(uint16_t raw, float rtop, float rbot){
     float v = (raw * VREF_ADC) / 4095.0f;
     return v * (rtop + rbot) / rbot;
 }
-//È¥Æ«ÖÃ
-//float v_net = v_adc - v_zero;               // È¥Æ«ÖÃ
-//return v_net / (ISHUNT_OHM * IAMP_GAIN);    // µ¥Î»£º°²Åà
-//v_zero¡Ö0.17V
+//å»åç½®
+//float v_net = v_adc - v_zero;               // å»åç½®
+//return v_net / (ISHUNT_OHM * IAMP_GAIN);    // å•ä½ï¼šå®‰åŸ¹
+//v_zeroâ‰ˆ0.17V
 static inline float conv_adc_to_i(uint16_t raw){
     float v = (raw * VREF_ADC) / 4095.0f;
-		float v1 = v - 0.17;              // È¥Æ«ÖÃ
+		float v1 = v - 0.17;              // å»åç½®
     return v1 / (ISHUNT_OHM * IAMP_GAIN);
 }
 static inline float f_absf(float x){ return x < 0 ? -x : x; }
@@ -162,29 +141,26 @@ static void protect_hw_clear_pulse_tick(void)
 
 
 
-/* ADC1Í¨µÀ14²âÊÔº¯ÊıÉùÃ÷ */
+/* ADC1é€šé“14æµ‹è¯•å‡½æ•°å£°æ˜ */
 uint16_t adc1_channel14_test(void);
 uint16_t adc1_channel14_multiple_samples(uint16_t sample_count, uint16_t *samples);
 
 
 
 static void control_loop_tick_1khz(void){
-    /* 1 kHz control */ 
-		adc_multi_sample_aux_1khz();
-		adc_multi_copy(); 
+    /* 1 kHz control */
+                adc_multi_sample_aux_1khz();
+                adc_multi_copy();
     float vout = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
-		float v3v3 = conv_adc_to_v_div(g_adc_multi.v3v3_raw,V3V3_RTOP_OHM,V3V3_RBOT_OHM);
-		float vbat = conv_adc_to_v_div(g_adc_multi.vbt_raw, VBT_RTOP_OHM, VBT_RBOT_OHM);
-	
-		aux_power_monitor_update(v3v3, vbat);
     s_llc.vmeas = vout;
     pfc_tick_1khz();
+    pfc_clear_fault();
     llc_app_tick_1khz();
-		protect_hw_clear_pulse_tick();
+                protect_hw_clear_pulse_tick();
 }
 
 
-//volatile uint32_t g_s  = 0;   // ĞÂÔö£ºÃë¼ÆÊı
+//volatile uint32_t g_s  = 0;   // æ–°å¢ï¼šç§’è®¡æ•°
 void SysTick_Handler(void){
     g_ms++;
     s_control_tick_pending++;
@@ -199,7 +175,7 @@ int main(void){
 	  debug_printf("Debug console initialized @%lu baud\n", (unsigned long)DEBUG_PRINTF_DEFAULT_BAUDRATE);
 	
 		systick_1ms_init();
-    /* LLC complementary PWM ÅäÖÃLLCµÄPWMÆµÂÊ ¡¢ËÀÇøÊ±¼äºÍÕ¼¿Õ±È£¬²¢³õÊ¼»¯PWMÄ£¿é*/
+    /* LLC complementary PWM é…ç½®LLCçš„PWMé¢‘ç‡ ã€æ­»åŒºæ—¶é—´å’Œå ç©ºæ¯”ï¼Œå¹¶åˆå§‹åŒ–PWMæ¨¡å—*/
     llc_pwm_cfg_t lcfg = { .pwm_hz=LLC_PWM_BASE_HZ, .deadtime_ns=LLC_PWM_DEAD_NS, .duty=LLC_PWM_DUTY };
     llc_pwm_init(&lcfg);
 
@@ -224,40 +200,35 @@ int main(void){
 		
 		/* after protect_exti_init(); */
 if (!protect_fault_active_hw() && protect_fault_latched()) {
-    /* BKINÒÑ¸ß¡¢µçÂ·ÎŞÕæ¹ÊÕÏ£¬µ«Èí¼ş»¹¼Ç×Å¾É±êÖ¾ ¡ú ÇåÈí¼ş + ÇåÓ²¼şËø´æ */
+    /* BKINå·²é«˜ã€ç”µè·¯æ— çœŸæ•…éšœï¼Œä½†è½¯ä»¶è¿˜è®°ç€æ—§æ ‡å¿— â†’ æ¸…è½¯ä»¶ + æ¸…ç¡¬ä»¶é”å­˜ */
     protect_clear_fault();
-    protect_hw_clear_pulse(10);   // 10ms ¹»ÓÃ£»ÄãµÄÓ²¼şÈô¸üÂı¿Éµ÷µ½ 20ms
+    protect_hw_clear_pulse(10);   // 10ms å¤Ÿç”¨ï¼›ä½ çš„ç¡¬ä»¶è‹¥æ›´æ…¢å¯è°ƒåˆ° 20ms
 }
 
-    /* LLC control default¡£³õÊ¼»¯LLCµÄ¿ØÖÆ²ÎÊı£¬°üÀ¨Ä¿±êµçÑ¹¡¢PID²ÎÊı¡¢ÆµÂÊ·¶Î§ºÍ³õÊ¼ÆµÂÊ¡£*/
-    s_llc = (llc_t){ 
-			.vref=VBUS_TARGET_V, .vmeas=0.0f, .kp=0.01f, .ki=0.0005f,
-      .f_min=LLC_F_MIN_HZ, .f_max=LLC_F_MAX_HZ, .f_cmd=LLC_F_INIT_HZ, .f_slew=LLC_F_SLEW_HZ 
-		};
-#if LLC_USE_OPEN_LOOP
-		llc_open_loop_init(&s_llc_open_loop, s_llc_open_loop_profile, sizeof(s_llc_open_loop_profile)/sizeof(s_llc_open_loop_profile[0]));
-		s_llc_open_loop_completed = false;
-		s_llc_open_loop_final_freq = f_clampf(LLC_F_INIT_HZ, s_llc.f_min, s_llc.f_max);
-#endif
-		pfc_app_init();
-		llc_app_init();
-		pfc_disable();
+    /* LLC control defaultã€‚åˆå§‹åŒ–LLCçš„æ§åˆ¶å‚æ•°ï¼ŒåŒ…æ‹¬ç›®æ ‡ç”µå‹ã€PIDå‚æ•°ã€é¢‘ç‡èŒƒå›´å’Œåˆå§‹é¢‘ç‡ã€‚*/
+    s_llc = (llc_t){
+                        .vref=VBUS_TARGET_V, .vmeas=0.0f, .kp=0.01f, .ki=0.0005f,
+      .f_min=LLC_F_MIN_HZ, .f_max=LLC_F_MAX_HZ, .f_cmd=LLC_F_INIT_HZ, .f_slew=LLC_F_SLEW_HZ
+                };
+                pfc_app_init();
+                llc_app_init();
+                pfc_enable();
 
 		
     while(1){
 			uint32_t pending_ticks = 0U;
-			float  duty0, duty1; //PA3 PA1²¶»ñµÄÖµ
+			float  duty0, duty1; //PA3 PA1æ•è·çš„å€¼
 			__disable_irq();
 			if(s_control_tick_pending > 0U)
 			{
-					pending_ticks = s_control_tick_pending; //pending_ticks £ºÓÃÓÚÖğ¸ö´¦Àí´ıÖ´ĞĞµÄ¿ØÖÆÈÎÎñ¡£
-					s_control_tick_pending = 0U;  //¼ÇÂ¼´ı´¦ÀíµÄ¿ØÖÆÖÜÆÚÈÎÎñÊıÁ¿¡£
+					pending_ticks = s_control_tick_pending; //pending_ticks ï¼šç”¨äºé€ä¸ªå¤„ç†å¾…æ‰§è¡Œçš„æ§åˆ¶ä»»åŠ¡ã€‚
+					s_control_tick_pending = 0U;  //è®°å½•å¾…å¤„ç†çš„æ§åˆ¶å‘¨æœŸä»»åŠ¡æ•°é‡ã€‚
 			}
 			__enable_irq();
 			while(pending_ticks-- > 0U)
 			{
 				control_loop_tick_1khz();
-				// ·ÀÖ¹µ¥´ÎÖ÷Ñ­»·´¦Àí¹ı¶à tick
+				// é˜²æ­¢å•æ¬¡ä¸»å¾ªç¯å¤„ç†è¿‡å¤š tick
 					if(pending_ticks > MAX_TICKS_PER_LOOP)
 					{
 						s_tick_drop_count += (pending_ticks - MAX_TICKS_PER_LOOP);

@@ -1,23 +1,23 @@
 /*********************************************************************************************************
-* ģ�����ƣ�main.h
-* ժ    Ҫ����ģ��
-* ��ǰ�汾��1.0.0
-* ��    �ߣ�Rengar
-* ������ڣ�2025��10��08�� 
-* ��    �ݣ�
-* ע    �⣺                                                                  
+* 模块名称：main.h
+* 摘    要：主模块
+* 当前版本：1.0.0
+* 作    者：Rengar
+* 完成日期：2025年10月08日 
+* 内    容：
+* 注    意：                                                                  
 **********************************************************************************************************
-* ȡ���汾��
-* ��    �ߣ�
-* ������ڣ�
-* �޸����ݣ�
-* �޸��ļ���
+* 取代版本：
+* 作    者：
+* 完成日期：
+* 修改内容：
+* 修改文件：
 *********************************************************************************************************/
 #ifndef _MAIN_H_
 #define _MAIN_H_
 
 /*********************************************************************************************************
-*                                              ����ͷ�ļ�
+*                                              包含头文件
 *********************************************************************************************************/
 #include "gd32f30x_conf.h"
 #include <stdint.h>
@@ -30,13 +30,11 @@
 #include "debug_printf.h"
 #include "pwm.h"
 #include "protect_exti.h"
-#include "llc_open_loop.h"
-#include "aux_power.h"
 #include "pfc_control.h"
 #include "llc_control.h"
 #include "llc_soft_start.h"
 /*********************************************************************************************************
-*                                              �궨��
+*                                              宏定义
 *********************************************************************************************************/
 /* ==== Voltage sense dividers (top to bus, bottom to gnd) ==== */
 #define VBUS_RTOP_OHM       (200000.0f)
@@ -45,11 +43,11 @@
 #define VREF_ADC            (3.3f)
 
 
-/* PFC sensing networks ����δȷ��*/
+/* PFC sensing networks 待定未确认*/
 #define PFC_VBUS_RTOP_OHM   (0.0f) 
 #define PFC_VBUS_RBOT_OHM   (1.0f) 
-/* PFC sensing networks - AC side (ZMPT + LM358 ��� RC) */
-//��������ֻ��ӳ���˷���� �� ADC����һ�� 1/3 �ķ�ѹ��
+/* PFC sensing networks - AC side (ZMPT + LM358 后端 RC) */
+//这两个宏只反映“运放输出 → ADC”这一段 1/3 的分压。
 #define PFC_AC_RTOP_OHM     (20000.0f)// R7 + R19
 #define PFC_AC_RBOT_OHM     (10000.0f)// R8
 #define PFC_NTC_PULLUP_OHM  (10000.0f)
@@ -66,18 +64,8 @@
 #define V3V3_RBOT_OHM        (5100.0f)
 
 
-/* ==== Auxiliary supply monitoring thresholds ==== */
-#define AUX_V3V3_OK_MIN_V     (3.0f)
-#define AUX_VBAT_OK_MIN_V     (10.0f)
-
-#define AUX_OK_DEBOUNCE_MS          30U     /* ��Դ�ָ�����ʱ�� */
-#define AUX_DROP_DEBOUNCE_MS        5U      /* ��Դ��������ʱ�䣨���죩 */
-
-#ifndef AUX_POWER_MONITOR_ENABLE
-#define AUX_POWER_MONITOR_ENABLE    (0)
-#endif
 /* ==== Current sense ==== */
-#define ISHUNT_OHM          (0.005f)   /* 5 m�� */
+#define ISHUNT_OHM          (0.005f)   /* 5 mΩ */
 #define IAMP_GAIN           (19.6f)   /* INA gain */
 
 /* ==== Control targets/thresholds ==== */
@@ -96,14 +84,14 @@
 #define LLC_SOFTSTART_ENABLE        (1)
 #endif
 /* ==== LLC_SOFTSTART ==== */
-#define LLC_SOFTSTART_DURATION_MS     300U      // ��������ʱ��
+#define LLC_SOFTSTART_DURATION_MS     300U      // 软启动总时长
 #define LLC_SOFTSTART_MIN_DURATION_MS 20U  
-#define LLC_SOFTSTART_START_DUTY      0.10f    // ��ʼռ�գ�0~1��
-#define LLC_SOFTSTART_TARGET_DUTY     0.50f    // Ĭ��Ŀ��ռ�գ�0~1�������� begin() ���븲��
-#define LLC_SOFTSTART_FAILSAFE_DUTY   0.00f    // ����ʱ�˻�ռ��
-#define LLC_SOFTSTART_USE_COSINE_EASE 1        // 1: ����S���ߣ�0: ָ������
-#define LLC_SOFTSTART_EXP_K           3.0f     // ָ�����Ͷȣ�Խ��ǰ��Խ����
-#define LLC_SOFTSTART_EXTRA_MARGIN      (0.02f)   /* ��ȫ������������������ */
+#define LLC_SOFTSTART_START_DUTY      0.10f    // 起始占空（0~1）
+#define LLC_SOFTSTART_TARGET_DUTY     0.50f    // 默认目标占空（0~1），可在 begin() 传入覆盖
+#define LLC_SOFTSTART_FAILSAFE_DUTY   0.00f    // 故障时退回占空
+#define LLC_SOFTSTART_USE_COSINE_EASE 1        // 1: 余弦S曲线；0: 指数曲线
+#define LLC_SOFTSTART_EXP_K           3.0f     // 指数陡峭度（越大前期越缓）
+#define LLC_SOFTSTART_EXTRA_MARGIN      (0.02f)   /* 安全窗额外余量（防抖） */
 #define LLC_SOFTSTART_TICK_MS         (0.1f)
 
 /* ==== LLC frequency window ==== */
@@ -174,16 +162,16 @@ static inline uint8_t irq_priority_encode(uint8_t preempt, uint8_t sub)
 #define PB0_PIN        GPIO_PIN_0
 #define PB0_PWM_BASE_HZ     (20000U)
 
-/* ===== PA3 & PA1 BOTH as timer input capture (no ADC on these) =====  ������ռ�ձȺ�ĸ�ߵ�ռ�ձ�*/ 
+/* ===== PA3 & PA1 BOTH as timer input capture (no ADC on these) =====  交流的占空比和母线的占空比*/ 
 #define CAP0_TIMER     TIMER1
-#define CAP0_CH        TIMER_CH_3     /* PA3 �� CH0 (adjust if needed) */
+#define CAP0_CH        TIMER_CH_3     /* PA3 → CH0 (adjust if needed) */
 #define CAP0_PORT      GPIOA
 #define CAP0_PIN       GPIO_PIN_3
 #define CAP0_IRQN      TIMER1_IRQn
 #define CAP0_INT_CH    TIMER_INT_CH3
 
 #define CAP1_TIMER     TIMER1
-#define CAP1_CH        TIMER_CH_1     /* PA1 �� CH1 (adjust if needed) */
+#define CAP1_CH        TIMER_CH_1     /* PA1 → CH1 (adjust if needed) */
 #define CAP1_PORT      GPIOA
 #define CAP1_PIN       GPIO_PIN_1
 #define CAP1_IRQN      TIMER1_IRQn
@@ -192,24 +180,24 @@ static inline uint8_t irq_priority_encode(uint8_t preempt, uint8_t sub)
 
 
 /* ADC channel map (PA0/PA1 removed) */
-#define AC_VOL_SAMPLE      ADC_CHANNEL_1   /* PA1 AC ��ѹ����*/
-#define FAN_CS      			 ADC_CHANNEL_2   //���ȵ���/״̬����
+#define AC_VOL_SAMPLE      ADC_CHANNEL_1   /* PA1 AC 电压采样*/
+#define FAN_CS      			 ADC_CHANNEL_2   //风扇电流/状态采样
 
-#define BUS_VOL_SAMPLE     ADC_CHANNEL_3   //ĸ�ߵ�ѹ����ͨ�������� OVP/OCP ���㣩
+#define BUS_VOL_SAMPLE     ADC_CHANNEL_3   //母线电压保护通道（用于 OVP/OCP 计算）
 
 #define VOUT_SENSE_CH      ADC_CHANNEL_5   /* PA5 */
 #define ADC_ISENSE_CH      ADC_CHANNEL_6   /* PA6 */
-#define T_SENSE_PFC_MOS    ADC_CHANNEL_7   /* PA7 PFC MOS ���¶� NTC ����*/
-#define AD_3V3_CH          ADC_CHANNEL_14  /* PC4 3.3V ģ���Դ��⣨AD_3V3��*/ 
-#define VBT_SENSE_CH       ADC_CHANNEL_15  /* PC5 ��ض˵�ѹ����*/
-#define T_SENSE_LLCMOS_CH  ADC_CHANNEL_9   /* PB1 LLC MOS ���¶� NTC ����*/
+#define T_SENSE_PFC_MOS    ADC_CHANNEL_7   /* PA7 PFC MOS 管温度 NTC 采样*/
+#define AD_3V3_CH          ADC_CHANNEL_14  /* PC4 3.3V 模拟电源监测（AD_3V3）*/ 
+#define VBT_SENSE_CH       ADC_CHANNEL_15  /* PC5 电池端电压采样*/
+#define T_SENSE_LLCMOS_CH  ADC_CHANNEL_9   /* PB1 LLC MOS 管温度 NTC 采样*/
 
 
-#define OUT_RELAY     GPIOB  //ֱ������̵�������
+#define OUT_RELAY     GPIOB  //直流输出继电器控制
 #define OUT_RELAY_PIN     	GPIO_PIN_14 
 #define OUT_RELAY_RCU			RCU_GPIOB
 
-#define PFC_MAIN_RELAY_PORT     GPIOC  //PFC Ԥ��/�̵���ʹ�ܿ���
+#define PFC_MAIN_RELAY_PORT     GPIOC  //PFC 预充/继电器使能控制
 #define PFC_MAIN_RELAY_PIN     	GPIO_PIN_10  
 #define PFC_MAIN_RELAY_RCU			RCU_GPIOC
 
@@ -232,21 +220,21 @@ static inline uint8_t irq_priority_encode(uint8_t preempt, uint8_t sub)
 #define FAN_CTL_PORT            GPIOC
 #define FAN_CTL_PIN             GPIO_PIN_12
 
-/* --- PFC �Ľ��������ɵ� READY �˳���������ʱ --- */
+/* --- PFC 改进：更宽松的 READY 退出门限与延时 --- */
 #ifndef PFC_VBUS_DROPOUT_THRESHOLD_V
-#define PFC_VBUS_DROPOUT_THRESHOLD_V   (PFC_VBUS_READY_V - 15.0f) /* ���� 345V */
+#define PFC_VBUS_DROPOUT_THRESHOLD_V   (PFC_VBUS_READY_V - 15.0f) /* 例如 345V */
 #endif
 
 #ifndef PFC_VBUS_DROPOUT_MS_NEW
-#define PFC_VBUS_DROPOUT_MS_NEW        (200U)                     /* �˳���ʱ�ӳ� */
+#define PFC_VBUS_DROPOUT_MS_NEW        (200U)                     /* 退出延时加长 */
 #endif
 
-/* LLC ����ǰ��PFC READY ���ȶ�һС��ʱ�䣬���⾺̬ */
+/* LLC 启动前，PFC READY 需稳定一小段时间，避免竞态 */
 #ifndef PFC_READY_STABLE_BEFORE_LLC_MS
 #define PFC_READY_STABLE_BEFORE_LLC_MS (50U)
 #endif
 
-/* �� IDLE��READY �ж��У��ԡ����Ե��ء��������ʱ�Ļ���� */
+/* 在 IDLE→READY 判定中，对“明显掉回”才清零计时的缓冲带 */
 #ifndef PFC_VBUS_OK_RESET_MARGIN_V
 #define PFC_VBUS_OK_RESET_MARGIN_V     (5.0f)
 #endif
@@ -260,7 +248,7 @@ static inline uint8_t irq_priority_encode(uint8_t preempt, uint8_t sub)
 #define PFC_RESTART_DELAY_MS        (1000U)
 #define PFC_VBUS_DROPOUT_THRESHOLD  (PFC_VBUS_READY_V - 15.0f)  /* 345V, increased from 350V */
 /*********************************************************************************************************
-*                                              ö�ٽṹ��
+*                                              枚举结构体
 *********************************************************************************************************/
 extern volatile uint32_t g_ms;
 
@@ -280,7 +268,7 @@ static inline bool elapsed_reached(uint32_t start_ms, uint32_t duration_ms)
 	return elapsed_since(start_ms) >= duration_ms;
 }
 /*********************************************************************************************************
-*                                              API��������
+*                                              API函数声明
 *********************************************************************************************************/
 
 static inline float f_clampf(float x,float lo,float hi)
