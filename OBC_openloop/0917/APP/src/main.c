@@ -16,15 +16,6 @@
 /*********************************************************************************************************
 *                                              枚举结构体
 *********************************************************************************************************/
-typedef struct
-{
-	bool active;
-	uint16_t duration_ms;
-	uint32_t start_ms;
-} protect_clear_pulse_ctx_t;
-
-static protect_clear_pulse_ctx_t s_protect_clear_pulse = { false, 0U, 0U };
-
 typedef enum{
 	APP_STATE_INIT = 0,
 	APP_STATE_RUN,
@@ -53,8 +44,11 @@ void delay_ms(uint32_t duration_ms)
 /*********************************************************************************************************
 *                                              内部函数声明
 *********************************************************************************************************/
-static void protect_hw_clear_pulse_tick(void);
-static void protect_clear_gpio_init(void); // ← 新增：清锁存脚初始化
+
+
+/* ADC1通道14测试函数声明 */
+uint16_t adc1_channel14_test(void);
+uint16_t adc1_channel14_multiple_samples(uint16_t sample_count, uint16_t *samples);
 
 /*********************************************************************************************************
 *                                              内部函数实现
@@ -108,49 +102,13 @@ static inline float conv_adc_to_v_div(uint16_t raw, float rtop, float rbot){
 //    return v1 / (ISHUNT_OHM * IAMP_GAIN);
 //}
 
-void protect_hw_clear_pulse(uint16_t pulse_ms)
-{
-    uint16_t duration = pulse_ms;
-    if (duration == 0U) {
-        duration = 10U;
-    }
-
-    gpio_bit_set(GPIOC, GPIO_PIN_11);
-    s_protect_clear_pulse.active = true;
-    s_protect_clear_pulse.duration_ms = duration;
-    s_protect_clear_pulse.start_ms = g_ms;
-}
-
-static void protect_hw_clear_pulse_tick(void)
-{
-    if (!s_protect_clear_pulse.active) {
-        return;
-    }
-
-    if ((uint32_t)(g_ms - s_protect_clear_pulse.start_ms) >= s_protect_clear_pulse.duration_ms) {
-        gpio_bit_reset(GPIOC, GPIO_PIN_11);
-        s_protect_clear_pulse.active = false;
-        s_protect_clear_pulse.start_ms = 0U;
-    }
-}
-
-
-
-
-
-/* ADC1通道14测试函数声明 */
-uint16_t adc1_channel14_test(void);
-uint16_t adc1_channel14_multiple_samples(uint16_t sample_count, uint16_t *samples);
-
-
-
 static void control_loop_tick_1khz(void){
     /* 1 kHz control */ 
 		adc_multi_sample_aux_1khz();
 		adc_multi_copy(); 
     pfc_tick_1khz();
     llc_app_tick_1khz();
-		protect_hw_clear_pulse_tick();
+
 }
 
 
@@ -191,7 +149,6 @@ int main(void){
 if (!protect_fault_active_hw() && protect_fault_latched()) {
     /* BKIN已高、电路无真故障，但软件还记着旧标志 → 清软件 + 清硬件锁存 */
     protect_clear_fault();
-    protect_hw_clear_pulse(10);   // 10ms 够用；你的硬件若更慢可调到 20ms
 }
 		pfc_app_init();
 		llc_app_init();

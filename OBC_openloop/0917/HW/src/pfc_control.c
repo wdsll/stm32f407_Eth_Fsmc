@@ -388,12 +388,6 @@ void pfc_tick_1khz(void)
         pfc_handle_fault("HARD_PRO");
         return;
     }
-
-    //if (s_pfc.meas.tpfc_c >= PFC_TEMP_FAULT_C) {
-    //    pfc_handle_fault("TEMP");
-    //    return;
-    //}
-
     /* AC overvoltage is treated as a fault */
     if (pfc_ac_overvoltage()) {
         pfc_handle_fault("VAC_OV");

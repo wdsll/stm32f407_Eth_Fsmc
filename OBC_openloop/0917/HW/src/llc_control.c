@@ -57,6 +57,31 @@ static inline float conv_adc_to_i(uint16_t raw)
     return v_net / (ISHUNT_OHM * IAMP_GAIN);
 }
 
+static void llc_driver_en_set(bool on)
+{
+	static bool initialized = false;
+	static bool last = false;
+	if(!initialized)
+	{
+		rcu_periph_clock_enable(RCU_GPIOC);
+		gpio_init(LLC_EN_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, LLC_EN_PIN);
+		gpio_bit_reset(LLC_EN_PORT, LLC_EN_PIN);
+		initialized = true;
+	}
+	if (last == on)
+	{
+		return;
+	}
+	last = on;
+	if(on)
+	{
+		gpio_bit_set(LLC_EN_PORT, LLC_EN_PIN);
+	}
+	else
+	{
+		gpio_bit_reset(LLC_EN_PORT, LLC_EN_PIN);
+	}
+}
 static void llc_set_freq(float hz)
 {
     float f = f_clampf(hz, s_llc.f_min, s_llc.f_max);
@@ -119,7 +144,7 @@ static void llc_state_enter(llc_state_t next)
 	s_llc_app.state = next;
 	s_llc_app.entry_ms = g_ms;
 	#if Bus_Adj
-	bus_vol_adj_reset();   //重置总线电压调整逻辑 百分之五十的占空比
+	//bus_vol_adj_reset();   //重置总线电压调整逻辑 百分之五十的占空比
 	#endif
 	// 根据目标状态执行相应的初始化或清理操作
 	switch(next)
@@ -128,25 +153,28 @@ static void llc_state_enter(llc_state_t next)
 			llc_softstart_on_fault();
 			pfc_hw_set_main(false);   // 强制关闭 PFC
 			llc_pwm_outputs_enable(0); // 禁用 PWM 输出
+			llc_driver_en_set(false); //disable llc
 			s_llc.f_cmd = s_llc.f_max; // 设置频率为最大值
-		  s_llc_rt.sweep_best_error = FLT_MAX; //重置最佳误差为无穷大，清除历史最优解
-      s_llc_rt.sweep_best_freq = LLC_SWEEP_START_HZ; //重置最佳频率为扫描起始值，准备重新进行频率扫描
-      s_llc_rt.sweep_stable_hits = 0U; //重置稳定计数器，用于判断系统是否达到稳态
-      s_llc_rt.softstart_begin_ms = 0U;  //软启动开始时间戳，用于控制软启动斜坡
-      s_llc_rt.stopping_begin_ms = 0U;  //停机过程开始时间戳，用于控制停机时序
-      s_llc_rt.hold_last_adjust_ms = 0U; //保持最后调整的时间戳，用于频率调整的去抖
+		    s_llc_rt.sweep_best_error = FLT_MAX; //重置最佳误差为无穷大，清除历史最优解
+            s_llc_rt.sweep_best_freq = LLC_SWEEP_START_HZ; //重置最佳频率为扫描起始值，准备重新进行频率扫描
+      		s_llc_rt.sweep_stable_hits = 0U; //重置稳定计数器，用于判断系统是否达到稳态
+      	    s_llc_rt.softstart_begin_ms = 0U;  //软启动开始时间戳，用于控制软启动斜坡
+      	    s_llc_rt.stopping_begin_ms = 0U;  //停机过程开始时间戳，用于控制停机时序
+      		s_llc_rt.hold_last_adjust_ms = 0U; //保持最后调整的时间戳，用于频率调整的去抖
 			break;
-	  case ST_PRECHECK:  /* 新增：只在辅源稳定后才进入 WAIT_VBUS */
-    llc_pwm_outputs_enable(0); // 禁用 PWM 输出
-    s_llc.f_cmd = s_llc.f_max; // 设置频率为最大值
-		//llc_set_freq(s_llc.f_max);
+	   case ST_PRECHECK:  
+	  	llc_driver_en_set(true);
+    	llc_pwm_outputs_enable(0); // 禁用 PWM 输出
+    	s_llc.f_cmd = s_llc.f_max; // 设置频率为最大值
         break;
 		case ST_SOFTSTART:
 			s_llc_rt.softstart_begin_ms = g_ms;
+			llc_driver_en_set(true);
 			llc_pwm_outputs_enable(1);
 			llc_softstart_start(LLC_SOFTSTART_TARGET_DUTY);
 			break;
 		case ST_SWEEP:
+			llc_driver_en_set(true);
 			 s_llc_rt.sweep_best_error = FLT_MAX;  //重置最佳误差为无穷大，清除历史最优解
 			 s_llc_rt.sweep_best_freq = LLC_SWEEP_START_HZ;
 			 s_llc_rt.sweep_stable_hits = 0U;
@@ -155,11 +183,13 @@ static void llc_state_enter(llc_state_t next)
 			 llc_set_freq(LLC_SWEEP_START_HZ);
 		break;
 		case ST_LLC_RUN:
+			llc_driver_en_set(true);
 			 llc_set_freq(s_llc_rt.sweep_best_freq);
        s_llc_rt.hold_last_adjust_ms = g_ms;
 			break;
 		case ST_STOPPING:
         s_llc_rt.stopping_begin_ms = g_ms;
+		llc_driver_en_set(true);
         llc_set_freq(s_llc.f_max);
         break;
 		case ST_FAULT:
@@ -167,6 +197,7 @@ static void llc_state_enter(llc_state_t next)
 			  llc_softstart_on_fault();
         pfc_hw_set_main(false); //PFC_off
         llc_pwm_outputs_enable(0); //llc pwm disable
+        llc_driver_en_set(false);
         llc_set_freq(s_llc.f_max);
         break;
 	}
@@ -293,6 +324,7 @@ void llc_app_tick_1khz(void)
 			if(elapsed_reached(s_llc_rt.stopping_begin_ms,LLC_STOPPING_FREQ_HOLD_MS))
 			{
 				llc_pwm_outputs_enable(0);
+				llc_driver_en_set(false);
 				llc_state_enter(ST_IDLE);
 			}
 			break;

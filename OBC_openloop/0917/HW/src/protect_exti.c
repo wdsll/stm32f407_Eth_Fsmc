@@ -1,12 +1,14 @@
 #include "protect_exti.h"
 
 static volatile uint8_t s_fault = 0;
-static volatile uint8_t s_fault_latched = 0;
+static volatile uint8_t s_fault_source_hw = 0;
+
 
 /* 触发后的统一处理：置位软件锁存 + 关 PWM（BKIN 已经硬件关，但软件也一起做） */
 static void protect_fault_trigger(void)
 {
 	s_fault = 1;
+	s_fault_source_hw = protect_fault_active_hw() ? 1U : 0U;
 	llc_pwm_outputs_enable(0);
 }
 
@@ -15,7 +17,7 @@ static void protect_fault_trigger(void)
 /* 硬件电平是否在“故障有效”状态（这里按低有效） 判断硬件 BKIN 输入电平是否仍处于故障状态 */
 int protect_fault_active_hw(void)
 {
-  return gpio_input_bit_get(GPIOB, GPIO_PIN_12) == RESET;
+  return gpio_input_bit_get(HARD_PRO_READ_PORT, HARD_PRO_READ_PIN) == RESET;
 }
 
 void protect_exti_init(void){
@@ -51,7 +53,13 @@ int protect_fault_latched(void)
 { 
 	return s_fault!=0; 
 }
+int protect_fault_source_hw_latched(void)
+{
+	return s_fault_source_hw != 0U;
+}
+
 void protect_clear_fault(void)
 { 
 	s_fault=0; 
+	s_fault_source_hw = 0U;
 }
