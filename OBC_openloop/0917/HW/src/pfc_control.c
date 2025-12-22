@@ -183,17 +183,21 @@ static void pfc_update_regulation_stability(float target, float vbus)
 
 void pfc_hw_set_main(bool on)
 {
-    static bool s_last = false;
 		static bool s_gpio_initialized = false;
-    if (s_last == on) 
-			return;
-    s_last = on;
-		if (!s_gpio_initialized)
+	  static bool s_last = false;
+		bool first = !s_gpio_initialized;
+
+		if (first)
 		{
 			  rcu_periph_clock_enable(PFC_MAIN_OUT_RCU);
 				gpio_init(PFC_MAIN_OUT_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, PFC_MAIN_OUT_PIN);
 				s_gpio_initialized = true;
 		}
+    /* 首次调用一定要落一次电平；非首次且状态未变才直接返回 */
+    if (!first && (s_last == on)) {
+        return;
+    }
+    s_last = on;
     if (on) 
 			gpio_bit_set(PFC_MAIN_OUT_PORT, PFC_MAIN_OUT_PIN);
     else    
@@ -281,7 +285,7 @@ static void pfc_sample_inputs(void)
 {
     s_pfc.meas.vac_raw  = adc1_aux_read_channel(AC_VOL_SAMPLE,   ADC_SAMPLETIME_71POINT5);
     s_pfc.meas.vbus_raw = adc1_aux_read_channel(BUS_VOL_SAMPLE,  ADC_SAMPLETIME_71POINT5);
-    s_pfc.meas.tpfc_raw = adc1_aux_read_channel(T_SENSE_PFC_MOS,  ADC_SAMPLETIME_71POINT5);
+    //s_pfc.meas.tpfc_raw = adc1_aux_read_channel(T_SENSE_PFC_MOS,  ADC_SAMPLETIME_71POINT5);
     s_pfc.meas.vbat_raw = adc1_aux_read_channel(VBT_SENSE_CH,     ADC_SAMPLETIME_71POINT5);
     s_pfc.meas.vout_raw = adc1_aux_read_channel(VOUT_SENSE_CH,    ADC_SAMPLETIME_71POINT5);
 
@@ -289,13 +293,13 @@ static void pfc_sample_inputs(void)
     float vbus = adc_to_v_scaled(s_pfc.meas.vbus_raw, PFC_VBUS_ADC_GAIN_V_PER_VIN);
     float vbat = adc_to_v_div(s_pfc.meas.vbat_raw, VBT_RTOP_OHM, VBT_RBOT_OHM);
     float vout = adc_to_v_div(s_pfc.meas.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
-    float tpfc = adc_ntc_to_c(s_pfc.meas.tpfc_raw);
+   //float tpfc = adc_ntc_to_c(s_pfc.meas.tpfc_raw);
 
     s_pfc.meas.vac_v   = vac;
     s_pfc.meas.vbus_v  = vbus;
     s_pfc.meas.vbat_v  = vbat;
     s_pfc.meas.vout_v  = vout;
-    s_pfc.meas.tpfc_c  = tpfc;
+    //s_pfc.meas.tpfc_c  = tpfc;
 
     /* 你目前 vac_rms 用低通等效，后续可换真 RMS */
     s_pfc.meas.vac_rms = lpf(s_pfc.meas.vac_rms, vac, 0.05f);
@@ -385,10 +389,10 @@ void pfc_tick_1khz(void)
         return;
     }
 
-    if (s_pfc.meas.tpfc_c >= PFC_TEMP_FAULT_C) {
-        pfc_handle_fault("TEMP");
-        return;
-    }
+    //if (s_pfc.meas.tpfc_c >= PFC_TEMP_FAULT_C) {
+    //    pfc_handle_fault("TEMP");
+    //    return;
+    //}
 
     /* AC overvoltage is treated as a fault */
     if (pfc_ac_overvoltage()) {
@@ -603,9 +607,11 @@ void pfc_clear_fault(void)
 {
     if (!s_pfc.fault_latched) return;
 
-    if (protect_fault_active_hw() || protect_fault_latched()) return;
+    if (protect_fault_active_hw() || protect_fault_latched()) 
+			return;
 
-    if (!elapsed_reached(s_pfc.fault_since_ms, PFC_FAULT_RESTART_MS)) return;
+    if (!elapsed_reached(s_pfc.fault_since_ms, PFC_FAULT_RESTART_MS)) 
+			return;
 
     s_pfc.fault_latched = false;
     pfc_state_enter(PFC_ST_OFF);

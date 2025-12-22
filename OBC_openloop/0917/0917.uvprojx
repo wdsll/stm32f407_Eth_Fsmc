@@ -412,6 +412,11 @@
               <FileType>5</FileType>
               <FilePath>.\softstart_state_machine.txt</FilePath>
             </File>
+            <File>
+              <FileName>调试用例总表.txt</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\调试用例总表.txt</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -573,16 +578,6 @@
               <FilePath>.\HW\src\pwm_llc.c</FilePath>
             </File>
             <File>
-              <FileName>ICU.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\HW\src\ICU.c</FilePath>
-            </File>
-            <File>
-              <FileName>ICU.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\HW\include\ICU.h</FilePath>
-            </File>
-            <File>
               <FileName>pwm.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\HW\src\pwm.c</FilePath>
@@ -608,11 +603,6 @@
               <FilePath>.\HW\include\protect_exti.h</FilePath>
             </File>
             <File>
-              <FileName>llc_open_loop.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\HW\src\llc_open_loop.c</FilePath>
-            </File>
-            <File>
               <FileName>pfc_control.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\HW\include\pfc_control.h</FilePath>
@@ -631,16 +621,6 @@
               <FileName>pfc_control.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\HW\src\pfc_control.c</FilePath>
-            </File>
-            <File>
-              <FileName>aux_power.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\HW\src\aux_power.c</FilePath>
-            </File>
-            <File>
-              <FileName>aux_power.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\APP\include\aux_power.h</FilePath>
             </File>
             <File>
               <FileName>llc_control.c</FileName>

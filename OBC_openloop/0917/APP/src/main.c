@@ -6,31 +6,16 @@
 /*********************************************************************************************************
 *                                              宏定义
 *********************************************************************************************************/
-
-#define LLC_USE_OPEN_LOOP 0
-
 #define Bus_Adj 0
-
-/* ======================== Bring-up configuration ======================== */
-/* Keep PFC control bypassed so that the firmware only exercises the LLC open-loop sweep for hardware validation. */
-#define LLC_BRINGUP_OPEN_LOOP_ONLY   0
-
-#if LLC_BRINGUP_OPEN_LOOP_ONLY
-#define LLC_BYPASS_PFC_CONTROL      1
-#else
-#define LLC_BYPASS_PFC_CONTROL      0
-#endif
-
 /* 控制循环参数（1 kHz） */
 #define CONTROL_LOOP_HZ            (1000U)
 #define CONTROL_LOOP_DT_S          (1.0f / (float)CONTROL_LOOP_HZ)
 /* 主循环一次最多处理的 tick，超过将计数为丢弃（避免主循环长时间占用） */
 #define MAX_TICKS_PER_LOOP         (5U)
+#define FAULT_RECOVER_DELAY_MS     (200U)
 /*********************************************************************************************************
 *                                              枚举结构体
 *********************************************************************************************************/
-
-
 typedef struct
 {
 	bool active;
@@ -40,21 +25,16 @@ typedef struct
 
 static protect_clear_pulse_ctx_t s_protect_clear_pulse = { false, 0U, 0U };
 
+typedef enum{
+	APP_STATE_INIT = 0,
+	APP_STATE_RUN,
+	APP_STATE_FAULT,
+}app_state_t;
+static app_state_t s_app_state = APP_STATE_INIT;
+static uint32_t s_fault_latched_ms = 0U;
 /*********************************************************************************************************
 *                                              内部变量定义
 *********************************************************************************************************/
-
-
-
-#if LLC_USE_OPEN_LOOP
-static llc_open_loop_ctrl_t s_llc_open_loop;
-static bool s_llc_open_loop_completed = false;
-static float s_llc_open_loop_final_freq = LLC_F_INIT_HZ;
-static const llc_open_loop_segment_t s_llc_open_loop_profile[] = {
-	//{ .start_hz = LLC_F_MAX_HZ, .stop_hz = LLC_F_INIT_HZ, .slew_hz_per_ms = LLC_F_SLEW_HZ, .hold_time_ms = 100U },
-	{ .start_hz = LLC_F_INIT_HZ, .stop_hz = LLC_F_INIT_HZ, .slew_hz_per_ms = 0, .hold_time_ms = 100U },
-};
-#endif
 volatile uint32_t g_ms=0;
 static volatile uint32_t s_control_tick_pending = 0U;
 static volatile uint32_t s_tick_drop_count = 0U; /* 被丢弃的 tick 计数 */
@@ -122,15 +102,11 @@ static inline float conv_adc_to_v_div(uint16_t raw, float rtop, float rbot){
 //float v_net = v_adc - v_zero;               // 去偏置
 //return v_net / (ISHUNT_OHM * IAMP_GAIN);    // 单位：安培
 //v_zero≈0.17V
-static inline float conv_adc_to_i(uint16_t raw){
-    float v = (raw * VREF_ADC) / 4095.0f;
-		float v1 = v - 0.17;              // 去偏置
-    return v1 / (ISHUNT_OHM * IAMP_GAIN);
-}
-static inline float f_absf(float x){ return x < 0 ? -x : x; }
-static inline float f_minf(float a,float b){ return a < b ? a : b; }
-static inline float f_maxf(float a,float b){ return a > b ? a : b; }
-
+//static inline float conv_adc_to_i(uint16_t raw){
+//    float v = (raw * VREF_ADC) / 4095.0f;
+//		float v1 = v - 0.17;              // 去偏置
+//    return v1 / (ISHUNT_OHM * IAMP_GAIN);
+//}
 
 void protect_hw_clear_pulse(uint16_t pulse_ms)
 {
@@ -172,12 +148,6 @@ static void control_loop_tick_1khz(void){
     /* 1 kHz control */ 
 		adc_multi_sample_aux_1khz();
 		adc_multi_copy(); 
-    float vout = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
-		float v3v3 = conv_adc_to_v_div(g_adc_multi.v3v3_raw,V3V3_RTOP_OHM,V3V3_RBOT_OHM);
-		float vbat = conv_adc_to_v_div(g_adc_multi.vbt_raw, VBT_RTOP_OHM, VBT_RBOT_OHM);
-	
-		aux_power_monitor_update(v3v3, vbat);
-    s_llc.vmeas = vout;
     pfc_tick_1khz();
     llc_app_tick_1khz();
 		protect_hw_clear_pulse_tick();
@@ -203,9 +173,7 @@ int main(void){
     llc_pwm_cfg_t lcfg = { .pwm_hz=LLC_PWM_BASE_HZ, .deadtime_ns=LLC_PWM_DEAD_NS, .duty=LLC_PWM_DUTY };
     llc_pwm_init(&lcfg);
 
-    /* Aux PWM on PB0 */
-		//pb0_pwm_init(PB0_PWM_BASE_HZ);
-		
+
 		#if Bus_Adj
 		bus_vol_adj_init();
 		#else
@@ -216,9 +184,6 @@ int main(void){
     adc_multi_init_dma(ADC0_1_EXTTRIG_REGULAR_T0_CH2); 
     adc_multi_start();
 
-    /* PA0 & PA1 input capture */
-    //cap_pa01_init();
-
     /* Protection EXTI PC11 */
     protect_exti_init();
 		
@@ -228,25 +193,13 @@ if (!protect_fault_active_hw() && protect_fault_latched()) {
     protect_clear_fault();
     protect_hw_clear_pulse(10);   // 10ms 够用；你的硬件若更慢可调到 20ms
 }
-
-    /* LLC control default。初始化LLC的控制参数，包括目标电压、PID参数、频率范围和初始频率。*/
-    s_llc = (llc_t){ 
-			.vref=VBUS_TARGET_V, .vmeas=0.0f, .kp=0.01f, .ki=0.0005f,
-      .f_min=LLC_F_MIN_HZ, .f_max=LLC_F_MAX_HZ, .f_cmd=LLC_F_INIT_HZ, .f_slew=LLC_F_SLEW_HZ 
-		};
-#if LLC_USE_OPEN_LOOP
-		llc_open_loop_init(&s_llc_open_loop, s_llc_open_loop_profile, sizeof(s_llc_open_loop_profile)/sizeof(s_llc_open_loop_profile[0]));
-		s_llc_open_loop_completed = false;
-		s_llc_open_loop_final_freq = f_clampf(LLC_F_INIT_HZ, s_llc.f_min, s_llc.f_max);
-#endif
 		pfc_app_init();
 		llc_app_init();
-		pfc_disable();
+		pfc_enable();
 
 		
     while(1){
 			uint32_t pending_ticks = 0U;
-			float  duty0, duty1; //PA3 PA1捕获的值
 			__disable_irq();
 			if(s_control_tick_pending > 0U)
 			{

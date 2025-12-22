@@ -1,0 +1,100 @@
+1.上电与PFC阶段
+(1)AC 有效输入检测:
+	目标：验证 AC 85–265Vac 的有效识别与进入 PRECHARGE( 上电自检：VBUS ≈ 1.414×VAC)。
+	测点：AC_VOL_SAMPLE 通道（ADC）；PFC 主继电器控制脚（PFC_MAIN_RELAY_PORT/PIN）；
+	容许范围：85~256Vac;
+	步骤：给定90Vac/110Vac/220Vac逐级输入，观察PFC状态从Wait_AC---->PRECHARGE
+	预测波形截图：
+		AC_VOL_SAMPLE 与 PFC_MAIN_RELAY 触发时间对齐；继电器拉起应发生在 AC 有效后（截图：AC 采样波形与继电器控制上升沿）。
+	依据：PFC 有效输入阈值与状态机要求(待补充)。
+(2)预充到230V:
+	目标：验证预充目标与超时保护。
+	测点：BUS_VOL_SAMPLE（母线电压 ADC）；PFC_MAIN_RELAY 控制脚；
+	容许范围：预充目标约 230V，超时 800ms
+	步骤：施加 AC 输入，记录 VBUS 上升过程，观察 230V 附近是否在 800ms 内达到。
+	预期波形截图：VBUS 上升波形：在 800ms 以内到达约 230V；超时应进入 FAULT（截图：VBUS 曲线+时间标注）。
+	依据：PFC预充目标与超时。
+(3)PFC READY 判定与稳定延时
+	目标：验证母线达到 READY 阈值后才能允许 LLC 启动。
+	测点：BUS_VOL_SAMPLE，LLC_EN（使能脚）或 LLC PWM。
+	容许范围：READY 阈值：360V。
+			  READY 延时：200ms（PFC_READY_DELAY_MS）。
+	步骤：记录 VBUS 上升到 360V，观察 LLC 使能的延迟时间是否 ≥200ms。
+	预期波形截图：VBUS 达到 360V 后，LLC_EN/LLC PWM 延迟启动。
+	依据：READY 阈值与延时宏定义。
+2.LLC软启动阶段
+(1)LLC 软启动占空提升
+	目标：验证软启动从 0.1 → 0.5 duty、300ms 完成
+	LLC PWM 高/低桥（LLC_H_PIN/LLC_L_PIN）
+	容许范围：起始 duty=0.1，目标 duty=0.5，时长 300ms
+	步骤：等到PFC_Ready触发LLC_softstart然后示波器测量占空比变化曲线。
+	预期波形截图：PWM duty 呈 S 曲线（或指数曲线）逐渐上升到 50%，耗时 300ms（截图：占空随时间变化）
+	依据：softstart 参数与实现
+3.LLC 扫频/保持阶段（开环）
+(1)扫频区间与步进
+	目标：验证扫频从 110kHz→80kHz，步进 400Hz/5ms，找到相关谐振点。（待定）
+	测点：LLC PWM频率
+	容许范围：起始 110kHz，终止 80kHz
+		  步进 400Hz
+		  步进周期 5ms
+		  扫频超时 800ms
+	步骤：进入 SWEEP 状态后，记录频率变化。
+		  验证步进与范围。
+	预期波形截图：频率随着时间线性下降（阶梯模式），每5ms下降400HZ
+	依据：扫频宏定义与逻辑
+(2)Vout 接近目标并进入 HOLD
+	目标：验证扫频找到最接近 44V 的频点并进入 HOLD。
+	测点：Vout(ADC&示波器)，进一步验证软件读值；
+		  LLC PWM 频率
+    容许范围：
+		目标 Vout=44V，允许误差窗口 ±1V，需要连续5次稳定计数没跳出窗口才可以。
+4.保护/故障测试
+(1)Vbus 过压保护
+	目标：验证 VBUS 超过 430V 进入 FAULT。
+	测点：Vbus,LLC_PWM,PFC继电器
+	容许范围：过压阈值 430V
+	步骤：
+		逐步提高 AC 或外部母线供电
+		触发430过压保护
+	预期波形截图：
+		VBUS 超过阈值后 LLC Driver立即关闭、OUT_Relay主继电器断开
+	依据：PFC OVP 阈值
+(2)Vbus欠压保护
+	目标：验证 VBUS < 320V 时进入故障或停止。
+	测点：Vbus LLC_PWM
+	容许范围：欠压阈值320V
+	步骤：
+		在运行态降低AC输入
+		观察Vbus下降至阈值以下
+	预期波形截图：Vbus低于阈值后LLC Driver关断
+	依据：PFC UVP 阈值
+(3)LLC 输出过压 OVP
+	目标：验证 VOUT > 48V 触发 LLC fault
+	测点：Vout &&LLC PWM
+	容许范围：OVP 阈值 48V
+	步骤：
+		提升母线或者减小负载，拉高Vout
+		观察PWM波形在触发保护后关闭
+	预期波形截图：Vout大于48V-->LLC drive关闭
+(4)LLC输出过流OCP （待定 等电流环完善）
+	目标：验证 IOUT > 15A 进入 FAULT。
+	测点：I_SENSE && LLC PWM
+	容许范围：OCP 阈值 15A
+	步骤：电子负载拉倒15A，观察PWM波形的关闭和状态切换
+	依据：LLC OCP的阈值
+(5)BKIN 硬件保护
+	目标：验证 BKIN 触发硬件关断
+	测点：BKIN 引脚&&LLC PWM 输出
+	容许范围：BKIN 拉低应立即关闭 PWM
+	步骤：
+		外部将 BKIN 拉低，观察 PWM 关闭与故障锁存。
+	预期波形截图：BKIN 下降沿与 PWM 关闭几乎同步（截图：BKIN 与 PWM）。
+    依据：硬件故障中断与关断逻辑
+
+
+	
+		  
+
+
+	
+		

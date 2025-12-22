@@ -24,6 +24,7 @@ typedef struct {
 static llc_runtime_ctx_t s_llc_rt;
 
 static llc_app_ctx_t s_llc_app;
+static llc_t s_llc;
 
 enum{
 	LLC_START_DELAY_MS = 10000
@@ -65,7 +66,7 @@ static void llc_set_freq(float hz)
 
 static void llc_update_measurements(void)
 {
-    adc_multi_copy();
+    //adc_multi_copy();
     s_llc_rt.meas.vout_v = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
     s_llc_rt.meas.iout_a = conv_adc_to_i(g_adc_multi.isense_raw);
     s_llc_rt.meas.vbus_v = pfc_bus_voltage();
@@ -220,6 +221,10 @@ static void llc_handle_sweep(void)
 void llc_app_init()
 {
 	llc_softstart_init();
+		s_llc = (llc_t){
+	        .vref=VBUS_TARGET_V, .vmeas=0.0f, .kp=0.01f, .ki=0.0005f,
+	        .f_min=LLC_F_MIN_HZ, .f_max=LLC_F_MAX_HZ, .f_cmd=LLC_F_INIT_HZ, .f_slew=LLC_F_SLEW_HZ
+	};
 	llc_state_enter(ST_IDLE);
 }
 
@@ -241,16 +246,19 @@ void llc_app_tick_1khz(void)
 			}
 			break;
 		case ST_PRECHECK:
-        if (!enable_llc || !llc_precheck_ok()) {
+        if (!enable_llc) {
             llc_enter_fault();
 					break;
 				}
+				if (!llc_precheck_ok()) {
+					llc_state_enter(ST_STOPPING);
+					break;
+				}
 				llc_state_enter(ST_SOFTSTART);
-            break;
         break;
 		case ST_SOFTSTART:
 			llc_softstart_tick_1khz();
-			if(!enable_llc)
+			if(!enable_llc|| !llc_precheck_ok())
 			{
 				llc_state_enter(ST_STOPPING);
 				break;

@@ -26,12 +26,9 @@
 #include "add_dma.h"
 #include "pwm_llc.h"
 #include "RCU.h"
-#include "ICU.h"
 #include "debug_printf.h"
 #include "pwm.h"
 #include "protect_exti.h"
-#include "llc_open_loop.h"
-#include "aux_power.h"
 #include "pfc_control.h"
 #include "llc_control.h"
 #include "llc_soft_start.h"
@@ -65,17 +62,6 @@
 #define V3V3_RTOP_OHM        (10000.0f)   /* PC5 */
 #define V3V3_RBOT_OHM        (5100.0f)
 
-
-/* ==== Auxiliary supply monitoring thresholds ==== */
-#define AUX_V3V3_OK_MIN_V     (3.0f)
-#define AUX_VBAT_OK_MIN_V     (10.0f)
-
-#define AUX_OK_DEBOUNCE_MS          30U     /* 辅源恢复消抖时间 */
-#define AUX_DROP_DEBOUNCE_MS        5U      /* 辅源掉电消抖时间（更快） */
-
-#ifndef AUX_POWER_MONITOR_ENABLE
-#define AUX_POWER_MONITOR_ENABLE    (0)
-#endif
 /* ==== Current sense ==== */
 #define ISHUNT_OHM          (0.005f)   /* 5 mΩ */
 #define IAMP_GAIN           (19.6f)   /* INA gain */
@@ -166,30 +152,12 @@ static inline uint8_t irq_priority_encode(uint8_t preempt, uint8_t sub)
 #define BKIN_PORT      GPIOB
 #define BKIN_PIN       GPIO_PIN_12
 
-
 /* PB0 PWM (aux) */
 #define PB0_PWM_TIMER  TIMER2
 #define PB0_PWM_CH     TIMER_CH_2
 #define PB0_PORT       GPIOB
 #define PB0_PIN        GPIO_PIN_0
 #define PB0_PWM_BASE_HZ     (20000U)
-
-/* ===== PA3 & PA1 BOTH as timer input capture (no ADC on these) =====  交流的占空比和母线的占空比*/ 
-#define CAP0_TIMER     TIMER1
-#define CAP0_CH        TIMER_CH_3     /* PA3 → CH0 (adjust if needed) */
-#define CAP0_PORT      GPIOA
-#define CAP0_PIN       GPIO_PIN_3
-#define CAP0_IRQN      TIMER1_IRQn
-#define CAP0_INT_CH    TIMER_INT_CH3
-
-#define CAP1_TIMER     TIMER1
-#define CAP1_CH        TIMER_CH_1     /* PA1 → CH1 (adjust if needed) */
-#define CAP1_PORT      GPIOA
-#define CAP1_PIN       GPIO_PIN_1
-#define CAP1_IRQN      TIMER1_IRQn
-#define CAP1_INT_CH    TIMER_INT_CH1
-
-
 
 /* ADC channel map (PA0/PA1 removed) */
 #define AC_VOL_SAMPLE      ADC_CHANNEL_1   /* PA1 AC 电压采样*/
