@@ -171,7 +171,7 @@ static void llc_state_enter(llc_state_t next)
 			s_llc_rt.softstart_begin_ms = g_ms;
 			llc_driver_en_set(true);
 			llc_pwm_outputs_enable(1);
-			llc_softstart_start(LLC_SOFTSTART_TARGET_DUTY);
+			llc_softstart_start(LLC_SOFTSTART_TARGET_HZ);
 			break;
 		case ST_SWEEP:
 			llc_driver_en_set(true);

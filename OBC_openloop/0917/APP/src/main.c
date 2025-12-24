@@ -197,24 +197,24 @@ int main(void){
 		pb0_pwm_set_duty(0.5f);
 		#endif
 		
-    /* ADC multi (PA3/PA1 removed) triggered by TIMER0 CH2 for coherence */
-    adc_multi_init_dma(ADC0_1_EXTTRIG_REGULAR_T0_CH2); 
+    /* ADC multi (PA3/PA1 removed) triggered by TIMER2 TRGO @100us */
+    adc_multi_init_dma(ADC0_1_EXTTRIG_REGULAR_T2_TRGO); 
     adc_multi_start();
 
     /* Protection EXTI PC11 */
     protect_exti_init();
 		
 		/* after protect_exti_init(); */
-//if (!protect_fault_active_hw() && protect_fault_latched()) {
+ if (!protect_fault_active_hw() && protect_fault_latched()) {
     /* BKIN已高、电路无真故障，但软件还记着旧标志 → 清软件 + 清硬件锁存 */
-  //  protect_clear_fault();
-//}
-    bool protect_ok = protect_startup_check();
-    bool adc_ok = adc_startup_check();
-    if (!protect_ok || !adc_ok) {
-        debug_printf("[STARTUP] Preflight checks failed, PFC/LLC hold\n");
-        while (1) {
-            __NOP();
+     protect_clear_fault();
+ }
+      bool protect_ok = protect_startup_check();
+      bool adc_ok = adc_startup_check();
+      if (!protect_ok || !adc_ok) {
+       debug_printf("[STARTUP] Preflight checks failed, PFC/LLC hold\n");
+       while (1) {
+           __NOP();
         }
     }
 
@@ -235,7 +235,7 @@ int main(void){
 			__enable_irq();
 			while(pending_ticks-- > 0U)
 			{
-				control_loop_tick_1khz();
+				//control_loop_tick_1khz();
 				// 防止单次主循环处理过多 tick
 					if(pending_ticks > MAX_TICKS_PER_LOOP)
 					{
