@@ -24,16 +24,20 @@ void protect_exti_init(void){
 	rcu_periph_clock_enable(RCU_GPIOC);
 	rcu_periph_clock_enable(RCU_GPIOB);
 	rcu_periph_clock_enable(RCU_AF);
-	//gpio_init(HARD_PRO_READ_PORT, GPIO_MODE_IN_FLOATING, GPIO_OSPEED_50MHZ, HARD_PRO_READ_PIN);
 	
+	/* 故障检测输入引脚必须初始化 */
+	gpio_init(HARD_PRO_READ_PORT, GPIO_MODE_IN_FLOATING, GPIO_OSPEED_50MHZ, HARD_PRO_READ_PIN);
+	
+	/* 清除并使能故障中断 */
 	timer_interrupt_flag_clear(TIMER0,TIMER_INT_FLAG_BRK);
-	timer_interrupt_enable(TIMER0,TIMER_INT_BRK);
-	//nvic_irq_enable(TIMER0_BRK_IRQn_VALUE,1,0);
 	nvic_irq_enable(TIMER0_BRK_IRQn_VALUE, IRQ_PRIO_FAULT_PREEMPT, IRQ_PRIO_FAULT_SUB);
-	gpio_init(HARD_PRO_CL_GPIO_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, HARD_PRO_CL_GPIO_PIN);
-  gpio_bit_reset(HARD_PRO_CL_GPIO_PORT, HARD_PRO_CL_GPIO_PIN);
+	timer_interrupt_enable(TIMER0,TIMER_INT_BRK);
 	
-	/* 3 上电自检 */
+	/* 故障清除输出引脚 */
+	gpio_init(HARD_PRO_CL_GPIO_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, HARD_PRO_CL_GPIO_PIN);
+    gpio_bit_reset(HARD_PRO_CL_GPIO_PORT, HARD_PRO_CL_GPIO_PIN);
+	
+	/* 上电自检 */
 	if(protect_fault_active_hw())
 	{
 		protect_fault_trigger();

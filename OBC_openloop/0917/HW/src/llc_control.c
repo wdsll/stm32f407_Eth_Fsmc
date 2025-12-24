@@ -117,11 +117,11 @@ static bool llc_faults_present(void)
         return true;
     }
 
-    if (s_llc_rt.meas.vout_v > LLC_VOUT_OVP_V) {
+    if (s_llc_rt.meas.vout_v > LLC_VOUT_OVP_V) {  //56
         return true;
     }
 
-    if (s_llc_rt.meas.iout_a > LLC_IOUT_OCP_A) {
+    if (s_llc_rt.meas.iout_a > LLC_IOUT_OCP_A) { //41
         return true;
     }
 

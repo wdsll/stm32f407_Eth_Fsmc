@@ -62,6 +62,12 @@
 #define V3V3_RTOP_OHM        (10000.0f)   /* PC5 */
 #define V3V3_RBOT_OHM        (5100.0f)
 
+/* ==== ADC startup sanity check thresholds ==== */
+#define ADC_STARTUP_V3V3_MIN_V        (2.8f)
+#define ADC_STARTUP_V3V3_MAX_V        (3.6f)
+#define ADC_STARTUP_SAMPLE_COUNT      (8U)
+#define ADC_STARTUP_SAMPLE_DELAY_MS   (2U)
+
 /* ==== Current sense ==== */
 #define ISHUNT_OHM          (0.005f)   /* 5 mΩ */
 #define IAMP_GAIN           (19.6f)   /* INA gain */
@@ -102,7 +108,7 @@
 /* ==== LLC open-loop safe bands ==== */
 #define LLC_VBUS_MIN_START_V         (360.0f)
 #define LLC_VOUT_TARGET_V            (44.0f)
-#define LLC_VOUT_HYST_V              (3.0f)
+#define LLC_VOUT_HYST_V              (15.0f)
 #define LLC_VOUT_OVP_V               (48.0f)
 #define LLC_IOUT_OCP_A               (15.0f)
 
@@ -167,10 +173,10 @@ static inline uint8_t irq_priority_encode(uint8_t preempt, uint8_t sub)
 
 #define VOUT_SENSE_CH      ADC_CHANNEL_5   /* PA5 */
 #define ADC_ISENSE_CH      ADC_CHANNEL_6   /* PA6 */
-#define T_SENSE_PFC_MOS    ADC_CHANNEL_7   /* PA7 PFC MOS 管温度 NTC 采样*/
+//#define T_SENSE_PFC_MOS    ADC_CHANNEL_7   /* PA7 PFC MOS 管温度 NTC 采样*/
 #define AD_3V3_CH          ADC_CHANNEL_14  /* PC4 3.3V 模拟电源监测（AD_3V3）*/ 
 #define VBT_SENSE_CH       ADC_CHANNEL_15  /* PC5 电池端电压采样*/
-#define T_SENSE_LLCMOS_CH  ADC_CHANNEL_9   /* PB1 LLC MOS 管温度 NTC 采样*/
+//#define T_SENSE_LLCMOS_CH  ADC_CHANNEL_9   /* PB1 LLC MOS 管温度 NTC 采样*/
 
 
 #define OUT_RELAY     GPIOB  //直流输出继电器控制
@@ -200,10 +206,6 @@ static inline uint8_t irq_priority_encode(uint8_t preempt, uint8_t sub)
 #define FAN_CTL_PORT            GPIOC
 #define FAN_CTL_PIN             GPIO_PIN_12
 
-/* --- PFC 改进：更宽松的 READY 退出门限与延时 --- */
-#ifndef PFC_VBUS_DROPOUT_THRESHOLD_V
-#define PFC_VBUS_DROPOUT_THRESHOLD_V   (PFC_VBUS_READY_V - 15.0f) /* 例如 345V */
-#endif
 
 #ifndef PFC_VBUS_DROPOUT_MS_NEW
 #define PFC_VBUS_DROPOUT_MS_NEW        (200U)                     /* 退出延时加长 */
@@ -214,19 +216,8 @@ static inline uint8_t irq_priority_encode(uint8_t preempt, uint8_t sub)
 #define PFC_READY_STABLE_BEFORE_LLC_MS (50U)
 #endif
 
-/* 在 IDLE→READY 判定中，对“明显掉回”才清零计时的缓冲带 */
-#ifndef PFC_VBUS_OK_RESET_MARGIN_V
-#define PFC_VBUS_OK_RESET_MARGIN_V     (5.0f)
-#endif
 
-/* ==== PFC control thresholds ==== */
-#define PFC_VBUS_READY_V            (360.0f)
-#define PFC_VBUS_READY_HYST_V       (10.0f)
-#define PFC_READY_DELAY_MS          (200U)
-#define PFC_STARTUP_DELAY_MS        (20U)
-#define PFC_VBUS_DROPOUT_MS         (200U)
-#define PFC_RESTART_DELAY_MS        (1000U)
-#define PFC_VBUS_DROPOUT_THRESHOLD  (PFC_VBUS_READY_V - 15.0f)  /* 345V, increased from 350V */
+
 /*********************************************************************************************************
 *                                              枚举结构体
 *********************************************************************************************************/

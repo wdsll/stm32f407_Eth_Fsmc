@@ -16,11 +16,10 @@ static uint8_t adc1_initialized = 0;
 static void adc0_analog_pins_init(void)
 {
     rcu_periph_clock_enable(RCU_GPIOA);
-    rcu_periph_clock_enable(RCU_GPIOB);
     
     /* ADC0通道配置 */
-    gpio_init(GPIOA, GPIO_MODE_AIN, GPIO_OSPEED_50MHZ, GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7);
-    gpio_init(GPIOB, GPIO_MODE_AIN, GPIO_OSPEED_50MHZ, GPIO_PIN_1);
+    gpio_init(GPIOA, GPIO_MODE_AIN, GPIO_OSPEED_50MHZ, GPIO_PIN_5|GPIO_PIN_6);
+
 }
 
 /* ADC0 DMA配置 */
@@ -77,13 +76,12 @@ void adc0_dma_init(uint32_t trig_src)
     adc_external_trigger_config(ADC0, ADC_REGULAR_CHANNEL, ENABLE);
 
     adc_enable(ADC0);
-	adc_calibration_enable(ADC0);
+	  adc_calibration_enable(ADC0);
     adc_dma_mode_enable(ADC0);
-	dma_channel_enable(DMA0, DMA_CH0);
+	  dma_channel_enable(DMA0, DMA_CH0);
 	
 	adc0_initialized = 1;
 }
-
 /* ADC0启动DMA采集 */
 void adc0_dma_start(void)
 {
@@ -103,7 +101,6 @@ uint8_t adc0_is_initialized(void)
 /*********************************************************************************************************
 * ADC1相关函数 - 软件触发模式（低速采集）
 *********************************************************************************************************/
-
 /* ADC1模拟引脚初始化 */
 static void adc1_analog_pins_init(void)
 {   
@@ -111,7 +108,7 @@ static void adc1_analog_pins_init(void)
     rcu_periph_clock_enable(RCU_GPIOC);
     /* ADC1通道配置 */
     gpio_init(GPIOC, GPIO_MODE_AIN, GPIO_OSPEED_50MHZ, GPIO_PIN_4|GPIO_PIN_5);
-    gpio_init(GPIOA, GPIO_MODE_AIN, GPIO_OSPEED_50MHZ, GPIO_PIN_1 | GPIO_PIN_3 | GPIO_PIN_7);
+    gpio_init(GPIOA, GPIO_MODE_AIN, GPIO_OSPEED_50MHZ, GPIO_PIN_1 | GPIO_PIN_3);
 }
 
 /* ADC1初始化 - 软件触发模式 */
@@ -120,12 +117,9 @@ void adc1_aux_init(void)
     if(adc1_initialized) {
         return; // 避免重复初始化
     }
-    
-    adc1_analog_pins_init();
-    
+    adc1_analog_pins_init();  
     rcu_periph_clock_enable(RCU_ADC1);
-    rcu_adc_clock_config(RCU_CKADC_CKAPB2_DIV6); // 10MHz安全时钟
-    
+    rcu_adc_clock_config(RCU_CKADC_CKAPB2_DIV6); 
     adc_deinit(ADC1);
     adc_mode_config(ADC_MODE_FREE);
     adc_data_alignment_config(ADC1, ADC_DATAALIGN_RIGHT);
@@ -135,8 +129,7 @@ void adc1_aux_init(void)
     adc_external_trigger_source_config(ADC1, ADC_REGULAR_CHANNEL, ADC0_1_2_EXTTRIG_REGULAR_NONE);
     adc_external_trigger_config(ADC1, ADC_REGULAR_CHANNEL, ENABLE);  // 关键修复：软件触发需要使能外部触发
     
-    /* 关键修复：先使能ADC1，然后等待稳定，再进行校准 */
-    
+    /* 关键修复：先使能ADC1，然后等待稳定，再进行校准 */ 
     /* 使能ADC1并检查状态 */
     adc_enable(ADC1);
     
@@ -149,28 +142,22 @@ void adc1_aux_init(void)
     if(adc_enable_timeout == 0U) {
         return;
     }
-
-    delay_ms(1);
-    
+    delay_ms(1);   
     /* 执行ADC1校准并检查状态 */
-    adc_calibration_enable(ADC1);
-    
+    adc_calibration_enable(ADC1);  
     // 等待校准完成（检查RSTCLB位清零）
     #define ADC_CALIBRATION_TIMEOUT 50000U  // 增加超时时间
     uint32_t cal_timeout = ADC_CALIBRATION_TIMEOUT;
     while(((ADC_CTL1(ADC1) & ADC_CTL1_RSTCLB) != 0) && (cal_timeout > 0U)) {
         cal_timeout--;
     }
-    
     if(cal_timeout == 0U) {
         // 强制清除校准状态
         ADC_CTL1(ADC1) &= ~ADC_CTL1_RSTCLB;
-    }
-    
+    }   
     adc1_initialized = 1;
  }
  
-
 
 /* ADC1单通道读取 */
 uint16_t adc1_aux_read_channel(uint8_t channel, uint32_t sample_time)
@@ -191,7 +178,6 @@ uint16_t adc1_aux_read_channel(uint8_t channel, uint32_t sample_time)
     if(adc_flag_get(ADC1, ADC_FLAG_EOC)) {
         adc_flag_clear(ADC1, ADC_FLAG_EOC);
     }
-    
     // 软件触发转换
     adc_software_trigger_enable(ADC1, ADC_REGULAR_CHANNEL);
     
@@ -209,14 +195,11 @@ uint16_t adc1_aux_read_channel(uint8_t channel, uint32_t sample_time)
     while((RESET == adc_flag_get(ADC1, ADC_FLAG_EOC)) && (timeout > 0U)){
         timeout--;
     }
-    
     if(timeout == 0U) {
         return 0xFFFF;
     }
-    
     uint16_t value = adc_regular_data_read(ADC1);
-    adc_flag_clear(ADC1, ADC_FLAG_EOC);
-    
+    adc_flag_clear(ADC1, ADC_FLAG_EOC); 
     return value;
 }
 
@@ -226,13 +209,12 @@ void adc1_sample_aux_1khz(void)
     if(!adc1_initialized) {
         return;
     }
-    
     uint16_t v3v3 = adc1_aux_read_channel(AD_3V3_CH, ADC_SAMPLETIME_55POINT5);
     uint16_t vbt = adc1_aux_read_channel(VBT_SENSE_CH, ADC_SAMPLETIME_55POINT5);
-		uint16_t tpfc = adc1_aux_read_channel(T_SENSE_PFC_MOS, ADC_SAMPLETIME_55POINT5);
+		//uint16_t tpfc = adc1_aux_read_channel(T_SENSE_PFC_MOS, ADC_SAMPLETIME_55POINT5);
     s_latched.v3v3_raw = v3v3;
     s_latched.vbt_raw = vbt;
-		s_latched.tsense_raw = tpfc;
+		//s_latched.tsense_raw = tpfc;
 }
 
 /* ADC1状态检查 */
@@ -259,7 +241,7 @@ void adc_multi_copy(void)
     frame.isense_raw = s_latched.isense_raw;
 	  frame.v3v3_raw   = s_latched.v3v3_raw;
     frame.vbt_raw    = s_latched.vbt_raw;
-    frame.tsense_raw = s_latched.tsense_raw;
+   // frame.tsense_raw = s_latched.tsense_raw;
     g_adc_multi = frame;
 
 }

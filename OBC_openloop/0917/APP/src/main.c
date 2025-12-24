@@ -92,6 +92,65 @@ static inline float conv_adc_to_v_div(uint16_t raw, float rtop, float rbot){
     float v = (raw * VREF_ADC) / 4095.0f;
     return v * (rtop + rbot) / rbot;
 }
+
+static bool adc_startup_check(void)
+{
+    uint32_t sum = 0U;
+    uint16_t valid = 0U;
+
+    for (uint16_t i = 0U; i < ADC_STARTUP_SAMPLE_COUNT; i++) {
+        uint16_t raw = adc1_aux_read_channel(AD_3V3_CH, ADC_SAMPLETIME_55POINT5);
+        if (raw != 0xFFFFU) {
+            sum += raw;
+            valid++;
+        }
+        delay_ms(ADC_STARTUP_SAMPLE_DELAY_MS);
+    }
+
+    if (valid == 0U) {
+        debug_printf("[STARTUP] ADC1 3V3 sample failed\n");
+        return false;
+    }
+
+    float avg_raw = (float)sum / (float)valid;
+    float v3v3 = conv_adc_to_v_div((uint16_t)(avg_raw + 0.5f), V3V3_RTOP_OHM, V3V3_RBOT_OHM);
+    debug_printf("[STARTUP] ADC1 3V3 raw=%.1f -> %.3f V\n", avg_raw, v3v3);
+    if ((v3v3 < ADC_STARTUP_V3V3_MIN_V) || (v3v3 > ADC_STARTUP_V3V3_MAX_V)) {
+        debug_printf("[STARTUP] 3V3 out of range (%.2f..%.2f V)\n",
+                     ADC_STARTUP_V3V3_MIN_V, ADC_STARTUP_V3V3_MAX_V);
+        return false;
+    }
+
+    for (uint8_t i = 0U; i < 3U; i++) {
+        adc_multi_sample_aux_1khz();
+        adc_multi_copy();
+        delay_ms(1U);
+    }
+
+    if ((g_adc_multi.vout_raw == 0xFFFFU) || (g_adc_multi.isense_raw == 0xFFFFU)) {
+        debug_printf("[STARTUP] ADC0 DMA sample invalid (vout=%u, isense=%u)\n",
+                     g_adc_multi.vout_raw, g_adc_multi.isense_raw);
+        return false;
+    }
+
+    return true;
+}
+
+static bool protect_startup_check(void)
+{
+    if (protect_fault_active_hw()) {
+        debug_printf("[STARTUP] Hardware fault active (BKIN asserted)\n");
+        return false;
+    }
+
+    if (protect_fault_latched()) {
+        debug_printf("[STARTUP] Clearing stale fault latch\n");
+        protect_clear_fault();
+    }
+
+    return !protect_fault_active_hw();
+}
+
 //去偏置
 //float v_net = v_adc - v_zero;               // 去偏置
 //return v_net / (ISHUNT_OHM * IAMP_GAIN);    // 单位：安培
@@ -128,7 +187,7 @@ int main(void){
 	
 		systick_1ms_init();
     /* LLC complementary PWM 配置LLC的PWM频率 、死区时间和占空比，并初始化PWM模块*/
-    llc_pwm_cfg_t lcfg = { .pwm_hz=LLC_PWM_BASE_HZ, .deadtime_ns=LLC_PWM_DEAD_NS, .duty=LLC_PWM_DUTY };
+    llc_pwm_cfg_t lcfg = { .pwm_hz=LLC_PWM_BASE_HZ, .deadtime_ns=LLC_PWM_DEAD_NS, .duty=LLC_PWM_DUTY };//130
     llc_pwm_init(&lcfg);
 
 
@@ -146,12 +205,22 @@ int main(void){
     protect_exti_init();
 		
 		/* after protect_exti_init(); */
-if (!protect_fault_active_hw() && protect_fault_latched()) {
+//if (!protect_fault_active_hw() && protect_fault_latched()) {
     /* BKIN已高、电路无真故障，但软件还记着旧标志 → 清软件 + 清硬件锁存 */
-    protect_clear_fault();
-}
-		pfc_app_init();
+  //  protect_clear_fault();
+//}
+    bool protect_ok = protect_startup_check();
+    bool adc_ok = adc_startup_check();
+    if (!protect_ok || !adc_ok) {
+        debug_printf("[STARTUP] Preflight checks failed, PFC/LLC hold\n");
+        while (1) {
+            __NOP();
+        }
+    }
+
+		pfc_init();
 		llc_app_init();
+		
 		pfc_enable();
 
 		

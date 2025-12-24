@@ -6,113 +6,62 @@
 *********************************************************************************************************/
 #define CLAMP(x, lo, hi) (((x) < (lo)) ? (lo) : (((x) > (hi)) ? (hi) : (x)))
 
-/* ===== Hardware scaling ===== */
-#define PFC_VBUS_ADC_GAIN_V_PER_VIN   (144.3464f)   // VBUS = ADC_V * 144.3464
-#define PFC_AC_ADC_GAIN_V_PER_VIN     (233.38f)     // VAC  = ADC_V * 233.38
 
-/* 上电自检：VBUS ≈ 1.414 * VAC */
-#define PFC_VBUS_VAC_RATIO            (1.414f)
-#define PFC_VBUS_VAC_RATIO_TOLERANCE  (0.15f)       // ±15%
-#define PFC_VBUS_VAC_RATIO_STABLE_MS  (50U)
-
-/* 调节稳定性判定（使能后） */
-#define PFC_STABLE_ERROR_V            (5.0f)        // |Vbus-target| <= 5V
-#define PFC_STABLE_TIME_MS            (200U)        // 持续 200ms 才算稳定
-/*
-AC 相关 4 个宏：定义 什么电压范围 才算正常市电、掉电多久才算真正掉、AC 过压时立刻停机。
-预充相关 3 个宏：定义 母线要充到多少伏 才吸合继电器、充多久还上不去就宣告失败、继电器吸合后要等多久才开始拉 BUS_ADJ。
-Ready 相关 2 个宏：母线电压达到多少并保持多久，才认为 PFC “ready”，可以放行 LLC。
-母线保护 2 个宏：过压关机点 + 欠压关机点。
-温度 2 个宏：预警温度（你还没用）和硬关机温度。
-故障重启 1 个宏：故障后最短等待多久才允许再试一次。
-*/
-
-/* ===== Operating thresholds ===== */
-#define PFC_AC_VALID_MIN_VRMS          (85.0f)   //认为“有市电”的最低有效电压（RMS）
-#define PFC_AC_VALID_MAX_VRMS          (265.0f) //认为“正常输入”的最高市电电压（RMS），对应 230Vac 标准上限。
-#define PFC_AC_LOSS_DEBOUNCE_MS        (200U)   //AC 检测的“防抖时间”。
-
-#define PFC_PRECHARGE_TARGET_V         (230.0f) //直流母线预充完成的目标电压。
-#define PFC_PRECHARGE_TIMEOUT_MS       (800U)  //PFC_PRECHARGE_TIMEOUT_MS = 800 ms
-#define PFC_RELAY_SETTLE_MS            (80U)  //主继电器从“拉合”到“稳定导通”的等待时间。
-//在 PFC_ST_RAMP_UP 中，当 vbus_v >= PFC_TARGET_MIN_V - 5V（比如 ≥355V）且持续一定时间，就认为 PFC 已经稳定，切到 RUN，允许 LLC 启动。
-#define PFC_READY_HYSTERESIS_V         (5.0f) //PFC“已就绪”的电压滞回窗口,避免母线在目标附近轻微波动时，让“就绪/未就绪”频繁切换.
-//防止刚拉升时短暂穿过门限就让 LLC 误判“母线 OK”，导致 LLC 一启动母线又掉。
-#define PFC_READY_STABLE_MS            (80U) //母线电压要在“就绪范围内”持续的时间。
-#define PFC_VBUS_OVP_V                 (430.0f)
-#define PFC_VBUS_UVP_V                 (320.0f)
-//温度保护
-#define PFC_TEMP_WARN_C                (100.0f)
-#define PFC_TEMP_FAULT_C               (120.0f)
-
-//防止在瞬时过压、过温等故障情况下频繁重启（抖动），给硬件留一段“冷却 / 放电”时间。
-#define PFC_FAULT_RESTART_MS           (2000U) //发生故障后，允许自动重启前需要等待的时间（2s）。
-#define PFC_AC_OVERVOLTAGE_MARGIN_V    (5.0f)  //在上面的 max 基础上加一个“软保护 margin”。
-/* ===== Bus command shaping ===== */
-#ifndef VBUS_TARGET_V
-#define VBUS_TARGET_V                  (400.0f)
-#endif
-/* ===== Bus voltage command shaping ===== */
-#define PFC_TARGET_DEFAULT_V           (VBUS_TARGET_V)
-#define PFC_TARGET_MIN_V               (360.0f)
-#define PFC_TARGET_MAX_V               (410.0f)
-#define PFC_TARGET_FROM_BAT_GAIN       (1.05f)
-#define PFC_TARGET_MIN_FROM_BAT_V      (360.0f)
-#define PFC_RAMP_UP_RATE_V_PER_MS      (2.0f)
-#define PFC_RAMP_DOWN_RATE_V_PER_MS    (4.0f)
-
-/* ===== 方案A：vbus_cmd -> 前馈 duty（来自你的仿真 plant 逆映射）===== */
-#define PFC_FF_VBUS_BASE_V             (400.0f)   // 仿真里的 VBUS_BASE
-#define PFC_FF_K_DUTY2VBUS_V           (300.0f)   // 仿真里的 K_DUTY2VBUS（V / duty）
-#define PFC_FF_DUTY_NEUTRAL            (0.50f)
-#define PFC_FF_DUTY_MIN                (0.05f)
-#define PFC_FF_DUTY_MAX                (0.95f)
-
-/* 当 vbus_cmd 低于该阈值，直接把 PWM 关掉（避免一直卡在 duty_min 导致母线降不下来） */
-#define PFC_FF_DISABLE_CMD_V           (260.0f)
 /*********************************************************************************************************
-*                                              枚举结构体
+*                                              量测/上下文
 *********************************************************************************************************/
 typedef struct {
-    float vac_v; //当前 AC 电压“瞬时值/等效值”（运放输出换算到一次侧后的电压，单位 V）
-    float vac_rms; //AC 电压的 RMS（有效值，单位 V），带低通/去抖，用于判断 AC_OK
-    float vbus_v; //PFC 直流母线电压（隔离采样 + 放大后反算到母线侧，单位 V）
-    float vbat_v; //电池端电压 / DC 输出端电压（来自 VBT_SENSE，单位 V）
-    float vout_v; //LLC 输出电压（来自 VOUT_SENSE，单位 V）
-    float tpfc_c; //PFC 功率器件 NTC 温度（换算后的摄氏度）
-	 /* ---- 原始 ADC 码值（方便调试/标定） ---- */
-    uint16_t vac_raw;
+		float vac_v;  /* 等效/瞬时（按你的采样换算） */
+	  float vac_rms; /* 低通等效 RMS */
+    float vbus_v;
+	  uint16_t vac_raw;
     uint16_t vbus_raw;
-    uint16_t tpfc_raw;
-    uint16_t vbat_raw;
-    uint16_t vout_raw;
 } pfc_measure_t;
-/**
- * @brief PFC 控制上下文（状态机 + 命令 + 量测数据）
- *
- * 所有 PFC 运行时需要记住的变量都收进来，方便在 pfc_tick_1khz() 中统一管理。
- */
+
 typedef struct {
-    pfc_state_t state;
-    uint32_t entry_ms;
+    pfc_state_t state;  // 当前状态机状态
+    uint32_t entry_ms;  // 进入当前状态的时刻
 
-    uint32_t ac_ok_since_ms;
-    uint32_t ready_since_ms;
-    uint32_t precharge_begin_ms;
-    uint32_t fault_since_ms;
-
-    float vbus_target;     /* 上层目标 */
-    float vbus_cmd;        /* 内部斜坡命令 */
-
-
-    bool enable_cmd;
-    bool fault_latched;
+    bool enable_cmd;   // 外部使能命令
+    bool fault_latched; // 故障锁存标志
+	  
+	  /* 启动/READY计时 */
+	//防抖机制: 所有状态变化都需要持续一定时间才确认，避免瞬时干扰
+  //分级验证: 启动→电压达标→就绪确认，层层递进
+  //双向监控: 既监控启动过程，也监控运行中的掉电情况
+	  uint32_t startup_cmd_ms;  // enable_cmd 起始时刻
+    uint32_t vbus_ok_since_ms;  // VBUS 达标起始时刻（用于 READY 延时）
+    uint32_t dropout_since_ms;  // READY 后掉电计时
 	
-    uint32_t vac_ratio_since_ms;
-    uint32_t regulation_stable_since_ms;
-    bool bus_matches_ac;
-    bool regulation_stable;
-    pfc_measure_t meas; ///< 最近一次采样的 PFC 测量数据（电压、电流、温度等）
+	/* AC 去抖 
+	智能去抖策略: 双向计时器设计：AC正常时累积 ac_ok_since_ms ，异常时累积 ac_loss_since_ms
+								避免AC电压在阈值附近波动导致的频繁状态切换
+							  提供电网质量的可观测性
+	*/
+	  uint32_t ac_ok_since_ms;  // AC正常计时
+    uint32_t ac_loss_since_ms;  // AC掉电计时
+	
+	  /* 1.414 自检 
+		1.414倍验证原理:
+			物理基础：整流后的直流电压 ≈ 交流有效值 × √2 ≈ 1.414
+			上电自检：验证整流桥是否正常工作
+			安全保障：防止硬件故障导致的误操作s		
+		*/
+    uint32_t vac_ratio_since_ms;  // VAC/VBUS比例验证计时
+    bool     bus_matches_ac;   // 比例匹配标志
+	
+	  /* 
+		故障处理策略:
+			fault_since_ms 实现故障的时序管理（如冷却时间）
+			clear_sent 防止清除指令重复发送，避免硬件冲突
+			支持故障恢复机制，而不是简单的硬复位	
+		*/
+    uint32_t fault_since_ms;    // 进入 FAULT 的时刻
+    uint8_t  clear_sent;    // fault clear 防抖：protect_hw_clear_pulse 只打一遍
+
+    bool hw_enabled;             // 当前是否已经拉起硬件使能（避免逻辑歧义）
+
+    pfc_measure_t meas;   // 所有测量数据的集合
 } pfc_ctx_t;
 
 static pfc_ctx_t s_pfc;
@@ -132,41 +81,12 @@ static float adc_to_v_div(uint16_t raw, float rtop, float rbot)
     return v_adc * (rtop + rbot) / rbot;
 }
 
-static float adc_ntc_to_c(uint16_t raw)
-{	
-    float v_adc = (raw * VREF_ADC) / 4095.0f;
-    if (v_adc <= 0.001f) {
-        return 150.0f;
-    }
-    float r_ntc = (v_adc * PFC_NTC_PULLUP_OHM) / (VREF_ADC - v_adc);
-    if (r_ntc <= 0.0f) {
-        return 150.0f;
-    }
-    float inv_t = (1.0f / (273.15f + 25.0f)) + (1.0f / PFC_NTC_BETA) * logf(r_ntc / PFC_NTC_R0_OHM);
-    float temp_k = 1.0f / inv_t;
-    return temp_k - 273.15f;
-}
-
 static float lpf(float prev, float sample, float alpha)
 {
     return prev + alpha * (sample - prev);
 }
 
 
-static void pfc_update_regulation_stability(float target, float vbus)
-{
-    bool within = fabsf(target - vbus) <= PFC_STABLE_ERROR_V;
-
-    if (within) {
-        if (s_pfc.regulation_stable_since_ms == 0U) {
-            s_pfc.regulation_stable_since_ms = g_ms;
-        }
-        s_pfc.regulation_stable = elapsed_reached(s_pfc.regulation_stable_since_ms, PFC_STABLE_TIME_MS);
-    } else {
-        s_pfc.regulation_stable_since_ms = 0U;
-        s_pfc.regulation_stable = false;
-    }
-}
 /*********************************************************************************************************
 *                                 硬件输出：合并“继电器+PFC使能”为一个脚
 *********************************************************************************************************/
@@ -179,6 +99,8 @@ static void pfc_update_regulation_stability(float target, float vbus)
 #define PFC_RELAY_PORT   PFC_EN_PORT
 #define PFC_RELAY_PIN    PFC_EN_PIN
 #define PFC_RELAY_RCU    PFC_EN_RCU
+#else
+#error "No PFC MAIN/EN GPIO defined"
 #endif
 
 void pfc_hw_set_main(bool on)
@@ -203,132 +125,122 @@ void pfc_hw_set_main(bool on)
     else    
 			gpio_bit_reset(PFC_MAIN_OUT_PORT, PFC_MAIN_OUT_PIN);
 }
-/* 你的 BUS_ADJ PWM（PB0） */
+/* BUS_ADJ PWM：三态机跑通阶段固定 0（交给 NCP1654 自己闭环） */
 static void pfc_pwm_set(float duty)
 {
     if (duty <= 0.0f) {
         duty = 0.0f;
-    } else {
-        duty = CLAMP(duty, PFC_FF_DUTY_MIN, PFC_FF_DUTY_MAX);
-    }
+    } 
     pb0_pwm_set_duty(duty);
 }
 
 /* 关输出：PWM=0 + MAIN=0 */
 static void pfc_outputs_off(void)
 {
-    pfc_pwm_set(0.0f);
-
-    pfc_hw_set_main(false);
+  pfc_pwm_set(0.0f);
+	pfc_hw_set_main(false);
+	s_pfc.hw_enabled = false;
 }
 
 /*********************************************************************************************************
-*                          方案A：vbus_cmd 斜坡 -> duty 前馈（无闭环 PI）
-*********************************************************************************************************/
-static float pfc_duty_ff_from_vbus_cmd(float vbus_cmd)
-{
-    /* 低命令直接关 PWM，给母线放电/下降空间 */
-    if (vbus_cmd <= 0.0f || vbus_cmd <= PFC_FF_DISABLE_CMD_V) {
-        return 0.0f;
-    }
-
-    /* duty = duty_neutral + (vbus_cmd - VBUS_BASE)/K */
-    float duty = PFC_FF_DUTY_NEUTRAL + (vbus_cmd - PFC_FF_VBUS_BASE_V) / PFC_FF_K_DUTY2VBUS_V;
-    return CLAMP(duty, PFC_FF_DUTY_MIN, PFC_FF_DUTY_MAX);
-}
-
-static float pfc_target_from_battery(float manual_target, float vbat)
-{
-
-    float dyn_target = CLAMP(manual_target, PFC_TARGET_MIN_V, PFC_TARGET_MAX_V);
-    float bat_target = CLAMP(vbat * PFC_TARGET_FROM_BAT_GAIN, PFC_TARGET_MIN_FROM_BAT_V, PFC_TARGET_MAX_V);
-    /* anti-windup：若打限幅，把积分回算到“刚好在限幅边界” */
-    if (bat_target > dyn_target) dyn_target = bat_target;
-    return dyn_target;
-}
-
-/*********************************************************************************************************
-*                                              状态机辅助
+							当前状态 → 状态进入函数 → 新状态初始化 → 运行tick处理
+								 ↓              ↓              ↓           ↓
+							状态保持    →   条件判断    →   状态切换   →   循环执行
 *********************************************************************************************************/
 static void pfc_state_enter(pfc_state_t next)
 {
-    if (s_pfc.state == next) return;
+    if (s_pfc.state == next)   //幂等性保证：多次调用同一状态转换不会产生副作用
+			return;
 
     s_pfc.state = next;
-    s_pfc.entry_ms = g_ms;
-    s_pfc.regulation_stable_since_ms = 0U;
-    s_pfc.regulation_stable = false;
-    if (next == PFC_ST_FAULT) {
-        s_pfc.fault_since_ms = g_ms;
-        s_pfc.fault_latched = true;
-    }
-    if (next == PFC_ST_PRECHARGE) {
-        s_pfc.precharge_begin_ms = g_ms;
-        s_pfc.ready_since_ms = 0U;
-        /* 被动预充阶段不输出 BUS_ADJ，命令电压无意义，置 0 */
-        s_pfc.vbus_cmd = 0.0f;
-    }
+		//全局时钟依赖：使用 g_ms 确保系统时间的一致性
+    s_pfc.entry_ms = g_ms;  //时间戳记录： entry_ms 是所有时序控制的基础时间锚点
 
-    if (next == PFC_ST_RAMP_UP) {
-        s_pfc.ready_since_ms = 0U;
-        /* 起步从当前 VBUS，避免一上来 duty 打满 */
-        s_pfc.vbus_cmd = s_pfc.meas.vbus_v;
-    }
-
-    if (next == PFC_ST_RUN) {
-        /* 进入 RUN 后继续用 ready_since_ms 作为运行中计时也无所谓，这里清零即可 */
-        s_pfc.ready_since_ms = 0U;
-    }
+	if(next == PFC_ST_IDLE)
+	{
+		s_pfc.startup_cmd_ms = 0U; //清除启动计时 !0会影响启动流程
+		s_pfc.vbus_ok_since_ms = 0U; //清除电压就绪计时 !0会影响就绪判断
+		s_pfc.dropout_since_ms =0U;  //清除掉电计时 !0会影响掉电检测
+		s_pfc.ac_loss_since_ms = 0U;  //清除AC掉电计时 !0会影响 AC监控
+		s_pfc.clear_sent = 0U; //重置故障清除标志  !0 会影响故障管理
+		pfc_outputs_off();
+	}
+	/*
+	差异化设计：
+		选择性重置：只重置与运行监控相关的计时器
+		保持连续性：不重置 startup_cmd_ms 和 vbus_ok_since_ms ，维护启动历史
+		硬件策略：硬件状态由tick函数控制，而非状态进入函数
+	*/
+	else if(next == PFC_ST_READY)
+	{
+		s_pfc.dropout_since_ms = 0U; //清除掉电计时 !0会影响掉电检测
+		s_pfc.ac_loss_since_ms = 0U; //清除AC掉电计时 !0 会影响AC监控
+		/* READY 状态保持硬件开（由 tick 控制） */
+	}
+	else if(next == PFC_ST_FAULT)
+	{
+		s_pfc.fault_since_ms = g_ms;  //fault_since_ms 用于故障恢复的冷却时间
+		s_pfc.fault_latched =true;  //fault_latched = true 需要手动清除，确保安全
+		s_pfc.clear_sent = 0U;
+		/*fault 必须关断硬件*/
+		pfc_outputs_off();
+	}
+		
 }
-
+/*********************************************************************************************************
+*                                              输入采样/判定
+*********************************************************************************************************/
+/*********************************************************************************************************
+* 函数名称：pfc_sample_inputs
+* 函数功能：PFC系统的数据采集前端，负责从硬件获取原始ADC数据，转换为工程量，并执行关键的硬件自检逻辑。这是整个控制系统的"感官"部分。
+* 输入参数：void			
+* 输出参数：void
+* 返 回 值：void
+* 创建日期：2025年12月24日
+* 注    意：
+*********************************************************************************************************/
 static void pfc_sample_inputs(void)
 {
-    s_pfc.meas.vac_raw  = adc1_aux_read_channel(AC_VOL_SAMPLE,   ADC_SAMPLETIME_71POINT5);
+	//采样时间选择： ADC_SAMPLETIME_71POINT5 提供约17.1μs的采样时间，
     s_pfc.meas.vbus_raw = adc1_aux_read_channel(BUS_VOL_SAMPLE,  ADC_SAMPLETIME_71POINT5);
-    //s_pfc.meas.tpfc_raw = adc1_aux_read_channel(T_SENSE_PFC_MOS,  ADC_SAMPLETIME_71POINT5);
-    s_pfc.meas.vbat_raw = adc1_aux_read_channel(VBT_SENSE_CH,     ADC_SAMPLETIME_71POINT5);
-    s_pfc.meas.vout_raw = adc1_aux_read_channel(VOUT_SENSE_CH,    ADC_SAMPLETIME_71POINT5);
-
+    s_pfc.meas.vac_raw  = adc1_aux_read_channel(AC_VOL_SAMPLE,   ADC_SAMPLETIME_71POINT5);
+	
     float vac  = adc_to_v_scaled(s_pfc.meas.vac_raw,  PFC_AC_ADC_GAIN_V_PER_VIN);
     float vbus = adc_to_v_scaled(s_pfc.meas.vbus_raw, PFC_VBUS_ADC_GAIN_V_PER_VIN);
-    float vbat = adc_to_v_div(s_pfc.meas.vbat_raw, VBT_RTOP_OHM, VBT_RBOT_OHM);
-    float vout = adc_to_v_div(s_pfc.meas.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
-   //float tpfc = adc_ntc_to_c(s_pfc.meas.tpfc_raw);
 
-    s_pfc.meas.vac_v   = vac;
-    s_pfc.meas.vbus_v  = vbus;
-    s_pfc.meas.vbat_v  = vbat;
-    s_pfc.meas.vout_v  = vout;
-    //s_pfc.meas.tpfc_c  = tpfc;
-
-    /* 你目前 vac_rms 用低通等效，后续可换真 RMS */
-    s_pfc.meas.vac_rms = lpf(s_pfc.meas.vac_rms, vac, 0.05f);
-	    /* Δ 判断 PFC 母线≈1.414 × Vac（支持上电自检） */
-    /* 上电自检：VBUS ≈ 1.414 × VAC（带容差+稳定计时） */
+    s_pfc.meas.vac_v   = vac;  //	vac_v	 瞬时值
+    s_pfc.meas.vbus_v  = vbus; // vbus_v  瞬时值
+		/*
+			时间常数：τ = 1/α = 20个采样周期
+			对于1kHz调用：约20ms达到63.2%的阶跃响应
+			半周期数：ln(0.5)/ln(1-0.05) ≈ 13.5个采样周期
+		*/  
+	  s_pfc.meas.vac_rms = lpf(s_pfc.meas.vac_rms, vac, 0.05f); //vac_rms 有效值 低通滤波(α=0.05)
+	  /* 上电自检：VBUS >= 1.414*VAC（下限判定，允许容差放宽） */
     bool ratio_ok = false;
-    if (vac > 1.0f) {
-        float expected = vac * PFC_VBUS_VAC_RATIO;
-        float tol = expected * PFC_VBUS_VAC_RATIO_TOLERANCE;
-        ratio_ok = (vbus >= (expected - tol)) && (vbus <= (expected + tol));
-    }
-
-    if (ratio_ok) {
-        if (s_pfc.vac_ratio_since_ms == 0U) {
-            s_pfc.vac_ratio_since_ms = g_ms;
-        }
-        if (elapsed_reached(s_pfc.vac_ratio_since_ms, PFC_VBUS_VAC_RATIO_STABLE_MS)) {
-            s_pfc.bus_matches_ac = true;
-        }
+    float vac_r = s_pfc.meas.vac_rms;
+	  if (vac_r > 10.0f) {
+	  	//容差设计：考虑二极管压降、测量误差等 给了个0.15的容忍度
+       float vbus_min = vac_r * PFC_VBUS_VAC_RATIO * (1.0f - PFC_VBUS_VAC_RATIO_TOLERANCE);
+       ratio_ok = (vbus >= vbus_min);
+    } 
+		if (ratio_ok) {
+			if (s_pfc.vac_ratio_since_ms == 0U) {
+					s_pfc.vac_ratio_since_ms = g_ms; //开始计时
+			}
+			if (elapsed_reached(s_pfc.vac_ratio_since_ms, PFC_VBUS_VAC_RATIO_STABLE_MS)) {
+					s_pfc.bus_matches_ac = true; //确认稳定
+			}
     } else {
-        s_pfc.vac_ratio_since_ms = 0U;
-        s_pfc.bus_matches_ac = false;
+			s_pfc.vac_ratio_since_ms = 0U;  //重置计时
+			s_pfc.bus_matches_ac = false;
     }
 }
 
 static bool pfc_ac_ok(void)
 {
     float vac = s_pfc.meas.vac_rms;
-    return (vac >= PFC_AC_VALID_MIN_VRMS) && (vac <= (PFC_AC_VALID_MAX_VRMS + PFC_AC_OVERVOLTAGE_MARGIN_V));
+    return (vac >= PFC_AC_VALID_MIN_VRMS) && (vac <= (PFC_AC_VALID_MAX_VRMS + 2.0f));
 }
 
 static bool pfc_ac_overvoltage(void)
@@ -349,31 +261,34 @@ static void pfc_handle_fault(const char *reason)
 *********************************************************************************************************/
 void pfc_init(void)
 {
+//复合字面量语法： (pfc_ctx_t){0} 是C99特性，比 memset 更安全
     s_pfc = (pfc_ctx_t){0};
-    s_pfc.vbus_target = CLAMP(PFC_TARGET_DEFAULT_V, PFC_TARGET_MIN_V, PFC_TARGET_MAX_V);
-    s_pfc.vbus_cmd = 0.0f;
-    s_pfc.state = PFC_ST_OFF;
+    
+	/* PB0 PWM 仍初始化，但三态机阶段保持 0 */
     pb0_pwm_init(PB0_PWM_BASE_HZ);
     pb0_pwm_set_duty(0.0f);
+		
     adc1_aux_init();
+	  s_pfc.state = PFC_ST_IDLE;
     pfc_outputs_off();
 }
 
 void pfc_enable(void)
 {
     s_pfc.enable_cmd = true;
-    if (s_pfc.state == PFC_ST_OFF) {
-        pfc_state_enter(PFC_ST_WAIT_AC);
+    if (s_pfc.state == PFC_ST_IDLE) {
+    /* 进入 IDLE 不变，由 tick 负责 startup delay 后拉起硬件 */
+        s_pfc.startup_cmd_ms = 0U;
     }
 }
 void pfc_disable(void)
 {
     s_pfc.enable_cmd = false;
-}
-
-void pfc_set_vbus_target(float vbus_v)
-{
-    s_pfc.vbus_target = CLAMP(vbus_v, PFC_TARGET_MIN_V, PFC_TARGET_MAX_V);
+	/*立即退回ILE并且关断硬件*/
+	if(s_pfc.state != PFC_ST_IDLE)
+	{
+		pfc_state_enter(PFC_ST_IDLE);
+	}
 }
 
 /*********************************************************************************************************
@@ -382,197 +297,184 @@ void pfc_set_vbus_target(float vbus_v)
 void pfc_tick_1khz(void)
 {
     pfc_sample_inputs();
+	float vbus_v = s_pfc.meas.vbus_v;
+
+	/*采样数据有效性检查*/
+	if(vbus_v < 0.0f || vbus_v > 500.0f)
+	{
+		pfc_handle_fault("SENSOR_INVALID");
+		return;
+	}
 
     /* 保护/故障 */
-    if (protect_fault_active_hw() || protect_fault_latched()) {
+    if (protect_fault_active_hw() || protect_fault_latched())   //读刹车脚&判断有没有发生刹车脚中断
+	{
         pfc_handle_fault("HARD_PRO");
         return;
     }
     /* AC overvoltage is treated as a fault */
-    if (pfc_ac_overvoltage()) {
+    if (pfc_ac_overvoltage()) { //uv 380
         pfc_handle_fault("VAC_OV");
         return;
     }
 
-    if (s_pfc.meas.vbus_v >= PFC_VBUS_OVP_V) {
+    if (vbus_v >= PFC_VBUS_OVP_V) {
         pfc_handle_fault("VBUS_OV");
-        return;
-    }
-
-    if (s_pfc.state == PFC_ST_FAULT) {
-        pfc_outputs_off();
-        return;
-    }
-
-    /* disable：优雅停机（保持 MAIN=1，vbus_cmd 斜坡降到 0；再 MAIN=0） */
-    if (!s_pfc.enable_cmd) {
-        bool keep_main = (s_pfc.state == PFC_ST_WAIT_RELAY) ||
-                         (s_pfc.state == PFC_ST_RAMP_UP)   ||
-                         (s_pfc.state == PFC_ST_RUN);
-        pfc_hw_set_main(keep_main);
-
-        if (s_pfc.vbus_cmd > 0.0f) {
-            s_pfc.vbus_cmd = CLAMP(s_pfc.vbus_cmd - PFC_RAMP_DOWN_RATE_V_PER_MS, 0.0f, PFC_TARGET_MAX_V);
-            /* 只有在继电器已吸合的阶段才允许 BUS_ADJ 输出 */
-            if (keep_main) {
-                float duty = pfc_duty_ff_from_vbus_cmd(s_pfc.vbus_cmd);
-                pfc_pwm_set(duty);
-            } else {
-                pfc_pwm_set(0.0f);
-            }
-        } else {
-            pfc_outputs_off();
-            pfc_state_enter(PFC_ST_OFF);
-        }
         return;
     }
 
     /* 正常状态机 */
     switch (s_pfc.state) {
-    case PFC_ST_OFF:
-        pfc_outputs_off();
-        if (pfc_ac_ok()) {
-            s_pfc.ac_ok_since_ms = g_ms;
-            pfc_state_enter(PFC_ST_WAIT_AC);
-        }
-        break;
-    case PFC_ST_WAIT_AC:
-        pfc_outputs_off();
-        /* 1) AC 范围必须 OK */
-        if (!pfc_ac_ok()) {
-            s_pfc.ac_ok_since_ms = 0U;
-            break;
-        }
-        /* 2) 上电自检：VBUS ≈ 1.414×VAC */
-        if (!s_pfc.bus_matches_ac) {
-            s_pfc.ac_ok_since_ms = 0U;
-            break;
-        }
-        if (s_pfc.ac_ok_since_ms == 0U) {
-            s_pfc.ac_ok_since_ms = g_ms;
-        } else if (elapsed_reached(s_pfc.ac_ok_since_ms, PFC_AC_LOSS_DEBOUNCE_MS)) {
-            pfc_state_enter(PFC_ST_PRECHARGE);
-        }
-        break;
-
-    case PFC_ST_PRECHARGE:
-        /* 预充阶段：MAIN=0、PWM=0（被动预充靠硬件） */
-        pfc_hw_set_main(false);
-        pfc_pwm_set(0.0f);
-
-        if (!pfc_ac_ok()) {
-            pfc_state_enter(PFC_ST_WAIT_AC);
-            break;
-        }
-
-        if (elapsed_reached(s_pfc.precharge_begin_ms, PFC_PRECHARGE_TIMEOUT_MS) &&
-            s_pfc.meas.vbus_v < PFC_PRECHARGE_TARGET_V) {
-            pfc_handle_fault("PRECHARGE_TIMEOUT");
-            break;
-        }
-        if (s_pfc.meas.vbus_v >= PFC_PRECHARGE_TARGET_V) {
-            pfc_state_enter(PFC_ST_WAIT_RELAY);
-        }
-        break;
-    case PFC_ST_WAIT_RELAY:
-        /* MAIN 拉起（继电器+PFC使能同脚），PWM仍为0，等触点稳定 */
-        pfc_hw_set_main(true);
-        pfc_pwm_set(0.0f);
-
-        if (!pfc_ac_ok()) {
+    case PFC_ST_IDLE:
+        /* 未使能：保持关断 */
+        if (!s_pfc.enable_cmd) {
             pfc_outputs_off();
-            pfc_state_enter(PFC_ST_WAIT_AC);
+            s_pfc.startup_cmd_ms   = 0U;
+            s_pfc.vbus_ok_since_ms = 0U;
+			s_pfc.ac_ok_since_ms   = 0U;
             break;
         }
-
-        if (elapsed_reached(s_pfc.entry_ms, PFC_RELAY_SETTLE_MS)) {
-            pfc_state_enter(PFC_ST_RAMP_UP);
+		bool should_shutdown = false;
+		bool need_timer_reset = false;
+/* 1) AC OK 去抖 */
+		if (!pfc_ac_ok()) {
+            s_pfc.ac_ok_since_ms   = 0U;
+			need_timer_reset = true;
+			should_shutdown = true;
         }
-        break;
-    case PFC_ST_RAMP_UP: {
-        /* 继电器保持吸合，允许 BUS_ADJ 拉升 */
-        pfc_hw_set_main(true);
-
-        if (!pfc_ac_ok()) {
+		else if (s_pfc.ac_ok_since_ms == 0U) {
+            s_pfc.ac_ok_since_ms = g_ms;
+			should_shutdown = true;
+        }
+		else if (!elapsed_reached(s_pfc.ac_ok_since_ms, PFC_AC_OK_DEBOUNCE_MS)) {
+			should_shutdown = true;
+			}
+	   else if(!s_pfc.hw_enabled && !s_pfc.bus_matches_ac){
+	   	 /* 2) 上电自检：只在 hw 未使能前检查，避免 PFC 调到 400V 后误判 */
+	   		need_timer_reset = true;
+		    should_shutdown = true;
+	   	}
+	   /* 统一处理关断和计时器重置 */
+	   if (should_shutdown) {
             pfc_outputs_off();
-            pfc_state_enter(PFC_ST_WAIT_AC);
             break;
         }
 
-        float target = pfc_target_from_battery(s_pfc.vbus_target, s_pfc.meas.vbat_v);
-        /* vbus_cmd 斜坡 */
-        if (s_pfc.vbus_cmd < target) {
-            s_pfc.vbus_cmd = CLAMP(s_pfc.vbus_cmd + PFC_RAMP_UP_RATE_V_PER_MS, 0.0f, target);
-        } else if (s_pfc.vbus_cmd > target) {
-            s_pfc.vbus_cmd = CLAMP(s_pfc.vbus_cmd - PFC_RAMP_DOWN_RATE_V_PER_MS, target, PFC_TARGET_MAX_V);
+		if (need_timer_reset) {
+            s_pfc.startup_cmd_ms   = 0U;
+            s_pfc.vbus_ok_since_ms = 0U;
+			s_pfc.ac_ok_since_ms   = 0U;   // 防止绕过去抖
+		}
+/* 3) EN 启动延时 */
+        if (s_pfc.startup_cmd_ms == 0U) {
+            s_pfc.startup_cmd_ms = g_ms;
         }
-
-        /* 方案A：开环前馈 duty */
-        float duty = pfc_duty_ff_from_vbus_cmd(s_pfc.vbus_cmd);
-        pfc_pwm_set(duty);
-        /* 3) 使能后：采样判断是否稳定（可用于放行 LLC） */
-        pfc_update_regulation_stability(target, s_pfc.meas.vbus_v);
-
-        /* Ready 判定：达到最小门限并保持 */
-        if (s_pfc.meas.vbus_v >= (PFC_TARGET_MIN_V - PFC_READY_HYSTERESIS_V)) {
-            if (s_pfc.ready_since_ms == 0U) {
-                s_pfc.ready_since_ms = g_ms;
-            } else if (elapsed_reached(s_pfc.ready_since_ms, PFC_READY_STABLE_MS)) {
-                pfc_state_enter(PFC_ST_RUN);
+		/* EN 时序：到点再拉起硬件 */
+		if (!s_pfc.hw_enabled && elapsed_reached(s_pfc.startup_cmd_ms, PFC_STARTUP_DELAY_MS)) {
+			pfc_hw_set_main(true);
+			s_pfc.hw_enabled = true;
+			/* 三态机跑通阶段：BUS_ADJ 保持 0，交给 NCP1654 自己闭环 */
+			pfc_pwm_set(0.0f);
+		}
+		/* 确保硬件状态与enable_cmd一致 */
+		else if(s_pfc.hw_enabled && !s_pfc.enable_cmd)
+		{
+			pfc_hw_set_main(false);
+			s_pfc.hw_enabled = false;
+		}
+        /* READY 判定：VBUS 达到门限并保持一定时间 */
+        if (s_pfc.hw_enabled) {
+            if (vbus_v >= PFC_VBUS_READY_V) {
+                if (s_pfc.vbus_ok_since_ms == 0U) {
+                    s_pfc.vbus_ok_since_ms = g_ms;
+                } else if (elapsed_reached(s_pfc.vbus_ok_since_ms, PFC_READY_DELAY_MS)) {
+                    pfc_state_enter(PFC_ST_READY);
+                }
+            } else if (vbus_v < (PFC_VBUS_READY_V - PFC_VBUS_OK_RESET_MARGIN_V)) {
+                /* 只有明显回落才清零，避免抖动 */
+                s_pfc.vbus_ok_since_ms = 0U;
             }
         } else {
-            s_pfc.ready_since_ms = 0U;
+            s_pfc.vbus_ok_since_ms = 0U;
         }
+
         break;
-    }
-
-    case PFC_ST_RUN: {
-        pfc_hw_set_main(true);
-
-        /* AC 掉电去抖：掉电则回 WAIT_AC 并关输出 */
+    case PFC_ST_READY:
+        /* 用户撤销使能：回 IDLE 关断 */
+        if (!s_pfc.enable_cmd) {
+            pfc_state_enter(PFC_ST_IDLE);
+			/* 确保退出READY时清理相关计时器 */
+			s_pfc.vbus_ok_since_ms = 0U;
+			s_pfc.dropout_since_ms = 0U;
+			s_pfc.ac_loss_since_ms = 0U;
+            break;
+        }
+        /* READY 下 AC 掉电去抖：掉电回 IDLE */
         if (!pfc_ac_ok()) {
-            if (s_pfc.ac_ok_since_ms == 0U) {
-                s_pfc.ac_ok_since_ms = g_ms;
-            } else if (elapsed_reached(s_pfc.ac_ok_since_ms, PFC_AC_LOSS_DEBOUNCE_MS)) {
-                pfc_outputs_off();
-                s_pfc.vbus_cmd = 0.0f;
-                pfc_state_enter(PFC_ST_WAIT_AC);
+            if (s_pfc.ac_loss_since_ms == 0U) {
+                s_pfc.ac_loss_since_ms = g_ms;
+            } else if (elapsed_reached(s_pfc.ac_loss_since_ms, PFC_AC_LOSS_DEBOUNCE_MS)) {
+                pfc_state_enter(PFC_ST_IDLE);
                 break;
             }
         } else {
-            s_pfc.ac_ok_since_ms = 0U;
+            s_pfc.ac_loss_since_ms = 0U;
         }
 
-        float target = pfc_target_from_battery(s_pfc.vbus_target, s_pfc.meas.vbat_v);
-        /* vbus_cmd 跟随目标（斜坡） */
-        float rate = (target > s_pfc.vbus_cmd) ? PFC_RAMP_UP_RATE_V_PER_MS : PFC_RAMP_DOWN_RATE_V_PER_MS;
-
-        if (fabsf(target - s_pfc.vbus_cmd) < rate) {
-            s_pfc.vbus_cmd = target;
-        } else if (target > s_pfc.vbus_cmd) {
-            s_pfc.vbus_cmd += rate;
-        } else {
-            s_pfc.vbus_cmd -= rate;
+        /* READY 状态确保硬件保持开启（若被外部关断，这里会重新拉起） */
+        if (!s_pfc.hw_enabled) {
+            pfc_hw_set_main(true);
+            s_pfc.hw_enabled = true;
         }
+        pfc_pwm_set(0.0f);
+		
+		/* 掉电去抖：VBUS 低于阈值持续一段时间才退回 IDLE */
+		if (vbus_v >= PFC_VBUS_DROPOUT_THRESHOLD_V) {
+			s_pfc.dropout_since_ms = 0U;
+		} else {
+			if (s_pfc.dropout_since_ms == 0U) {
+				s_pfc.dropout_since_ms = g_ms;
+			} else if (elapsed_reached(s_pfc.dropout_since_ms, PFC_VBUS_DROPOUT_MS)) {
+				pfc_state_enter(PFC_ST_IDLE);
+			}
+		}
+		break;
 
-        /* 开环前馈 duty */
-        float duty = pfc_duty_ff_from_vbus_cmd(s_pfc.vbus_cmd);
-        pfc_pwm_set(duty);
 
-        /* 调节稳定性（用于你上层逻辑/放行 LLC） */
-        pfc_update_regulation_stability(target, s_pfc.meas.vbus_v);
-        /* UVP：运行中母线掉太低，认为异常（可按需求改成回 WAIT_AC 或 FAULT） */
-        /* UVP：运行中母线掉太低 */
-        if (s_pfc.meas.vbus_v < PFC_VBUS_UVP_V) {
-            pfc_handle_fault("VBUS_UV");
-        }
-        break;
-    }
-
+    case PFC_ST_FAULT: 
+		/*故障状态下确保输出保持关闭*/
+		pfc_outputs_off();
+		 /* 若故障仍存在，继续停在 FAULT */
+		if (protect_fault_active_hw() || protect_fault_latched()) {
+			break;
+		}
+		
+/* 故障已解除：两种退出路径
+		   1) 用户撤销 enable -> 直接回 IDLE
+		   2) 自动重试：enable 仍在 + 等待 restart 延时 -> 清锁存 + clear pulse -> 回 IDLE */
+		if (!s_pfc.enable_cmd) {
+			pfc_state_enter(PFC_ST_IDLE);
+		    /* 清理故障状态标志 */
+			s_pfc.clear_sent = 0U;
+			break;
+		}  
+		/* 自动重试：冷却时间到 -> clear latch + clear pulse（防抖）-> 回 IDLE */
+		if (elapsed_reached(s_pfc.fault_since_ms, PFC_FAULT_RESTART_MS)) {
+				if (protect_fault_latched()) {
+						protect_clear_fault();
+				}
+				if (!s_pfc.clear_sent) {
+						s_pfc.clear_sent = 1U;
+				}
+				pfc_state_enter(PFC_ST_IDLE);
+		}
+		break;
     default:
+		/* 未知状态：安全关断并进入故障状态 */
         pfc_outputs_off();
-        pfc_state_enter(PFC_ST_OFF);
-        break;
+        pfc_state_enter(PFC_ST_FAULT);
+ 		break;
+	
     }
 }
 
@@ -580,33 +482,40 @@ void pfc_tick_1khz(void)
 *                                              getters
 *********************************************************************************************************/
 float pfc_get_vbus(void) { return s_pfc.meas.vbus_v; }
-float pfc_get_vac(void)  { return s_pfc.meas.vac_rms; }
-float pfc_get_temp_pfc(void) { return s_pfc.meas.tpfc_c; }
 
 pfc_state_t pfc_state(void) { return s_pfc.state; }
 
+float pfc_get_vac(void)  { return s_pfc.meas.vac_rms; }
+
+float pfc_bus_voltage(void)
+{
+    return pfc_get_vbus();     // 或者直接 return s_pfc.meas.vbus_v;
+}
+
+
 bool pfc_is_ready(void)
 {
-    /* 你也可以把 regulation_stable 作为“稳定”的更严格条件 */
-    return (s_pfc.state == PFC_ST_RUN) &&
-           (s_pfc.meas.vbus_v >= (PFC_TARGET_MIN_V - PFC_READY_HYSTERESIS_V)) &&
-           (s_pfc.regulation_stable);
+/* READY 就放行 LLC；若你想更严，可以再加 vbus 门限 */
+	return (s_pfc.state == PFC_ST_READY);
 }
 
 bool pfc_is_fault(void) { return s_pfc.state == PFC_ST_FAULT; }
 bool pfc_is_fault_latched(void) { return s_pfc.fault_latched; }
 
-/* 故障清除：增加冷却/放电等待（PFC_FAULT_RESTART_MS） */
+/* 手动清故障接口：满足条件才允许退出 FAULT */
+
 void pfc_clear_fault(void)
 {
-    if (!s_pfc.fault_latched) return;
+    if (s_pfc.state != PFC_ST_FAULT) return;
 
     if (protect_fault_active_hw() || protect_fault_latched()) 
 			return;
 
     if (!elapsed_reached(s_pfc.fault_since_ms, PFC_FAULT_RESTART_MS)) 
 			return;
-
+    if (protect_fault_latched()) {
+        protect_clear_fault();
+    }
     s_pfc.fault_latched = false;
-    pfc_state_enter(PFC_ST_OFF);
+    pfc_state_enter(PFC_ST_IDLE);
 }
