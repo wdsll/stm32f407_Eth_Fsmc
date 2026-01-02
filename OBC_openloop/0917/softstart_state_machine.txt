@@ -1,69 +1,68 @@
-# LLC软启动状态机设计报告
+LLC 开环软启动详细设计
+软启：200kHz → 130kHz，300ms 半余弦，1ms tick
+谐振点：fr ≈ 91kHz
+sweep：计划 130kHz → 75kHz
+负载档：空载/5A/10A/20A/40A
+过流：41A（你这里基本等同“硬上限”）
+重点结论先说：40A 档因为离 41A 只有 1A 裕量，不建议扫过 95~90k 这段敏感区。 找 fr / 曲线用 5A~20A 档完成；40A 档只做“fr 上方验证点”更安全。
 
-## 设计目标
-- 在LLC控制状态机内接管软启动流程，确保进入RUN状态时按照预设占空比曲线渐进上电。
-- 在退出运行或进入故障状态时立即终止软启动并回到安全占空比。
-- 保持原有等待Aux、等待母线电压及故障恢复时序。
-
-## 状态机与软启动的交互
-- **初始化**：`llc_app_init` 调用 `llc_softstart_init`，同步软启动上下文并进入 `ST_WAIT_VBUS`。【F:HW/src/llc_control.c?L82-L118】
-- **非运行态防护**：`ST_IDLE`、`ST_WAIT_AUX`、`ST_WAIT_VBUS` 和 `ST_FAULT` 进入时调用 `llc_softstart_on_fault`，将占空比回落到失效安全值并清空软启动计时。【F:HW/src/llc_control.c?L21-L81】
-- **进入运行态**：`ST_LLC_RUN` 入口调用 `llc_softstart_start(LLC_SOFTSTART_TARGET_DUTY)`，在使能PWM输出前设定起始/目标占空比并开始软启动斜坡。【F:HW/src/llc_control.c?L57-L76】
-- **运行态周期任务**：在 `llc_app_tick_1khz` 与 `llc_app_tick_1khz_withoutVbus` 的 `ST_LLC_RUN` 分支内调用 `llc_softstart_tick_1khz`，每毫秒推进占空比并实时刷新安全窗口。【F:HW/src/llc_control.c?L120-L171】【F:HW/src/llc_control.c?L192-L237】
-- **故障处理**：检测到保护或PFC故障即转入 `ST_FAULT`，同时调用 `llc_softstart_on_fault` 中止软启动并输出失效安全占空比。【F:HW/src/llc_control.c?L120-L142】【F:APP/src/LLC_soft_start.c?L155-L196】
-
-## 软启动核心逻辑
-- `llc_softstart_init`：仅首次调用时重置上下文，计算安全占空比窗口并应用起始占空比。【F:APP/src/LLC_soft_start.c?L72-L109】
-- `llc_softstart_start`：包装内部 `llc_softstart_begin`，根据配置重建软启动曲线并记录开始时间。【F:APP/src/LLC_soft_start.c?L113-L154】
-- `llc_softstart_tick_1khz`：保障已初始化后推进软启动；内部处理暂停、故障中止、进度插值（余弦或指数）以及落地至安全占空比区间。【F:APP/src/LLC_soft_start.c?L198-L280】
-- `llc_softstart_on_fault`：在故障或状态机退出运行时调用，直接执行 `llc_softstart_abort` 将PWM占空比拉到 `LLC_SOFTSTART_FAILSAFE_DUTY` 并重置计时。【F:APP/src/LLC_soft_start.c?L155-L196】
-
-## 关键参数
-- 软启动持续时间：`LLC_SOFTSTART_DURATION_MS`（默认300ms）。
-- 起始/目标占空比：`LLC_SOFTSTART_START_DUTY`、`LLC_SOFTSTART_TARGET_DUTY`。
-- 失效安全占空比：`LLC_SOFTSTART_FAILSAFE_DUTY`，用于故障或暂停时的安全输出。
-- 安全窗口：根据PWM周期与死区动态计算，并附加 `LLC_SOFTSTART_EXTRA_MARGIN` 保护系数。【F:APP/src/LLC_soft_start.c?L12-L41】
-
-## 时序概述
-1. 上电后进入 `ST_WAIT_VBUS`，软启动上下文完成初始化。
-2. 满足母线/辅助电压条件并经过启动延时后，进入 `ST_LLC_RUN` 并触发软启动斜坡。
-3. 运行中每1ms调用 `llc_softstart_tick_1khz` 推进占比；若出现故障或掉电，状态机转入故障/等待态并中止软启动。
-4. 故障恢复满足条件后重新回到等待态，下一次进入运行时重新执行软启动。
-
-
-
-# PFC 启动与稳定性检查流程
-
-本文梳理了 PFC 相关的测量系数、上电检查流程与稳定性判定要点，方便在 Bring-up 过程中按步骤执行与复核。
-
-## 测量换算系数
-- **总线电压 (VBUS)：** `VBUS = PA3_ADC * 144.3464`
-- **交流输入电压 (VAC)：** `VAC = PA1_ADC * 233.38`
-
-## 启动与检测步骤
-1. **上电检测 AC 输入**
-   - 读取 VAC 值并折算至实际电压，确认范围在 **85–265 Vac**。
-   - 若不在范围内，保持 PFC 关闭并提示输入异常。
-
-2. **验证母线电压期望值**
-   - 在 AC 正常时，检查 `VBUS ≈ 1.414 × VAC`，偏差超限时应停止后续动作并记录故障。
-   - 该检查可以在预充完成后、PFC 未使能前执行，避免干扰 PI 调节。
-
-3. **使能 PFC 并监测上升过程**
-   - 打开 PFC 使能前确认继电器/预充已闭合，母线电压未超限。
-   - 使能后以 1 ms 采样间隔监控 VBUS、VAC 与 PFC 关键温度，发现过压、欠压或过温立即关闭 PFC。
-
-4. **跟随器调节母线电压**
-   - 使用 BUS_VOL_ADJ（或等效控制量）向目标母线电压闭环调整，常见目标为 400 V。
-   - 建议以滑动窗口计算 20–50 ms 内的 VBUS 均值，并限制单次调节步进，避免振荡或过冲。
-
-5. **稳定性检测**
-   - 判定标准示例：在连续 200 ms 内，`VBUS` 相对目标误差 |ΔV/V| < 2%，且 VAC、温升无异常告警。
-   - 记录稳定判定时的 VBUS/VAC/温度快照，作为 Bring-up 过程的留档。
-
-## 复核清单
-- [ ] VAC 折算值 85–265 Vac
-- [ ] `VBUS ≈ 1.414 × VAC` 校验通过
-- [ ] PFC 使能前继电器/预充已闭合且母线无过压
-- [ ] 跟随器调整过程无明显振荡或超调
-- [ ] 稳定性判定通过并完成数据记录
+1.开环调试的总流程（状态机）
+	IDLE：MOE=0，PWM关，等待启动命令
+	PRECHARGE（自举预充）：低侧先导通 1–3ms（bootstrap pre-charge）
+	SOFTSTART_RAMP：200k → 130k，300ms 半余弦曲线
+	HOLD_STABLE：130k 保持 100–200ms（让 Vout/Iout/Ipri 稳）
+	SWEEP：从 130k 逐步扫到目标下限（按负载档限制不同）
+	HOLD_END：保持在最后一个安全频点（或回到 130k）
+2.软启段详细参数（你现有方案 OK）
+	tick：1ms
+	duration：300ms
+	曲线：k=0.5*(1-cos(pi*t/T))
+	f = f_start + (f_target - f_start)*k
+	f_start=200kHz，f_target=130kHz
+	软启结束后不要立刻 sweep，先 HOLD 130k 100–200ms（避免你采到的是动态过程）。
+3.sweep 段策略（按 fr≈91kHz 分段 + 按负载档限界）
+	因为 接近 fr（91kHz）附近“增益斜率最大”，开环往下扫很容易让电流猛涨，尤其半载/满载。
+	段A（远离fr，上方安全区）：130k → 105k
+	段B（接近fr 上方）：105k → 95k
+	段C（穿越敏感区）：95k → 88k（包含 fr≈91k）
+	段D（fr 下方）：88k → 75k（风险更高）
+4.每个负载档的“sweep 下限”
+	目标：既能定位 fr，又不被 41A 卡死、也不冒险扫到危险区。
+	空载   90k~85k（先别扫到 75k）  空载时 Vout 可能飙高，先看电压上升和波形，不追求扫很低
+	5A     75k（可以全扫)           风险小，可用于完整曲线与 fr 定位
+	10A    80k~75k                  一般也可全扫，但穿越 fr 段要更慢
+	20A    88k~85k（建议先到这里)   20A 扫到 75k 风险明显升高，建议以“刚过 fr”就足够
+	40A    95k 或 100k 停止         强烈不建议扫到 91k 附近：41A 只剩 1A 裕量，任何过冲就触发
+5.sweep 的步进与停留（dwell）建议
+5A / 10A（用来拿完整曲线）
+	段A 130→105：步进 2k，dwell 20–30ms
+	段B 105→95：步进 1k，dwell 50–80ms
+    段C 95→88：步进 0.2–0.5k，dwell 100–200ms（关键）
+	段D 88→75：步进 0.5–1k，dwell 80–150ms
+20A（用来验证负载影响 + 较安全定位 fr）
+	段A 130→105：步进 2k，dwell 20–30ms
+	段B 105→95：步进 1k，dwell 50–80ms
+	段C：步进 0.2–0.5k，dwell 150–250ms
+	建议到 88k~85k 就停（别硬扫到 75k）
+40A（只做高于 fr 的验证）
+	130→110：2k / 20–30ms
+	110→100：1k / 50–80ms
+	100→95：0.5k / 100–150ms
+    到 95k（或 100k）停止并 HOLD
+6.必须加入的“开环扫频限流/保命逻辑”（按 41A 上限设计）
+你给的 OCP=41A，满载 40A 离得太近，所以必须做“软钳位”，不然 sweep 会被轻易打断。
+建议三段阈值（以 Iout 为例；如果你用的是一次电流/谐振电流，也同理）：
+	I_pause：到这个就暂停继续降频（hold 当前频点，延长 dwell）
+	I_backoff：到这个就回拉升频（比如 +2k~+5k，回到上一个安全点）
+	I_trip：到这个就停机（MOE=0，故障）
+	按你的负载档给一套“可直接用”的建议值：
+	5A 档 	I_pause = 8A  I_backoff = 10A I_trip = 12A（软件先挡住，别等硬件 41A）
+	10A 档  I_pause = 14A  I_backoff = 16A I_trip = 18A
+	20A 档  I_pause = 24A  I_backoff = 26A I_trip = 28A
+	40A 档（最关键）：I_pause = 40.3A  I_backoff = 40.6A I_trip = 40.9A（别碰 41A，给硬件留一点时间裕量）
+注意：如果你电子负载是 CC 模式，稳态 Iout 不会涨太多，但穿越 fr 的瞬态峰值仍可能冲上去，所以这些阈值是为了抓瞬态。
+还建议加一个时间判据减少误判：I > I_trip 持续 2–5ms 再停机（但 BKIN/硬件保护照样瞬停）
+7.采样记录：
+	推荐每个频点 dwell 的最后 10–20ms 做平均：f_cmd，Vbus，Vout_avg（dwell末端平均），Iout_avg，Iout_peak（dwell期间峰值，判断是否接近保护）
+可选：Ipri_avg / Ires_avg（更能反映谐振敏感区）
+    在固定负载档、固定 Vbus 下，找 Ipri_peak 或 Vout 对频率的“峰值/拐点”附近就是 fr（但注意 fr 会随负载略漂）

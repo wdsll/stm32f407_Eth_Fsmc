@@ -150,30 +150,30 @@ static void llc_state_enter(llc_state_t next)
 	switch(next)
 	{
 		case ST_IDLE:
-			llc_softstart_on_fault();
-			pfc_hw_set_main(false);   // 强制关闭 PFC
-			llc_pwm_outputs_enable(0); // 禁用 PWM 输出
-			llc_driver_en_set(false); //disable llc
-			s_llc.f_cmd = s_llc.f_max; // 设置频率为最大值
-		    s_llc_rt.sweep_best_error = FLT_MAX; //重置最佳误差为无穷大，清除历史最优解
-            s_llc_rt.sweep_best_freq = LLC_SWEEP_START_HZ; //重置最佳频率为扫描起始值，准备重新进行频率扫描
-      		s_llc_rt.sweep_stable_hits = 0U; //重置稳定计数器，用于判断系统是否达到稳态
-      	    s_llc_rt.softstart_begin_ms = 0U;  //软启动开始时间戳，用于控制软启动斜坡
-      	    s_llc_rt.stopping_begin_ms = 0U;  //停机过程开始时间戳，用于控制停机时序
-      		s_llc_rt.hold_last_adjust_ms = 0U; //保持最后调整的时间戳，用于频率调整的去抖
-			break;
-	   case ST_PRECHECK:  
+		  llc_softstart_on_fault();
+		  pfc_hw_set_main(false);   // 强制关闭 PFC
+		  llc_pwm_outputs_enable(0); // 禁用 PWM 输出
+		  llc_driver_en_set(false); //disable llc
+		  s_llc.f_cmd = s_llc.f_max; // 设置频率为最大值
+		  s_llc_rt.sweep_best_error = FLT_MAX; //重置最佳误差为无穷大，清除历史最优解
+ 		  s_llc_rt.sweep_best_freq = LLC_SWEEP_START_HZ; //重置最佳频率为扫描起始值，准备重新进行频率扫描
+ 		  s_llc_rt.sweep_stable_hits = 0U; //重置稳定计数器，用于判断系统是否达到稳态
+ 		  s_llc_rt.softstart_begin_ms = 0U;  //软启动开始时间戳，用于控制软启动斜坡
+ 		  s_llc_rt.stopping_begin_ms = 0U;  //停机过程开始时间戳，用于控制停机时序
+ 		  s_llc_rt.hold_last_adjust_ms = 0U; //保持最后调整的时间戳，用于频率调整的去抖
+		  break;
+	 case ST_PRECHECK:  
 	  	llc_driver_en_set(true);
     	llc_pwm_outputs_enable(0); // 禁用 PWM 输出
     	s_llc.f_cmd = s_llc.f_max; // 设置频率为最大值
-        break;
-		case ST_SOFTSTART:
+      break;
+	 case ST_SOFTSTART:
 			s_llc_rt.softstart_begin_ms = g_ms;
 			llc_driver_en_set(true);
 			llc_pwm_outputs_enable(1);
 			llc_softstart_start(LLC_SOFTSTART_TARGET_HZ);
 			break;
-		case ST_SWEEP:
+	 case ST_SWEEP:
 			llc_driver_en_set(true);
 			 s_llc_rt.sweep_best_error = FLT_MAX;  //重置最佳误差为无穷大，清除历史最优解
 			 s_llc_rt.sweep_best_freq = LLC_SWEEP_START_HZ;
@@ -181,25 +181,27 @@ static void llc_state_enter(llc_state_t next)
 			 s_llc_rt.sweep_start_ms = g_ms;
 			 s_llc_rt.sweep_last_step_ms = g_ms;
 			 llc_set_freq(LLC_SWEEP_START_HZ);
-		break;
-		case ST_LLC_RUN:
+		  break;
+	 case ST_LLC_RUN:
 			llc_driver_en_set(true);
-			 llc_set_freq(s_llc_rt.sweep_best_freq);
-       s_llc_rt.hold_last_adjust_ms = g_ms;
+			llc_set_freq(s_llc_rt.sweep_best_freq);
+      s_llc_rt.hold_last_adjust_ms = g_ms;
 			break;
-		case ST_STOPPING:
-        s_llc_rt.stopping_begin_ms = g_ms;
-		llc_driver_en_set(true);
-        llc_set_freq(s_llc.f_max);
-        break;
-		case ST_FAULT:
-		default:
-			  llc_softstart_on_fault();
-        pfc_hw_set_main(false); //PFC_off
-        llc_pwm_outputs_enable(0); //llc pwm disable
-        llc_driver_en_set(false);
-        llc_set_freq(s_llc.f_max);
-        break;
+	 case ST_STOPPING:
+      s_llc_rt.stopping_begin_ms = g_ms;
+		  llc_driver_en_set(true);
+      llc_set_freq(s_llc.f_max);
+      break;
+	 case ST_FAULT:
+			break;
+	 
+	 default:
+		  llc_softstart_on_fault();
+      pfc_hw_set_main(false); //PFC_off
+      llc_pwm_outputs_enable(0); //llc pwm disable
+      llc_driver_en_set(false);
+      llc_set_freq(s_llc.f_max);
+      break;
 	}
 }
 static void llc_handle_sweep(void)
@@ -231,11 +233,11 @@ static void llc_handle_sweep(void)
 		//定时步进：按照固定时间间隔调整频率，给系统足够时间响应 
 		//LLC_SWEEP_STEP_MS ：确保每次频率调整后系统有时间稳定
 		if (elapsed_since(s_llc_rt.sweep_last_step_ms) >= LLC_SWEEP_STEP_MS) {
-			//从高频向低频扫描（LLC特性：频率越低，功率越大）
+			  //从高频向低频扫描（LLC特性：频率越低，功率越大）
         float next_freq = s_llc.f_cmd - LLC_SWEEP_STEP_HZ;
-			// 增强边界检查：确保频率在有效范围内
+			  //增强边界检查：确保频率在有效范围内
         if (next_freq < LLC_SWEEP_STOP_HZ) {
-					// 达到扫描下限，停止扫描
+					  //达到扫描下限，停止扫描
             llc_state_enter(ST_STOPPING);
             return;
         }
@@ -252,9 +254,9 @@ static void llc_handle_sweep(void)
 void llc_app_init()
 {
 	llc_softstart_init();
-		s_llc = (llc_t){
-	        .vref=VBUS_TARGET_V, .vmeas=0.0f, .kp=0.01f, .ki=0.0005f,
-	        .f_min=LLC_F_MIN_HZ, .f_max=LLC_F_MAX_HZ, .f_cmd=LLC_F_INIT_HZ, .f_slew=LLC_F_SLEW_HZ
+	s_llc = (llc_t){
+				.vref=VBUS_TARGET_V, .vmeas=0.0f, .kp=0.01f, .ki=0.0005f,
+				.f_min=LLC_F_MIN_HZ, .f_max=LLC_F_MAX_HZ, .f_cmd=LLC_F_INIT_HZ, .f_slew=LLC_F_SLEW_HZ
 	};
 	llc_state_enter(ST_IDLE);
 }
@@ -278,7 +280,7 @@ void llc_app_tick_1khz(void)
 			break;
 		case ST_PRECHECK:
         if (!enable_llc) {
-            llc_enter_fault();
+          llc_enter_fault();
 					break;
 				}
 				if (!llc_precheck_ok()) {

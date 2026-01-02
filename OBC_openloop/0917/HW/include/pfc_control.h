@@ -14,15 +14,17 @@ typedef enum {
 *                                              宏定义
 *********************************************************************************************************/
 /* ===== Hardware scaling ===== */
-#define PFC_VBUS_ADC_GAIN_V_PER_VIN   (144.3464f)   // VBUS = ADC_V * 144.3464
-#define PFC_AC_ADC_GAIN_V_PER_VIN     (233.38f)     // VAC  = ADC_V * 233.38
+#define PFC_VBUS_ADC_GAIN_V_PER_VIN   (175.060f)   // VBUS = ADC_V * 144.3464 175.06
+#define PFC_AC_ADC_GAIN_V_PER_VIN     (369.98f)     // VAC  = ADC_V * 233.38  
+#define PFC_AC_OFFSET                 (12.90f)
 
 /* ===== 三态机：门限/时序 ===== */
 #define PFC_STARTUP_DELAY_MS          (200U)
-#define PFC_VBUS_READY_V              (375.0f)
+#define PFC_VBUS_READY_V              (400.0f)
 #define PFC_READY_DELAY_MS            (80U)
+#define PFC_VBUS_RAMP_DELAY_MS        (50U)
 #define PFC_VBUS_OK_RESET_MARGIN_V    (10.0f)
-#define PFC_VBUS_DROPOUT_THRESHOLD_V  (340.0f)
+#define PFC_VBUS_DROPOUT_THRESHOLD_V  (385.0f)
 #define PFC_VBUS_DROPOUT_MS           (300U)
 #define PFC_VBUS_OVP_V                (430.0f)
 #define PFC_FAULT_RESTART_MS          (2000U)
@@ -37,19 +39,8 @@ typedef enum {
 #define PFC_VBUS_VAC_RATIO            (1.414f)
 #define PFC_VBUS_VAC_RATIO_TOLERANCE  (0.15f)
 #define PFC_VBUS_VAC_RATIO_STABLE_MS  (50U)
-/* --- 启动与 READY --- */
-#define PFC_STARTUP_DELAY_MS          (200U)
-#define PFC_VBUS_READY_V              (375.0f)
-#define PFC_READY_DELAY_MS            (80U)
-#define PFC_VBUS_OK_RESET_MARGIN_V    (10.0f)
 
-/* --- READY 掉电退出 --- */
-#define PFC_VBUS_DROPOUT_THRESHOLD_V  (340.0f)
-#define PFC_VBUS_DROPOUT_MS           (300U)
 
-/* --- 保护 --- */
-#define PFC_VBUS_OVP_V                (430.0f)
-#define PFC_FAULT_RESTART_MS          (2000U)
 /*********************************************************************************************************
 *                                              内部函数声明
 *********************************************************************************************************/
@@ -57,7 +48,7 @@ void pfc_init(void);
 void pfc_enable(void);
 void pfc_disable(void);
 void pfc_tick_1khz(void);
-
+void adc_test(void);
 float pfc_get_vbus(void);
 float pfc_get_vac(void);
 

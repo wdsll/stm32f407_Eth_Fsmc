@@ -39,7 +39,7 @@
 #define VBUS_RTOP_OHM       (200000.0f)
 #define VBUS_RBOT_OHM       (10000.0f)
 
-#define VREF_ADC            (3.3f)
+#define VREF_ADC            (3.30f)
 
 
 /* PFC sensing networks ´ý¶¨Î´È·ÈÏ*/
@@ -59,8 +59,8 @@
 #define VBT_RTOP_OHM        (200000.0f)   /* PC4 */
 #define VBT_RBOT_OHM        (10000.0f)
 
-#define V3V3_RTOP_OHM        (10000.0f)   /* PC5 */
-#define V3V3_RBOT_OHM        (5100.0f)
+#define V3V3_RTOP_OHM        (5100.0f)   
+#define V3V3_RBOT_OHM        (10000.0f)
 
 /* ==== ADC startup sanity check thresholds ==== */
 #define ADC_STARTUP_V3V3_MIN_V        (2.8f)

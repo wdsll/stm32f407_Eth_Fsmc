@@ -7,38 +7,7 @@ volatile adc_multi_frame_t g_adc_multi;
 // ADC状态标志
 static uint8_t adc0_initialized = 0;
 static uint8_t adc1_initialized = 0;
-static uint32_t s_adc0_trig_src = 0U;
-static uint32_t adc_trigger_timer_clk_hz(void)
-{
-    uint32_t apb1 = rcu_clock_freq_get(CK_APB1);
-    return (RCU_CFG0 & RCU_CFG0_APB1PSC) ? (apb1 * 2U) : apb1;
-}
 
-static void adc0_trigger_timer_init_10khz(void)
-{
-    rcu_periph_clock_enable(RCU_TIMER2);
-    timer_deinit(TIMER2);
-
-    uint32_t tclk = adc_trigger_timer_clk_hz();
-    uint32_t period = (tclk / ADC_FAST_SAMPLE_HZ);
-    if (period == 0U) {
-        period = 1U;
-    }
-    if (period > 0U) {
-        period -= 1U;
-    }
-
-    timer_parameter_struct t;
-    timer_struct_para_init(&t);
-    t.prescaler = 0U;
-    t.counterdirection = TIMER_COUNTER_UP;
-    t.period = period;
-    t.clockdivision = TIMER_CKDIV_DIV1;
-    timer_init(TIMER2, &t);
-
-    timer_master_output_trigger_source_select(TIMER2, TIMER_TRI_OUT_SRC_UPDATE);
-    timer_enable(TIMER2);
-}
 /*********************************************************************************************************
 * ADC0相关函数 - DMA/定时器触发模式（高速采集）
 *********************************************************************************************************/
@@ -83,10 +52,7 @@ void adc0_dma_init(uint32_t trig_src)
     if(adc0_initialized) {
         return; // 避免重复初始化
     }
-		
-    s_adc0_trig_src = trig_src;
-   
-		adc0_analog_pins_init();
+    adc0_analog_pins_init();
     adc0_dma_cfg();
     
     // 设置DMA中断优先级
@@ -108,10 +74,6 @@ void adc0_dma_init(uint32_t trig_src)
     adc_external_trigger_source_config(ADC0, ADC_REGULAR_CHANNEL, trig_src);
     adc_external_trigger_config(ADC0, ADC_REGULAR_CHANNEL, ENABLE);
 
-    if (trig_src == ADC0_1_EXTTRIG_REGULAR_T2_TRGO) {
-        adc0_trigger_timer_init_10khz();
-    }
-
     adc_enable(ADC0);
 	  adc_calibration_enable(ADC0);
     adc_dma_mode_enable(ADC0);
@@ -125,11 +87,6 @@ void adc0_dma_start(void)
     if(!adc0_initialized) {
         return;
     }
-     if (s_adc0_trig_src == ADC0_1_EXTTRIG_REGULAR_T2_TRGO) {
-        timer_enable(TIMER2);
-        return;
-    }
-    //timer_event_software_generate(LLC_PWM_TIMER, TIMER_EVENT_SRC_CH2G);
 }
 
 /* ADC0状态检查 */
@@ -251,16 +208,23 @@ void adc1_sample_aux_1khz(void)
     }
     uint16_t v3v3 = adc1_aux_read_channel(AD_3V3_CH, ADC_SAMPLETIME_55POINT5);
     uint16_t vbt = adc1_aux_read_channel(VBT_SENSE_CH, ADC_SAMPLETIME_55POINT5);
-		//uint16_t tpfc = adc1_aux_read_channel(T_SENSE_PFC_MOS, ADC_SAMPLETIME_55POINT5);
+
     s_latched.v3v3_raw = v3v3;
     s_latched.vbt_raw = vbt;
-		//s_latched.tsense_raw = tpfc;
 }
 
 /* ADC1状态检查 */
 uint8_t adc1_is_initialized(void)
 {
     return adc1_initialized;
+}
+
+void adc_multi_trigger_fast(void)
+{
+    if(!adc0_initialized) {
+        return;
+    }
+    adc_software_trigger_enable(ADC0, ADC_REGULAR_CHANNEL);
 }
 
 /*********************************************************************************************************
@@ -281,7 +245,6 @@ void adc_multi_copy(void)
     frame.isense_raw = s_latched.isense_raw;
 	  frame.v3v3_raw   = s_latched.v3v3_raw;
     frame.vbt_raw    = s_latched.vbt_raw;
-   // frame.tsense_raw = s_latched.tsense_raw;
     g_adc_multi = frame;
 
 }
@@ -351,7 +314,7 @@ uint16_t adc1_channel14_multiple_samples(uint16_t sample_count, uint16_t *sample
             successful_samples++;
         }
     }
-    
+     
     return successful_samples;
 }
 

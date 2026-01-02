@@ -120,7 +120,7 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>DLGUARM</Key>
-          <Name></Name>        </SetRegEntry>
+        </SetRegEntry>
         <SetRegEntry>
           <Number>0</Number>
           <Key>JL2CM3</Key>
@@ -152,42 +152,65 @@
           <Name>UL2CM3(-S0 -C0 -P0 -FD20000000 -FC1000 -FN1 -FF0GD32F30x_HD -FS08000000 -FL080000 -FP0($$Device:GD32F303RE$Flash\GD32F30x_HD.FLM))</Name>
         </SetRegEntry>
       </TargetDriverDllRegistry>
-      <Breakpoint/>
+      <Breakpoint>
+        <Bp>
+          <Number>0</Number>
+          <Type>0</Type>
+          <LineNumber>338</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134230436</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>.\HW\src\pfc_control.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\0917\HW/src/pfc_control.c\338</Expression>
+        </Bp>
+        <Bp>
+          <Number>1</Number>
+          <Type>0</Type>
+          <LineNumber>343</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134230472</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>.\HW\src\pfc_control.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\0917\HW/src/pfc_control.c\343</Expression>
+        </Bp>
+      </Breakpoint>
       <WatchWindow1>
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
-          <ItemText>s_buf</ItemText>
+          <ItemText>g_ms</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_ms</ItemText>
+          <ItemText>s_pfc</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>vout</ItemText>
+          <ItemText>vtest</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>1</WinNumber>
-          <ItemText>v3v3</ItemText>
+          <ItemText>PFC_AC_VALID_MIN_VRMS</ItemText>
         </Ww>
         <Ww>
           <count>4</count>
           <WinNumber>1</WinNumber>
-          <ItemText>s_latched</ItemText>
-        </Ww>
-        <Ww>
-          <count>5</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>pwm_ccr</ItemText>
-        </Ww>
-        <Ww>
-          <count>6</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>s_cfg</ItemText>
+          <ItemText>PFC_AC_VALID_MAX_VRMS</ItemText>
         </Ww>
       </WatchWindow1>
       <WatchWindow2>
@@ -210,6 +233,11 @@
           <count>3</count>
           <WinNumber>2</WinNumber>
           <ItemText>ctl0</ItemText>
+        </Ww>
+        <Ww>
+          <count>4</count>
+          <WinNumber>2</WinNumber>
+          <ItemText>vac</ItemText>
         </Ww>
       </WatchWindow2>
       <Tracepoint>

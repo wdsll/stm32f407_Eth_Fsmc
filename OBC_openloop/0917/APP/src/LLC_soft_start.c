@@ -89,8 +89,8 @@ static void llc_softstart_begin(float target_hz)
 }
 /* 在软启动过程中更新最新的频率防止越界。*/
 void llc_softstart_update_target(float new_target_hz)
-{	s_llc_softstart.target_hz = f_clampf(new_target_hz, LLC_F_MIN_HZ, LLC_F_MAX_HZ);
-
+{	
+	s_llc_softstart.target_hz = f_clampf(new_target_hz, LLC_F_MIN_HZ, LLC_F_MAX_HZ);
 }
 
 void llc_softstart_init(void)
@@ -207,6 +207,7 @@ static void llc_softstart_tick(void)
         ss_apply(s_llc_softstart.target_hz);
         return;
     }
+	//duration_ms 软启动持续时间
 	float progress = (s_llc_softstart.duration_ms > 0U) ? ((float)elapsed / (float)s_llc_softstart.duration_ms):1.0f;
 
 	#if defined(LLC_SOFTSTART_USE_COSINE_EASE) && (LLC_SOFTSTART_USE_COSINE_EASE)

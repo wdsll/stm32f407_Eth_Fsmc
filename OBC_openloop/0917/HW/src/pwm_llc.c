@@ -1,78 +1,15 @@
 #include "pwm_llc.h"
-//GPIO：高臂、低臂、N 输出都用 AF_PP；BKIN=PB12 用 上拉输入。
-//死区：确认 bdtr_deadtime_code_ns(350ns, 108MHz) 得到约 0x26（≈352ns）。
-//BKIN：短接 PB12→GND，应当瞬时关断（MOE 清）；松开在一个更新周期后自动恢复（因 outputautostate=ENABLE）。
-//变频：调用 llc_pwm_set_freq() 后，示波器看到占空不漂；若固定 50%，把 llc_pwm_set_freq() 里直接设 CCR = ARR/2。
-//#include "gd32f30x_timer.h"
+
 static llc_pwm_cfg_t s_cfg; 
 
 static uint32_t s_period=0; 
-/*
-static void update_adc_trigger_from_pwm(uint16_t pwm_ccr)
-{
-	uint16_t midpoint = pwm_ccr / 2U;
-	if ((midpoint == 0U) && (pwm_ccr > 0U))
-  {
-		midpoint = 1;
-	}
-	//配置定时器通道输出脉冲值
-	timer_channel_output_pulse_value_config(TIMER0, TIMER_CH_2, midpoint);
-}
-*/
-/*********************************************************************************************************
-* 函数名称：set_adc_trigger_phase
-* 函数功能：该函数的主要目的是根据输入的相位值（ phase_0_1 ）设置定时器（ TIMER0 ）的通道2（ TIMER_CH_2 ）的输出脉冲值（ ccr2 ），
-	从而控制ADC（模数转换器）的触发相位。
-* 输入参数：					
-* 输出参数：
-* 返 回 值：
-* 创建日期：2025年10月20日
-* 注    意：
-*********************************************************************************************************/
-static void set_adc_trigger_phase(float phase_0_1)
-{
-	if (phase_0_1 < 0.f) 
-	{
-	phase_0_1 = 0.f;
-	}
 
-  if (phase_0_1 > 1.f) 
-  {
-	  phase_0_1 = 1.f;
-  }
-	//获取定时器 TIMER0 的自动重装载值（ arr ），即定时器的周期值。
-	uint32_t arr = TIMER_CAR(TIMER0);
-	if(arr == 0U)
-	{
-		//如果 arr 为0，说明定时器未配置或无效，此时直接设置通道2的输出脉冲值为0并返回。
-		timer_channel_output_pulse_value_config(TIMER0, TIMER_CH_2, 0U);
-		return;
-	}
-	uint32_t period_ticks = arr + 1U;
-	
-	uint32_t ccr2 = (uint32_t)((phase_0_1 * (float)(arr + 1U)) + 0.5f);
-
-	if (ccr2 == 0U && arr > 0U) 
-		ccr2 = 1U;
-	if (ccr2 >= arr)            
-		ccr2 = arr - 1U;
-	timer_channel_output_pulse_value_config(TIMER0, TIMER_CH_2, (uint16_t)ccr2);
-}
-
-static inline void update_adc_trigger_midpoint_from_arr(void)
-{
-    set_adc_trigger_phase(0.5f); // 周期中点
-}
 //其目的是将一个浮点数限制在指定的范围内
 static inline float clampf(float x,float a,float b)
 { 
 	return x<a?a:(x>b?b:x); 
 }
-//static uint8_t dt_ticks(uint32_t ns, uint32_t clk)
-//{ 
-	//unsigned long long t=(unsigned long long)ns*clk/1000000000ULL; 
-	//return (t>255)?255:(uint8_t)t;
-//}
+
 /*********************************************************************************************************
 * 函数名称：bdtr_deadtime_code_ns
 * 函数功能：用于配置硬件中的死区时间寄存器（BDTR）
@@ -86,12 +23,12 @@ static inline float clampf(float x,float a,float b)
 *********************************************************************************************************/
 static uint8_t bdtr_deadtime_code_ns(uint32_t dead_ns, uint32_t clk) 
 {
-	double t = 1e9 / (double)clk;
-
+	
 	if(clk == 0)
 	{
 		return 0;
 	}
+	double t = 1e9 / (double)clk;
 	uint32_t c = (uint32_t)(dead_ns / t + 0.5);
 	if (c <= 127U) 
 	{
@@ -117,7 +54,7 @@ static uint8_t bdtr_deadtime_code_ns(uint32_t dead_ns, uint32_t clk)
 
 static void pins_init(void){
     rcu_periph_clock_enable(RCU_GPIOA); 
-		rcu_periph_clock_enable(RCU_GPIOB);
+    rcu_periph_clock_enable(RCU_GPIOB);
 	
 	gpio_init(LLC_H_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, LLC_H_PIN);
 	gpio_bit_reset(LLC_H_PORT, LLC_H_PIN);
@@ -150,14 +87,10 @@ void llc_pwm_init(const llc_pwm_cfg_t* cfg){
     rcu_periph_clock_enable(RCU_TIMER0);
 		/* 定义TIMER0的初始化参数结构体 */
     timer_parameter_struct t;
-   // timer_struct_para_init(&t);
-	
     uint32_t tclk = timer0_clk_hz();                // 如果你库里没有此宏，见文末备注
-    //s_period = (tclk/(2U*s_cfg.pwm_hz)) - 1U;      /* 中心对齐频率公式 */ //s_period 存储计算出的 PWM 周期值。
-		s_period = (tclk/s_cfg.pwm_hz) - 1U;     //单边（边沿对齐）计数模式
+	s_period = (tclk/s_cfg.pwm_hz) - 1U;     //单边（边沿对齐）计数模式
 /* TIMER0 configuration */
     t.prescaler         = 0;  // 预分频器设置为0（实际分频系数为0+1=1）
-    //t.alignedmode       = TIMER_COUNTER_CENTER_BOTH; //居中对齐且向上/向下计数的断言模式
 		t.alignedmode       = TIMER_COUNTER_EDGE;   //边缘对齐模式
     t.counterdirection  = TIMER_COUNTER_UP; // 向上计数
     t.period            = s_period;   // 自动重载值  1
@@ -186,15 +119,6 @@ void llc_pwm_init(const llc_pwm_cfg_t* cfg){
 		// 作用：确保配置在下一次更新事件时生效，避免运行时配置冲突
 		// 关键点：影子寄存器用于保证配置的原子性和实时性
     timer_channel_output_shadow_config(TIMER0, LLC_PWM_CH, TIMER_OC_SHADOW_ENABLE); 
-		
-		/* === 配置比较器ch2 === */
-		timer_oc_parameter_struct oc_mid = oc;
-		oc_mid.outputstate  = TIMER_CCX_ENABLE;
-		oc_mid.outputnstate = TIMER_CCXN_DISABLE;
-    timer_channel_output_config(TIMER0, TIMER_CH_2, &oc_mid); // 应用配置到TIMER0的通道2
-		timer_channel_output_mode_config(TIMER0, TIMER_CH_2, TIMER_OC_MODE_PWM0);
-		timer_channel_output_pulse_value_config(TIMER0, TIMER_CH_2, 0); // 设置初始脉冲值为0
-		timer_channel_output_shadow_config(TIMER0, TIMER_CH_2, TIMER_OC_SHADOW_ENABLE);
 		//死区时间与保护配置
     timer_break_parameter_struct bk;
     bk.runoffstate     = TIMER_ROS_STATE_ENABLE ; //设置定时器在运行状态下的断路行为为禁用。这意味着在正常运行期间，断路功能不会触发。
@@ -207,23 +131,19 @@ void llc_pwm_init(const llc_pwm_cfg_t* cfg){
 		//设置断路信号的极性为低电平有效。这意味着当BKIN引脚为低电平时，会触发断路。
     bk.breakpolarity   = TIMER_BREAK_POLARITY_LOW;     // BKIN 低有效
 		//启用输出自动状态。在断路触发时，定时器的输出会自动切换到预定义的安全状态（通常是关闭输出）。
-    bk.outputautostate = TIMER_OUTAUTO_DISABLE;				
+    bk.outputautostate = TIMER_OUTAUTO_ENABLE;				
 
     timer_break_config(TIMER0, &bk);
 		// 配置主输出触发源为通道0的比较输出,通过配置触发源，TIMER_TRI_OUT_SRC_O2CPRE
+		
 		//定时器可以在特定事件（如比较匹配）时生成触发信号，用于同步其他硬件模块（如ADC或其他定时器）。
 		timer_master_output_trigger_source_select(TIMER0, TIMER_TRI_OUT_SRC_O2CPRE); //在通道 0 中发生了一次捕获或比较匹配事件，触发输出为 TRGO 。
 		//启用定时器的自动重载影子寄存器功能。定时器的重载值会在下一个更新事件时生效，确保配置的平滑切换。
     timer_auto_reload_shadow_enable(TIMER0);
 		//配置定时器的主输出功能。启用后，定时器可以输出信号到指定的引脚或模块
-    //timer_primary_output_config(TIMER0, DISABLE);
-		
+    //timer_primary_output_config(TIMER0, DISABLE);	
     timer_enable(TIMER0);
-
-    //llc_pwm_set_duty(s_cfg.duty); /* 如果你走 50% 固定，这里直接设 0.5f 即可 */
-		
-		update_adc_trigger_midpoint_from_arr();  
-		 llc_pwm_outputs_enable(0);  
+	llc_pwm_outputs_enable(0);  
 }
 
 /* 	频率在线更新：同时更新 ARR 和 CCR，保持占空比 ,ARR（Auto-Reload Register，自动重装载寄存器）
@@ -254,24 +174,28 @@ void llc_pwm_set_duty(float d)
 	s_cfg.duty = duty;
 	uint16_t pwm_ccr = duty_to_ccr(duty);
 	timer_channel_output_pulse_value_config(TIMER0, LLC_PWM_CH, pwm_ccr); 
-	update_adc_trigger_midpoint_from_arr();
 }
 
-/* 强制单臂导通：high_side_on=true 表示高侧常导通；false 表示低侧常导通 */
+/* 强制单路导通（用于自举预充）
+high_side_on = true : 强制 CH0=1,  CH0N=0 => PA8(LLC_H)导通（高侧）
+high_side_on = false: 强制 CH0=0,  CH0N=1 => PB13(LLC_L)导通（低侧）【自举预充推荐】
+注意：在互补输出模式下，CH0N 会跟随 OCREF 取反，并插入死区（由 BDTR 配置）。
+*/
+
 static void llc_pwm_force_start(bool high_side_on)
 {
+	// 1. 禁用主输出 - 安全措施，防止意外输出
     timer_primary_output_config(TIMER0, DISABLE);
+	// 2. 清零PWM脉冲值 - 确保输出为固定电平
     timer_channel_output_pulse_value_config(TIMER0, LLC_PWM_CH, 0U);
+	// 3. 配置输出模式为固定电平模式
+	timer_channel_output_mode_config(TIMER0, LLC_PWM_CH,high_side_on ? TIMER_OC_MODE_ACTIVE : TIMER_OC_MODE_INACTIVE);
 
-	timer_channel_output_mode_config(
-    TIMER0, LLC_PWM_CH,
-    high_side_on ? TIMER_OC_MODE_ACTIVE : TIMER_OC_MODE_INACTIVE
-);
-
-
+    // 4. 强制生成更新事件，确保配置生效
     timer_flag_clear(TIMER0, TIMER_FLAG_UP);
     timer_event_software_generate(TIMER0, TIMER_EVENT_SRC_UPG);
     while (RESET == timer_flag_get(TIMER0, TIMER_FLAG_UP)) {}
+	// 5. 等待更新事件完成
     timer_flag_clear(TIMER0, TIMER_FLAG_UP);
 
     TIMER_CNT(TIMER0) = 0U;
@@ -281,6 +205,7 @@ static void llc_pwm_force_start(bool high_side_on)
 static void llc_pwm_restore_pwm(void)
 {
     timer_primary_output_config(TIMER0, DISABLE);
+	//恢复PWM模式配置
     timer_channel_output_mode_config(TIMER0, LLC_PWM_CH, TIMER_OC_MODE_PWM0);
 
     uint16_t pwm_ccr = duty_to_ccr(s_cfg.duty);
@@ -290,23 +215,21 @@ static void llc_pwm_restore_pwm(void)
     timer_event_software_generate(TIMER0, TIMER_EVENT_SRC_UPG);
     while (RESET == timer_flag_get(TIMER0, TIMER_FLAG_UP)) {}
     timer_flag_clear(TIMER0, TIMER_FLAG_UP);
-
+    //确保PWM周期从0开始，保持波形完整性
     TIMER_CNT(TIMER0) = 0U;
     timer_primary_output_config(TIMER0, ENABLE);
 }
 
 void llc_pwm_outputs_enable(bool en)
 { 
-	//timer_primary_output_config(TIMER0, en?ENABLE:DISABLE); 
-	     /* 可选：低侧常导通 3 ms 给自举充电（需要 delay_ms） */
-    llc_pwm_force_start(1);
-   // delay_ms(1);
-    llc_pwm_restore_pwm();
-		if (en) {
-		
+     if (en) {
+		//原理上只要这两行 等实际测看下
+        llc_pwm_force_start(1);
+		llc_pwm_restore_pwm();
+
+		//先留着
 		timer_primary_output_config(TIMER0, DISABLE);
 		timer_channel_output_pulse_value_config(TIMER0, LLC_PWM_CH, 0);
-		//timer_event_software_generate(TIMER0, TIMER_EVENT_SRC_UPG);
 		TIMER_CNT(TIMER0) = 0U;
 
 		timer_primary_output_config(TIMER0, ENABLE);
@@ -316,7 +239,6 @@ void llc_pwm_outputs_enable(bool en)
 	} else {
 		timer_primary_output_config(TIMER0, DISABLE);
 		timer_channel_output_pulse_value_config(TIMER0, LLC_PWM_CH, 0U);
-		//timer_event_software_generate(TIMER0, TIMER_EVENT_SRC_UPG);
 	}
 	
 }
@@ -355,10 +277,7 @@ void llc_pwm_set_freq(uint32_t f_hz)
 	// 根据占空比（s_cfg.duty）计算PWM的比较寄存器值（pwm_ccr）
 	uint16_t pwm_ccr = duty_to_ccr(s_cfg.duty);
 	// // 配置定时器TIMER0的通道（LLC_PWM_CH）的输出脉冲值
-	timer_channel_output_pulse_value_config(TIMER0, LLC_PWM_CH, pwm_ccr);
-	// 更新ADC触发的中点位置
-	update_adc_trigger_midpoint_from_arr(); 
-	
+	timer_channel_output_pulse_value_config(TIMER0, LLC_PWM_CH, pwm_ccr);	
 	timer_event_software_generate(TIMER0, TIMER_EVENT_SRC_UPG);
 
 }
