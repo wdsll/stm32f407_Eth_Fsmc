@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\Objects\0917.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Objects\0917.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6090000: Last Updated: Fri Jan  2 17:07:05 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6090000: Last Updated: Sat Jan  3 14:01:18 2026
 <BR><P>
 <H3>Maximum Stack Usage =        428 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -1038,8 +1038,8 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[47]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[a2]"></a>pfc_tick_1khz</STRONG> (Thumb, 1332 bytes, Stack size 48 bytes, pfc_control.o(.text.pfc_tick_1khz))
-<BR><BR>[Stack]<UL><LI>Max Depth = 204<LI>Call Chain = pfc_tick_1khz &rArr; pfc_sample_inputs &rArr; adc1_aux_read_channel &rArr; adc_regular_channel_config
+<P><STRONG><a name="[a2]"></a>pfc_tick_1khz</STRONG> (Thumb, 1572 bytes, Stack size 56 bytes, pfc_control.o(.text.pfc_tick_1khz))
+<BR><BR>[Stack]<UL><LI>Max Depth = 212<LI>Call Chain = pfc_tick_1khz &rArr; pfc_sample_inputs &rArr; adc1_aux_read_channel &rArr; adc_regular_channel_config
 </UL>
 <BR>[Calls]<UL><LI><a href="#[d2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_latched
 <LI><a href="#[d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_active_hw
@@ -1468,7 +1468,7 @@ Local Symbols
 </UL>
 
 <P><STRONG><a name="[a1]"></a>control_loop_tick_1khz</STRONG> (Thumb, 16 bytes, Stack size 8 bytes, main.o(.text.control_loop_tick_1khz))
-<BR><BR>[Stack]<UL><LI>Max Depth = 212<LI>Call Chain = control_loop_tick_1khz &rArr; pfc_tick_1khz &rArr; pfc_sample_inputs &rArr; adc1_aux_read_channel &rArr; adc_regular_channel_config
+<BR><BR>[Stack]<UL><LI>Max Depth = 220<LI>Call Chain = control_loop_tick_1khz &rArr; pfc_tick_1khz &rArr; pfc_sample_inputs &rArr; adc1_aux_read_channel &rArr; adc_regular_channel_config
 </UL>
 <BR>[Calls]<UL><LI><a href="#[a2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_tick_1khz
 <LI><a href="#[98]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_multi_sample_aux_1khz
@@ -1747,7 +1747,7 @@ Local Symbols
 <BR>[Called By]<UL><LI><a href="#[a2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_tick_1khz
 </UL>
 
-<P><STRONG><a name="[dc]"></a>pfc_state_enter</STRONG> (Thumb, 174 bytes, Stack size 16 bytes, pfc_control.o(.text.pfc_state_enter))
+<P><STRONG><a name="[dc]"></a>pfc_state_enter</STRONG> (Thumb, 204 bytes, Stack size 16 bytes, pfc_control.o(.text.pfc_state_enter))
 <BR><BR>[Stack]<UL><LI>Max Depth = 108<LI>Call Chain = pfc_state_enter &rArr; pfc_outputs_off &rArr; pfc_hw_set_main &rArr; gpio_init
 </UL>
 <BR>[Calls]<UL><LI><a href="#[db]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_outputs_off

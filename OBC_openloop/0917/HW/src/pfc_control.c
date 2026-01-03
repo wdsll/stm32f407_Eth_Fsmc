@@ -172,6 +172,12 @@ static void pfc_state_enter(pfc_state_t next)
 		s_pfc.clear_sent = 0U; //重置故障清除标志  !0 会影响故障管理
 		pfc_outputs_off();
 	}
+	else if(next == PFC_ST_RAMP)
+	{
+		s_pfc.vbus_ok_since_ms = 0U; // reset vbus stable timer
+		s_pfc.dropout_since_ms = 0U; // reset dropout timer
+		s_pfc.ac_loss_since_ms = 0U; // reset AC loss timer
+	}
 	/*
 	差异化设计：
 		选择性重置：只重置与运行监控相关的计时器
@@ -327,9 +333,8 @@ void adc_test(void)
 * 输出参数：void
 * 返 回 值：void
 * 创建日期：2025年12月29
-* 注    意：PFC_ST_IDLE → PFC_ST_READY → (故障检测) → PFC_ST_FAULT
+* 注    意：PFC_ST_IDLE → PFC_ST_RAMP ->PFC_ST_READY → (故障检测) → PFC_ST_FAULT
 *********************************************************************************************************/
-
 void pfc_tick_1khz(void)
 {
   pfc_sample_inputs();                                    // 采集ADC输入信号，更新测量数据
@@ -383,15 +388,14 @@ void pfc_tick_1khz(void)
 				/* 统一处理关断和计时器重置 */
 				if (should_shutdown) {                                 // 如果需要关断
           pfc_outputs_off();                               // 执行关断操作
+					if (need_timer_reset) {                                // 如果需要重置计时器
+						s_pfc.startup_cmd_ms   = 0U;                     // 重置启动命令计时
+						s_pfc.vbus_ok_since_ms = 0U;                     // 重置VBUS就绪计时
+						s_pfc.hw_enable_since_ms = 0U;                   //// 重置HW_ENABLE就绪计时
+						s_pfc.ac_ok_since_ms   = 0U;                     // 重置AC正常计时，防止绕过去抖逻辑
+						}
           break;                                          // 跳出状态处理
         }
-
-				if (need_timer_reset) {                                // 如果需要重置计时器
-					s_pfc.startup_cmd_ms   = 0U;                     // 重置启动命令计时
-					s_pfc.vbus_ok_since_ms = 0U;                     // 重置VBUS就绪计时
-					s_pfc.hw_enable_since_ms = 0U;                   //// 重置HW_ENABLE就绪计时
-					s_pfc.ac_ok_since_ms   = 0U;                     // 重置AC正常计时，防止绕过去抖逻辑
-				}
 
 				/* 第三重：启动延时和使能序列 */
         if (s_pfc.startup_cmd_ms == 0U) {                   // 如果还没开始启动计时
@@ -403,42 +407,67 @@ void pfc_tick_1khz(void)
 					pfc_hw_set_main(true);                             // 拉起主继电器
 					s_pfc.hw_enabled = true;   
 					s_pfc.hw_enable_since_ms = g_ms;					// 标记硬件已使能
-					/* 三态机跑通阶段：BUS_ADJ PWM保持0，交给NCP1654自己闭环控制 */
+					/* 状态机跑通阶段：BUS_ADJ PWM保持0，交给NCP1654自己闭环控制 */
 					pfc_pwm_set(0.0f);                               // 设置PWM占空比为0
+					pfc_state_enter(PFC_ST_RAMP);
+					break;
 				}
 
 				/* 确保硬件状态与使能命令保持一致 */
 				else if(s_pfc.hw_enabled && !s_pfc.enable_cmd)        // 硬件已使能但命令已撤销
 				{
-					pfc_hw_set_main(false);                            // 关断主继电器
+					//pfc_hw_set_main(false);                            // 关断主继电器
+					pfc_outputs_off();  
 					s_pfc.hw_enabled = false; 
 					s_pfc.hw_enable_since_ms = 0U;					// 标记硬件未使能
 				}
-#if 1
-        /* READY状态判定：VBUS达到门限并保持稳定时间 */
-        if (s_pfc.hw_enabled) { 					// 只有硬件使能才检查
-					    // 1) 先等爬坡延时（50ms）
-							if (!elapsed_reached(s_pfc.hw_enable_since_ms, PFC_VBUS_RAMP_DELAY_MS)) {
-									s_pfc.vbus_ok_since_ms = 0U;   // 延时期间不允许累积READY稳定时间
-									break;
-								}
-            if (vbus_v >= PFC_VBUS_READY_V) {                // VBUS达到就绪门限
-                if (s_pfc.vbus_ok_since_ms == 0U) {          // 首次达到门限
-                    s_pfc.vbus_ok_since_ms = g_ms;           // 开始就绪计时
-                } else if (elapsed_reached(s_pfc.vbus_ok_since_ms, PFC_READY_DELAY_MS)) { // 稳定时间达到
-                    pfc_state_enter(PFC_ST_READY);            // 进入READY状态
-                }
-            } else if (vbus_v < (PFC_VBUS_READY_V - PFC_VBUS_OK_RESET_MARGIN_V)) {
-                /* VBUS明显回落才清零，避免在门限附近抖动 */
-                s_pfc.vbus_ok_since_ms = 0U;                 // 重置就绪计时
+    break;                                              // 结束IDLE状态处理
+    case PFC_ST_RAMP:
+			  if (!s_pfc.enable_cmd) {
+            pfc_state_enter(PFC_ST_IDLE);
+            s_pfc.vbus_ok_since_ms = 0U;
+            s_pfc.dropout_since_ms = 0U;
+            s_pfc.ac_loss_since_ms = 0U;
+            break;
+        }
+				
+        if (!pfc_ac_ok()) {
+            if (s_pfc.ac_loss_since_ms == 0U) {
+                s_pfc.ac_loss_since_ms = g_ms;
+            } else if (elapsed_reached(s_pfc.ac_loss_since_ms, PFC_AC_LOSS_DEBOUNCE_MS)) {
+                pfc_state_enter(PFC_ST_IDLE);
+                break;
             }
         } else {
-            s_pfc.vbus_ok_since_ms = 0U;                     // 硬件未使能时重置计时器
-					  s_pfc.hw_enable_since_ms = 0U;
+            s_pfc.ac_loss_since_ms = 0U;
         }
-#endif
-        break;                                              // 结束IDLE状态处理
+				        if (!s_pfc.hw_enabled) {
+            pfc_hw_set_main(true);
+            s_pfc.hw_enabled = true;
+            s_pfc.hw_enable_since_ms = g_ms;
+        }
+        pfc_pwm_set(0.0f);
 
+        if (!elapsed_reached(s_pfc.hw_enable_since_ms, PFC_VBUS_RAMP_DELAY_MS)) {
+            s_pfc.vbus_ok_since_ms = 0U;
+            break;
+        }
+
+        bool vbus_in_range = (vbus_v >= PFC_VBUS_ENABLED_MIN_V) && (vbus_v <= PFC_VBUS_ENABLED_MAX_V);
+        if (vbus_in_range) {
+            if (s_pfc.vbus_ok_since_ms == 0U) {
+                s_pfc.vbus_ok_since_ms = g_ms;
+            } else if (elapsed_reached(s_pfc.vbus_ok_since_ms, PFC_READY_DELAY_MS)) {
+                pfc_state_enter(PFC_ST_READY);
+            }
+        } else {
+            s_pfc.vbus_ok_since_ms = 0U;
+            if (elapsed_reached(s_pfc.hw_enable_since_ms, PFC_VBUS_RAMP_TIMEOUT_MS)) {
+                pfc_handle_fault("VBUS_RAMP");
+            }
+        }
+        break;
+				
 		// READY状态：双向监控机制
     case PFC_ST_READY:
         /* 用户撤销使能检查：立即回IDLE关断 */
@@ -468,6 +497,8 @@ void pfc_tick_1khz(void)
             pfc_hw_set_main(true);                             // 重新拉起主继电器
             s_pfc.hw_enabled = true;                           // 标记硬件已使能
 					  s_pfc.hw_enable_since_ms = g_ms;
+					  s_pfc.vbus_ok_since_ms = 0U;                       // 重置VBUS监控计时器
+					  s_pfc.dropout_since_ms = 0U;                       // 重置掉电监控计时器
         }
         pfc_pwm_set(0.0f);                                   // 保持PWM为0，让NCP1654闭环
 		
@@ -479,6 +510,7 @@ void pfc_tick_1khz(void)
 					s_pfc.dropout_since_ms = g_ms;                 // 开始掉电计时
 				} else if (elapsed_reached(s_pfc.dropout_since_ms, PFC_VBUS_DROPOUT_MS)) { // 掉电时间达到
 					pfc_state_enter(PFC_ST_IDLE);                  // 回到IDLE状态
+					break;
 			  }
 		}
 		break;                                              // 结束READY状态处理

@@ -6,6 +6,7 @@
 *********************************************************************************************************/
 typedef enum {
     PFC_ST_IDLE = 0,
+	  PFC_ST_RAMP,
     PFC_ST_READY,
     PFC_ST_FAULT,
 } pfc_state_t;
@@ -23,6 +24,7 @@ typedef enum {
 #define PFC_VBUS_READY_V              (400.0f)
 #define PFC_READY_DELAY_MS            (80U)
 #define PFC_VBUS_RAMP_DELAY_MS        (50U)
+#define PFC_VBUS_RAMP_TIMEOUT_MS      (800U)
 #define PFC_VBUS_OK_RESET_MARGIN_V    (10.0f)
 #define PFC_VBUS_DROPOUT_THRESHOLD_V  (385.0f)
 #define PFC_VBUS_DROPOUT_MS           (300U)
