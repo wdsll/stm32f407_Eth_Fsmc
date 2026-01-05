@@ -92,7 +92,50 @@ static float lpf(float prev, float sample, float alpha)
     return prev + alpha * (sample - prev);
 }
 
+static void pfc_reset_startup_timers(void)
+{
+    s_pfc.startup_cmd_ms = 0U;  //清除启动计时 !0会影响启动流程
+    s_pfc.vbus_ok_since_ms = 0U; //清除电压就绪计时 !0会影响就绪判断
+    s_pfc.hw_enable_since_ms = 0U;
+}
+static bool pfc_ac_ok(void)
+{
+    float vac = s_pfc.meas.vac_v;
+    return (vac >= PFC_AC_VALID_MIN_VRMS) && (vac <= (PFC_AC_VALID_MAX_VRMS + 2.0f));
+}
 
+static bool pfc_ac_ok_debounced(void)
+{
+	// 阶段1: 检查AC电源是否正常
+    if (!pfc_ac_ok()) {
+        s_pfc.ac_ok_since_ms = 0U; // AC异常，立即重置计时器
+        return false;
+    }
+  // 阶段2: AC刚恢复，开始计时
+    if (s_pfc.ac_ok_since_ms == 0U) {
+        //s_pfc.ac_ok_since_ms = g_ms;
+			s_pfc.ac_ok_since_ms = (g_ms == 0U) ? 1U : g_ms;
+        return false;
+    }
+    // 阶段3: 检查AC是否稳定持续了配置的去抖时间
+    return elapsed_reached(s_pfc.ac_ok_since_ms, PFC_AC_OK_DEBOUNCE_MS);
+}
+
+static bool pfc_ac_loss_debounced(void)
+{
+    if (pfc_ac_ok()) {
+        s_pfc.ac_loss_since_ms = 0U;
+        return false;
+    }
+ // AC掉电后的去抖逻辑
+    if (s_pfc.ac_loss_since_ms == 0U) {
+        //s_pfc.ac_loss_since_ms = g_ms;
+			s_pfc.ac_ok_since_ms = (g_ms == 0U) ? 1U : g_ms;
+        return false;
+    }
+
+    return elapsed_reached(s_pfc.ac_loss_since_ms, PFC_AC_LOSS_DEBOUNCE_MS);
+}
 /*********************************************************************************************************
 *                                 硬件输出：合并“继电器+PFC使能”为一个脚
 *********************************************************************************************************/
@@ -264,11 +307,6 @@ static void pfc_sample_inputs(void)
 #endif
 }
 
-static bool pfc_ac_ok(void)
-{
-    float vac = s_pfc.meas.vac_v;
-    return (vac >= PFC_AC_VALID_MIN_VRMS) && (vac <= (PFC_AC_VALID_MAX_VRMS + 2.0f));
-}
 
 static bool pfc_ac_overvoltage(void)
 {
@@ -363,41 +401,22 @@ void pfc_tick_1khz(void)
 						s_pfc.ac_ok_since_ms   = 0U;                     // 清除AC正常计时
             break;                                          // 跳出状态处理
         }
-				bool should_shutdown = false;                            // 是否需要关断输出的标志
-				bool need_timer_reset = false;                           // 是否需要重置计时器的标志
 
 				/* 第二重检查：AC电源去抖机制，使用时间窗口确保AC电源稳定 */
-				if (!pfc_ac_ok()) {                                    // AC电源是否正常
-						s_pfc.ac_ok_since_ms   = 0U;                       // AC不正常，重置计时器
-						need_timer_reset = true;                            // 需要重置其他计时器
-						should_shutdown = true;                             // 需要关断输出
+				if (!pfc_ac_ok_debounced()) {                                    // AC电源是否正常
+            pfc_outputs_off();
+            pfc_reset_startup_timers();
+					
+						break;
 						}
-				else if (s_pfc.ac_ok_since_ms == 0U) {                // AC刚恢复正常
-						s_pfc.ac_ok_since_ms = g_ms;                      // 开始AC去抖计时
-						should_shutdown = true;                             // 继续关断，等待去抖完成
-						}
-				else if (!elapsed_reached(s_pfc.ac_ok_since_ms, PFC_AC_OK_DEBOUNCE_MS)) { // AC去抖时间未到
-						should_shutdown = true;                             // 继续关断
-				}
-				else if(!s_pfc.hw_enabled && !s_pfc.bus_matches_ac){    // 第三重检查：上电自检
+				
+				if(!s_pfc.hw_enabled && !s_pfc.bus_matches_ac){    // 第三重检查：上电自检
 				/* 检查VBUS与VAC的比例是否匹配，只在硬件未使能前检查，避免PFC工作后误判 */
-					need_timer_reset = true;                            // 比例不匹配，需要重置
-					should_shutdown = true;                             // 需要关断
+            pfc_outputs_off();
+            pfc_reset_startup_timers();
+            break;
 				}
-
-				/* 统一处理关断和计时器重置 */
-				if (should_shutdown) {                                 // 如果需要关断
-          pfc_outputs_off();                               // 执行关断操作
-					if (need_timer_reset) {                                // 如果需要重置计时器
-						s_pfc.startup_cmd_ms   = 0U;                     // 重置启动命令计时
-						s_pfc.vbus_ok_since_ms = 0U;                     // 重置VBUS就绪计时
-						s_pfc.hw_enable_since_ms = 0U;                   //// 重置HW_ENABLE就绪计时
-						s_pfc.ac_ok_since_ms   = 0U;                     // 重置AC正常计时，防止绕过去抖逻辑
-						}
-          break;                                          // 跳出状态处理
-        }
-
-				/* 第三重：启动延时和使能序列 */
+				/* 启动延时和使能序列 */
         if (s_pfc.startup_cmd_ms == 0U) {                   // 如果还没开始启动计时
             s_pfc.startup_cmd_ms = g_ms;                     // 记录启动命令时间
         }
@@ -410,58 +429,41 @@ void pfc_tick_1khz(void)
 					/* 状态机跑通阶段：BUS_ADJ PWM保持0，交给NCP1654自己闭环控制 */
 					pfc_pwm_set(0.0f);                               // 设置PWM占空比为0
 					pfc_state_enter(PFC_ST_RAMP);
-					break;
 				}
-
-				/* 确保硬件状态与使能命令保持一致 */
-				else if(s_pfc.hw_enabled && !s_pfc.enable_cmd)        // 硬件已使能但命令已撤销
-				{
-					//pfc_hw_set_main(false);                            // 关断主继电器
-					pfc_outputs_off();  
-					s_pfc.hw_enabled = false; 
-					s_pfc.hw_enable_since_ms = 0U;					// 标记硬件未使能
-				}
-    break;                                              // 结束IDLE状态处理
+    break;                                              // 结束IDLE状态处理，进入升压爬坡状态
     case PFC_ST_RAMP:
+			// 第一重检查：用户撤销使能检查
 			  if (!s_pfc.enable_cmd) {
             pfc_state_enter(PFC_ST_IDLE);
-            s_pfc.vbus_ok_since_ms = 0U;
-            s_pfc.dropout_since_ms = 0U;
-            s_pfc.ac_loss_since_ms = 0U;
             break;
         }
-				
-        if (!pfc_ac_ok()) {
-            if (s_pfc.ac_loss_since_ms == 0U) {
-                s_pfc.ac_loss_since_ms = g_ms;
-            } else if (elapsed_reached(s_pfc.ac_loss_since_ms, PFC_AC_LOSS_DEBOUNCE_MS)) {
-                pfc_state_enter(PFC_ST_IDLE);
-                break;
-            }
-        } else {
-            s_pfc.ac_loss_since_ms = 0U;
-        }
-				        if (!s_pfc.hw_enabled) {
-            pfc_hw_set_main(true);
-            s_pfc.hw_enabled = true;
-            s_pfc.hw_enable_since_ms = g_ms;
+			 // 第二重检查：AC掉电去抖机制（使用双向计时器检测AC电源失效）	
+        if (pfc_ac_loss_debounced()) {
+					 pfc_state_enter(PFC_ST_IDLE);
+				} 
+			// 第三重检查：硬件使能保护机制（防止单点故障导致硬件意外关闭）				
+				if (!s_pfc.hw_enabled) {
+						pfc_hw_set_main(true);
+						s_pfc.hw_enabled = true;
+						s_pfc.hw_enable_since_ms = g_ms;
         }
         pfc_pwm_set(0.0f);
-
+			// VBUS爬坡延时检查：等待硬件使能后的稳定时间
         if (!elapsed_reached(s_pfc.hw_enable_since_ms, PFC_VBUS_RAMP_DELAY_MS)) {
             s_pfc.vbus_ok_since_ms = 0U;
             break;
         }
-
+				// VBUS电压范围检查：判断VBUS是否在目标范围内
         bool vbus_in_range = (vbus_v >= PFC_VBUS_ENABLED_MIN_V) && (vbus_v <= PFC_VBUS_ENABLED_MAX_V);
-        if (vbus_in_range) {
+        if (vbus_in_range) {  // VBUS在有效范围内，开始就绪确认去抖
             if (s_pfc.vbus_ok_since_ms == 0U) {
                 s_pfc.vbus_ok_since_ms = g_ms;
             } else if (elapsed_reached(s_pfc.vbus_ok_since_ms, PFC_READY_DELAY_MS)) {
-                pfc_state_enter(PFC_ST_READY);
+                pfc_state_enter(PFC_ST_READY); // VBUS稳定达标持续足够时间，确认就绪
             }
         } else {
             s_pfc.vbus_ok_since_ms = 0U;
+					// 爬坡超时故障检查：防止VBUS长时间无法爬升到位
             if (elapsed_reached(s_pfc.hw_enable_since_ms, PFC_VBUS_RAMP_TIMEOUT_MS)) {
                 pfc_handle_fault("VBUS_RAMP");
             }
@@ -472,24 +474,13 @@ void pfc_tick_1khz(void)
     case PFC_ST_READY:
         /* 用户撤销使能检查：立即回IDLE关断 */
         if (!s_pfc.enable_cmd) {                             // 检查用户是否撤销使能
-           pfc_state_enter(PFC_ST_IDLE);                      // 回到IDLE状态
-					/* 确保退出READY时清理所有相关计时器 */
-					s_pfc.vbus_ok_since_ms = 0U;                     // 清除VBUS就绪计时
-					s_pfc.dropout_since_ms = 0U;                     // 清除掉电计时
-					s_pfc.ac_loss_since_ms = 0U;                     // 清除AC掉电计时
+          pfc_state_enter(PFC_ST_IDLE);                      // 回到IDLE状态
           break;                                          // 跳出状态处理
         }
 
         /* AC掉电去抖机制：AC电源失效时回退到IDLE */
-        if (!pfc_ac_ok()) {                                    // AC电源是否正常
-            if (s_pfc.ac_loss_since_ms == 0U) {                // 首次检测到AC掉电
-                s_pfc.ac_loss_since_ms = g_ms;                 // 开始掉电计时
-            } else if (elapsed_reached(s_pfc.ac_loss_since_ms, PFC_AC_LOSS_DEBOUNCE_MS)) { // 掉电去抖时间达到
-                pfc_state_enter(PFC_ST_IDLE);                  // 回到IDLE状态
-                break;                                         // 跳出状态处理
-            }
-        } else {
-            s_pfc.ac_loss_since_ms = 0U;                      // AC恢复正常，重置掉电计时
+        if (pfc_ac_loss_debounced()) {                                    // AC电源是否正常
+						pfc_state_enter(PFC_ST_IDLE);                      // 回到IDLE状态
         }
 
         /* READY状态下确保硬件保持使能（防止单点故障） */

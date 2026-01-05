@@ -417,6 +417,11 @@
               <FileType>5</FileType>
               <FilePath>.\调试用例总表.txt</FilePath>
             </File>
+            <File>
+              <FileName>pfc_state_machine_report.txt</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\pfc_state_machine_report.txt</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
