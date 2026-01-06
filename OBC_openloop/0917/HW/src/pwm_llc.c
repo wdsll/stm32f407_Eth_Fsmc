@@ -56,10 +56,10 @@ static void pins_init(void){
     rcu_periph_clock_enable(RCU_GPIOA); 
     rcu_periph_clock_enable(RCU_GPIOB);
 	
-	gpio_init(LLC_H_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, LLC_H_PIN);
-	gpio_bit_reset(LLC_H_PORT, LLC_H_PIN);
-	gpio_init(LLC_L_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, LLC_L_PIN);
-	gpio_bit_reset(LLC_L_PORT, LLC_L_PIN);
+		gpio_init(LLC_H_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, LLC_H_PIN);
+		gpio_bit_reset(LLC_H_PORT, LLC_H_PIN);
+		gpio_init(LLC_L_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, LLC_L_PIN);
+		gpio_bit_reset(LLC_L_PORT, LLC_L_PIN);
     gpio_init(LLC_H_PORT, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, LLC_H_PIN);
     gpio_init(LLC_L_PORT, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, LLC_L_PIN);
     gpio_init(BKIN_PORT,  GPIO_MODE_IPU,  GPIO_OSPEED_50MHZ, BKIN_PIN);
@@ -143,7 +143,7 @@ void llc_pwm_init(const llc_pwm_cfg_t* cfg){
 		//配置定时器的主输出功能。启用后，定时器可以输出信号到指定的引脚或模块
     //timer_primary_output_config(TIMER0, DISABLE);	
     timer_enable(TIMER0);
-	llc_pwm_outputs_enable(0);  
+	  llc_pwm_outputs_enable(0);  
 }
 
 /* 	频率在线更新：同时更新 ARR 和 CCR，保持占空比 ,ARR（Auto-Reload Register，自动重装载寄存器）

@@ -269,7 +269,7 @@ int main(void){
 
 		pfc_init();
 		//llc_app_init();
-		
+		delay_ms(1000);
 		pfc_enable();
 
 		

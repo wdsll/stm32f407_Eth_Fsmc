@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\Objects\0917.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Objects\0917.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6090000: Last Updated: Mon Jan  5 10:25:03 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6090000: Last Updated: Mon Jan  5 18:55:24 2026
 <BR><P>
 <H3>Maximum Stack Usage =        428 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -816,7 +816,8 @@ Global Symbols
 <P><STRONG><a name="[8e]"></a>delay_ms</STRONG> (Thumb, 62 bytes, Stack size 12 bytes, main.o(.text.delay_ms))
 <BR><BR>[Stack]<UL><LI>Max Depth = 12<LI>Call Chain = delay_ms
 </UL>
-<BR>[Called By]<UL><LI><a href="#[8d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc1_aux_init
+<BR>[Called By]<UL><LI><a href="#[47]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+<LI><a href="#[8d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc1_aux_init
 <LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_startup_check
 </UL>
 
@@ -944,7 +945,7 @@ Global Symbols
 <LI><a href="#[73]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_trigger
 </UL>
 
-<P><STRONG><a name="[47]"></a>main</STRONG> (Thumb, 304 bytes, Stack size 48 bytes, main.o(.text.main))
+<P><STRONG><a name="[47]"></a>main</STRONG> (Thumb, 312 bytes, Stack size 48 bytes, main.o(.text.main))
 <BR><BR>[Stack]<UL><LI>Max Depth = 428<LI>Call Chain = main &rArr; adc_startup_check &rArr; debug_printf &rArr; debug_vprintf &rArr; debug_write &rArr; debug_putchar &rArr; debug_usart_send &rArr; usart_flag_get
 </UL>
 <BR>[Calls]<UL><LI><a href="#[ce]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;systick_1ms_init
@@ -957,6 +958,7 @@ Global Symbols
 <LI><a href="#[cf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pb0_pwm_set_duty
 <LI><a href="#[cd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;nvic_priority_group_set
 <LI><a href="#[c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
+<LI><a href="#[8e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
 <LI><a href="#[a4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf_init
 <LI><a href="#[9c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf
 <LI><a href="#[99]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_multi_start
@@ -1038,7 +1040,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[47]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[a2]"></a>pfc_tick_1khz</STRONG> (Thumb, 1140 bytes, Stack size 48 bytes, pfc_control.o(.text.pfc_tick_1khz))
+<P><STRONG><a name="[a2]"></a>pfc_tick_1khz</STRONG> (Thumb, 1184 bytes, Stack size 48 bytes, pfc_control.o(.text.pfc_tick_1khz))
 <BR><BR>[Stack]<UL><LI>Max Depth = 204<LI>Call Chain = pfc_tick_1khz &rArr; pfc_sample_inputs &rArr; adc1_aux_read_channel &rArr; adc_regular_channel_config
 </UL>
 <BR>[Calls]<UL><LI><a href="#[d2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_latched
@@ -1705,7 +1707,7 @@ Local Symbols
 <BR>[Called By]<UL><LI><a href="#[b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;elapsed_reached
 </UL>
 
-<P><STRONG><a name="[da]"></a>pfc_ac_loss_debounced</STRONG> (Thumb, 134 bytes, Stack size 16 bytes, pfc_control.o(.text.pfc_ac_loss_debounced))
+<P><STRONG><a name="[da]"></a>pfc_ac_loss_debounced</STRONG> (Thumb, 106 bytes, Stack size 16 bytes, pfc_control.o(.text.pfc_ac_loss_debounced))
 <BR><BR>[Stack]<UL><LI>Max Depth = 60<LI>Call Chain = pfc_ac_loss_debounced &rArr; elapsed_reached &rArr; elapsed_since
 </UL>
 <BR>[Calls]<UL><LI><a href="#[db]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_ac_ok
@@ -1721,7 +1723,7 @@ Local Symbols
 <LI><a href="#[da]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_ac_loss_debounced
 </UL>
 
-<P><STRONG><a name="[dc]"></a>pfc_ac_ok_debounced</STRONG> (Thumb, 134 bytes, Stack size 16 bytes, pfc_control.o(.text.pfc_ac_ok_debounced))
+<P><STRONG><a name="[dc]"></a>pfc_ac_ok_debounced</STRONG> (Thumb, 110 bytes, Stack size 16 bytes, pfc_control.o(.text.pfc_ac_ok_debounced))
 <BR><BR>[Stack]<UL><LI>Max Depth = 60<LI>Call Chain = pfc_ac_ok_debounced &rArr; elapsed_reached &rArr; elapsed_since
 </UL>
 <BR>[Calls]<UL><LI><a href="#[db]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_ac_ok

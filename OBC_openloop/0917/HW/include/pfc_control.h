@@ -20,15 +20,15 @@ typedef enum {
 #define PFC_AC_OFFSET                 (12.90f)
 
 /* ===== 三态机：门限/时序 ===== */
-#define PFC_STARTUP_DELAY_MS          (200U)
+#define PFC_STARTUP_DELAY_MS          (1000U)
 #define PFC_VBUS_READY_V              (400.0f)
 #define PFC_READY_DELAY_MS            (80U)
-#define PFC_VBUS_RAMP_DELAY_MS        (50U)
+#define PFC_VBUS_RAMP_DELAY_MS        (100U)
 #define PFC_VBUS_RAMP_TIMEOUT_MS      (800U)
 #define PFC_VBUS_OK_RESET_MARGIN_V    (10.0f)
 #define PFC_VBUS_DROPOUT_THRESHOLD_V  (385.0f)
 #define PFC_VBUS_DROPOUT_MS           (300U)
-#define PFC_VBUS_OVP_V                (430.0f)
+#define PFC_VBUS_OVP_V                (450.0f)
 #define PFC_FAULT_RESTART_MS          (2000U)
 
 /* ===== AC check ===== */
@@ -39,7 +39,7 @@ typedef enum {
 #define PFC_AC_OK_DEBOUNCE_MS         (200U)
 /* ===== 上电自检：VBUS≈1.414*VAC（仅在未使能硬件前检查） ===== */
 #define PFC_VBUS_VAC_RATIO            (1.414f)
-#define PFC_VBUS_VAC_RATIO_TOLERANCE  (0.15f)
+#define PFC_VBUS_VAC_RATIO_TOLERANCE  (0.05f)
 #define PFC_VBUS_VAC_RATIO_STABLE_MS  (50U)
 
 

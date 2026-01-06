@@ -113,12 +113,13 @@ static bool pfc_ac_ok_debounced(void)
     }
   // 阶段2: AC刚恢复，开始计时
     if (s_pfc.ac_ok_since_ms == 0U) {
-        //s_pfc.ac_ok_since_ms = g_ms;
-			s_pfc.ac_ok_since_ms = (g_ms == 0U) ? 1U : g_ms;
+        s_pfc.ac_ok_since_ms = g_ms;
+			//s_pfc.ac_ok_since_ms = (g_ms == 0U) ? 1U : g_ms;
         return false;
     }
     // 阶段3: 检查AC是否稳定持续了配置的去抖时间
-    return elapsed_reached(s_pfc.ac_ok_since_ms, PFC_AC_OK_DEBOUNCE_MS);
+     elapsed_reached(s_pfc.ac_ok_since_ms, PFC_AC_OK_DEBOUNCE_MS);
+		return true;
 }
 
 static bool pfc_ac_loss_debounced(void)
@@ -129,8 +130,8 @@ static bool pfc_ac_loss_debounced(void)
     }
  // AC掉电后的去抖逻辑
     if (s_pfc.ac_loss_since_ms == 0U) {
-        //s_pfc.ac_loss_since_ms = g_ms;
-			s_pfc.ac_ok_since_ms = (g_ms == 0U) ? 1U : g_ms;
+        s_pfc.ac_loss_since_ms = g_ms;
+			//s_pfc.ac_loss_since_ms = (g_ms == 0U) ? 1U : g_ms;
         return false;
     }
 
@@ -373,16 +374,28 @@ void adc_test(void)
 * 创建日期：2025年12月29
 * 注    意：PFC_ST_IDLE → PFC_ST_RAMP ->PFC_ST_READY → (故障检测) → PFC_ST_FAULT
 *********************************************************************************************************/
+uint32_t bkin_flag = 0;
 void pfc_tick_1khz(void)
 {
   pfc_sample_inputs();                                    // 采集ADC输入信号，更新测量数据
+	
 	float vbus_v = s_pfc.meas.vbus_v;                   // 获取当前VBUS电压值
     /* 保护/故障检查 - 按优先级从高到低检查 */
     if (protect_fault_active_hw() || protect_fault_latched())   // 检查硬件保护信号是否激活
 	  {
-        pfc_handle_fault("HARD_PRO");                        // 硬件保护故障，立即关断
-        return;                                            // 立即退出
+			  bkin_flag ++;
+			  if(bkin_flag >= 10)
+				{
+					  bkin_flag = 0;
+					  pfc_handle_fault("HARD_PRO");                        // 硬件保护故障，立即关断
+							return;   // 立即退出
+				}
     }
+		else
+		{
+			bkin_flag = 0;
+		}
+		
 
     if (vbus_v >= PFC_VBUS_OVP_V) {                         // 检查VBUS是否过压
         pfc_handle_fault("VBUS_OV");                          // VBUS过压故障
@@ -406,7 +419,6 @@ void pfc_tick_1khz(void)
 				if (!pfc_ac_ok_debounced()) {                                    // AC电源是否正常
             pfc_outputs_off();
             pfc_reset_startup_timers();
-					
 						break;
 						}
 				
@@ -440,6 +452,7 @@ void pfc_tick_1khz(void)
 			 // 第二重检查：AC掉电去抖机制（使用双向计时器检测AC电源失效）	
         if (pfc_ac_loss_debounced()) {
 					 pfc_state_enter(PFC_ST_IDLE);
+					break;
 				} 
 			// 第三重检查：硬件使能保护机制（防止单点故障导致硬件意外关闭）				
 				if (!s_pfc.hw_enabled) {
@@ -480,7 +493,8 @@ void pfc_tick_1khz(void)
 
         /* AC掉电去抖机制：AC电源失效时回退到IDLE */
         if (pfc_ac_loss_debounced()) {                                    // AC电源是否正常
-						pfc_state_enter(PFC_ST_IDLE);                      // 回到IDLE状态
+						pfc_state_enter(PFC_ST_IDLE);   					// 回到IDLE状态
+					  break;
         }
 
         /* READY状态下确保硬件保持使能（防止单点故障） */
@@ -511,7 +525,7 @@ void pfc_tick_1khz(void)
 				pfc_outputs_off();                                     // 关断所有输出
 
 				/* 检查故障是否仍然存在，如果存在则继续停留在FAULT状态 */
-				if (protect_fault_active_hw() || protect_fault_latched()) { // 硬件故障是否仍然存在
+				if (protect_fault_active_hw()) { // 硬件故障是否仍然存在
 				break;                                          // 继续停留在FAULT状态
 		}
 		
