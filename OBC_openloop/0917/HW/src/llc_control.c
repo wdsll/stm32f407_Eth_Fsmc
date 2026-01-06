@@ -99,8 +99,8 @@ static void llc_update_measurements(void)
 }
 static bool llc_precheck_ok(void)
 {
-    bool hw_fault = protect_fault_active_hw() || protect_fault_latched();
-    bool pfc_fault = pfc_is_fault() || pfc_is_fault_latched();
+    bool hw_fault = protect_fault_active_hw();
+    bool pfc_fault = pfc_is_fault();
     if (hw_fault || pfc_fault) {
         return false;
     }
@@ -113,7 +113,7 @@ static bool llc_faults_present(void)
         return true;
     }
 
-    if (pfc_is_fault() || pfc_is_fault_latched()) {
+    if (pfc_is_fault()) {
         return true;
     }
 
@@ -141,8 +141,11 @@ static void llc_enter_fault(void)
 static void llc_state_enter(llc_state_t next)
 {
 	// 更新 LLC 状态和进入时间
-	s_llc_app.state = next;
-	s_llc_app.entry_ms = g_ms;
+	if (s_llc_rt.app.state == next) 
+		return;
+	s_llc_rt.app.state = next;
+  s_llc_rt.app.entry_ms = g_ms;
+	//s_llc_app.entry_ms = g_ms;
 	#if Bus_Adj
 	//bus_vol_adj_reset();   //重置总线电压调整逻辑 百分之五十的占空比
 	#endif
@@ -151,7 +154,8 @@ static void llc_state_enter(llc_state_t next)
 	{
 		case ST_IDLE:
 		  llc_softstart_on_fault();
-		  pfc_hw_set_main(false);   // 强制关闭 PFC
+		  //pfc_hw_set_main(false);   // 强制关闭 PFC
+			//pfc_disable();
 		  llc_pwm_outputs_enable(0); // 禁用 PWM 输出
 		  llc_driver_en_set(false); //disable llc
 		  s_llc.f_cmd = s_llc.f_max; // 设置频率为最大值
@@ -264,11 +268,13 @@ void llc_app_init()
 void llc_app_tick_1khz(void)
 {
 	llc_update_measurements();
-	
+
+#if 0	
 	if (llc_faults_present()) {
       llc_enter_fault();
   		return;
   }
+#endif
 	bool enable_llc = pfc_is_ready();
 	switch(s_llc_rt.app.state)
 	{
@@ -298,7 +304,7 @@ void llc_app_tick_1khz(void)
 			}
 			if(elapsed_reached(s_llc_rt.softstart_begin_ms,LLC_SOFTSTART_DURATION_MS))
 			{
-				llc_state_enter(ST_SWEEP);
+				//llc_state_enter(ST_SWEEP);
 			}
 			break;
 		case ST_SWEEP:

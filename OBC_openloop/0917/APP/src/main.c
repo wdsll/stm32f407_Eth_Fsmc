@@ -216,7 +216,7 @@ static void control_loop_tick_1khz(void){
 		adc_multi_sample_aux_1khz();
 		adc_multi_copy(); 
     pfc_tick_1khz();
-    //llc_app_tick_1khz();
+    llc_app_tick_1khz();
 
 }
 
@@ -268,7 +268,7 @@ int main(void){
     }
 
 		pfc_init();
-		//llc_app_init();
+		llc_app_init();
 		delay_ms(1000);
 		pfc_enable();
 

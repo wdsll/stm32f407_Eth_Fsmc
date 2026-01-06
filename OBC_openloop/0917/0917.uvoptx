@@ -120,6 +120,7 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>DLGUARM</Key>
+          <Name>d</Name>
         </SetRegEntry>
         <SetRegEntry>
           <Number>0</Number>
@@ -156,9 +157,9 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>558</LineNumber>
+          <LineNumber>517</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134231790</Address>
+          <Address>134235476</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -167,23 +168,7 @@
           <BreakIfRCount>1</BreakIfRCount>
           <Filename>.\HW\src\pfc_control.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\0917\HW/src/pfc_control.c\558</Expression>
-        </Bp>
-        <Bp>
-          <Number>1</Number>
-          <Type>0</Type>
-          <LineNumber>557</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>0</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>0</BreakIfRCount>
-          <Filename>.\HW\src\pfc_control.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression></Expression>
+          <Expression>\\0917\HW/src/pfc_control.c\517</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -200,7 +185,7 @@
         <Ww>
           <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>vtest</ItemText>
+          <ItemText>s_llc_softstart</ItemText>
         </Ww>
       </WatchWindow1>
       <WatchWindow2>
@@ -228,6 +213,11 @@
           <count>4</count>
           <WinNumber>2</WinNumber>
           <ItemText>vac</ItemText>
+        </Ww>
+        <Ww>
+          <count>5</count>
+          <WinNumber>2</WinNumber>
+          <ItemText>s_llc_rt</ItemText>
         </Ww>
       </WatchWindow2>
       <Tracepoint>

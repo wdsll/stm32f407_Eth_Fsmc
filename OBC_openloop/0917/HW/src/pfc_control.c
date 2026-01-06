@@ -118,8 +118,8 @@ static bool pfc_ac_ok_debounced(void)
         return false;
     }
     // 阶段3: 检查AC是否稳定持续了配置的去抖时间
-     elapsed_reached(s_pfc.ac_ok_since_ms, PFC_AC_OK_DEBOUNCE_MS);
-		return true;
+     return  elapsed_reached(s_pfc.ac_ok_since_ms, PFC_AC_OK_DEBOUNCE_MS);
+	
 }
 
 static bool pfc_ac_loss_debounced(void)
@@ -311,7 +311,7 @@ static void pfc_sample_inputs(void)
 
 static bool pfc_ac_overvoltage(void)
 {
-    return s_pfc.meas.vac_rms > (PFC_AC_VALID_MAX_VRMS + PFC_AC_OVERVOLTAGE_MARGIN_V);
+    return s_pfc.meas.vac_v > (PFC_AC_VALID_MAX_VRMS + PFC_AC_OVERVOLTAGE_MARGIN_V);
 }
 
 static void pfc_handle_fault(const char *reason)

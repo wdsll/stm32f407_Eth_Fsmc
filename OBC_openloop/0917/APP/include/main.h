@@ -105,7 +105,7 @@
 
 /* ==== LLC frequency window ==== */
 #define LLC_F_MIN_HZ        (72000.0f)
-#define LLC_F_MAX_HZ        (130000.0f)
+#define LLC_F_MAX_HZ        (150000.0f)
 #define LLC_F_INIT_HZ       (91000.0f)
 #define LLC_F_SLEW_HZ       (500.0f)
 #define LLC_F_DEBUG_HZ      (130000.0f)
@@ -117,7 +117,7 @@
 #define LLC_VOUT_OVP_V               (48.0f)
 #define LLC_IOUT_OCP_A               (15.0f)
 
-#define LLC_SWEEP_START_HZ           (110000.0f)
+#define LLC_SWEEP_START_HZ           (90000.0f)
 #define LLC_SWEEP_STOP_HZ            (80000.0f)
 #define LLC_SWEEP_STEP_HZ            (400.0f)
 #define LLC_SWEEP_STEP_MS            (5U)
