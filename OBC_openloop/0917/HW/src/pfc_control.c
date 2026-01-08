@@ -8,8 +8,8 @@
 /* VBUS有效性检查范围 */
 #define PFC_VBUS_RATIO_IDLE_MIN     (1.3f)    /* 未使能时：VBUS/VAC 最小倍数 */
 #define PFC_VBUS_RATIO_IDLE_MAX     (1.5f)    /* 未使能时：VBUS/VAC 最大倍数 */
-#define PFC_VBUS_ENABLED_MIN_V      (410.0f)  /* 使能后：VBUS 最小电压 */
-#define PFC_VBUS_ENABLED_MAX_V      (430.0f)  /* 使能后：VBUS 最大电压 */
+#define PFC_VBUS_ENABLED_MIN_V      (400.0f)  /* 使能后：VBUS 最小电压 */
+#define PFC_VBUS_ENABLED_MAX_V      (440.0f)  /* 使能后：VBUS 最大电压 */
 
 
 /*********************************************************************************************************
@@ -380,23 +380,7 @@ void pfc_tick_1khz(void)
   pfc_sample_inputs();                                    // 采集ADC输入信号，更新测量数据
 	
 	float vbus_v = s_pfc.meas.vbus_v;                   // 获取当前VBUS电压值
-    /* 保护/故障检查 - 按优先级从高到低检查 */
-    if (protect_fault_active_hw() || protect_fault_latched())   // 检查硬件保护信号是否激活
-	  {
-			  bkin_flag ++;
-			  if(bkin_flag >= 10)
-				{
-					  bkin_flag = 0;
-					  pfc_handle_fault("HARD_PRO");                        // 硬件保护故障，立即关断
-							return;   // 立即退出
-				}
-    }
-		else
-		{
-			bkin_flag = 0;
-		}
-		
-
+	
     if (vbus_v >= PFC_VBUS_OVP_V) {                         // 检查VBUS是否过压
         pfc_handle_fault("VBUS_OV");                          // VBUS过压故障
         return;                                            // 立即退出

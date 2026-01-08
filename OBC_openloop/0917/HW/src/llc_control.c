@@ -99,11 +99,11 @@ static void llc_update_measurements(void)
 }
 static bool llc_precheck_ok(void)
 {
-    bool hw_fault = protect_fault_active_hw();
-    bool pfc_fault = pfc_is_fault();
-    if (hw_fault || pfc_fault) {
-        return false;
-    }
+   // bool hw_fault = protect_fault_active_hw();
+    //bool pfc_fault = pfc_is_fault();
+    //if (hw_fault || pfc_fault) {
+     //   return false;
+    //}
 
     return (s_llc_rt.meas.vbus_v >= LLC_VBUS_MIN_START_V);
 }
@@ -304,7 +304,7 @@ void llc_app_tick_1khz(void)
 			}
 			if(elapsed_reached(s_llc_rt.softstart_begin_ms,LLC_SOFTSTART_DURATION_MS))
 			{
-				//llc_state_enter(ST_SWEEP);
+				llc_state_enter(ST_SWEEP);
 			}
 			break;
 		case ST_SWEEP:
@@ -337,6 +337,15 @@ void llc_app_tick_1khz(void)
 			}
 			break;
 		case ST_FAULT:
+			    llc_softstart_on_fault();
+
+					// 1) 先停 LLC（最关键）
+					llc_pwm_outputs_enable(0);
+					llc_driver_en_set(false);
+					llc_set_freq(s_llc.f_max);
+
+					// 2) 再停 PFC
+					pfc_hw_set_main(false);   // 或者 pfc_disable()
 			
 		default:
 			break;

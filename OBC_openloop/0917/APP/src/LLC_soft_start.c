@@ -37,7 +37,7 @@ static void ss_apply(float freq_hz)
     float f = f_clampf(freq_hz, LLC_F_MIN_HZ, LLC_F_MAX_HZ);
     s_llc_softstart.last_hz = f;
     llc_pwm_set_freq((uint32_t)f);
-	llc_pwm_set_duty(LLC_PWM_DUTY);
+	  llc_pwm_set_duty(LLC_PWM_DUTY);
 }
 
 static void llc_softstart_reset(void)
@@ -53,7 +53,7 @@ static void llc_softstart_reset(void)
 	 s_llc_softstart.target_hz = f_clampf(LLC_SOFTSTART_TARGET_HZ, LLC_F_MIN_HZ, LLC_F_MAX_HZ);
 
 
-	/* ========== 3. 计算安全占空窗口 ========== */
+	/* ========== 3. 计算安全频率窗口 ========== */
 		ss_apply(s_llc_softstart.start_hz);
 
 }
