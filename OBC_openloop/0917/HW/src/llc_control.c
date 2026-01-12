@@ -211,7 +211,7 @@ static void llc_state_enter(llc_state_t next)
 static void llc_handle_sweep(void)
 {
 	//超时保护机制
-		uint32_t elapsed = elapsed_since(s_llc_rt.sweep_start_ms); 
+	//uint32_t elapsed = elapsed_since(s_llc_rt.sweep_start_ms); 
 		if (elapsed_reached(s_llc_rt.sweep_start_ms, LLC_SWEEP_TIMEOUT_MS)) {
 			llc_state_enter(ST_STOPPING);
 			return;
@@ -248,6 +248,19 @@ static void llc_handle_sweep(void)
             llc_state_enter(ST_STOPPING);
             return;
         }
+				if (next_freq >= s_llc.f_max) { 
+					llc_set_freq(s_llc.f_max);
+					    /* 若还明显偏高，说明不可调，别进 RUN */
+					if ((s_llc_rt.meas.vout_v - LLC_VOUT_TARGET_V) > LLC_SWEEP_TARGET_WINDOW_V) {
+							llc_state_enter(ST_STOPPING); // 或 llc_enter_fault();
+					} 
+					else 
+					{
+							llc_state_enter(ST_LLC_RUN);
+					}
+					return;
+				}
+
 				// 额外检查：确保频率不超出系统允许范围
 				next_freq = f_clampf(next_freq, s_llc.f_min, s_llc.f_max);
         llc_set_freq(next_freq);
@@ -262,7 +275,7 @@ void llc_app_init()
 {
 	llc_softstart_init();
 	s_llc = (llc_t){
-				.vref=VBUS_TARGET_V, .vmeas=0.0f, .kp=0.01f, .ki=0.0005f,
+				.vref=LLC_VOUT_TARGET_V, .vmeas=0.0f, .kp=0.01f, .ki=0.0005f,
 				.f_min=LLC_F_MIN_HZ, .f_max=LLC_F_MAX_HZ, .f_cmd=LLC_F_INIT_HZ, .f_slew=LLC_F_SLEW_HZ
 	};
 	llc_state_enter(ST_IDLE);
@@ -289,11 +302,14 @@ void llc_app_tick_1khz(void)
 			break;
 		case ST_PRECHECK:
         if (!enable_llc) {
-          llc_enter_fault();
+          llc_state_enter(ST_STOPPING);
 					break;
 				}
 				if (!llc_precheck_ok()) {
 					llc_state_enter(ST_STOPPING);
+					break;
+				}
+				if (!elapsed_reached(s_llc_rt.app.entry_ms, 100U)) { // 100ms 稳定等待
 					break;
 				}
 				llc_state_enter(ST_SOFTSTART);
