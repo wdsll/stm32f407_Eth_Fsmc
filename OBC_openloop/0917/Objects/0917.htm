@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\Objects\0917.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Objects\0917.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6090000: Last Updated: Thu Jan  8 08:45:11 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6090000: Last Updated: Sat Jan 10 15:06:48 2026
 <BR><P>
 <H3>Maximum Stack Usage =        428 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -923,8 +923,8 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[47]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[a3]"></a>llc_app_tick_1khz</STRONG> (Thumb, 532 bytes, Stack size 32 bytes, llc_control.o(.text.llc_app_tick_1khz))
-<BR><BR>[Stack]<UL><LI>Max Depth = 332<LI>Call Chain = llc_app_tick_1khz &rArr; llc_handle_sweep &rArr; llc_state_enter &rArr; llc_softstart_start &rArr; llc_softstart_begin &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
+<P><STRONG><a name="[a3]"></a>llc_app_tick_1khz</STRONG> (Thumb, 664 bytes, Stack size 48 bytes, llc_control.o(.text.llc_app_tick_1khz))
+<BR><BR>[Stack]<UL><LI>Max Depth = 348<LI>Call Chain = llc_app_tick_1khz &rArr; llc_handle_sweep &rArr; llc_state_enter &rArr; llc_softstart_start &rArr; llc_softstart_begin &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
 </UL>
 <BR>[Calls]<UL><LI><a href="#[c8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_tick_1khz
 <LI><a href="#[cd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_on_fault
@@ -1628,7 +1628,7 @@ Local Symbols
 </UL>
 
 <P><STRONG><a name="[a1]"></a>control_loop_tick_1khz</STRONG> (Thumb, 20 bytes, Stack size 8 bytes, main.o(.text.control_loop_tick_1khz))
-<BR><BR>[Stack]<UL><LI>Max Depth = 340<LI>Call Chain = control_loop_tick_1khz &rArr; llc_app_tick_1khz &rArr; llc_handle_sweep &rArr; llc_state_enter &rArr; llc_softstart_start &rArr; llc_softstart_begin &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
+<BR><BR>[Stack]<UL><LI>Max Depth = 356<LI>Call Chain = control_loop_tick_1khz &rArr; llc_app_tick_1khz &rArr; llc_handle_sweep &rArr; llc_state_enter &rArr; llc_softstart_start &rArr; llc_softstart_begin &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
 </UL>
 <BR>[Calls]<UL><LI><a href="#[a2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_tick_1khz
 <LI><a href="#[a3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_app_tick_1khz

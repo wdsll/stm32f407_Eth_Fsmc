@@ -272,9 +272,7 @@ void llc_pwm_set_freq(uint32_t f_hz)
 	// 清除原有的死区时间配置位
 	// 设置新的死区时间配置位
 	// 将更新后的配置写回死区时间寄存器
-    TIMER_CAR(TIMER0) = s_period;
-
-	
+    TIMER_CAR(TIMER0) = s_period;	
 	// 根据占空比（s_cfg.duty）计算PWM的比较寄存器值（pwm_ccr）
 	uint16_t pwm_ccr = duty_to_ccr(s_cfg.duty);
 	// // 配置定时器TIMER0的通道（LLC_PWM_CH）的输出脉冲值

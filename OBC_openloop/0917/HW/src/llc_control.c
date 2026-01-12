@@ -158,7 +158,7 @@ static void llc_state_enter(llc_state_t next)
 			//pfc_disable();
 		  llc_pwm_outputs_enable(0); // 禁用 PWM 输出
 		  llc_driver_en_set(false); //disable llc
-		  s_llc.f_cmd = s_llc.f_max; // 设置频率为最大值
+		  llc_set_freq(s_llc.f_max);
 		  s_llc_rt.sweep_best_error = FLT_MAX; //重置最佳误差为无穷大，清除历史最优解
  		  s_llc_rt.sweep_best_freq = LLC_SWEEP_START_HZ; //重置最佳频率为扫描起始值，准备重新进行频率扫描
  		  s_llc_rt.sweep_stable_hits = 0U; //重置稳定计数器，用于判断系统是否达到稳态
@@ -169,7 +169,7 @@ static void llc_state_enter(llc_state_t next)
 	 case ST_PRECHECK:  
 	  	llc_driver_en_set(true);
     	llc_pwm_outputs_enable(0); // 禁用 PWM 输出
-    	s_llc.f_cmd = s_llc.f_max; // 设置频率为最大值
+    	llc_set_freq(s_llc.f_max);
       break;
 	 case ST_SOFTSTART:
 			s_llc_rt.softstart_begin_ms = g_ms;
@@ -180,11 +180,11 @@ static void llc_state_enter(llc_state_t next)
 	 case ST_SWEEP:
 			llc_driver_en_set(true);
 			 s_llc_rt.sweep_best_error = FLT_MAX;  //重置最佳误差为无穷大，清除历史最优解
-			 s_llc_rt.sweep_best_freq = LLC_SWEEP_START_HZ;
+			 s_llc_rt.sweep_best_freq = s_llc.f_cmd;   // 从当前频率开始
 			 s_llc_rt.sweep_stable_hits = 0U;
 			 s_llc_rt.sweep_start_ms = g_ms;
 			 s_llc_rt.sweep_last_step_ms = g_ms;
-			 llc_set_freq(LLC_SWEEP_START_HZ);
+
 		  break;
 	 case ST_LLC_RUN:
 			llc_driver_en_set(true);
@@ -217,6 +217,7 @@ static void llc_handle_sweep(void)
 			return;
 		}
 		//每次循环都计算当前输出与目标的偏差
+		float e = s_llc_rt.meas.vout_v - LLC_VOUT_TARGET_V;// 有符号
 		float err = fabsf(s_llc_rt.meas.vout_v - LLC_VOUT_TARGET_V); //使用 fabsf() 确保误差始终为正值
 		
 		if (err < s_llc_rt.sweep_best_error) {
@@ -238,7 +239,9 @@ static void llc_handle_sweep(void)
 		//LLC_SWEEP_STEP_MS ：确保每次频率调整后系统有时间稳定
 		if (elapsed_since(s_llc_rt.sweep_last_step_ms) >= LLC_SWEEP_STEP_MS) {
 			  //从高频向低频扫描（LLC特性：频率越低，功率越大）
-        float next_freq = s_llc.f_cmd - LLC_SWEEP_STEP_HZ;
+			    // 方向：高了升频，低了降频
+				float step = (e > 0.0f) ? (+LLC_SWEEP_STEP_HZ) : (-LLC_SWEEP_STEP_HZ);
+        float next_freq = s_llc.f_cmd + step;
 			  //增强边界检查：确保频率在有效范围内
         if (next_freq < LLC_SWEEP_STOP_HZ) {
 					  //达到扫描下限，停止扫描
@@ -304,7 +307,21 @@ void llc_app_tick_1khz(void)
 			}
 			if(elapsed_reached(s_llc_rt.softstart_begin_ms,LLC_SOFTSTART_DURATION_MS))
 			{
-				llc_state_enter(ST_SWEEP);
+				float e = s_llc_rt.meas.vout_v - LLC_VOUT_TARGET_V;   // 有符号误差
+        float ae = fabsf(e);
+				
+				// 把软启结束点作为初始 best
+        s_llc_rt.sweep_best_freq  = s_llc.f_cmd;
+        s_llc_rt.sweep_best_error = ae;
+				
+				if (ae <= LLC_SWEEP_TARGET_WINDOW_V) {
+            llc_state_enter(ST_LLC_RUN);    // 已经到位，别扫
+        } else if (e < 0.0f) {
+            llc_state_enter(ST_SWEEP);      // 低了，才扫（降频）
+        } else {
+            llc_state_enter(ST_LLC_RUN);    // 高了，别再降频加功率
+        }
+        break;
 			}
 			break;
 		case ST_SWEEP:
@@ -319,6 +336,7 @@ void llc_app_tick_1khz(void)
 			if(!enable_llc||(s_llc_rt.meas.vbus_v<(LLC_VBUS_MIN_START_V-LLC_VOUT_HYST_V)))
 			{
 				llc_state_enter(ST_STOPPING);
+				break;
 			}
 			float err = s_llc_rt.meas.vout_v - LLC_VOUT_TARGET_V;
 			if(fabsf(err)>LLC_SWEEP_TARGET_WINDOW_V && elapsed_reached(s_llc_rt.hold_last_adjust_ms,LLC_HOLD_ADJUST_PERIOD_MS))
