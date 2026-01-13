@@ -37,8 +37,8 @@ void llc_app_tick_1khz(void);
 void llc_app_tick_1khz_withoutVbus(void);
 llc_state_t llc_app_state(void);
 
-void llc_control_running_tick(void);
 
+void llc_app_tick_adc_test(void);
 
 
 

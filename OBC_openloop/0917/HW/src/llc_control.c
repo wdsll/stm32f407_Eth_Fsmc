@@ -91,7 +91,7 @@ static void llc_set_freq(float hz)
 
 static void llc_update_measurements(void)
 {
-    //adc_multi_copy();
+    adc_multi_copy();
     s_llc_rt.meas.vout_v = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
     s_llc_rt.meas.iout_a = conv_adc_to_i(g_adc_multi.isense_raw);
     s_llc_rt.meas.vbus_v = pfc_bus_voltage();
@@ -280,7 +280,10 @@ void llc_app_init()
 	};
 	llc_state_enter(ST_IDLE);
 }
-
+void llc_app_tick_adc_test(void)
+{
+	llc_update_measurements();
+}
 void llc_app_tick_1khz(void)
 {
 	llc_update_measurements();

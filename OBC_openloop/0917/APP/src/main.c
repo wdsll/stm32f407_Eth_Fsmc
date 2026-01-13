@@ -29,7 +29,6 @@ static uint32_t s_fault_latched_ms = 0U;
 *********************************************************************************************************/
 volatile uint32_t g_ms=0;
 static volatile uint32_t s_control_tick_pending = 0U;
-static volatile uint32_t s_adc_fast_tick_pending = 0U;
 static volatile uint32_t s_tick_drop_count = 0U; /* 被丢弃的 tick 计数 */
 void delay_ms(uint32_t duration_ms)
 {
@@ -51,7 +50,7 @@ void delay_ms(uint32_t duration_ms)
 /* ADC1通道14测试函数声明 */
 uint16_t adc1_channel14_test(void);
 uint16_t adc1_channel14_multiple_samples(uint16_t sample_count, uint16_t *samples);
-
+static void adc_fast_task_100us(void);
 /*********************************************************************************************************
 *                                              内部函数实现
 *********************************************************************************************************/
@@ -126,7 +125,7 @@ void TIMER3_IRQHandler(void)
 {
     if (timer_interrupt_flag_get(TIMER3, TIMER_INT_FLAG_UP) == SET) {
         timer_interrupt_flag_clear(TIMER3, TIMER_INT_FLAG_UP);
-        s_adc_fast_tick_pending++;
+        adc_fast_task_100us(); // 直接触发ADC0软件采集
     }
 }
 
@@ -216,7 +215,8 @@ static void control_loop_tick_1khz(void){
 		adc_multi_sample_aux_1khz();
 		adc_multi_copy(); 
     pfc_tick_1khz();
-    llc_app_tick_1khz();
+    //llc_app_tick_1khz();
+		llc_app_tick_adc_test();
 
 }
 
@@ -245,9 +245,10 @@ int main(void){
 		pb0_pwm_set_duty(0.5f);
 		#endif
 		
-    /* ADC multi (PA3/PA1 removed) triggered by TIMER2 TRGO @100us */
-    adc_multi_init_dma(ADC0_1_EXTTRIG_REGULAR_T2_TRGO); 
+    /* ADC multi (PA3/PA1 removed) triggered by TIMER3 interrupt @100us (software trigger) */
+    adc_multi_init_dma(ADC0_1_2_EXTTRIG_REGULAR_NONE); 
     adc_multi_start();
+    adc_fast_timer_init_100us(); // 启动100us定时器中断用于ADC0触发
 		adc1_aux_init();
     /* Protection EXTI PC11 */
     protect_exti_init();

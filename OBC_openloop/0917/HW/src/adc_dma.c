@@ -9,7 +9,7 @@ static uint8_t adc0_initialized = 0;
 static uint8_t adc1_initialized = 0;
 
 /*********************************************************************************************************
-* ADC0相关函数 - DMA/定时器触发模式（高速采集）
+* ADC0相关函数 - DMA/软件触发模式（高速采集）
 *********************************************************************************************************/
 
 /* ADC0模拟引脚初始化 */
@@ -46,7 +46,7 @@ static void adc0_dma_cfg(void)
     dma_interrupt_flag_clear(DMA0, DMA_CH0, DMA_INT_FLAG_G);
 }
 
-/* ADC0初始化 - DMA/定时器触发模式 */
+/* ADC0初始化 - DMA/软件触发模式 */
 void adc0_dma_init(uint32_t trig_src)
 {
     if(adc0_initialized) {
@@ -60,7 +60,7 @@ void adc0_dma_init(uint32_t trig_src)
     
     // ADC0时钟和配置
     rcu_periph_clock_enable(RCU_ADC0);
-    rcu_adc_clock_config(RCU_CKADC_CKAPB2_DIV6); // 10MHz安全时钟
+    rcu_adc_clock_config(RCU_CKADC_CKAPB2_DIV6); // 12MHz安全时钟
     adc_deinit(ADC0);
     adc_mode_config(ADC_MODE_FREE);
     adc_special_function_config(ADC0, ADC_SCAN_MODE, ENABLE);
@@ -71,7 +71,8 @@ void adc0_dma_init(uint32_t trig_src)
     adc_regular_channel_config(ADC0, 0, VOUT_SENSE_CH, ADC_SAMPLETIME_41POINT5);
     adc_regular_channel_config(ADC0, 1, ADC_ISENSE_CH, ADC_SAMPLETIME_7POINT5);
 
-    adc_external_trigger_source_config(ADC0, ADC_REGULAR_CHANNEL, trig_src);
+    // 软件触发配置（忽略外部触发源参数）
+    adc_external_trigger_source_config(ADC0, ADC_REGULAR_CHANNEL, ADC0_1_2_EXTTRIG_REGULAR_NONE);
     adc_external_trigger_config(ADC0, ADC_REGULAR_CHANNEL, ENABLE);
 
     adc_enable(ADC0);
