@@ -175,7 +175,7 @@ void llc_softstart_abort(void)
 {
     s_llc_softstart.active = false;
     s_llc_softstart.pause = false;
-	s_llc_softstart.paused_elapsed_ms = 0U;
+	  s_llc_softstart.paused_elapsed_ms = 0U;
     ss_apply(f_clampf(LLC_SOFTSTART_FAILSAFE_HZ, LLC_F_MIN_HZ, LLC_F_MAX_HZ)); //0.0
 }
 /* 

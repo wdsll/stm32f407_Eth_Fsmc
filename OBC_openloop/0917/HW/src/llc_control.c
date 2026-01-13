@@ -179,8 +179,8 @@ static void llc_state_enter(llc_state_t next)
 			break;
 	 case ST_SWEEP:
 			llc_driver_en_set(true);
-			 s_llc_rt.sweep_best_error = FLT_MAX;  //重置最佳误差为无穷大，清除历史最优解
-			 s_llc_rt.sweep_best_freq = s_llc.f_cmd;   // 从当前频率开始
+			 //s_llc_rt.sweep_best_error = FLT_MAX;  //重置最佳误差为无穷大，清除历史最优解
+			 //s_llc_rt.sweep_best_freq = s_llc.f_cmd;   // 从当前频率开始
 			 s_llc_rt.sweep_stable_hits = 0U;
 			 s_llc_rt.sweep_start_ms = g_ms;
 			 s_llc_rt.sweep_last_step_ms = g_ms;
@@ -321,7 +321,7 @@ void llc_app_tick_1khz(void)
 				llc_state_enter(ST_STOPPING);
 				break;
 			}
-			if(elapsed_reached(s_llc_rt.softstart_begin_ms,LLC_SOFTSTART_DURATION_MS))
+			if(elapsed_reached(s_llc_rt.softstart_begin_ms,LLC_SOFTSTART_DURATION_MS + LLC_SOFTSTART_STABILIZE_MS))
 			{
 				float e = s_llc_rt.meas.vout_v - LLC_VOUT_TARGET_V;   // 有符号误差
         float ae = fabsf(e);
@@ -332,7 +332,8 @@ void llc_app_tick_1khz(void)
 				
 				if (ae <= LLC_SWEEP_TARGET_WINDOW_V) {
             llc_state_enter(ST_LLC_RUN);    // 已经到位，别扫
-        } else if (e < 0.0f) {
+        }
+				if (e < 0.0f) {
             llc_state_enter(ST_SWEEP);      // 低了，才扫（降频）
         } else {
             llc_state_enter(ST_LLC_RUN);    // 高了，别再降频加功率
