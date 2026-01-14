@@ -215,8 +215,8 @@ static void control_loop_tick_1khz(void){
 		adc_multi_sample_aux_1khz();
 		adc_multi_copy(); 
     pfc_tick_1khz();
-    //llc_app_tick_1khz();
-		llc_app_tick_adc_test();
+    llc_app_tick_1khz();
+		//llc_app_tick_adc_test();
 
 }
 

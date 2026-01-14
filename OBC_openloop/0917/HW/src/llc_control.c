@@ -99,12 +99,6 @@ static void llc_update_measurements(void)
 }
 static bool llc_precheck_ok(void)
 {
-   // bool hw_fault = protect_fault_active_hw();
-    //bool pfc_fault = pfc_is_fault();
-    //if (hw_fault || pfc_fault) {
-     //   return false;
-    //}
-
     return (s_llc_rt.meas.vbus_v >= LLC_VBUS_MIN_START_V);
 }
 static bool llc_faults_present(void)

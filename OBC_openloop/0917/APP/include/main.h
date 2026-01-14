@@ -54,8 +54,8 @@
 #define PFC_NTC_BETA        (3950.0f)
 
 /* Dividers for voltage ADC channels */
-#define VOUT_RTOP_OHM       (200000.0f)   /* PA5 */
-#define VOUT_RBOT_OHM       (10000.0f)
+#define VOUT_RTOP_OHM       (102000.0f)   /* PA5 */
+#define VOUT_RBOT_OHM       (5100.0f)
 #define VBT_RTOP_OHM        (200000.0f)   /* PC4 */
 #define VBT_RBOT_OHM        (10000.0f)
 
