@@ -178,6 +178,26 @@ void llc_softstart_abort(void)
 	  s_llc_softstart.paused_elapsed_ms = 0U;
     ss_apply(f_clampf(LLC_SOFTSTART_FAILSAFE_HZ, LLC_F_MIN_HZ, LLC_F_MAX_HZ)); //0.0
 }
+
+void llc_softstart_stop(void)
+{
+    if (!s_llc_softstart.initialized) {
+        return;
+    }
+
+    s_llc_softstart.active = false;
+    s_llc_softstart.pause = false;
+    s_llc_softstart.paused_elapsed_ms = 0U;
+}
+
+float llc_softstart_last_hz(void)
+{
+    if (!s_llc_softstart.initialized) {
+        return f_clampf(LLC_F_INIT_HZ, LLC_F_MIN_HZ, LLC_F_MAX_HZ);
+    }
+
+    return s_llc_softstart.last_hz;
+}
 /* 
 *周期性调用（例如 1ms 调一次），驱动 S 曲线软启动。
  * 对应 MATLAB 主体里推进 elapsed_ms / 计算 progress 的部分。
@@ -240,5 +260,14 @@ static void llc_softstart_begin(float target_hz)
 }
 static void llc_softstart_tick(void)
 {
+}
+
+void llc_softstart_stop(void)
+{
+}
+
+float llc_softstart_last_hz(void)
+{
+    return LLC_F_INIT_HZ;
 }
 #endif /* LLC_SOFTSTART_ENABLE */

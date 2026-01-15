@@ -29,6 +29,9 @@ void llc_softstart_update_target(float new_target_hz);
 void llc_softstart_set_pause(bool pause);
 void llc_softstart_abort(void);
 
+void llc_softstart_stop(void);
+float llc_softstart_last_hz(void);
+
 void llc_softstart_on_fault(void);
 void llc_softstart_start(float target_freq_hz);
 void llc_softstart_init(void);

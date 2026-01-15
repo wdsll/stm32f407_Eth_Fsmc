@@ -104,6 +104,11 @@
 #define LLC_SOFTSTART_EXTRA_MARGIN      (0.02f)   /* 安全窗额外余量（防抖） */
 #define LLC_SOFTSTART_TICK_MS         (0.1f)
 
+/* ==== LLC RUN entry hold ==== */
+#define LLC_RUN_ENTRY_HOLD_MS          (20U)
+#define LLC_RUN_ENTRY_STABLE_TICKS     (5U)
+#define LLC_RUN_ENTRY_STABLE_WINDOW_V  (2.0f)
+
 /* ==== LLC frequency window ==== */
 #define LLC_F_MIN_HZ        (75000.0f)
 #define LLC_F_MAX_HZ        (200000.0f)
