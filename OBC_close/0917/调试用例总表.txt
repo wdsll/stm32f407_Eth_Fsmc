@@ -22,13 +22,13 @@
 	步骤：记录 VBUS 上升到 360V，观察 LLC 使能的延迟时间是否 ≥200ms。
 	预期波形截图：VBUS 达到 360V 后，LLC_EN/LLC PWM 延迟启动。
 	依据：READY 阈值与延时宏定义。
-2.LLC软启动阶段
+2.LLC软启动
 (1)LLC 软启动占空提升
-	目标：验证软启动从 0.1 → 0.5 duty、300ms 完成
+	目标：验证软启动从 200KHZ → 91KHZ、300ms 完成
 	LLC PWM 高/低桥（LLC_H_PIN/LLC_L_PIN）
-	容许范围：起始 duty=0.1，目标 duty=0.5，时长 300ms
+	容许范围：起始 200KHZ，目标 91KHZ、300ms，时长 300ms
 	步骤：等到PFC_Ready触发LLC_softstart然后示波器测量占空比变化曲线。
-	预期波形截图：PWM duty 呈 S 曲线（或指数曲线）逐渐上升到 50%，耗时 300ms（截图：占空随时间变化）
+	预期波形截图：Vout 呈 S 曲线（或指数曲线）逐渐上升到 Vout target，耗时 300ms（截图：占空随时间变化）
 	依据：softstart 参数与实现
 3.LLC 扫频/保持阶段（开环）
 (1)扫频区间与步进

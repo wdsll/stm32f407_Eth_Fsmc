@@ -37,7 +37,7 @@ static void ss_apply(float freq_hz)
     float f = f_clampf(freq_hz, LLC_F_MIN_HZ, LLC_F_MAX_HZ);
     s_llc_softstart.last_hz = f;
     llc_pwm_set_freq((uint32_t)f);
-	llc_pwm_set_duty(LLC_PWM_DUTY);
+	  llc_pwm_set_duty(LLC_PWM_DUTY);
 }
 
 static void llc_softstart_reset(void)
@@ -53,7 +53,7 @@ static void llc_softstart_reset(void)
 	 s_llc_softstart.target_hz = f_clampf(LLC_SOFTSTART_TARGET_HZ, LLC_F_MIN_HZ, LLC_F_MAX_HZ);
 
 
-	/* ========== 3. 计算安全占空窗口 ========== */
+	/* ========== 3. 计算安全频率窗口 ========== */
 		ss_apply(s_llc_softstart.start_hz);
 
 }
@@ -89,8 +89,8 @@ static void llc_softstart_begin(float target_hz)
 }
 /* 在软启动过程中更新最新的频率防止越界。*/
 void llc_softstart_update_target(float new_target_hz)
-{	s_llc_softstart.target_hz = f_clampf(new_target_hz, LLC_F_MIN_HZ, LLC_F_MAX_HZ);
-
+{	
+	s_llc_softstart.target_hz = f_clampf(new_target_hz, LLC_F_MIN_HZ, LLC_F_MAX_HZ);
 }
 
 void llc_softstart_init(void)
@@ -175,7 +175,7 @@ void llc_softstart_abort(void)
 {
     s_llc_softstart.active = false;
     s_llc_softstart.pause = false;
-	s_llc_softstart.paused_elapsed_ms = 0U;
+	  s_llc_softstart.paused_elapsed_ms = 0U;
     ss_apply(f_clampf(LLC_SOFTSTART_FAILSAFE_HZ, LLC_F_MIN_HZ, LLC_F_MAX_HZ)); //0.0
 }
 /* 
@@ -190,10 +190,10 @@ static void llc_softstart_tick(void)
 		}
 		
     /* 用你项目已有的故障判据 */
-    if (protect_fault_latched() || protect_fault_active_hw()) {
-        llc_softstart_abort();
-        return;
-    }
+    //if (protect_fault_latched() || protect_fault_active_hw()) {
+    //    llc_softstart_abort();
+    //    return;
+    //}
 
 	 if (s_llc_softstart.pause) {
         ss_apply(s_llc_softstart.last_hz);
@@ -207,6 +207,7 @@ static void llc_softstart_tick(void)
         ss_apply(s_llc_softstart.target_hz);
         return;
     }
+	//duration_ms 软启动持续时间
 	float progress = (s_llc_softstart.duration_ms > 0U) ? ((float)elapsed / (float)s_llc_softstart.duration_ms):1.0f;
 
 	#if defined(LLC_SOFTSTART_USE_COSINE_EASE) && (LLC_SOFTSTART_USE_COSINE_EASE)

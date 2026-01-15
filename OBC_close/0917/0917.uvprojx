@@ -312,7 +312,7 @@
           </ArmAdsMisc>
           <Cads>
             <interw>1</interw>
-            <Optim>7</Optim>
+            <Optim>1</Optim>
             <oTime>0</oTime>
             <SplitLS>0</SplitLS>
             <OneElfS>1</OneElfS>
@@ -416,6 +416,11 @@
               <FileName>调试用例总表.txt</FileName>
               <FileType>5</FileType>
               <FilePath>.\调试用例总表.txt</FilePath>
+            </File>
+            <File>
+              <FileName>pfc_state_machine_report.txt</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\pfc_state_machine_report.txt</FilePath>
             </File>
           </Files>
         </Group>

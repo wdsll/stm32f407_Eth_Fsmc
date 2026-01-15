@@ -24,12 +24,13 @@ extern volatile adc_multi_frame_t g_adc_multi;
 void adc_multi_init_dma(uint32_t trig_src /* e.g. ADC_EXTTRIG_REGULAR_T0_CH2 */);
 void adc_multi_start(void);
 void adc_multi_copy(void);
-
+void adc_multi_trigger_fast(void);
 void adc_multi_sample_aux_1khz(void);
 void adc1_aux_init(void);
 uint16_t adc1_aux_read_channel(uint8_t channel, uint32_t sample_time);
 
-/* ADC1é€šé“14æµ‹è¯•å‡½æ•° */
+/* ADC1Í¨µÀ14²âÊÔº¯Êı */
 uint16_t adc1_channel14_test(void);
 uint16_t adc1_channel14_multiple_samples(uint16_t sample_count, uint16_t *samples);
 #endif
+

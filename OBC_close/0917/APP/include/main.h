@@ -39,7 +39,7 @@
 #define VBUS_RTOP_OHM       (200000.0f)
 #define VBUS_RBOT_OHM       (10000.0f)
 
-#define VREF_ADC            (3.3f)
+#define VREF_ADC            (3.30f)
 
 
 /* PFC sensing networks 待定未确认*/
@@ -54,13 +54,13 @@
 #define PFC_NTC_BETA        (3950.0f)
 
 /* Dividers for voltage ADC channels */
-#define VOUT_RTOP_OHM       (200000.0f)   /* PA5 */
-#define VOUT_RBOT_OHM       (10000.0f)
+#define VOUT_RTOP_OHM       (102000.0f)   /* PA5 */
+#define VOUT_RBOT_OHM       (5100.0f)
 #define VBT_RTOP_OHM        (200000.0f)   /* PC4 */
 #define VBT_RBOT_OHM        (10000.0f)
 
-#define V3V3_RTOP_OHM        (10000.0f)   /* PC5 */
-#define V3V3_RBOT_OHM        (5100.0f)
+#define V3V3_RTOP_OHM        (5100.0f)   
+#define V3V3_RBOT_OHM        (10000.0f)
 
 /* ==== ADC startup sanity check thresholds ==== */
 #define ADC_STARTUP_V3V3_MIN_V        (2.8f)
@@ -93,9 +93,10 @@
 #endif
 /* ==== LLC_SOFTSTART ==== */
 #define LLC_SOFTSTART_DURATION_MS     300U      // 软启动总时长
+#define LLC_SOFTSTART_STABILIZE_MS     50U      // 软启动后稳定等待时间
 #define LLC_SOFTSTART_MIN_DURATION_MS 20U  
 #define LLC_SOFTSTART_START_HZ     (LLC_F_MAX_HZ)
-#define LLC_SOFTSTART_TARGET_HZ    (LLC_SWEEP_START_HZ)
+#define LLC_SOFTSTART_TARGET_HZ    (100000.0f)
 #define LLC_SOFTSTART_FAILSAFE_HZ  (LLC_F_MAX_HZ)
 
 #define LLC_SOFTSTART_USE_COSINE_EASE 1        // 1: 余弦S曲线；0: 指数曲线
@@ -104,28 +105,28 @@
 #define LLC_SOFTSTART_TICK_MS         (0.1f)
 
 /* ==== LLC frequency window ==== */
-#define LLC_F_MIN_HZ        (72000.0f)
-#define LLC_F_MAX_HZ        (130000.0f)
+#define LLC_F_MIN_HZ        (75000.0f)
+#define LLC_F_MAX_HZ        (200000.0f)
 #define LLC_F_INIT_HZ       (91000.0f)
 #define LLC_F_SLEW_HZ       (500.0f)
 #define LLC_F_DEBUG_HZ      (130000.0f)
 
 /* ==== LLC open-loop safe bands ==== */
 #define LLC_VBUS_MIN_START_V         (360.0f)
-#define LLC_VOUT_TARGET_V            (44.0f)
+#define LLC_VOUT_TARGET_V            (55.0f)
 #define LLC_VOUT_HYST_V              (15.0f)
-#define LLC_VOUT_OVP_V               (48.0f)
+#define LLC_VOUT_OVP_V               (58.0f)
 #define LLC_IOUT_OCP_A               (15.0f)
 
-#define LLC_SWEEP_START_HZ           (110000.0f)
+#define LLC_SWEEP_START_HZ           (100000.0f)
 #define LLC_SWEEP_STOP_HZ            (80000.0f)
-#define LLC_SWEEP_STEP_HZ            (400.0f)
+#define LLC_SWEEP_STEP_HZ            (800.0f) 
 #define LLC_SWEEP_STEP_MS            (5U)
-#define LLC_SWEEP_TIMEOUT_MS         (800U)
-#define LLC_SWEEP_STABLE_COUNT       (5U)
-#define LLC_SWEEP_TARGET_WINDOW_V    (1.0f)
+#define LLC_SWEEP_TIMEOUT_MS         (1600U)
+#define LLC_SWEEP_STABLE_COUNT       (2U)
+#define LLC_SWEEP_TARGET_WINDOW_V    (2.0f)
 
-#define LLC_HOLD_ADJUST_HZ           (200.0f)
+#define LLC_HOLD_ADJUST_HZ           (400.0f)
 #define LLC_HOLD_ADJUST_PERIOD_MS    (10U)
 #define LLC_HOLD_RESCAN_DELTA_V      (5.0f)
 

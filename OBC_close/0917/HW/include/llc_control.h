@@ -8,7 +8,6 @@ typedef enum
 	ST_IDLE=0, 
 	ST_PRECHECK,
 	ST_SOFTSTART,
-	ST_SWEEP,
 	ST_LLC_RUN,
 	ST_STOPPING,
 	ST_FAULT,
@@ -37,8 +36,8 @@ void llc_app_tick_1khz(void);
 void llc_app_tick_1khz_withoutVbus(void);
 llc_state_t llc_app_state(void);
 
-void llc_control_running_tick(void);
 
+void llc_app_tick_adc_test(void);
 
 
 
