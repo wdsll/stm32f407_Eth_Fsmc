@@ -108,6 +108,7 @@
 #define LLC_RUN_ENTRY_HOLD_MS          (20U)
 #define LLC_RUN_ENTRY_STABLE_TICKS     (5U)
 #define LLC_RUN_ENTRY_STABLE_WINDOW_V  (2.0f)
+#define LLC_RUN_ENTRY_TIMEOUT_MS       (200U)
 
 /* ==== LLC frequency window ==== */
 #define LLC_F_MIN_HZ        (75000.0f)

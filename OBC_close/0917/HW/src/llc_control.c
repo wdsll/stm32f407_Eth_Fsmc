@@ -11,6 +11,7 @@ typedef struct {
 typedef struct {
     llc_app_ctx_t app;
     llc_meas_t meas;
+	  uint32_t pfc_ready_begin_ms;
     uint32_t softstart_begin_ms;
     uint32_t stopping_begin_ms;
     uint32_t hold_last_adjust_ms;
@@ -36,6 +37,7 @@ static inline float conv_adc_to_v_div(uint16_t raw, float rtop, float rbot);
 static inline float conv_adc_to_i(uint16_t raw);
 static void llc_set_freq(float hz);
 static bool llc_precheck_ok(void);
+static bool llc_pfc_ready_stable(bool enable_llc);
 static bool llc_faults_present(void);
 static void llc_enter_fault(void);
 static float llc_ctrl_step(float e);
@@ -147,10 +149,26 @@ static void llc_update_measurements(void)
     s_llc_rt.meas.vbus_v = pfc_bus_voltage();
     s_llc.vmeas = s_llc_rt.meas.vout_v;
 }
+
 static bool llc_precheck_ok(void)
 {
     return (s_llc_rt.meas.vbus_v >= LLC_VBUS_MIN_START_V);
 }
+
+static bool llc_pfc_ready_stable(bool enable_llc)
+{
+    if (!enable_llc) {
+        s_llc_rt.pfc_ready_begin_ms = 0U;
+        return false;
+    }
+
+    if (s_llc_rt.pfc_ready_begin_ms == 0U) {
+        s_llc_rt.pfc_ready_begin_ms = g_ms;
+    }
+
+    return elapsed_reached(s_llc_rt.pfc_ready_begin_ms, PFC_READY_STABLE_BEFORE_LLC_MS);
+}
+
 static bool llc_faults_present(void)
 {
     if (protect_fault_active_hw() || protect_fault_latched()) {
@@ -207,7 +225,7 @@ static void llc_state_enter(llc_state_t next)
  		  s_llc_rt.softstart_begin_ms = 0U;  //软启动开始时间戳，用于控制软启动斜坡
  		  s_llc_rt.stopping_begin_ms = 0U;  //停机过程开始时间戳，用于控制停机时序
  		  s_llc_rt.hold_last_adjust_ms = 0U; //保持最后调整的时间戳，用于频率调整的去抖
-		  
+		  s_llc_rt.pfc_ready_begin_ms = 0U;
 		  s_llc_rt.run_entry_hold_begin_ms = 0U;
 		  s_llc_rt.run_entry_stable_ticks = 0U;
 		  break;
@@ -227,6 +245,7 @@ static void llc_state_enter(llc_state_t next)
 			s_llc_rt.run_entry_hold_begin_ms = g_ms;
 			s_llc_rt.run_entry_stable_ticks = 0U;
 			s_llc.f_cmd = llc_softstart_last_hz();
+			llc_set_freq(s_llc.f_cmd);
 			break;
 	 case ST_LLC_RUN:
 			llc_driver_en_set(true);
@@ -239,6 +258,10 @@ static void llc_state_enter(llc_state_t next)
       llc_set_freq(s_llc.f_max);
       break;
 	 case ST_FAULT:
+		 	llc_softstart_on_fault();
+			llc_pwm_outputs_enable(0);
+			llc_driver_en_set(false);
+			llc_set_freq(s_llc.f_max);
 			break;
 	 
 	 default:
@@ -279,10 +302,18 @@ void llc_app_tick_1khz(void)
   }
 #endif
 	bool enable_llc = pfc_is_ready();
+	bool pfc_ready_stable = llc_pfc_ready_stable(enable_llc);
+
+	if (s_llc_rt.app.state != ST_IDLE && s_llc_rt.app.state != ST_FAULT) {
+		if (llc_faults_present()) {
+			llc_enter_fault();
+			return;
+		}
+	}
 	switch(s_llc_rt.app.state)
 	{
 		case ST_IDLE:
-			if(enable_llc&&llc_precheck_ok())
+			if(pfc_ready_stable &&llc_precheck_ok())
 			{
 				  llc_state_enter(ST_PRECHECK);
 			}
@@ -335,12 +366,14 @@ void llc_app_tick_1khz(void)
 			{
 				s_llc_rt.run_entry_stable_ticks = 0U;
 			}
-			if (!elapsed_reached(s_llc_rt.run_entry_hold_begin_ms, LLC_RUN_ENTRY_HOLD_MS)) {
+			if (elapsed_reached(s_llc_rt.run_entry_hold_begin_ms, LLC_RUN_ENTRY_HOLD_MS) && s_llc_rt.run_entry_stable_ticks >= LLC_RUN_ENTRY_STABLE_TICKS)
+			{
+				llc_state_enter(ST_LLC_RUN);
 				break;
 			}
 
-			if (s_llc_rt.run_entry_stable_ticks >= LLC_RUN_ENTRY_STABLE_TICKS) {
-				llc_state_enter(ST_LLC_RUN);
+			if (elapsed_reached(s_llc_rt.run_entry_hold_begin_ms, LLC_RUN_ENTRY_TIMEOUT_MS)) {
+				llc_state_enter(ST_STOPPING);
 				break;
 			}
 				break;		

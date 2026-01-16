@@ -422,6 +422,11 @@
               <FileType>5</FileType>
               <FilePath>.\pfc_state_machine_report.txt</FilePath>
             </File>
+            <File>
+              <FileName>llc_voltage_loop_design.txt</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\APP\llc_voltage_loop_design.txt</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
