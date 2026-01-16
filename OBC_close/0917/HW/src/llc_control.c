@@ -1,5 +1,10 @@
 #include "llc_control.h"
 #include "float.h"
+
+/*********************************************************************************************************
+*                                              宏定义
+*********************************************************************************************************/
+
 /*********************************************************************************************************
 *                                              内部变量定义
 *********************************************************************************************************/
@@ -24,6 +29,22 @@ static llc_runtime_ctx_t s_llc_rt;
 static llc_app_ctx_t s_llc_app;
 static llc_t s_llc;
 
+typedef struct {
+    float iref;
+    float imeas;
+    float kp;
+    float ki;
+    float integ;
+    float f_min;
+    float f_max;
+    float f_cmd;
+    float f_slew;
+    float deadband_a;
+    bool limit_active;
+} llc_curr_t;
+
+static llc_curr_t s_llc_curr;
+
 enum{
 	LLC_START_DELAY_MS = 10000
 };
@@ -41,6 +62,9 @@ static bool llc_pfc_ready_stable(bool enable_llc);
 static bool llc_faults_present(void);
 static void llc_enter_fault(void);
 static float llc_ctrl_step(float e);
+
+static float llc_current_ctrl_step(float e);
+static float llc_current_limit_step(float i_meas);
 /*********************************************************************************************************
 *                                              静态工具
 *********************************************************************************************************/
@@ -141,6 +165,90 @@ static float llc_ctrl_step(float e)
 		
 	  return s_llc.f_cmd;
 }
+
+static float llc_current_ctrl_step(float e)
+{
+	  float kp = s_llc_curr.kp;
+    float ki = s_llc_curr.ki;
+    float f_min = s_llc_curr.f_min;
+    float f_max = s_llc_curr.f_max;
+    float f_slew = s_llc_curr.f_slew;
+	
+	  if (f_min <= 0.0f || f_min >= f_max) {
+        f_min = 75000.0f;
+        f_max = 130000.0f;
+    }
+    if (f_slew <= 0.0f) {
+        f_slew = 5000.0f;
+    }
+    if (kp <= 0.0f) {
+        kp = 10.0f;
+    }
+    if (ki < 0.0f) {
+        ki = 0.0f;
+    }
+		
+		float f_nom = 0.5f * (f_min + f_max);
+    float f_prev = s_llc_curr.f_cmd;
+    if (f_prev < f_min || f_prev > f_max) {
+        f_prev = f_nom;
+    }
+		float x_candidate = s_llc_curr.integ + ki * e;
+    float u = kp * e + x_candidate;
+    float f_req = f_nom - u;
+    float f_sat = f_clampf(f_req, f_min, f_max);
+
+    if (f_req == f_sat) {
+        float i_lim = f_max - f_min;
+        if (x_candidate > i_lim) {
+            x_candidate = i_lim;
+        } else if (x_candidate < -i_lim) {
+            x_candidate = -i_lim;
+        }
+        s_llc_curr.integ = x_candidate;
+    }
+
+    float df = f_sat - f_prev;
+    if (df > f_slew) {
+        s_llc_curr.f_cmd = f_prev + f_slew;
+    } else if (df < -f_slew) {
+        s_llc_curr.f_cmd = f_prev - f_slew;
+    } else {
+        s_llc_curr.f_cmd = f_sat;
+    }
+
+    return s_llc_curr.f_cmd;
+}
+
+static float llc_current_limit_step(float i_meas)
+{
+    float iref = s_llc_curr.iref;
+    float db = s_llc_curr.deadband_a;
+
+    s_llc_curr.imeas = i_meas;
+
+    if (s_llc_curr.limit_active) {
+        if (i_meas < (iref - db)) {
+            s_llc_curr.limit_active = false;
+        }
+    } else {
+        if (i_meas > (iref + db)) {
+            s_llc_curr.limit_active = true;
+        }
+    }
+
+    if (!s_llc_curr.limit_active) {
+        s_llc_curr.integ = 0.0f;
+        s_llc_curr.f_cmd = s_llc_curr.f_min;
+        return s_llc_curr.f_cmd;
+    }
+
+    float err = iref - i_meas;
+    return llc_current_ctrl_step(err);
+}
+
+
+
 static void llc_update_measurements(void)
 {
     //adc_multi_copy();
@@ -237,8 +345,8 @@ static void llc_state_enter(llc_state_t next)
 	 case ST_SOFTSTART:
 			s_llc_rt.softstart_begin_ms = g_ms;
 			llc_driver_en_set(true);
+	 		llc_softstart_start(LLC_SOFTSTART_TARGET_HZ);
 			llc_pwm_outputs_enable(1);
-			llc_softstart_start(LLC_SOFTSTART_TARGET_HZ);
 			break;
 	 case ST_RUN_ENTRY_HOLD:
 			llc_driver_en_set(true);
@@ -251,6 +359,9 @@ static void llc_state_enter(llc_state_t next)
 			llc_driver_en_set(true);
       s_llc_rt.hold_last_adjust_ms = g_ms;
 			s_llc.integ = 0.0f;
+	 		s_llc_curr.integ = 0.0f;
+			s_llc_curr.limit_active = false;
+			s_llc_curr.f_cmd = s_llc_curr.f_min;
 			break;
 	 case ST_STOPPING:
       s_llc_rt.stopping_begin_ms = g_ms;
@@ -285,6 +396,13 @@ void llc_app_init()
 				.vref=LLC_VOUT_TARGET_V, .vmeas=0.0f, .kp=0.01f, .ki=0.0005f,
 				.f_min=LLC_F_MIN_HZ, .f_max=LLC_F_MAX_HZ, .f_cmd=LLC_F_INIT_HZ, .f_slew=LLC_F_SLEW_HZ
 	};
+	
+	s_llc_curr = (llc_curr_t){
+				.iref=LLC_IOUT_TARGET_A, .imeas=0.0f, .kp=LLC_IOUT_CTRL_KP, .ki=LLC_IOUT_CTRL_KI, .integ=0.0f,
+				.f_min=LLC_F_MIN_HZ, .f_max=LLC_F_MAX_HZ, .f_cmd=LLC_F_MIN_HZ, .f_slew=LLC_F_SLEW_HZ,
+				.deadband_a=LLC_IOUT_CTRL_DEADBAND_A, .limit_active=false
+	};
+	
 	llc_state_enter(ST_IDLE);
 }
 void llc_app_tick_adc_test(void)
@@ -385,9 +503,10 @@ void llc_app_tick_1khz(void)
 			}
 			s_llc.vmeas = s_llc_rt.meas.vout_v;
 			float err = s_llc.vref - s_llc.vmeas;
-			float f_cmd = llc_ctrl_step(err);
-			llc_set_freq(f_cmd);
-			
+			float f_cmd_v = llc_ctrl_step(err);
+			float f_cmd_i = llc_current_limit_step(s_llc_rt.meas.iout_a);
+			float f_cmd = (f_cmd_i > f_cmd_v) ? f_cmd_i : f_cmd_v;
+			llc_set_freq(f_cmd);			
 			break;
 		case ST_STOPPING:
 			if(elapsed_reached(s_llc_rt.stopping_begin_ms,LLC_STOPPING_FREQ_HOLD_MS))

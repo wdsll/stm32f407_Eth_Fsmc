@@ -22,10 +22,14 @@ typedef struct
 
 //vmeas：实际测量到的电压 
 //integ：积分器的当前累积值（积分状态），通常会在饱和或模式切换时清零或软限制以防风up。
+//新增电流环pi参数
 typedef struct {
 	float vref, vmeas;
 	float kp, ki, integ;
+	float iref, imeas;
+	float ikp, iki, i_integ;
 	float f_min, f_max, f_cmd, f_slew;
+	float f_cmd_v, f_cmd_i;
 } llc_t;
 
 static llc_t s_llc;
