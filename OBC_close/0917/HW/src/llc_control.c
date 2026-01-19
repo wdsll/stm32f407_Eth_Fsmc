@@ -14,33 +14,33 @@ typedef struct {
     float iout_a;
 } llc_meas_t;
 typedef struct {
-    llc_app_ctx_t app;
-    llc_meas_t meas;
-	  uint32_t pfc_ready_begin_ms;
-    uint32_t softstart_begin_ms;
-    uint32_t stopping_begin_ms;
-    uint32_t hold_last_adjust_ms;
-	  uint32_t run_entry_hold_begin_ms;
-    uint32_t run_entry_stable_ticks;
+    llc_app_ctx_t app; //应用状态上下文
+    llc_meas_t meas; //测量值
+	uint32_t pfc_ready_begin_ms; //	pfc ready 开始时间
+    uint32_t softstart_begin_ms; //软启动开始时间
+    uint32_t stopping_begin_ms; //停机开始时间
+    uint32_t hold_last_adjust_ms; //保持最后调整时间
+	uint32_t run_entry_hold_begin_ms; //运行入口保持开始时间
+    uint32_t run_entry_stable_ticks; //运行入口稳定tick
 }llc_runtime_ctx_t;
 
-static llc_runtime_ctx_t s_llc_rt;
+static llc_runtime_ctx_t s_llc_rt; //运行时上下文
 
-static llc_app_ctx_t s_llc_app;
-static llc_t s_llc;
+static llc_app_ctx_t s_llc_app; //应用上下文
+static llc_t s_llc; //llc上下文
 
 typedef struct {
-    float iref;
-    float imeas;
-    float kp;
-    float ki;
-    float integ;
-    float f_min;
-    float f_max;
-    float f_cmd;
-    float f_slew;
-    float deadband_a;
-    bool limit_active;
+    float iref; 	//参考电流
+    float imeas;  	//测量电流
+    float kp;   	//比例系数
+    float ki;  	    //积分系数 
+    float integ;    //积分值
+    float f_min; 	//最小频率
+    float f_max; 	//最大频率
+    float f_cmd; 	//命令频率
+    float f_slew;	//频率 slew rate
+    float deadband_a; //死区带宽
+    bool limit_active; //限流激活标志
 } llc_curr_t;
 
 static llc_curr_t s_llc_curr;
@@ -114,13 +114,13 @@ static void llc_set_freq(float hz)
 
 static float llc_ctrl_step(float e)
 {
-	  float kp = s_llc.kp;
+	float kp = s_llc.kp;
     float ki = s_llc.ki;
     float f_min = s_llc.f_min;
     float f_max = s_llc.f_max;
     float f_slew = s_llc.f_slew;
 	
-	  if (f_min <= 0.0f || f_min >= f_max) {
+	if (f_min <= 0.0f || f_min >= f_max) {
         f_min = 75000.0f;
         f_max = 130000.0f;
     }
@@ -133,18 +133,18 @@ static float llc_ctrl_step(float e)
     if (ki < 0.0f) {
         ki = 0.0f;
     }
-		float f_nom = 0.5f * (f_min + f_max);
-    float f_prev = s_llc.f_cmd;
+	float f_nom = 0.5f * (f_min + f_max); // 中频
+    float f_prev = s_llc.f_cmd; // 上一次的频率
     if (f_prev < f_min || f_prev > f_max) {
         f_prev = f_nom;
     }
 		
-		float x_candidate = s_llc.integ + ki * e;
-    float u = kp * e + x_candidate;
-    float f_req = f_nom - u;
-    float f_sat = f_clampf(f_req, f_min, f_max);
+	float x_candidate = s_llc.integ + ki * e; // 积分值
+    float u = kp * e + x_candidate; // 控制量
+    float f_req = f_nom - u; // 请求频率
+    float f_sat = f_clampf(f_req, f_min, f_max); // 饱和频率
 		
-		if (f_req == f_sat) {
+	if (f_req == f_sat) { // 如果请求频率和饱和频率相同，则积分值清零
         float i_lim = f_max - f_min;
         if (x_candidate > i_lim) {
             x_candidate = i_lim;
@@ -154,7 +154,7 @@ static float llc_ctrl_step(float e)
         s_llc.integ = x_candidate;
     }
 		
-		float df = f_sat - f_prev;
+	float df = f_sat - f_prev; // 频率差
     if (df > f_slew) {
         s_llc.f_cmd = f_prev + f_slew;
     } else if (df < -f_slew) {
@@ -163,7 +163,7 @@ static float llc_ctrl_step(float e)
         s_llc.f_cmd = f_sat;
     }
 		
-	  return s_llc.f_cmd;
+	return s_llc.f_cmd;
 }
 
 static float llc_current_ctrl_step(float e)
@@ -193,7 +193,7 @@ static float llc_current_ctrl_step(float e)
     if (f_prev < f_min || f_prev > f_max) {
         f_prev = f_nom;
     }
-		float x_candidate = s_llc_curr.integ + ki * e;
+	float x_candidate = s_llc_curr.integ + ki * e; // 积分值
     float u = kp * e + x_candidate;
     float f_req = f_nom - u;
     float f_sat = f_clampf(f_req, f_min, f_max);
@@ -208,7 +208,7 @@ static float llc_current_ctrl_step(float e)
         s_llc_curr.integ = x_candidate;
     }
 
-    float df = f_sat - f_prev;
+    float df = f_sat - f_prev; // 频率差
     if (df > f_slew) {
         s_llc_curr.f_cmd = f_prev + f_slew;
     } else if (df < -f_slew) {
@@ -222,17 +222,17 @@ static float llc_current_ctrl_step(float e)
 
 static float llc_current_limit_step(float i_meas)
 {
-    float iref = s_llc_curr.iref;
-    float db = s_llc_curr.deadband_a;
+    float iref = s_llc_curr.iref; // 参考电流
+    float db = s_llc_curr.deadband_a; // 死区带宽
 
     s_llc_curr.imeas = i_meas;
 
-    if (s_llc_curr.limit_active) {
-        if (i_meas < (iref - db)) {
+    if (s_llc_curr.limit_active) { // 如果限流器处于激活状态
+        if (i_meas < (iref - db)) { // 如果测量电流低于参考电流减去死区带宽
             s_llc_curr.limit_active = false;
         }
     } else {
-        if (i_meas > (iref + db)) {
+        if (i_meas > (iref + db)) { // 如果测量电流高于参考电流加上死区带宽
             s_llc_curr.limit_active = true;
         }
     }
@@ -243,7 +243,7 @@ static float llc_current_limit_step(float i_meas)
         return s_llc_curr.f_cmd;
     }
 
-    float err = iref - i_meas;
+    float err = iref - i_meas; // 误差
     return llc_current_ctrl_step(err);
 }
 
@@ -266,15 +266,15 @@ static bool llc_precheck_ok(void)
 static bool llc_pfc_ready_stable(bool enable_llc)
 {
     if (!enable_llc) {
-        s_llc_rt.pfc_ready_begin_ms = 0U;
+        s_llc_rt.pfc_ready_begin_ms = 0U; // 重置PFC准备开始时间
         return false;
     }
 
     if (s_llc_rt.pfc_ready_begin_ms == 0U) {
-        s_llc_rt.pfc_ready_begin_ms = g_ms;
+        s_llc_rt.pfc_ready_begin_ms = g_ms; // 记录PFC准备开始时间
     }
 
-    return elapsed_reached(s_llc_rt.pfc_ready_begin_ms, PFC_READY_STABLE_BEFORE_LLC_MS);
+    return elapsed_reached(s_llc_rt.pfc_ready_begin_ms, PFC_READY_STABLE_BEFORE_LLC_MS); // 判断PFC是否准备稳定
 }
 
 static bool llc_faults_present(void)
@@ -305,6 +305,16 @@ static void llc_enter_fault(void)
 {
     llc_state_enter(ST_FAULT);
 }
+
+static float llc_bumpless_integ(float f0, float e0, float kp, float f_min, float f_max)
+{
+    float f_nom = 0.5f * (f_min + f_max);  // 频率中值
+    float u0    = f_nom - f0;              // 因为：f = f_nom - u
+    float integ = u0 - kp * e0;            // u = kp*e + integ
+
+    float i_lim = f_max - f_min;           // 积分限幅（单位：Hz 等价）
+    return f_clampf(integ, -i_lim, i_lim); // 返回积分值，限幅在 -i_lim 和 i_lim 之间
+}
 /*********************************************************************************************************
 *                                              状态机核心
 *********************************************************************************************************/
@@ -313,9 +323,9 @@ static void llc_state_enter(llc_state_t next)
 	// 更新 LLC 状态和进入时间
 	if (s_llc_rt.app.state == next) 
 		return;
-	s_llc_rt.app.state = next;
-  s_llc_rt.app.entry_ms = g_ms;
-	//s_llc_app.entry_ms = g_ms;
+	s_llc_rt.app.state = next; 
+  	s_llc_rt.app.entry_ms = g_ms; // 记录进入时间
+	
 	#if Bus_Adj
 	//bus_vol_adj_reset();   //重置总线电压调整逻辑 百分之五十的占空比
 	#endif
@@ -333,35 +343,35 @@ static void llc_state_enter(llc_state_t next)
  		  s_llc_rt.softstart_begin_ms = 0U;  //软启动开始时间戳，用于控制软启动斜坡
  		  s_llc_rt.stopping_begin_ms = 0U;  //停机过程开始时间戳，用于控制停机时序
  		  s_llc_rt.hold_last_adjust_ms = 0U; //保持最后调整的时间戳，用于频率调整的去抖
-		  s_llc_rt.pfc_ready_begin_ms = 0U;
-		  s_llc_rt.run_entry_hold_begin_ms = 0U;
-		  s_llc_rt.run_entry_stable_ticks = 0U;
+		  s_llc_rt.pfc_ready_begin_ms = 0U; // PFC 准备开始时间戳，用于控制 PFC 准备稳定
+		  s_llc_rt.run_entry_hold_begin_ms = 0U; //运行入口保持开始时间戳，用于控制运行入口保持时间
+		  s_llc_rt.run_entry_stable_ticks = 0U; //运行入口稳定计数器，用于控制运行入口稳定时间
 		  break;
 	 case ST_PRECHECK:  
-	  	llc_driver_en_set(true);
+	  	llc_driver_en_set(true); //	enable llc
     	llc_pwm_outputs_enable(0); // 禁用 PWM 输出
     	llc_set_freq(s_llc.f_max);
       break;
 	 case ST_SOFTSTART:
-			s_llc_rt.softstart_begin_ms = g_ms;
+			s_llc_rt.softstart_begin_ms = g_ms; //	记录软启动开始时间戳
 			llc_driver_en_set(true);
 	 		llc_softstart_start(LLC_SOFTSTART_TARGET_HZ);
 			llc_pwm_outputs_enable(1);
 			break;
 	 case ST_RUN_ENTRY_HOLD:
 			llc_driver_en_set(true);
-			s_llc_rt.run_entry_hold_begin_ms = g_ms;
-			s_llc_rt.run_entry_stable_ticks = 0U;
-			s_llc.f_cmd = llc_softstart_last_hz();
+			s_llc_rt.run_entry_hold_begin_ms = g_ms; // 记录运行入口保持开始时间戳
+			s_llc_rt.run_entry_stable_ticks = 0U;  // 重置运行入口稳定计数器
+			s_llc.f_cmd = llc_softstart_last_hz(); // 设置目标频率为软启动最后的频率
 			llc_set_freq(s_llc.f_cmd);
 			break;
 	 case ST_LLC_RUN:
 			llc_driver_en_set(true);
-      s_llc_rt.hold_last_adjust_ms = g_ms;
-			s_llc.integ = 0.0f;
+      		s_llc_rt.hold_last_adjust_ms = g_ms; // 记录保持最后调整的时间戳
+			s_llc.integ = 0.0f; 
 	 		s_llc_curr.integ = 0.0f;
-			s_llc_curr.limit_active = false;
-			s_llc_curr.f_cmd = s_llc_curr.f_min;
+			s_llc_curr.limit_active = false; // 重置限流器状态
+			s_llc_curr.f_cmd = s_llc_curr.f_min; // 初始化限流器命令频率
 			break;
 	 case ST_STOPPING:
       s_llc_rt.stopping_begin_ms = g_ms;
@@ -457,14 +467,15 @@ void llc_app_tick_1khz(void)
 				llc_state_enter(ST_STOPPING);
 				break;
 			}
-			if(elapsed_reached(s_llc_rt.softstart_begin_ms,LLC_SOFTSTART_DURATION_MS + LLC_SOFTSTART_STABILIZE_MS))
+			if(elapsed_reached(s_llc_rt.softstart_begin_ms,LLC_SOFTSTART_DURATION_MS + LLC_SOFTSTART_STABILIZE_MS)) 
+			// 软启动完成
 			{
 				float e = s_llc_rt.meas.vout_v - LLC_VOUT_TARGET_V;   // з
 				float ae = fabsf(e);
 				(void)ae;
-				llc_softstart_stop();
-				s_llc.f_cmd = llc_softstart_last_hz();
-				llc_state_enter(ST_RUN_ENTRY_HOLD);
+				llc_softstart_stop(); // 停止软启动
+				s_llc.f_cmd = llc_softstart_last_hz();	// 设置目标频率为软启动最后的频率
+				llc_state_enter(ST_RUN_ENTRY_HOLD); // 进入运行入口保持状态
 				break;
 			}
 			break;
@@ -474,9 +485,9 @@ void llc_app_tick_1khz(void)
 				llc_state_enter(ST_STOPPING);
 				break;
 			}
-			float hold_err = s_llc_rt.meas.vout_v - LLC_VOUT_TARGET_V;
-			if (fabsf(hold_err) <= LLC_RUN_ENTRY_STABLE_WINDOW_V) {
-				if (s_llc_rt.run_entry_stable_ticks < LLC_RUN_ENTRY_STABLE_TICKS) {
+			float hold_err = s_llc_rt.meas.vout_v - LLC_VOUT_TARGET_V; // з
+			if (fabsf(hold_err) <= LLC_RUN_ENTRY_STABLE_WINDOW_V) { // 在稳定范围内
+				if (s_llc_rt.run_entry_stable_ticks < LLC_RUN_ENTRY_STABLE_TICKS) { // 保持稳定
 					s_llc_rt.run_entry_stable_ticks++;
 				}
 			} 
@@ -484,28 +495,29 @@ void llc_app_tick_1khz(void)
 			{
 				s_llc_rt.run_entry_stable_ticks = 0U;
 			}
-			if (elapsed_reached(s_llc_rt.run_entry_hold_begin_ms, LLC_RUN_ENTRY_HOLD_MS) && s_llc_rt.run_entry_stable_ticks >= LLC_RUN_ENTRY_STABLE_TICKS)
+			if (elapsed_reached(s_llc_rt.run_entry_hold_begin_ms, LLC_RUN_ENTRY_HOLD_MS) && s_llc_rt.run_entry_stable_ticks >= LLC_RUN_ENTRY_STABLE_TICKS) 
+			// 达到保持时间且稳定
 			{
 				llc_state_enter(ST_LLC_RUN);
 				break;
 			}
 
-			if (elapsed_reached(s_llc_rt.run_entry_hold_begin_ms, LLC_RUN_ENTRY_TIMEOUT_MS)) {
+			if (elapsed_reached(s_llc_rt.run_entry_hold_begin_ms, LLC_RUN_ENTRY_TIMEOUT_MS)){ // 超时
 				llc_state_enter(ST_STOPPING);
 				break;
 			}
 				break;		
 		case ST_LLC_RUN:
-			if(!enable_llc||(s_llc_rt.meas.vbus_v<(LLC_VBUS_MIN_START_V-LLC_VOUT_HYST_V)))
+			if(!enable_llc||(s_llc_rt.meas.vbus_v<(LLC_VBUS_MIN_START_V-LLC_VOUT_HYST_V))) // 电压过低
 			{
 				llc_state_enter(ST_STOPPING);
 				break;
 			}
 			s_llc.vmeas = s_llc_rt.meas.vout_v;
 			float err = s_llc.vref - s_llc.vmeas;
-			float f_cmd_v = llc_ctrl_step(err);
-			float f_cmd_i = llc_current_limit_step(s_llc_rt.meas.iout_a);
-			float f_cmd = (f_cmd_i > f_cmd_v) ? f_cmd_i : f_cmd_v;
+			float f_cmd_v = llc_ctrl_step(err); // 频率控制
+			float f_cmd_i = llc_current_limit_step(s_llc_rt.meas.iout_a); // 电流限流控制
+			float f_cmd = (f_cmd_i > f_cmd_v) ? f_cmd_i : f_cmd_v; // 取较大值
 			llc_set_freq(f_cmd);			
 			break;
 		case ST_STOPPING:
