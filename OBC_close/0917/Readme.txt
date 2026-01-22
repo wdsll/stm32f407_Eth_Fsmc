@@ -162,5 +162,80 @@
 		(3)功率 / 模式协调
 			根据电池电压/电流、BMS 指令选择 LLC 的 CV/CC 参数；
 			在极低输入电压 / PFC 降额时，限制 LLC 的最大输出功率。
+5.1 基本频率与采样			
+			
+| 参数      | 宏/变量            |      单位 | 说明               |
+| ------- | --------------- | ------: | ---------------- |
+| 控制周期    | `LLC_CTRL_TS_S` |       s | 1ms              |
+| `f_min` | `LLC_F_MIN_HZ`  |      Hz | 最低频率（最大增益区附近）    |
+| `f_max` | `LLC_F_MAX_HZ`  |      Hz | 最高频率（最低增益/最小功率）  |
+| 初始频率    | `LLC_F_INIT_HZ` |      Hz | softstart 前/运行初始 |
+| slew 限幅 | `LLC_F_SLEW_HZ` | Hz/step | 频率每步最大变化         |
+| 参数         | 宏/变量                    |        单位 | 推荐说明              |
+5.2 电压环参数（CV）
+| ---------- | ----------------------- | --------: | ----------------- |
+| 目标电压       | `LLC_VOUT_TARGET_V`     |         V | 例如 44V            |
+| `kp`       | `LLC_VCTRL_KP`          |      Hz/V | 比例系数              |
+| `ki`       | `LLC_VCTRL_KI`          | Hz/V/step | 离散积分系数（不要再乘 Ts）   |
+| `f_nom`    | `LLC_VCTRL_F_NOM_HZ`    |        Hz | 建议=软启结束频率(100kHz) |
+| `e_db`     | `LLC_VCTRL_E_DB_V`      |         V | 死区（抑噪）            |
+| `f_q_step` | `LLC_VCTRL_F_Q_STEP_HZ` |        Hz | 量化步进（0=不量化）       |
+
+5.3 电流限流参数（CC）			
+| 参数        | 宏/变量                    |                   单位 | 说明            |
+| --------- | ----------------------- | -------------------: | ------------- |
+| 目标电流      | `LLC_IOUT_TARGET_A`     |                    A | Iref          |
+| 进入迟滞      | `LLC_IOUT_ON_DELTA_A`   |                    A | i_on=Iref+Δ   |
+| 退出迟滞      | `LLC_IOUT_OFF_DELTA_A`  |                    A | i_off=Iref-Δ  |
+| 误差限幅      | `LLC_IOUT_ERR_SAT_A`    |                    A | 防止爆炸          |
+| `kp_i`    | `LLC_IOUT_CTRL_KP`      |                 Hz/A | 比例            |
+| `ki_i`    | `LLC_IOUT_CTRL_KI`      | Hz/(A·s) 或 Hz/A/step | 注意离散化一致性      |
+| `df_max`  | `LLC_IOUT_DF_MAX_HZ`    |                   Hz | 最大抬频量         |
+| `df_slew` | `LLC_IOUT_DF_SLEW_HZ_S` |                 Hz/s | 建议换算成 Hz/step |
+你当前 init 里是 ki = KI * Ts、df_slew = DF_SLEW_S * Ts：这表示宏给的是连续域（每秒），内部离散化到每步，OK，但要在文档里写清楚
+
+5.4 时序参数
+| 参数             | 宏/变量                             | 单位 | 说明      |
+| -------------- | -------------------------------- | -: | ------- |
+| PFC ready 稳定时间 | `PFC_READY_STABLE_BEFORE_LLC_MS` | ms | 防抖      |
+| softstart 时长   | `LLC_SOFTSTART_DURATION_MS`      | ms | 轨迹时间    |
+| softstart 稳定等待 | `LLC_SOFTSTART_STABILIZE_MS`     | ms | 软启末端稳态  |
+| RUN 入口保持       | `LLC_RUN_ENTRY_HOLD_MS`          | ms | 交接保持    |
+| 稳定窗口           | `LLC_RUN_ENTRY_STABLE_WINDOW_V`  |  V | 判稳窗口    |
+| 稳定 tick        | `LLC_RUN_ENTRY_STABLE_TICKS`     |  次 | 连续满足次数  |
+| 入口超时           | `LLC_RUN_ENTRY_TIMEOUT_MS`       | ms | 超时退回    |
+| stopping hold  | `LLC_STOPPING_FREQ_HOLD_MS`      | ms | 停机降功率保持 |
+
+6. 保护策略
+6.1 保护来源
+
+硬件保护：protect_fault_active_hw()（刹车/硬件中断）
+
+软件锁存：protect_fault_latched()
+
+PFC 故障：pfc_is_fault()
+
+输出过压：Vout > LLC_VOUT_OVP_V
+
+输出过流：Iout > LLC_IOUT_OCP_A
+
+母线欠压：Vbus < LLC_VBUS_MIN_START_V - LLC_VOUT_HYST_V
+
+6.2 触发策略
+
+在除 IDLE/FAULT 外所有状态，周期性检查 llc_faults_present()
+
+一旦触发 → ST_FAULT
+
+6.3 FAULT 行为
+
+立即关闭 PWM
+
+立即关闭驱动 EN
+
+频率设为 f_max
+
+可扩展：故障码记录、上报 CAN、自动恢复计时等
+
 			
 			

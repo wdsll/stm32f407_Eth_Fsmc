@@ -65,7 +65,7 @@ static bool llc_pfc_ready_stable(bool enable_llc);
 static bool llc_faults_present(void);
 static void llc_enter_fault(void);
 static float llc_ctrl_step(float e, bool en, bool limit_active, float f_init, float f_track);
-
+static float llc_bumpless_integ(float f0, float e0, float kp, float f_min, float f_max)
 //static float llc_current_ctrl_step(float e);
 static float llc_current_limit_step(float i_meas,bool en);
 /*********************************************************************************************************
@@ -132,11 +132,11 @@ static float llc_ctrl_step(float e, bool en, bool limit_active, float f_init, fl
     float f_min = s_llc.f_min;
     float f_max = s_llc.f_max;
     float f_slew = s_llc.f_slew;
-	  float f_nom = s_llc.f_nom; 
+	  float f_nom = s_llc.f_nom;  //额定频率（与软启动末拍对齐）
     float e_db = s_llc.e_db; 
-    float f_q_step = s_llc.f_q_step; 
+    float f_q_step = s_llc.f_q_step;  //频率量化步进
 	
-	if (f_min <= 0.0f || f_min >= f_max) {
+	  if (f_min <= 0.0f || f_min >= f_max) {
         f_min = 75000.0f;
         f_max = 150000.0f;
     }
@@ -164,10 +164,12 @@ static float llc_ctrl_step(float e, bool en, bool limit_active, float f_init, fl
 		}
 		if (!en_z1) {
 			s_llc.f_cmd = f_init;
-			s_llc.integ = (f_nom - f_init) - kp * e;
-			en_z1 = true;
+			//s_llc.integ = (f_nom - f_init) - kp * e;
+			//调用专用函数计算积分初始值，实现“无扰切换”（bumpless transfer）。
+			s_llc.integ = llc_bumpless_integ(f_init, e, kp, f_min, f_max);
+			en_z1 = true; // 记录上一次的使能状态为已经使能
     }
-	//死区处理避免控制器对微小误差的过度反应，应用场景：减少噪声引起的振荡，提高系统稳定性
+		//死区处理避免控制器对微小误差的过度反应，应用场景：减少噪声引起的振荡，提高系统稳定性
 		float e_pi = (fabsf(e) < e_db) ? 0.0f : e;
     float f_prev = s_llc.f_cmd; // 上一次的频率
 		float f_sat = f_prev; // 限幅后的频率
@@ -180,10 +182,12 @@ static float llc_ctrl_step(float e, bool en, bool limit_active, float f_init, fl
         f_prev = f_t; //	更新上一次的频率
     } else {
         float x_candidate = s_llc.integ + ki * e_pi; //候选积分值
+			//u 是 PI 控制器根据电压误差计算出的频率调整量，决定了当前周期应当向 f_nom 增加或减少多少频率，以维持输出电压稳定。它是电压环的核心输出，
+			//后续经过限幅、斜率限制等保护环节，最终生成安全的开关频率命令 f_cmd。
         float u = kp * e_pi + x_candidate; //电压控制作用
-        float f_req = f_nom - u; //频率请求
+        float f_req = f_nom - u; //频率请求 = 额定频率 - 电压环的控制量
         f_sat = f_clampf(f_req, f_min, f_max); //频率限幅
-
+			//f_sat 是 经过限幅（钳位）处理后的安全频率，确保输出频率在允许的硬件范围 [f_min, f_max] 内。
         if (fabsf(f_req - f_sat)>1e-6f) { 
             s_llc.integ = (f_nom - f_sat) - kp * e_pi; // 重置积分器以防积分风up
         } else {
@@ -254,6 +258,8 @@ static float llc_current_limit_step(float i_meas,bool en)
         s_llc_curr.integ = 0.0f;    // 清零积分器（防止积分漂移）
         df_sat = 0.0f;              // 输出为0
     } else {												// 限流模式激活，执行PI控制
+		//电压环采用 “标称频率减去控制量” 的结构（f_req = f_nom - u），因此误差定义为 v_ref - v_meas，使控制量 u 与频率变化 反向。
+    //电流环采用 “最小频率加上增量” 的结构（f_cmd_i = f_min + df_i），因此误差定义为 i_meas - iref，使增量 df_i 与频率变化 同向。
         float ierr = i_meas - iref; // 计算电流误差（测量值 - 参考值）
         if (ierr > i_err_sat) {     // 误差限幅，防止积分器过度累积
             ierr = i_err_sat;       // 正向饱和
@@ -526,9 +532,6 @@ void llc_app_tick_1khz(void)
 			if(elapsed_reached(s_llc_rt.softstart_begin_ms,LLC_SOFTSTART_DURATION_MS + LLC_SOFTSTART_STABILIZE_MS)) 
 			// 软启动完成
 			{
-				float e = s_llc_rt.meas.vout_v - LLC_VOUT_TARGET_V;   // з
-				float ae = fabsf(e);
-				(void)ae;
 				llc_softstart_stop(); // 停止软启动
 				s_llc.f_cmd = llc_softstart_last_hz();	// 设置目标频率为软启动最后的频率
 				llc_state_enter(ST_RUN_ENTRY_HOLD); // 进入运行入口保持状态
