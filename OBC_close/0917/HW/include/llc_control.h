@@ -29,6 +29,7 @@ typedef struct {
 	float iref, imeas;
 	float ikp, iki, i_integ;
 	float f_min, f_max, f_cmd, f_slew;
+	float f_nom, e_db, f_q_step;
 	float f_cmd_v, f_cmd_i;
 } llc_t;
 

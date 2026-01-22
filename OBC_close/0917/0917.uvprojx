@@ -432,6 +432,16 @@
               <FileType>5</FileType>
               <FilePath>.\APP\llc_dual_loop_competition_design.txt</FilePath>
             </File>
+            <File>
+              <FileName>current loop.txt</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\APP\current loop.txt</FilePath>
+            </File>
+            <File>
+              <FileName>LLC电压控制环PI控制器.txt</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\APP\LLC电压控制环PI控制器.txt</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

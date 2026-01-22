@@ -32,14 +32,17 @@ static llc_t s_llc; //llc上下文
 typedef struct {
     float iref; 	//参考电流
     float imeas;  	//测量电流
+	  float i_err_sat; //误差限幅
     float kp;   	//比例系数
     float ki;  	    //积分系数 
     float integ;    //积分值
     float f_min; 	//最小频率
     float f_max; 	//最大频率
-    float f_cmd; 	//命令频率
-    float f_slew;	//频率 slew rate
-    float deadband_a; //死区带宽
+		float df_max;   //频率增量上限
+    float df_slew;  //频率 slew
+	  float df_prev;  //上一拍 df
+    float i_on;     //激活电流
+    float i_off;    //退出电流
     bool limit_active; //限流激活标志
 } llc_curr_t;
 
@@ -61,10 +64,10 @@ static bool llc_precheck_ok(void);
 static bool llc_pfc_ready_stable(bool enable_llc);
 static bool llc_faults_present(void);
 static void llc_enter_fault(void);
-static float llc_ctrl_step(float e);
+static float llc_ctrl_step(float e, bool en, bool limit_active, float f_init, float f_track);
 
-static float llc_current_ctrl_step(float e);
-static float llc_current_limit_step(float i_meas);
+//static float llc_current_ctrl_step(float e);
+static float llc_current_limit_step(float i_meas,bool en);
 /*********************************************************************************************************
 *                                              静态工具
 *********************************************************************************************************/
@@ -111,21 +114,34 @@ static void llc_set_freq(float hz)
     s_llc.f_cmd = f;
     llc_pwm_set_freq((uint32_t)f);
 }
-
-static float llc_ctrl_step(float e)
+/*********************************************************************************************************
+* 函数名称：llc_ctrl_step
+* 函数功能：
+* 输入参数：e 电压误差：v_ref - v_meas; en 控制器使能标志; limit_active 电流限制激活标志
+						f_init 初始频率（用于使能时的初始化）; f_track 跟踪频率（电流限制激活时使用）
+* 输出参数：
+* 返 回 值：
+* 创建日期：2026年01月21日
+* 注    意：
+*********************************************************************************************************/
+static float llc_ctrl_step(float e, bool en, bool limit_active, float f_init, float f_track)
 {
-	float kp = s_llc.kp;
+	  static bool en_z1 = false;  // 记录上一次的使能状态
+    float kp = s_llc.kp;
     float ki = s_llc.ki;
     float f_min = s_llc.f_min;
     float f_max = s_llc.f_max;
     float f_slew = s_llc.f_slew;
+	  float f_nom = s_llc.f_nom; 
+    float e_db = s_llc.e_db; 
+    float f_q_step = s_llc.f_q_step; 
 	
 	if (f_min <= 0.0f || f_min >= f_max) {
         f_min = 75000.0f;
-        f_max = 130000.0f;
+        f_max = 150000.0f;
     }
     if (f_slew <= 0.0f) {
-        f_slew = 5000.0f;
+        f_slew = 1000.0f;
     }
     if (kp <= 0.0f) {
         kp = 10.0f;
@@ -133,118 +149,150 @@ static float llc_ctrl_step(float e)
     if (ki < 0.0f) {
         ki = 0.0f;
     }
-	float f_nom = 0.5f * (f_min + f_max); // 中频
+		if (f_nom <= 0.0f) {
+			f_nom = 0.5f * (f_min + f_max);
+		}
+		if(f_q_step<0.0f)
+		{
+			 f_q_step = 0.0f;
+		}
+		if (!en) {
+			s_llc.integ = 0.0f; // 重置积分器
+			s_llc.f_cmd = f_init; // 设置初始频率
+			en_z1 = false;  // 清除使能记忆
+			return s_llc.f_cmd;
+		}
+		if (!en_z1) {
+			s_llc.f_cmd = f_init;
+			s_llc.integ = (f_nom - f_init) - kp * e;
+			en_z1 = true;
+    }
+	//死区处理避免控制器对微小误差的过度反应，应用场景：减少噪声引起的振荡，提高系统稳定性
+		float e_pi = (fabsf(e) < e_db) ? 0.0f : e;
     float f_prev = s_llc.f_cmd; // 上一次的频率
-    if (f_prev < f_min || f_prev > f_max) {
-        f_prev = f_nom;
-    }
+		float f_sat = f_prev; // 限幅后的频率
 		
-	float x_candidate = s_llc.integ + ki * e; // 积分值
-    float u = kp * e + x_candidate; // 控制量
-    float f_req = f_nom - u; // 请求频率
-    float f_sat = f_clampf(f_req, f_min, f_max); // 饱和频率
-		
-	if (f_req == f_sat) { // 如果请求频率和饱和频率相同，则积分值清零
-        float i_lim = f_max - f_min;
-        if (x_candidate > i_lim) {
-            x_candidate = i_lim;
-        } else if (x_candidate < -i_lim) {
-            x_candidate = -i_lim;
+		if (limit_active) {
+			//优先级：电流保护 > 电压控制作用：当电流过大时，放弃电压环，跟踪电流环提供的频率
+        float f_t = f_clampf(f_track, f_min, f_max); //	电流限制时，跟踪频率
+        s_llc.integ = (f_nom - f_t) - kp * e_pi; // 重置积分器以防积分风up
+        f_sat = f_t; // 设置限幅后的频率为跟踪频率
+        f_prev = f_t; //	更新上一次的频率
+    } else {
+        float x_candidate = s_llc.integ + ki * e_pi; //候选积分值
+        float u = kp * e_pi + x_candidate; //电压控制作用
+        float f_req = f_nom - u; //频率请求
+        f_sat = f_clampf(f_req, f_min, f_max); //频率限幅
+
+        if (fabsf(f_req - f_sat)>1e-6f) { 
+            s_llc.integ = (f_nom - f_sat) - kp * e_pi; // 重置积分器以防积分风up
+        } else {
+            s_llc.integ = x_candidate; // 接受候选积分值
         }
-        s_llc.integ = x_candidate;
     }
-		
-	float df = f_sat - f_prev; // 频率差
+		float df = f_sat - f_prev; //频率增量
     if (df > f_slew) {
-        s_llc.f_cmd = f_prev + f_slew;
+        s_llc.f_cmd = f_prev + f_slew; // 限制频率增量
     } else if (df < -f_slew) {
-        s_llc.f_cmd = f_prev - f_slew;
+        s_llc.f_cmd = f_prev - f_slew; // 限制频率增量
     } else {
         s_llc.f_cmd = f_sat;
     }
 		
+    if (f_q_step > 0.0f) {
+        s_llc.f_cmd = roundf(s_llc.f_cmd / f_q_step) * f_q_step; // 量化频率
+    }
+    s_llc.f_cmd = f_clampf(s_llc.f_cmd, f_min, f_max); // 频率限幅
 	return s_llc.f_cmd;
 }
-
-static float llc_current_ctrl_step(float e)
+/*********************************************************************************************************
+* 函数名称：llc_current_limit_step
+* 函数功能：电流限流PI控制器（带迟滞和抗饱和）
+* 输入参数：i_meas 测量电流值（A）  使能控制（false时复位积分器并返回0）
+* 输出参数：频率增量（Hz）
+* 返 回 值：
+* 创建日期：2026年01月22日
+* 注    意：静态函数，返回频率增量（Hz）
+*	算法概述：1. 迟滞切换：当测量电流 i_meas ≥ i_on 时激活限流模式，当 i_meas ≤ i_off 时退出
+						2. PI控制：计算频率增量 u = kp*ierr + integ，其中 ierr = i_meas - iref（经限幅）
+					  3. 抗饱和：当输出饱和时（u>df_max 或 u<0），采用反计算法调整积分器
+						4. 斜率限制：限制输出变化率不超过 df_slew
+						5. 输出钳位：最终输出限制在 [0, df_max] 范围内
+*********************************************************************************************************/
+static float llc_current_limit_step(float i_meas,bool en)
 {
-	  float kp = s_llc_curr.kp;
-    float ki = s_llc_curr.ki;
-    float f_min = s_llc_curr.f_min;
-    float f_max = s_llc_curr.f_max;
-    float f_slew = s_llc_curr.f_slew;
-	
-	  if (f_min <= 0.0f || f_min >= f_max) {
-        f_min = 75000.0f;
-        f_max = 130000.0f;
-    }
-    if (f_slew <= 0.0f) {
-        f_slew = 5000.0f;
-    }
-    if (kp <= 0.0f) {
-        kp = 10.0f;
-    }
-    if (ki < 0.0f) {
-        ki = 0.0f;
-    }
-		
-		float f_nom = 0.5f * (f_min + f_max);
-    float f_prev = s_llc_curr.f_cmd;
-    if (f_prev < f_min || f_prev > f_max) {
-        f_prev = f_nom;
-    }
-	float x_candidate = s_llc_curr.integ + ki * e; // 积分值
-    float u = kp * e + x_candidate;
-    float f_req = f_nom - u;
-    float f_sat = f_clampf(f_req, f_min, f_max);
+	 // 从全局结构体提取控制器参数（避免多次访问）
+    float iref = s_llc_curr.iref;  // 电流参考值（A）
+    float i_err_sat = s_llc_curr.i_err_sat;  // 误差限幅值
+    float kp = s_llc_curr.kp; // 比例系数（Hz/A）
+    float ki = s_llc_curr.ki; // 积分系数（Hz/(A·周期)）
+    float df_max = s_llc_curr.df_max; // 最大频率增量（Hz）
+    float df_slew = s_llc_curr.df_slew; // 频率变化率限制（Hz/周期）
 
-    if (f_req == f_sat) {
-        float i_lim = f_max - f_min;
-        if (x_candidate > i_lim) {
-            x_candidate = i_lim;
-        } else if (x_candidate < -i_lim) {
-            x_candidate = -i_lim;
-        }
-        s_llc_curr.integ = x_candidate;
+    if (!en) {
+        s_llc_curr.integ = 0.0f; // 清零积分器
+        s_llc_curr.df_prev = 0.0f; // 清零上一周期输出
+        s_llc_curr.limit_active = false; // 退出限流模式
+        return 0.0f;
     }
 
-    float df = f_sat - f_prev; // 频率差
-    if (df > f_slew) {
-        s_llc_curr.f_cmd = f_prev + f_slew;
-    } else if (df < -f_slew) {
-        s_llc_curr.f_cmd = f_prev - f_slew;
-    } else {
-        s_llc_curr.f_cmd = f_sat;
-    }
-
-    return s_llc_curr.f_cmd;
-}
-
-static float llc_current_limit_step(float i_meas)
-{
-    float iref = s_llc_curr.iref; // 参考电流
-    float db = s_llc_curr.deadband_a; // 死区带宽
-
-    s_llc_curr.imeas = i_meas;
-
-    if (s_llc_curr.limit_active) { // 如果限流器处于激活状态
-        if (i_meas < (iref - db)) { // 如果测量电流低于参考电流减去死区带宽
-            s_llc_curr.limit_active = false;
+		s_llc_curr.imeas = i_meas;  // 保存测量值供调试/监视
+		// 迟滞切换逻辑：判断是否进入/退出限流模式
+    if (!s_llc_curr.limit_active) { // 当前未处于限流模式
+        if (i_meas >= s_llc_curr.i_on) { // 若电流超过开启阈值
+            s_llc_curr.limit_active = true; // 激活限流模式
         }
     } else {
-        if (i_meas > (iref + db)) { // 如果测量电流高于参考电流加上死区带宽
-            s_llc_curr.limit_active = true;
+        if (i_meas <= s_llc_curr.i_off) { // 若电流低于关闭阈值
+            s_llc_curr.limit_active = false; // 退出限流模式
         }
+			}
+    
+		float df_sat = 0.0f;    // 饱和后的频率增量（未经过斜率限制）
+		// 根据限流模式状态决定处理逻辑
+    if (!s_llc_curr.limit_active) { // 非限流模式
+        s_llc_curr.integ = 0.0f;    // 清零积分器（防止积分漂移）
+        df_sat = 0.0f;              // 输出为0
+    } else {												// 限流模式激活，执行PI控制
+        float ierr = i_meas - iref; // 计算电流误差（测量值 - 参考值）
+        if (ierr > i_err_sat) {     // 误差限幅，防止积分器过度累积
+            ierr = i_err_sat;       // 正向饱和
+        } else if (ierr < -i_err_sat) {
+            ierr = -i_err_sat;      // 负向饱和
+        }
+				// 积分器前向计算（候选值）
+        float x_candidate = s_llc_curr.integ + ki * ierr;
+				// PI控制器输出：比例项 + 积分候选值
+        float u = kp * ierr + x_candidate;
+				// 输出饱和处理（抗饱和逻辑的前半部分）
+        if (u > df_max) {
+            df_sat = df_max;  // 正向饱和至最大频率增量
+        } else if (u < 0.0f) {
+            df_sat = 0.0f;    // 负向饱和至0（频率不能为负）
+        } else {
+            df_sat = u;       // 未饱和，直接使用计算值
+        }
+				// 抗饱和积分器调整（反计算法）
+        if (fabsf(u - df_sat) > 1e-6f) { // 如果输出发生了饱和（容差1e?6）
+            s_llc_curr.integ = df_sat - kp * ierr;  // 重新计算积分器，使输出恰好等于饱和值
+        } else {
+            s_llc_curr.integ = x_candidate; // 未饱和，使用候选值更新积分器
+        }
+				// 积分器钳位，防止积分器溢出
+        s_llc_curr.integ = f_clampf(s_llc_curr.integ, -df_max, df_max);
     }
-
-    if (!s_llc_curr.limit_active) {
-        s_llc_curr.integ = 0.0f;
-        s_llc_curr.f_cmd = s_llc_curr.f_min;
-        return s_llc_curr.f_cmd;
-    }
-
-    float err = iref - i_meas; // 误差
-    return llc_current_ctrl_step(err);
+		// 斜率（变化率）限制
+		float ddf = df_sat - s_llc_curr.df_prev; // 计算本次饱和输出与上一周期最终输出的差值
+    float df_i = df_sat;  // 初始值为饱和输出
+    if (ddf > df_slew) {  // 如果正向变化超过允许斜率
+        df_i = s_llc_curr.df_prev + df_slew; // 只增加允许的最大变化量
+    } else if (ddf < -df_slew) {// 如果负向变化超过允许斜率
+        df_i = s_llc_curr.df_prev - df_slew;// 只减少允许的最大变化量
+    }    
+	// 最终输出钳位
+    df_i = f_clampf(df_i, 0.0f, df_max); // 确保输出在[0, df_max]范围内
+    s_llc_curr.df_prev = df_i;  // 保存本次输出，供下一周期使用
+    return df_i;
 }
 
 
@@ -323,9 +371,12 @@ static void llc_state_enter(llc_state_t next)
 	// 更新 LLC 状态和进入时间
 	if (s_llc_rt.app.state == next) 
 		return;
-	s_llc_rt.app.state = next; 
+	  s_llc_rt.app.state = next; 
   	s_llc_rt.app.entry_ms = g_ms; // 记录进入时间
-	
+	if (next != ST_LLC_RUN) {
+		(void)llc_ctrl_step(0.0f, false, false, s_llc.f_cmd, s_llc.f_cmd);
+		(void)llc_current_limit_step(0.0f, false);
+	}
 	#if Bus_Adj
 	//bus_vol_adj_reset();   //重置总线电压调整逻辑 百分之五十的占空比
 	#endif
@@ -367,11 +418,11 @@ static void llc_state_enter(llc_state_t next)
 			break;
 	 case ST_LLC_RUN:
 			llc_driver_en_set(true);
-      		s_llc_rt.hold_last_adjust_ms = g_ms; // 记录保持最后调整的时间戳
+      s_llc_rt.hold_last_adjust_ms = g_ms; // 记录保持最后调整的时间戳
 			s_llc.integ = 0.0f; 
 	 		s_llc_curr.integ = 0.0f;
+			s_llc_curr.df_prev = 0.0f;
 			s_llc_curr.limit_active = false; // 重置限流器状态
-			s_llc_curr.f_cmd = s_llc_curr.f_min; // 初始化限流器命令频率
 			break;
 	 case ST_STOPPING:
       s_llc_rt.stopping_begin_ms = g_ms;
@@ -403,14 +454,19 @@ void llc_app_init()
 {
 	llc_softstart_init();
 	s_llc = (llc_t){
-				.vref=LLC_VOUT_TARGET_V, .vmeas=0.0f, .kp=0.01f, .ki=0.0005f,
-				.f_min=LLC_F_MIN_HZ, .f_max=LLC_F_MAX_HZ, .f_cmd=LLC_F_INIT_HZ, .f_slew=LLC_F_SLEW_HZ
-	};
-	
+				.vref=LLC_VOUT_TARGET_V, .vmeas=0.0f,
+				.kp=LLC_VCTRL_KP, .ki=LLC_VCTRL_KI, .integ=0.0f,
+				.f_min=LLC_F_MIN_HZ, .f_max=LLC_F_MAX_HZ, .f_cmd=LLC_F_INIT_HZ,  .f_slew=LLC_F_SLEW_HZ,
+				.f_nom=LLC_VCTRL_F_NOM_HZ, .e_db=LLC_VCTRL_E_DB_V, .f_q_step=LLC_VCTRL_F_Q_STEP_HZ
+		};
 	s_llc_curr = (llc_curr_t){
-				.iref=LLC_IOUT_TARGET_A, .imeas=0.0f, .kp=LLC_IOUT_CTRL_KP, .ki=LLC_IOUT_CTRL_KI, .integ=0.0f,
-				.f_min=LLC_F_MIN_HZ, .f_max=LLC_F_MAX_HZ, .f_cmd=LLC_F_MIN_HZ, .f_slew=LLC_F_SLEW_HZ,
-				.deadband_a=LLC_IOUT_CTRL_DEADBAND_A, .limit_active=false
+				.iref=LLC_IOUT_TARGET_A, .imeas=0.0f, .i_err_sat=LLC_IOUT_ERR_SAT_A,
+				.kp=LLC_IOUT_CTRL_KP, .ki=LLC_IOUT_CTRL_KI * LLC_CTRL_TS_S, .integ=0.0f,
+				.f_min=LLC_F_MIN_HZ, .f_max=LLC_F_MAX_HZ,
+				.df_max=LLC_IOUT_DF_MAX_HZ, .df_slew=LLC_IOUT_DF_SLEW_HZ_S * LLC_CTRL_TS_S, .df_prev=0.0f,
+				.i_on=LLC_IOUT_TARGET_A + LLC_IOUT_ON_DELTA_A,
+				.i_off=LLC_IOUT_TARGET_A - LLC_IOUT_OFF_DELTA_A,
+				.limit_active=false
 	};
 	
 	llc_state_enter(ST_IDLE);
@@ -515,9 +571,14 @@ void llc_app_tick_1khz(void)
 			}
 			s_llc.vmeas = s_llc_rt.meas.vout_v;
 			float err = s_llc.vref - s_llc.vmeas;
-			float f_cmd_v = llc_ctrl_step(err); // 频率控制
-			float f_cmd_i = llc_current_limit_step(s_llc_rt.meas.iout_a); // 电流限流控制
-			float f_cmd = (f_cmd_i > f_cmd_v) ? f_cmd_i : f_cmd_v; // 取较大值
+			float f_init  = s_llc.f_cmd;                           // 上一拍下发的频率（用于slew基准）
+			float df_i = llc_current_limit_step(s_llc_rt.meas.iout_a, true);
+			float f_cmd_i = s_llc.f_min + df_i;
+			
+			/* 关键：用 df_i 判断当前是否仍被电流环抬高（不要用 limit_active） */
+			bool lim_for_v = df_i > 1.0f;                      
+			float f_cmd_v = llc_ctrl_step(err, true, lim_for_v, f_init, f_cmd_i); 
+			float f_cmd = (f_cmd_i > f_cmd_v) ? f_cmd_i : f_cmd_v; 
 			llc_set_freq(f_cmd);			
 			break;
 		case ST_STOPPING:

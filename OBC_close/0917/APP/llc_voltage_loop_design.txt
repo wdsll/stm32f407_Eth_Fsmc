@@ -85,3 +85,6 @@
 2. `llc_app_tick_1khz` 更新测量与状态机。
 3. 在 `ST_LLC_RUN` 中执行 PI + 限幅 + 斜率限制。
 4. 更新 PWM 频率，驱动 LLC。
+
+
+
