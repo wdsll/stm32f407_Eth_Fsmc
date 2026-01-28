@@ -133,19 +133,12 @@
 #define LLC_VOUT_TARGET_V            (44.0f)
 #define LLC_VOUT_HYST_V              (15.0f)
 #define LLC_VOUT_OVP_V               (58.0f)
-#define LLC_IOUT_OCP_A               (15.0f)
+#define LLC_IOUT_OCP_A               (41.0f)
 
 #define LLC_IOUT_TARGET_A            (20.0f)
 #define LLC_IOUT_CTRL_KP             (400.0f)
 #define LLC_IOUT_CTRL_KI             (1200.0f)
 
-#define LLC_SWEEP_START_HZ           (100000.0f)
-#define LLC_SWEEP_STOP_HZ            (80000.0f)
-#define LLC_SWEEP_STEP_HZ            (800.0f) 
-#define LLC_SWEEP_STEP_MS            (5U)
-#define LLC_SWEEP_TIMEOUT_MS         (1600U)
-#define LLC_SWEEP_STABLE_COUNT       (2U)
-#define LLC_SWEEP_TARGET_WINDOW_V    (2.0f)
 
 #define LLC_HOLD_ADJUST_HZ           (400.0f)
 #define LLC_HOLD_ADJUST_PERIOD_MS    (10U)

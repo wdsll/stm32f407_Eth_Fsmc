@@ -214,7 +214,7 @@ static void llc_softstart_tick(void)
         return;
     }
 
-	uint32_t elapsed = (uint32_t)(g_ms - s_llc_softstart.start_ms);
+	 uint32_t elapsed = (uint32_t)(g_ms - s_llc_softstart.start_ms);
 
     if (elapsed >= s_llc_softstart.duration_ms) {
         s_llc_softstart.active = false;

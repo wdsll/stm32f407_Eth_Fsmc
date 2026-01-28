@@ -3,11 +3,11 @@
 <title>Static Call Graph - [.\Objects\0917.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Objects\0917.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6090000: Last Updated: Thu Jan 22 08:13:28 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6090000: Last Updated: Wed Jan 28 08:45:22 2026
 <BR><P>
-<H3>Maximum Stack Usage =        500 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
+<H3>Maximum Stack Usage =        504 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
-main &rArr; llc_app_init &rArr; llc_state_enter &rArr; llc_softstart_start &rArr; llc_softstart_begin &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
+main &rArr; llc_app_init &rArr; llc_state_enter &rArr; llc_ctrl_step &rArr; llc_bumpless_integ &rArr; f_clampf
 <P>
 <H3>
 Mutually Recursive functions
@@ -428,7 +428,7 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[5e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_float_round
 </UL>
-<BR>[Called By]<UL><LI><a href="#[e0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__hardfp_roundf
+<BR>[Called By]<UL><LI><a href="#[e1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__hardfp_roundf
 </UL>
 
 <P><STRONG><a name="[56]"></a>_double_round</STRONG> (Thumb, 30 bytes, Stack size 8 bytes, depilogue.o(.text))
@@ -520,7 +520,7 @@ Global Symbols
 <P><STRONG><a name="[11d]"></a>SystemCoreClockUpdate</STRONG> (Thumb, 354 bytes, Stack size 28 bytes, system_gd32f30x.o(.text.SystemCoreClockUpdate))
 <BR><BR>[Stack]<UL><LI>Max Depth = 28<LI>Call Chain = SystemCoreClockUpdate
 </UL>
-<BR>[Called By]<UL><LI><a href="#[105]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;systick_1ms_init
+<BR>[Called By]<UL><LI><a href="#[103]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;systick_1ms_init
 </UL>
 
 <P><STRONG><a name="[48]"></a>SystemInit</STRONG> (Thumb, 98 bytes, Stack size 8 bytes, system_gd32f30x.o(.text.SystemInit))
@@ -905,42 +905,42 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[61]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ConfigRCU
 </UL>
 
-<P><STRONG><a name="[e1]"></a>gpio_bit_reset</STRONG> (Thumb, 24 bytes, Stack size 16 bytes, gd32f30x_gpio.o(.text.gpio_bit_reset))
+<P><STRONG><a name="[e2]"></a>gpio_bit_reset</STRONG> (Thumb, 24 bytes, Stack size 16 bytes, gd32f30x_gpio.o(.text.gpio_bit_reset))
 <BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = gpio_bit_reset
 </UL>
-<BR>[Called By]<UL><LI><a href="#[ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pins_init
+<BR>[Called By]<UL><LI><a href="#[ec]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pins_init
 <LI><a href="#[de]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_driver_en_set
-<LI><a href="#[100]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_hw_set_main
+<LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_hw_set_main
 </UL>
 
-<P><STRONG><a name="[e2]"></a>gpio_bit_set</STRONG> (Thumb, 24 bytes, Stack size 16 bytes, gd32f30x_gpio.o(.text.gpio_bit_set))
+<P><STRONG><a name="[e3]"></a>gpio_bit_set</STRONG> (Thumb, 24 bytes, Stack size 16 bytes, gd32f30x_gpio.o(.text.gpio_bit_set))
 <BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = gpio_bit_set
 </UL>
 <BR>[Called By]<UL><LI><a href="#[de]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_driver_en_set
-<LI><a href="#[100]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_hw_set_main
+<LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_hw_set_main
 </UL>
 
 <P><STRONG><a name="[7a]"></a>gpio_init</STRONG> (Thumb, 360 bytes, Stack size 60 bytes, gd32f30x_gpio.o(.text.gpio_init))
 <BR><BR>[Stack]<UL><LI>Max Depth = 60<LI>Call Chain = gpio_init
 </UL>
-<BR>[Called By]<UL><LI><a href="#[107]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_exti_init
+<BR>[Called By]<UL><LI><a href="#[105]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_exti_init
 <LI><a href="#[b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf_init
 <LI><a href="#[10c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pb0_pwm_init
-<LI><a href="#[ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pins_init
+<LI><a href="#[ec]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pins_init
 <LI><a href="#[8f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc1_analog_pins_init
 <LI><a href="#[78]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc0_analog_pins_init
 <LI><a href="#[de]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_driver_en_set
-<LI><a href="#[100]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_hw_set_main
+<LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_hw_set_main
 </UL>
 
 <P><STRONG><a name="[11b]"></a>gpio_input_bit_get</STRONG> (Thumb, 50 bytes, Stack size 20 bytes, gd32f30x_gpio.o(.text.gpio_input_bit_get))
 <BR><BR>[Stack]<UL><LI>Max Depth = 20<LI>Call Chain = gpio_input_bit_get
 </UL>
-<BR>[Called By]<UL><LI><a href="#[e3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_active_hw
+<BR>[Called By]<UL><LI><a href="#[106]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_active_hw
 </UL>
 
 <P><STRONG><a name="[cd]"></a>llc_app_init</STRONG> (Thumb, 334 bytes, Stack size 168 bytes, llc_control.o(.text.llc_app_init))
-<BR><BR>[Stack]<UL><LI>Max Depth = 452<LI>Call Chain = llc_app_init &rArr; llc_state_enter &rArr; llc_softstart_start &rArr; llc_softstart_begin &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
+<BR><BR>[Stack]<UL><LI>Max Depth = 456<LI>Call Chain = llc_app_init &rArr; llc_state_enter &rArr; llc_ctrl_step &rArr; llc_bumpless_integ &rArr; f_clampf
 </UL>
 <BR>[Calls]<UL><LI><a href="#[ce]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_init
 <LI><a href="#[cf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memcpy4
@@ -949,8 +949,8 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[47]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[af]"></a>llc_app_tick_1khz</STRONG> (Thumb, 852 bytes, Stack size 72 bytes, llc_control.o(.text.llc_app_tick_1khz))
-<BR><BR>[Stack]<UL><LI>Max Depth = 364<LI>Call Chain = llc_app_tick_1khz &rArr; llc_enter_fault &rArr; llc_state_enter &rArr; llc_softstart_start &rArr; llc_softstart_begin &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
+<P><STRONG><a name="[af]"></a>llc_app_tick_1khz</STRONG> (Thumb, 816 bytes, Stack size 64 bytes, llc_control.o(.text.llc_app_tick_1khz))
+<BR><BR>[Stack]<UL><LI>Max Depth = 360<LI>Call Chain = llc_app_tick_1khz &rArr; llc_enter_fault &rArr; llc_state_enter &rArr; llc_ctrl_step &rArr; llc_bumpless_integ &rArr; f_clampf
 </UL>
 <BR>[Calls]<UL><LI><a href="#[d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_tick_1khz
 <LI><a href="#[d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_stop
@@ -973,22 +973,22 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[ad]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;control_loop_tick_1khz
 </UL>
 
-<P><STRONG><a name="[ed]"></a>llc_pwm_init</STRONG> (Thumb, 292 bytes, Stack size 88 bytes, pwm_llc.o(.text.llc_pwm_init))
+<P><STRONG><a name="[eb]"></a>llc_pwm_init</STRONG> (Thumb, 292 bytes, Stack size 88 bytes, pwm_llc.o(.text.llc_pwm_init))
 <BR><BR>[Stack]<UL><LI>Max Depth = 264<LI>Call Chain = llc_pwm_init &rArr; bdtr_deadtime_code_ns &rArr; __aeabi_dmul &rArr; _double_epilogue &rArr; _double_round
 </UL>
 <BR>[Calls]<UL><LI><a href="#[a0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_init
 <LI><a href="#[a2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_enable
 <LI><a href="#[79]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rcu_periph_clock_enable
-<LI><a href="#[f3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_master_output_trigger_source_select
-<LI><a href="#[f1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_shadow_config
-<LI><a href="#[e8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_pulse_value_config
-<LI><a href="#[e9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_mode_config
-<LI><a href="#[f0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_config
-<LI><a href="#[f2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_break_config
-<LI><a href="#[f4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_auto_reload_shadow_enable
+<LI><a href="#[f1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_master_output_trigger_source_select
+<LI><a href="#[ef]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_shadow_config
+<LI><a href="#[e6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_pulse_value_config
+<LI><a href="#[e7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_mode_config
+<LI><a href="#[ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_config
+<LI><a href="#[f0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_break_config
+<LI><a href="#[f2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_auto_reload_shadow_enable
 <LI><a href="#[dd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_outputs_enable
-<LI><a href="#[ef]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer0_clk_hz
-<LI><a href="#[ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pins_init
+<LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer0_clk_hz
+<LI><a href="#[ec]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pins_init
 <LI><a href="#[ac]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;bdtr_deadtime_code_ns
 </UL>
 <BR>[Called By]<UL><LI><a href="#[47]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
@@ -997,79 +997,79 @@ Global Symbols
 <P><STRONG><a name="[dd]"></a>llc_pwm_outputs_enable</STRONG> (Thumb, 70 bytes, Stack size 24 bytes, pwm_llc.o(.text.llc_pwm_outputs_enable))
 <BR><BR>[Stack]<UL><LI>Max Depth = 128<LI>Call Chain = llc_pwm_outputs_enable &rArr; llc_pwm_restore_pwm &rArr; duty_to_ccr &rArr; clampf
 </UL>
-<BR>[Calls]<UL><LI><a href="#[e7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_primary_output_config
-<LI><a href="#[e8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_pulse_value_config
-<LI><a href="#[f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_restore_pwm
-<LI><a href="#[e6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_force_start
+<BR>[Calls]<UL><LI><a href="#[e5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_primary_output_config
+<LI><a href="#[e6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_pulse_value_config
+<LI><a href="#[f3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_restore_pwm
+<LI><a href="#[e4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_force_start
 </UL>
-<BR>[Called By]<UL><LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
+<BR>[Called By]<UL><LI><a href="#[eb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
 <LI><a href="#[af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_app_tick_1khz
 <LI><a href="#[75]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_trigger
 <LI><a href="#[d0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_state_enter
 </UL>
 
-<P><STRONG><a name="[f6]"></a>llc_pwm_set_duty</STRONG> (Thumb, 100 bytes, Stack size 32 bytes, pwm_llc.o(.text.llc_pwm_set_duty))
+<P><STRONG><a name="[f4]"></a>llc_pwm_set_duty</STRONG> (Thumb, 100 bytes, Stack size 32 bytes, pwm_llc.o(.text.llc_pwm_set_duty))
 <BR><BR>[Stack]<UL><LI>Max Depth = 104<LI>Call Chain = llc_pwm_set_duty &rArr; duty_to_ccr &rArr; clampf
 </UL>
-<BR>[Calls]<UL><LI><a href="#[e8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_pulse_value_config
+<BR>[Calls]<UL><LI><a href="#[e6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_pulse_value_config
 <LI><a href="#[c3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;duty_to_ccr
 <LI><a href="#[c4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;clampf
 </UL>
-<BR>[Called By]<UL><LI><a href="#[fa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ss_apply
+<BR>[Called By]<UL><LI><a href="#[f8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ss_apply
 </UL>
 
-<P><STRONG><a name="[f7]"></a>llc_pwm_set_freq</STRONG> (Thumb, 156 bytes, Stack size 32 bytes, pwm_llc.o(.text.llc_pwm_set_freq))
+<P><STRONG><a name="[f5]"></a>llc_pwm_set_freq</STRONG> (Thumb, 156 bytes, Stack size 32 bytes, pwm_llc.o(.text.llc_pwm_set_freq))
 <BR><BR>[Stack]<UL><LI>Max Depth = 148<LI>Call Chain = llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
 </UL>
-<BR>[Calls]<UL><LI><a href="#[e8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_pulse_value_config
-<LI><a href="#[ef]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer0_clk_hz
+<BR>[Calls]<UL><LI><a href="#[e6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_pulse_value_config
+<LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer0_clk_hz
 <LI><a href="#[c3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;duty_to_ccr
 </UL>
-<BR>[Called By]<UL><LI><a href="#[fa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ss_apply
+<BR>[Called By]<UL><LI><a href="#[f8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ss_apply
 <LI><a href="#[dc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_set_freq
 </UL>
 
-<P><STRONG><a name="[f8]"></a>llc_softstart_abort</STRONG> (Thumb, 56 bytes, Stack size 16 bytes, llc_soft_start.o(.text.llc_softstart_abort))
+<P><STRONG><a name="[f6]"></a>llc_softstart_abort</STRONG> (Thumb, 56 bytes, Stack size 16 bytes, llc_soft_start.o(.text.llc_softstart_abort))
 <BR><BR>[Stack]<UL><LI>Max Depth = 188<LI>Call Chain = llc_softstart_abort &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
 </UL>
-<BR>[Calls]<UL><LI><a href="#[fa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ss_apply
-<LI><a href="#[f9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_clampf
+<BR>[Calls]<UL><LI><a href="#[f8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ss_apply
+<LI><a href="#[f7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_clampf
 </UL>
-<BR>[Called By]<UL><LI><a href="#[fd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_on_fault
+<BR>[Called By]<UL><LI><a href="#[fb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_on_fault
 </UL>
 
 <P><STRONG><a name="[ce]"></a>llc_softstart_init</STRONG> (Thumb, 42 bytes, Stack size 8 bytes, llc_soft_start.o(.text.llc_softstart_init))
 <BR><BR>[Stack]<UL><LI>Max Depth = 204<LI>Call Chain = llc_softstart_init &rArr; llc_softstart_reset &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
 </UL>
-<BR>[Calls]<UL><LI><a href="#[fc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_reset
+<BR>[Calls]<UL><LI><a href="#[fa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_reset
 </UL>
 <BR>[Called By]<UL><LI><a href="#[d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_tick_1khz
-<LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_start
+<LI><a href="#[fc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_start
 <LI><a href="#[cd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_app_init
 </UL>
 
 <P><STRONG><a name="[d9]"></a>llc_softstart_last_hz</STRONG> (Thumb, 80 bytes, Stack size 16 bytes, llc_soft_start.o(.text.llc_softstart_last_hz))
 <BR><BR>[Stack]<UL><LI>Max Depth = 48<LI>Call Chain = llc_softstart_last_hz &rArr; f_clampf
 </UL>
-<BR>[Calls]<UL><LI><a href="#[f9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_clampf
+<BR>[Calls]<UL><LI><a href="#[f7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_clampf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_app_tick_1khz
 <LI><a href="#[d0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_state_enter
 </UL>
 
-<P><STRONG><a name="[fd]"></a>llc_softstart_on_fault</STRONG> (Thumb, 30 bytes, Stack size 8 bytes, llc_soft_start.o(.text.llc_softstart_on_fault))
+<P><STRONG><a name="[fb]"></a>llc_softstart_on_fault</STRONG> (Thumb, 30 bytes, Stack size 8 bytes, llc_soft_start.o(.text.llc_softstart_on_fault))
 <BR><BR>[Stack]<UL><LI>Max Depth = 196<LI>Call Chain = llc_softstart_on_fault &rArr; llc_softstart_abort &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
 </UL>
-<BR>[Calls]<UL><LI><a href="#[f8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_abort
+<BR>[Calls]<UL><LI><a href="#[f6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_abort
 </UL>
 <BR>[Called By]<UL><LI><a href="#[d0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_state_enter
 </UL>
 
-<P><STRONG><a name="[fe]"></a>llc_softstart_start</STRONG> (Thumb, 52 bytes, Stack size 16 bytes, llc_soft_start.o(.text.llc_softstart_start))
+<P><STRONG><a name="[fc]"></a>llc_softstart_start</STRONG> (Thumb, 52 bytes, Stack size 16 bytes, llc_soft_start.o(.text.llc_softstart_start))
 <BR><BR>[Stack]<UL><LI>Max Depth = 228<LI>Call Chain = llc_softstart_start &rArr; llc_softstart_begin &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
 </UL>
 <BR>[Calls]<UL><LI><a href="#[ce]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_init
-<LI><a href="#[fb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_begin
+<LI><a href="#[f9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_begin
 </UL>
 <BR>[Called By]<UL><LI><a href="#[d0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_state_enter
 </UL>
@@ -1082,24 +1082,24 @@ Global Symbols
 <BR><BR>[Stack]<UL><LI>Max Depth = 212<LI>Call Chain = llc_softstart_tick_1khz &rArr; llc_softstart_init &rArr; llc_softstart_reset &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
 </UL>
 <BR>[Calls]<UL><LI><a href="#[ce]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_init
-<LI><a href="#[ff]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_tick
+<LI><a href="#[fd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_tick
 </UL>
 <BR>[Called By]<UL><LI><a href="#[af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_app_tick_1khz
 </UL>
 
 <P><STRONG><a name="[47]"></a>main</STRONG> (Thumb, 320 bytes, Stack size 48 bytes, main.o(.text.main))
-<BR><BR>[Stack]<UL><LI>Max Depth = 500<LI>Call Chain = main &rArr; llc_app_init &rArr; llc_state_enter &rArr; llc_softstart_start &rArr; llc_softstart_begin &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
+<BR><BR>[Stack]<UL><LI>Max Depth = 504<LI>Call Chain = main &rArr; llc_app_init &rArr; llc_state_enter &rArr; llc_ctrl_step &rArr; llc_bumpless_integ &rArr; f_clampf
 </UL>
-<BR>[Calls]<UL><LI><a href="#[105]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;systick_1ms_init
-<LI><a href="#[e4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_latched
-<LI><a href="#[e3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_active_hw
-<LI><a href="#[107]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_exti_init
+<BR>[Calls]<UL><LI><a href="#[103]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;systick_1ms_init
+<LI><a href="#[107]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_latched
+<LI><a href="#[106]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_active_hw
+<LI><a href="#[105]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_exti_init
 <LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_clear_fault
 <LI><a href="#[10a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_init
 <LI><a href="#[10b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_enable
-<LI><a href="#[106]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pb0_pwm_set_duty
-<LI><a href="#[104]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;nvic_priority_group_set
-<LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
+<LI><a href="#[104]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pb0_pwm_set_duty
+<LI><a href="#[102]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;nvic_priority_group_set
+<LI><a href="#[eb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
 <LI><a href="#[cd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_app_init
 <LI><a href="#[91]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
 <LI><a href="#[b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf_init
@@ -1118,12 +1118,12 @@ Global Symbols
 <P><STRONG><a name="[81]"></a>nvic_irq_enable</STRONG> (Thumb, 310 bytes, Stack size 36 bytes, gd32f30x_misc.o(.text.nvic_irq_enable))
 <BR><BR>[Stack]<UL><LI>Max Depth = 36<LI>Call Chain = nvic_irq_enable
 </UL>
-<BR>[Called By]<UL><LI><a href="#[107]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_exti_init
+<BR>[Called By]<UL><LI><a href="#[105]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_exti_init
 <LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_fast_timer_init_100us
 <LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc0_dma_init
 </UL>
 
-<P><STRONG><a name="[104]"></a>nvic_priority_group_set</STRONG> (Thumb, 32 bytes, Stack size 8 bytes, gd32f30x_misc.o(.text.nvic_priority_group_set))
+<P><STRONG><a name="[102]"></a>nvic_priority_group_set</STRONG> (Thumb, 32 bytes, Stack size 8 bytes, gd32f30x_misc.o(.text.nvic_priority_group_set))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = nvic_priority_group_set
 </UL>
 <BR>[Called By]<UL><LI><a href="#[47]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
@@ -1136,19 +1136,19 @@ Global Symbols
 <LI><a href="#[a2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_enable
 <LI><a href="#[79]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rcu_periph_clock_enable
 <LI><a href="#[7a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_init
-<LI><a href="#[e8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_pulse_value_config
-<LI><a href="#[e9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_mode_config
-<LI><a href="#[f0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_config
-<LI><a href="#[f4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_auto_reload_shadow_enable
+<LI><a href="#[e6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_pulse_value_config
+<LI><a href="#[e7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_mode_config
+<LI><a href="#[ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_config
+<LI><a href="#[f2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_auto_reload_shadow_enable
 <LI><a href="#[10d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_clk_hz
 </UL>
 <BR>[Called By]<UL><LI><a href="#[10a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_init
 </UL>
 
-<P><STRONG><a name="[106]"></a>pb0_pwm_set_duty</STRONG> (Thumb, 100 bytes, Stack size 16 bytes, pwm.o(.text.pb0_pwm_set_duty))
+<P><STRONG><a name="[104]"></a>pb0_pwm_set_duty</STRONG> (Thumb, 100 bytes, Stack size 16 bytes, pwm.o(.text.pb0_pwm_set_duty))
 <BR><BR>[Stack]<UL><LI>Max Depth = 52<LI>Call Chain = pb0_pwm_set_duty &rArr; timer_channel_output_pulse_value_config
 </UL>
-<BR>[Calls]<UL><LI><a href="#[e8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_pulse_value_config
+<BR>[Calls]<UL><LI><a href="#[e6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_pulse_value_config
 <LI><a href="#[10e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;clampf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[10a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_init
@@ -1156,7 +1156,7 @@ Global Symbols
 <LI><a href="#[117]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_pwm_set
 </UL>
 
-<P><STRONG><a name="[103]"></a>pfc_bus_voltage</STRONG> (Thumb, 8 bytes, Stack size 8 bytes, pfc_control.o(.text.pfc_bus_voltage))
+<P><STRONG><a name="[101]"></a>pfc_bus_voltage</STRONG> (Thumb, 8 bytes, Stack size 8 bytes, pfc_control.o(.text.pfc_bus_voltage))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = pfc_bus_voltage
 </UL>
 <BR>[Calls]<UL><LI><a href="#[112]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_get_vbus
@@ -1169,16 +1169,16 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[112]"></a>pfc_get_vbus</STRONG> (Thumb, 14 bytes, Stack size 0 bytes, pfc_control.o(.text.pfc_get_vbus))
-<BR><BR>[Called By]<UL><LI><a href="#[103]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_bus_voltage
+<BR><BR>[Called By]<UL><LI><a href="#[101]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_bus_voltage
 </UL>
 
-<P><STRONG><a name="[100]"></a>pfc_hw_set_main</STRONG> (Thumb, 192 bytes, Stack size 16 bytes, pfc_control.o(.text.pfc_hw_set_main))
+<P><STRONG><a name="[fe]"></a>pfc_hw_set_main</STRONG> (Thumb, 192 bytes, Stack size 16 bytes, pfc_control.o(.text.pfc_hw_set_main))
 <BR><BR>[Stack]<UL><LI>Max Depth = 76<LI>Call Chain = pfc_hw_set_main &rArr; gpio_init
 </UL>
 <BR>[Calls]<UL><LI><a href="#[79]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rcu_periph_clock_enable
 <LI><a href="#[7a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_init
-<LI><a href="#[e2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_set
-<LI><a href="#[e1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_reset
+<LI><a href="#[e3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_set
+<LI><a href="#[e2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_reset
 </UL>
 <BR>[Called By]<UL><LI><a href="#[ae]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_tick_1khz
 <LI><a href="#[d0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_state_enter
@@ -1188,7 +1188,7 @@ Global Symbols
 <P><STRONG><a name="[10a]"></a>pfc_init</STRONG> (Thumb, 88 bytes, Stack size 96 bytes, pfc_control.o(.text.pfc_init))
 <BR><BR>[Stack]<UL><LI>Max Depth = 292<LI>Call Chain = pfc_init &rArr; pb0_pwm_init &rArr; timer_clk_hz &rArr; tim_apb1_clk_hz &rArr; rcu_clock_freq_get
 </UL>
-<BR>[Calls]<UL><LI><a href="#[106]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pb0_pwm_set_duty
+<BR>[Calls]<UL><LI><a href="#[104]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pb0_pwm_set_duty
 <LI><a href="#[90]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc1_aux_init
 <LI><a href="#[10c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pb0_pwm_init
 <LI><a href="#[116]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memclr4
@@ -1198,10 +1198,6 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[47]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[e5]"></a>pfc_is_fault</STRONG> (Thumb, 20 bytes, Stack size 0 bytes, pfc_control.o(.text.pfc_is_fault))
-<BR><BR>[Called By]<UL><LI><a href="#[d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_faults_present
-</UL>
-
 <P><STRONG><a name="[d2]"></a>pfc_is_ready</STRONG> (Thumb, 20 bytes, Stack size 0 bytes, pfc_control.o(.text.pfc_is_ready))
 <BR><BR>[Called By]<UL><LI><a href="#[af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_app_tick_1khz
 </UL>
@@ -1209,10 +1205,10 @@ Global Symbols
 <P><STRONG><a name="[ae]"></a>pfc_tick_1khz</STRONG> (Thumb, 1100 bytes, Stack size 48 bytes, pfc_control.o(.text.pfc_tick_1khz))
 <BR><BR>[Stack]<UL><LI>Max Depth = 204<LI>Call Chain = pfc_tick_1khz &rArr; pfc_sample_inputs &rArr; adc1_aux_read_channel &rArr; adc_regular_channel_config
 </UL>
-<BR>[Calls]<UL><LI><a href="#[e4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_latched
-<LI><a href="#[e3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_active_hw
+<BR>[Calls]<UL><LI><a href="#[107]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_latched
+<LI><a href="#[106]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_active_hw
 <LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_clear_fault
-<LI><a href="#[100]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_hw_set_main
+<LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_hw_set_main
 <LI><a href="#[115]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_state_enter
 <LI><a href="#[118]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_sample_inputs
 <LI><a href="#[11a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_reset_startup_timers
@@ -1232,13 +1228,13 @@ Global Symbols
 <LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_startup_check
 </UL>
 
-<P><STRONG><a name="[107]"></a>protect_exti_init</STRONG> (Thumb, 106 bytes, Stack size 24 bytes, protect_exti.o(.text.protect_exti_init))
+<P><STRONG><a name="[105]"></a>protect_exti_init</STRONG> (Thumb, 106 bytes, Stack size 24 bytes, protect_exti.o(.text.protect_exti_init))
 <BR><BR>[Stack]<UL><LI>Max Depth = 160<LI>Call Chain = protect_exti_init &rArr; protect_fault_trigger &rArr; llc_pwm_outputs_enable &rArr; llc_pwm_restore_pwm &rArr; duty_to_ccr &rArr; clampf
 </UL>
 <BR>[Calls]<UL><LI><a href="#[76]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_interrupt_flag_clear
 <LI><a href="#[a1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_interrupt_enable
 <LI><a href="#[79]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rcu_periph_clock_enable
-<LI><a href="#[e3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_active_hw
+<LI><a href="#[106]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_active_hw
 <LI><a href="#[81]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;nvic_irq_enable
 <LI><a href="#[7a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_init
 <LI><a href="#[75]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_trigger
@@ -1246,24 +1242,22 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[47]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[e3]"></a>protect_fault_active_hw</STRONG> (Thumb, 26 bytes, Stack size 8 bytes, protect_exti.o(.text.protect_fault_active_hw))
+<P><STRONG><a name="[106]"></a>protect_fault_active_hw</STRONG> (Thumb, 26 bytes, Stack size 8 bytes, protect_exti.o(.text.protect_fault_active_hw))
 <BR><BR>[Stack]<UL><LI>Max Depth = 28<LI>Call Chain = protect_fault_active_hw &rArr; gpio_input_bit_get
 </UL>
 <BR>[Calls]<UL><LI><a href="#[11b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_input_bit_get
 </UL>
-<BR>[Called By]<UL><LI><a href="#[107]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_exti_init
+<BR>[Called By]<UL><LI><a href="#[105]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_exti_init
 <LI><a href="#[ae]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_tick_1khz
 <LI><a href="#[47]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 <LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_startup_check
 <LI><a href="#[75]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_trigger
-<LI><a href="#[d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_faults_present
 </UL>
 
-<P><STRONG><a name="[e4]"></a>protect_fault_latched</STRONG> (Thumb, 18 bytes, Stack size 0 bytes, protect_exti.o(.text.protect_fault_latched))
+<P><STRONG><a name="[107]"></a>protect_fault_latched</STRONG> (Thumb, 18 bytes, Stack size 0 bytes, protect_exti.o(.text.protect_fault_latched))
 <BR><BR>[Called By]<UL><LI><a href="#[ae]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_tick_1khz
 <LI><a href="#[47]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 <LI><a href="#[109]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_startup_check
-<LI><a href="#[d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_faults_present
 </UL>
 
 <P><STRONG><a name="[82]"></a>rcu_adc_clock_config</STRONG> (Thumb, 186 bytes, Stack size 20 bytes, gd32f30x_rcu.o(.text.rcu_adc_clock_config))
@@ -1297,7 +1291,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_fast_timer_clk_hz
 <LI><a href="#[b3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;usart_baudrate_set
 <LI><a href="#[120]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tim_apb1_clk_hz
-<LI><a href="#[ef]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer0_clk_hz
+<LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer0_clk_hz
 </UL>
 
 <P><STRONG><a name="[62]"></a>rcu_deinit</STRONG> (Thumb, 122 bytes, Stack size 16 bytes, gd32f30x_rcu.o(.text.rcu_deinit))
@@ -1333,19 +1327,19 @@ Global Symbols
 <P><STRONG><a name="[79]"></a>rcu_periph_clock_enable</STRONG> (Thumb, 48 bytes, Stack size 8 bytes, gd32f30x_rcu.o(.text.rcu_periph_clock_enable))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = rcu_periph_clock_enable
 </UL>
-<BR>[Called By]<UL><LI><a href="#[107]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_exti_init
-<LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
+<BR>[Called By]<UL><LI><a href="#[105]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_exti_init
+<LI><a href="#[eb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
 <LI><a href="#[b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf_init
 <LI><a href="#[90]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc1_aux_init
 <LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_fast_timer_init_100us
 <LI><a href="#[10c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pb0_pwm_init
-<LI><a href="#[ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pins_init
+<LI><a href="#[ec]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pins_init
 <LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc0_dma_init
 <LI><a href="#[8f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc1_analog_pins_init
 <LI><a href="#[7b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc0_dma_cfg
 <LI><a href="#[78]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc0_analog_pins_init
 <LI><a href="#[de]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_driver_en_set
-<LI><a href="#[100]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_hw_set_main
+<LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_hw_set_main
 </UL>
 
 <P><STRONG><a name="[99]"></a>rcu_periph_reset_disable</STRONG> (Thumb, 48 bytes, Stack size 8 bytes, gd32f30x_rcu.o(.text.rcu_periph_reset_disable))
@@ -1392,7 +1386,7 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[61]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ConfigRCU
 </UL>
 
-<P><STRONG><a name="[105]"></a>systick_1ms_init</STRONG> (Thumb, 158 bytes, Stack size 24 bytes, main.o(.text.systick_1ms_init))
+<P><STRONG><a name="[103]"></a>systick_1ms_init</STRONG> (Thumb, 158 bytes, Stack size 24 bytes, main.o(.text.systick_1ms_init))
 <BR><BR>[Stack]<UL><LI>Max Depth = 52<LI>Call Chain = systick_1ms_init &rArr; SystemCoreClockUpdate
 </UL>
 <BR>[Calls]<UL><LI><a href="#[11d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SystemCoreClockUpdate
@@ -1402,52 +1396,52 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[47]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[f4]"></a>timer_auto_reload_shadow_enable</STRONG> (Thumb, 22 bytes, Stack size 8 bytes, gd32f30x_timer.o(.text.timer_auto_reload_shadow_enable))
+<P><STRONG><a name="[f2]"></a>timer_auto_reload_shadow_enable</STRONG> (Thumb, 22 bytes, Stack size 8 bytes, gd32f30x_timer.o(.text.timer_auto_reload_shadow_enable))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = timer_auto_reload_shadow_enable
 </UL>
-<BR>[Called By]<UL><LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
+<BR>[Called By]<UL><LI><a href="#[eb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
 <LI><a href="#[10c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pb0_pwm_init
 </UL>
 
-<P><STRONG><a name="[f2]"></a>timer_break_config</STRONG> (Thumb, 70 bytes, Stack size 16 bytes, gd32f30x_timer.o(.text.timer_break_config))
+<P><STRONG><a name="[f0]"></a>timer_break_config</STRONG> (Thumb, 70 bytes, Stack size 16 bytes, gd32f30x_timer.o(.text.timer_break_config))
 <BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = timer_break_config
 </UL>
-<BR>[Called By]<UL><LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
+<BR>[Called By]<UL><LI><a href="#[eb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
 </UL>
 
-<P><STRONG><a name="[f0]"></a>timer_channel_output_config</STRONG> (Thumb, 738 bytes, Stack size 36 bytes, gd32f30x_timer.o(.text.timer_channel_output_config))
+<P><STRONG><a name="[ee]"></a>timer_channel_output_config</STRONG> (Thumb, 738 bytes, Stack size 36 bytes, gd32f30x_timer.o(.text.timer_channel_output_config))
 <BR><BR>[Stack]<UL><LI>Max Depth = 36<LI>Call Chain = timer_channel_output_config
 </UL>
-<BR>[Called By]<UL><LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
+<BR>[Called By]<UL><LI><a href="#[eb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
 <LI><a href="#[10c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pb0_pwm_init
 </UL>
 
-<P><STRONG><a name="[e9]"></a>timer_channel_output_mode_config</STRONG> (Thumb, 158 bytes, Stack size 32 bytes, gd32f30x_timer.o(.text.timer_channel_output_mode_config))
+<P><STRONG><a name="[e7]"></a>timer_channel_output_mode_config</STRONG> (Thumb, 158 bytes, Stack size 32 bytes, gd32f30x_timer.o(.text.timer_channel_output_mode_config))
 <BR><BR>[Stack]<UL><LI>Max Depth = 32<LI>Call Chain = timer_channel_output_mode_config
 </UL>
-<BR>[Called By]<UL><LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
+<BR>[Called By]<UL><LI><a href="#[eb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
 <LI><a href="#[10c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pb0_pwm_init
-<LI><a href="#[f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_restore_pwm
-<LI><a href="#[e6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_force_start
+<LI><a href="#[f3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_restore_pwm
+<LI><a href="#[e4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_force_start
 </UL>
 
-<P><STRONG><a name="[e8]"></a>timer_channel_output_pulse_value_config</STRONG> (Thumb, 88 bytes, Stack size 36 bytes, gd32f30x_timer.o(.text.timer_channel_output_pulse_value_config))
+<P><STRONG><a name="[e6]"></a>timer_channel_output_pulse_value_config</STRONG> (Thumb, 88 bytes, Stack size 36 bytes, gd32f30x_timer.o(.text.timer_channel_output_pulse_value_config))
 <BR><BR>[Stack]<UL><LI>Max Depth = 36<LI>Call Chain = timer_channel_output_pulse_value_config
 </UL>
-<BR>[Called By]<UL><LI><a href="#[f7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_set_freq
-<LI><a href="#[f6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_set_duty
-<LI><a href="#[106]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pb0_pwm_set_duty
-<LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
+<BR>[Called By]<UL><LI><a href="#[f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_set_freq
+<LI><a href="#[f4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_set_duty
+<LI><a href="#[104]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pb0_pwm_set_duty
+<LI><a href="#[eb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
 <LI><a href="#[10c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pb0_pwm_init
 <LI><a href="#[dd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_outputs_enable
-<LI><a href="#[f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_restore_pwm
-<LI><a href="#[e6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_force_start
+<LI><a href="#[f3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_restore_pwm
+<LI><a href="#[e4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_force_start
 </UL>
 
-<P><STRONG><a name="[f1]"></a>timer_channel_output_shadow_config</STRONG> (Thumb, 158 bytes, Stack size 32 bytes, gd32f30x_timer.o(.text.timer_channel_output_shadow_config))
+<P><STRONG><a name="[ef]"></a>timer_channel_output_shadow_config</STRONG> (Thumb, 158 bytes, Stack size 32 bytes, gd32f30x_timer.o(.text.timer_channel_output_shadow_config))
 <BR><BR>[Stack]<UL><LI>Max Depth = 32<LI>Call Chain = timer_channel_output_shadow_config
 </UL>
-<BR>[Called By]<UL><LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
+<BR>[Called By]<UL><LI><a href="#[eb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
 </UL>
 
 <P><STRONG><a name="[9e]"></a>timer_deinit</STRONG> (Thumb, 284 bytes, Stack size 56 bytes, gd32f30x_timer.o(.text.timer_deinit))
@@ -1462,36 +1456,36 @@ Global Symbols
 <P><STRONG><a name="[a2]"></a>timer_enable</STRONG> (Thumb, 22 bytes, Stack size 8 bytes, gd32f30x_timer.o(.text.timer_enable))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = timer_enable
 </UL>
-<BR>[Called By]<UL><LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
+<BR>[Called By]<UL><LI><a href="#[eb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
 <LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_fast_timer_init_100us
 <LI><a href="#[10c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pb0_pwm_init
 </UL>
 
-<P><STRONG><a name="[eb]"></a>timer_event_software_generate</STRONG> (Thumb, 36 bytes, Stack size 16 bytes, gd32f30x_timer.o(.text.timer_event_software_generate))
+<P><STRONG><a name="[e9]"></a>timer_event_software_generate</STRONG> (Thumb, 36 bytes, Stack size 16 bytes, gd32f30x_timer.o(.text.timer_event_software_generate))
 <BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = timer_event_software_generate
 </UL>
-<BR>[Called By]<UL><LI><a href="#[f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_restore_pwm
-<LI><a href="#[e6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_force_start
+<BR>[Called By]<UL><LI><a href="#[f3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_restore_pwm
+<LI><a href="#[e4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_force_start
 </UL>
 
-<P><STRONG><a name="[ea]"></a>timer_flag_clear</STRONG> (Thumb, 32 bytes, Stack size 16 bytes, gd32f30x_timer.o(.text.timer_flag_clear))
+<P><STRONG><a name="[e8]"></a>timer_flag_clear</STRONG> (Thumb, 32 bytes, Stack size 16 bytes, gd32f30x_timer.o(.text.timer_flag_clear))
 <BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = timer_flag_clear
 </UL>
-<BR>[Called By]<UL><LI><a href="#[f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_restore_pwm
-<LI><a href="#[e6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_force_start
+<BR>[Called By]<UL><LI><a href="#[f3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_restore_pwm
+<LI><a href="#[e4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_force_start
 </UL>
 
-<P><STRONG><a name="[ec]"></a>timer_flag_get</STRONG> (Thumb, 50 bytes, Stack size 20 bytes, gd32f30x_timer.o(.text.timer_flag_get))
+<P><STRONG><a name="[ea]"></a>timer_flag_get</STRONG> (Thumb, 50 bytes, Stack size 20 bytes, gd32f30x_timer.o(.text.timer_flag_get))
 <BR><BR>[Stack]<UL><LI>Max Depth = 20<LI>Call Chain = timer_flag_get
 </UL>
-<BR>[Called By]<UL><LI><a href="#[f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_restore_pwm
-<LI><a href="#[e6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_force_start
+<BR>[Called By]<UL><LI><a href="#[f3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_restore_pwm
+<LI><a href="#[e4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_force_start
 </UL>
 
 <P><STRONG><a name="[a0]"></a>timer_init</STRONG> (Thumb, 268 bytes, Stack size 16 bytes, gd32f30x_timer.o(.text.timer_init))
 <BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = timer_init
 </UL>
-<BR>[Called By]<UL><LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
+<BR>[Called By]<UL><LI><a href="#[eb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
 <LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_fast_timer_init_100us
 <LI><a href="#[10c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pb0_pwm_init
 </UL>
@@ -1499,14 +1493,14 @@ Global Symbols
 <P><STRONG><a name="[a1]"></a>timer_interrupt_enable</STRONG> (Thumb, 32 bytes, Stack size 16 bytes, gd32f30x_timer.o(.text.timer_interrupt_enable))
 <BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = timer_interrupt_enable
 </UL>
-<BR>[Called By]<UL><LI><a href="#[107]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_exti_init
+<BR>[Called By]<UL><LI><a href="#[105]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_exti_init
 <LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_fast_timer_init_100us
 </UL>
 
 <P><STRONG><a name="[76]"></a>timer_interrupt_flag_clear</STRONG> (Thumb, 32 bytes, Stack size 16 bytes, gd32f30x_timer.o(.text.timer_interrupt_flag_clear))
 <BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = timer_interrupt_flag_clear
 </UL>
-<BR>[Called By]<UL><LI><a href="#[107]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_exti_init
+<BR>[Called By]<UL><LI><a href="#[105]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_exti_init
 <LI><a href="#[29]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TIMER3_IRQHandler
 <LI><a href="#[23]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TIMER0_BRK_IRQHandler
 <LI><a href="#[42]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TIMER6_IRQHandler
@@ -1522,18 +1516,18 @@ Global Symbols
 <LI><a href="#[41]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TIMER5_IRQHandler
 </UL>
 
-<P><STRONG><a name="[f3]"></a>timer_master_output_trigger_source_select</STRONG> (Thumb, 42 bytes, Stack size 16 bytes, gd32f30x_timer.o(.text.timer_master_output_trigger_source_select))
+<P><STRONG><a name="[f1]"></a>timer_master_output_trigger_source_select</STRONG> (Thumb, 42 bytes, Stack size 16 bytes, gd32f30x_timer.o(.text.timer_master_output_trigger_source_select))
 <BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = timer_master_output_trigger_source_select
 </UL>
-<BR>[Called By]<UL><LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
+<BR>[Called By]<UL><LI><a href="#[eb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
 </UL>
 
-<P><STRONG><a name="[e7]"></a>timer_primary_output_config</STRONG> (Thumb, 54 bytes, Stack size 16 bytes, gd32f30x_timer.o(.text.timer_primary_output_config))
+<P><STRONG><a name="[e5]"></a>timer_primary_output_config</STRONG> (Thumb, 54 bytes, Stack size 16 bytes, gd32f30x_timer.o(.text.timer_primary_output_config))
 <BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = timer_primary_output_config
 </UL>
 <BR>[Called By]<UL><LI><a href="#[dd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_outputs_enable
-<LI><a href="#[f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_restore_pwm
-<LI><a href="#[e6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_force_start
+<LI><a href="#[f3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_restore_pwm
+<LI><a href="#[e4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_force_start
 </UL>
 
 <P><STRONG><a name="[9f]"></a>timer_struct_para_init</STRONG> (Thumb, 42 bytes, Stack size 8 bytes, gd32f30x_timer.o(.text.timer_struct_para_init))
@@ -1650,7 +1644,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[c5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ease_cos
 </UL>
 
-<P><STRONG><a name="[e0]"></a>__hardfp_roundf</STRONG> (Thumb, 154 bytes, Stack size 16 bytes, roundf.o(i.__hardfp_roundf))
+<P><STRONG><a name="[e1]"></a>__hardfp_roundf</STRONG> (Thumb, 154 bytes, Stack size 16 bytes, roundf.o(i.__hardfp_roundf))
 <BR><BR>[Stack]<UL><LI>Max Depth = 24<LI>Call Chain = __hardfp_roundf &rArr; _frnd
 </UL>
 <BR>[Calls]<UL><LI><a href="#[5d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_frnd
@@ -1688,7 +1682,7 @@ Local Symbols
 <P><STRONG><a name="[11f]"></a>__NVIC_SetPriority</STRONG> (Thumb, 74 bytes, Stack size 16 bytes, main.o(.text.__NVIC_SetPriority))
 <BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = __NVIC_SetPriority
 </UL>
-<BR>[Called By]<UL><LI><a href="#[105]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;systick_1ms_init
+<BR>[Called By]<UL><LI><a href="#[103]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;systick_1ms_init
 </UL>
 
 <P><STRONG><a name="[77]"></a>adc_fast_task_100us</STRONG> (Thumb, 8 bytes, Stack size 8 bytes, main.o(.text.adc_fast_task_100us))
@@ -1737,7 +1731,7 @@ Local Symbols
 </UL>
 
 <P><STRONG><a name="[ad]"></a>control_loop_tick_1khz</STRONG> (Thumb, 20 bytes, Stack size 8 bytes, main.o(.text.control_loop_tick_1khz))
-<BR><BR>[Stack]<UL><LI>Max Depth = 372<LI>Call Chain = control_loop_tick_1khz &rArr; llc_app_tick_1khz &rArr; llc_enter_fault &rArr; llc_state_enter &rArr; llc_softstart_start &rArr; llc_softstart_begin &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
+<BR><BR>[Stack]<UL><LI>Max Depth = 368<LI>Call Chain = control_loop_tick_1khz &rArr; llc_app_tick_1khz &rArr; llc_enter_fault &rArr; llc_state_enter &rArr; llc_ctrl_step &rArr; llc_bumpless_integ &rArr; f_clampf
 </UL>
 <BR>[Calls]<UL><LI><a href="#[ae]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_tick_1khz
 <LI><a href="#[af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_app_tick_1khz
@@ -1756,14 +1750,14 @@ Local Symbols
 <P><STRONG><a name="[11e]"></a>irq_priority_encode</STRONG> (Thumb, 40 bytes, Stack size 12 bytes, main.o(.text.irq_priority_encode))
 <BR><BR>[Stack]<UL><LI>Max Depth = 12<LI>Call Chain = irq_priority_encode
 </UL>
-<BR>[Called By]<UL><LI><a href="#[105]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;systick_1ms_init
+<BR>[Called By]<UL><LI><a href="#[103]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;systick_1ms_init
 </UL>
 
 <P><STRONG><a name="[109]"></a>protect_startup_check</STRONG> (Thumb, 92 bytes, Stack size 24 bytes, main.o(.text.protect_startup_check))
 <BR><BR>[Stack]<UL><LI>Max Depth = 324<LI>Call Chain = protect_startup_check &rArr; debug_printf &rArr; debug_vprintf &rArr; debug_write &rArr; debug_putchar &rArr; debug_usart_send &rArr; usart_flag_get
 </UL>
-<BR>[Calls]<UL><LI><a href="#[e4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_latched
-<LI><a href="#[e3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_active_hw
+<BR>[Calls]<UL><LI><a href="#[107]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_latched
+<LI><a href="#[106]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_active_hw
 <LI><a href="#[108]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_clear_fault
 <LI><a href="#[a8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf
 </UL>
@@ -1775,57 +1769,57 @@ Local Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[c6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__hardfp_cosf
 </UL>
-<BR>[Called By]<UL><LI><a href="#[ff]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_tick
+<BR>[Called By]<UL><LI><a href="#[fd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_tick
 </UL>
 
-<P><STRONG><a name="[f9]"></a>f_clampf</STRONG> (Thumb, 126 bytes, Stack size 32 bytes, llc_soft_start.o(.text.f_clampf))
+<P><STRONG><a name="[f7]"></a>f_clampf</STRONG> (Thumb, 126 bytes, Stack size 32 bytes, llc_soft_start.o(.text.f_clampf))
 <BR><BR>[Stack]<UL><LI>Max Depth = 32<LI>Call Chain = f_clampf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[d9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_last_hz
-<LI><a href="#[f8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_abort
-<LI><a href="#[fa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ss_apply
-<LI><a href="#[fc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_reset
-<LI><a href="#[fb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_begin
+<LI><a href="#[f6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_abort
+<LI><a href="#[f8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ss_apply
+<LI><a href="#[fa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_reset
+<LI><a href="#[f9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_begin
 </UL>
 
-<P><STRONG><a name="[fb]"></a>llc_softstart_begin</STRONG> (Thumb, 204 bytes, Stack size 40 bytes, llc_soft_start.o(.text.llc_softstart_begin))
+<P><STRONG><a name="[f9]"></a>llc_softstart_begin</STRONG> (Thumb, 204 bytes, Stack size 40 bytes, llc_soft_start.o(.text.llc_softstart_begin))
 <BR><BR>[Stack]<UL><LI>Max Depth = 212<LI>Call Chain = llc_softstart_begin &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
 </UL>
-<BR>[Calls]<UL><LI><a href="#[fa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ss_apply
-<LI><a href="#[f9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_clampf
+<BR>[Calls]<UL><LI><a href="#[f8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ss_apply
+<LI><a href="#[f7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_clampf
 </UL>
-<BR>[Called By]<UL><LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_start
+<BR>[Called By]<UL><LI><a href="#[fc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_start
 </UL>
 
-<P><STRONG><a name="[fc]"></a>llc_softstart_reset</STRONG> (Thumb, 112 bytes, Stack size 24 bytes, llc_soft_start.o(.text.llc_softstart_reset))
+<P><STRONG><a name="[fa]"></a>llc_softstart_reset</STRONG> (Thumb, 112 bytes, Stack size 24 bytes, llc_soft_start.o(.text.llc_softstart_reset))
 <BR><BR>[Stack]<UL><LI>Max Depth = 196<LI>Call Chain = llc_softstart_reset &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
 </UL>
-<BR>[Calls]<UL><LI><a href="#[fa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ss_apply
-<LI><a href="#[f9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_clampf
+<BR>[Calls]<UL><LI><a href="#[f8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ss_apply
+<LI><a href="#[f7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_clampf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[ce]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_init
 </UL>
 
-<P><STRONG><a name="[ff]"></a>llc_softstart_tick</STRONG> (Thumb, 242 bytes, Stack size 32 bytes, llc_soft_start.o(.text.llc_softstart_tick))
+<P><STRONG><a name="[fd]"></a>llc_softstart_tick</STRONG> (Thumb, 242 bytes, Stack size 32 bytes, llc_soft_start.o(.text.llc_softstart_tick))
 <BR><BR>[Stack]<UL><LI>Max Depth = 204<LI>Call Chain = llc_softstart_tick &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
 </UL>
-<BR>[Calls]<UL><LI><a href="#[fa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ss_apply
+<BR>[Calls]<UL><LI><a href="#[f8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ss_apply
 <LI><a href="#[c5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ease_cos
 </UL>
 <BR>[Called By]<UL><LI><a href="#[d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_tick_1khz
 </UL>
 
-<P><STRONG><a name="[fa]"></a>ss_apply</STRONG> (Thumb, 92 bytes, Stack size 24 bytes, llc_soft_start.o(.text.ss_apply))
+<P><STRONG><a name="[f8]"></a>ss_apply</STRONG> (Thumb, 92 bytes, Stack size 24 bytes, llc_soft_start.o(.text.ss_apply))
 <BR><BR>[Stack]<UL><LI>Max Depth = 172<LI>Call Chain = ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
 </UL>
-<BR>[Calls]<UL><LI><a href="#[f7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_set_freq
-<LI><a href="#[f6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_set_duty
-<LI><a href="#[f9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_clampf
+<BR>[Calls]<UL><LI><a href="#[f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_set_freq
+<LI><a href="#[f4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_set_duty
+<LI><a href="#[f7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_clampf
 </UL>
-<BR>[Called By]<UL><LI><a href="#[f8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_abort
-<LI><a href="#[ff]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_tick
-<LI><a href="#[fc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_reset
-<LI><a href="#[fb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_begin
+<BR>[Called By]<UL><LI><a href="#[f6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_abort
+<LI><a href="#[fd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_tick
+<LI><a href="#[fa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_reset
+<LI><a href="#[f9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_begin
 </UL>
 
 <P><STRONG><a name="[c2]"></a>dma_periph_and_channel_check</STRONG> (Thumb, 66 bytes, Stack size 16 bytes, gd32f30x_dma.o(.text.dma_periph_and_channel_check))
@@ -1904,13 +1898,13 @@ Local Symbols
 <LI><a href="#[53]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dadd
 <LI><a href="#[5c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_d2uiz
 </UL>
-<BR>[Called By]<UL><LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
+<BR>[Called By]<UL><LI><a href="#[eb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
 </UL>
 
 <P><STRONG><a name="[c4]"></a>clampf</STRONG> (Thumb, 126 bytes, Stack size 32 bytes, pwm_llc.o(.text.clampf))
 <BR><BR>[Stack]<UL><LI>Max Depth = 32<LI>Call Chain = clampf
 </UL>
-<BR>[Called By]<UL><LI><a href="#[f6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_set_duty
+<BR>[Called By]<UL><LI><a href="#[f4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_set_duty
 <LI><a href="#[c3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;duty_to_ccr
 </UL>
 
@@ -1919,61 +1913,61 @@ Local Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[c4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;clampf
 </UL>
-<BR>[Called By]<UL><LI><a href="#[f7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_set_freq
-<LI><a href="#[f6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_set_duty
-<LI><a href="#[f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_restore_pwm
+<BR>[Called By]<UL><LI><a href="#[f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_set_freq
+<LI><a href="#[f4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_set_duty
+<LI><a href="#[f3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_restore_pwm
 </UL>
 
-<P><STRONG><a name="[e6]"></a>llc_pwm_force_start</STRONG> (Thumb, 160 bytes, Stack size 40 bytes, pwm_llc.o(.text.llc_pwm_force_start))
+<P><STRONG><a name="[e4]"></a>llc_pwm_force_start</STRONG> (Thumb, 160 bytes, Stack size 40 bytes, pwm_llc.o(.text.llc_pwm_force_start))
 <BR><BR>[Stack]<UL><LI>Max Depth = 76<LI>Call Chain = llc_pwm_force_start &rArr; timer_channel_output_pulse_value_config
 </UL>
-<BR>[Calls]<UL><LI><a href="#[e7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_primary_output_config
-<LI><a href="#[ec]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_flag_get
-<LI><a href="#[ea]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_flag_clear
-<LI><a href="#[eb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_event_software_generate
-<LI><a href="#[e8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_pulse_value_config
-<LI><a href="#[e9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_mode_config
+<BR>[Calls]<UL><LI><a href="#[e5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_primary_output_config
+<LI><a href="#[ea]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_flag_get
+<LI><a href="#[e8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_flag_clear
+<LI><a href="#[e9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_event_software_generate
+<LI><a href="#[e6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_pulse_value_config
+<LI><a href="#[e7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_mode_config
 </UL>
 <BR>[Called By]<UL><LI><a href="#[dd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_outputs_enable
 </UL>
 
-<P><STRONG><a name="[f5]"></a>llc_pwm_restore_pwm</STRONG> (Thumb, 152 bytes, Stack size 32 bytes, pwm_llc.o(.text.llc_pwm_restore_pwm))
+<P><STRONG><a name="[f3]"></a>llc_pwm_restore_pwm</STRONG> (Thumb, 152 bytes, Stack size 32 bytes, pwm_llc.o(.text.llc_pwm_restore_pwm))
 <BR><BR>[Stack]<UL><LI>Max Depth = 104<LI>Call Chain = llc_pwm_restore_pwm &rArr; duty_to_ccr &rArr; clampf
 </UL>
-<BR>[Calls]<UL><LI><a href="#[e7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_primary_output_config
-<LI><a href="#[ec]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_flag_get
-<LI><a href="#[ea]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_flag_clear
-<LI><a href="#[eb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_event_software_generate
-<LI><a href="#[e8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_pulse_value_config
-<LI><a href="#[e9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_mode_config
+<BR>[Calls]<UL><LI><a href="#[e5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_primary_output_config
+<LI><a href="#[ea]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_flag_get
+<LI><a href="#[e8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_flag_clear
+<LI><a href="#[e9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_event_software_generate
+<LI><a href="#[e6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_pulse_value_config
+<LI><a href="#[e7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_mode_config
 <LI><a href="#[c3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;duty_to_ccr
 </UL>
 <BR>[Called By]<UL><LI><a href="#[dd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_outputs_enable
 </UL>
 
-<P><STRONG><a name="[ee]"></a>pins_init</STRONG> (Thumb, 152 bytes, Stack size 40 bytes, pwm_llc.o(.text.pins_init))
+<P><STRONG><a name="[ec]"></a>pins_init</STRONG> (Thumb, 152 bytes, Stack size 40 bytes, pwm_llc.o(.text.pins_init))
 <BR><BR>[Stack]<UL><LI>Max Depth = 100<LI>Call Chain = pins_init &rArr; gpio_init
 </UL>
 <BR>[Calls]<UL><LI><a href="#[79]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rcu_periph_clock_enable
 <LI><a href="#[7a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_init
-<LI><a href="#[e1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_reset
+<LI><a href="#[e2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_reset
 </UL>
-<BR>[Called By]<UL><LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
+<BR>[Called By]<UL><LI><a href="#[eb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
 </UL>
 
-<P><STRONG><a name="[ef]"></a>timer0_clk_hz</STRONG> (Thumb, 50 bytes, Stack size 16 bytes, pwm_llc.o(.text.timer0_clk_hz))
+<P><STRONG><a name="[ed]"></a>timer0_clk_hz</STRONG> (Thumb, 50 bytes, Stack size 16 bytes, pwm_llc.o(.text.timer0_clk_hz))
 <BR><BR>[Stack]<UL><LI>Max Depth = 116<LI>Call Chain = timer0_clk_hz &rArr; rcu_clock_freq_get
 </UL>
 <BR>[Calls]<UL><LI><a href="#[9c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rcu_clock_freq_get
 </UL>
-<BR>[Called By]<UL><LI><a href="#[f7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_set_freq
-<LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
+<BR>[Called By]<UL><LI><a href="#[f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_set_freq
+<LI><a href="#[eb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_init
 </UL>
 
 <P><STRONG><a name="[10e]"></a>clampf</STRONG> (Thumb, 126 bytes, Stack size 32 bytes, pwm.o(.text.clampf))
 <BR><BR>[Stack]<UL><LI>Max Depth = 32<LI>Call Chain = clampf
 </UL>
-<BR>[Called By]<UL><LI><a href="#[106]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pb0_pwm_set_duty
+<BR>[Called By]<UL><LI><a href="#[104]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pb0_pwm_set_duty
 </UL>
 
 <P><STRONG><a name="[120]"></a>tim_apb1_clk_hz</STRONG> (Thumb, 50 bytes, Stack size 16 bytes, pwm.o(.text.tim_apb1_clk_hz))
@@ -1995,10 +1989,10 @@ Local Symbols
 <P><STRONG><a name="[75]"></a>protect_fault_trigger</STRONG> (Thumb, 44 bytes, Stack size 8 bytes, protect_exti.o(.text.protect_fault_trigger))
 <BR><BR>[Stack]<UL><LI>Max Depth = 136<LI>Call Chain = protect_fault_trigger &rArr; llc_pwm_outputs_enable &rArr; llc_pwm_restore_pwm &rArr; duty_to_ccr &rArr; clampf
 </UL>
-<BR>[Calls]<UL><LI><a href="#[e3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_active_hw
+<BR>[Calls]<UL><LI><a href="#[106]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_active_hw
 <LI><a href="#[dd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_outputs_enable
 </UL>
-<BR>[Called By]<UL><LI><a href="#[107]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_exti_init
+<BR>[Called By]<UL><LI><a href="#[105]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_exti_init
 <LI><a href="#[23]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TIMER0_BRK_IRQHandler
 </UL>
 
@@ -2071,7 +2065,7 @@ Local Symbols
 <P><STRONG><a name="[114]"></a>pfc_outputs_off</STRONG> (Thumb, 56 bytes, Stack size 16 bytes, pfc_control.o(.text.pfc_outputs_off))
 <BR><BR>[Stack]<UL><LI>Max Depth = 92<LI>Call Chain = pfc_outputs_off &rArr; pfc_hw_set_main &rArr; gpio_init
 </UL>
-<BR>[Calls]<UL><LI><a href="#[100]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_hw_set_main
+<BR>[Calls]<UL><LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_hw_set_main
 <LI><a href="#[117]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_pwm_set
 </UL>
 <BR>[Called By]<UL><LI><a href="#[ae]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_tick_1khz
@@ -2083,7 +2077,7 @@ Local Symbols
 <P><STRONG><a name="[117]"></a>pfc_pwm_set</STRONG> (Thumb, 50 bytes, Stack size 16 bytes, pfc_control.o(.text.pfc_pwm_set))
 <BR><BR>[Stack]<UL><LI>Max Depth = 68<LI>Call Chain = pfc_pwm_set &rArr; pb0_pwm_set_duty &rArr; timer_channel_output_pulse_value_config
 </UL>
-<BR>[Calls]<UL><LI><a href="#[106]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pb0_pwm_set_duty
+<BR>[Calls]<UL><LI><a href="#[104]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pb0_pwm_set_duty
 </UL>
 <BR>[Called By]<UL><LI><a href="#[ae]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_tick_1khz
 <LI><a href="#[114]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_outputs_off
@@ -2112,13 +2106,13 @@ Local Symbols
 <LI><a href="#[113]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_handle_fault
 </UL>
 
-<P><STRONG><a name="[102]"></a>conv_adc_to_i</STRONG> (Thumb, 92 bytes, Stack size 16 bytes, llc_control.o(.text.conv_adc_to_i))
+<P><STRONG><a name="[100]"></a>conv_adc_to_i</STRONG> (Thumb, 92 bytes, Stack size 16 bytes, llc_control.o(.text.conv_adc_to_i))
 <BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = conv_adc_to_i
 </UL>
 <BR>[Called By]<UL><LI><a href="#[d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_update_measurements
 </UL>
 
-<P><STRONG><a name="[101]"></a>conv_adc_to_v_div</STRONG> (Thumb, 104 bytes, Stack size 28 bytes, llc_control.o(.text.conv_adc_to_v_div))
+<P><STRONG><a name="[ff]"></a>conv_adc_to_v_div</STRONG> (Thumb, 104 bytes, Stack size 28 bytes, llc_control.o(.text.conv_adc_to_v_div))
 <BR><BR>[Stack]<UL><LI>Max Depth = 28<LI>Call Chain = conv_adc_to_v_div
 </UL>
 <BR>[Called By]<UL><LI><a href="#[d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_update_measurements
@@ -2139,12 +2133,13 @@ Local Symbols
 <BR>[Called By]<UL><LI><a href="#[c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;elapsed_reached
 </UL>
 
-<P><STRONG><a name="[df]"></a>f_clampf</STRONG> (Thumb, 126 bytes, Stack size 32 bytes, llc_control.o(.text.f_clampf))
+<P><STRONG><a name="[e0]"></a>f_clampf</STRONG> (Thumb, 126 bytes, Stack size 32 bytes, llc_control.o(.text.f_clampf))
 <BR><BR>[Stack]<UL><LI>Max Depth = 32<LI>Call Chain = f_clampf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[dc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_set_freq
 <LI><a href="#[da]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_current_limit_step
 <LI><a href="#[db]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_ctrl_step
+<LI><a href="#[df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_bumpless_integ
 </UL>
 
 <P><STRONG><a name="[cb]"></a>fabsf</STRONG> (Thumb, 28 bytes, Stack size 16 bytes, llc_control.o(.text.fabsf))
@@ -2153,24 +2148,35 @@ Local Symbols
 <BR>[Calls]<UL><LI><a href="#[cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__hardfp__fabsf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_app_tick_1khz
+<LI><a href="#[da]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_current_limit_step
 <LI><a href="#[db]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_ctrl_step
 </UL>
 
-<P><STRONG><a name="[db]"></a>llc_ctrl_step</STRONG> (Thumb, 988 bytes, Stack size 128 bytes, llc_control.o(.text.llc_ctrl_step))
-<BR><BR>[Stack]<UL><LI>Max Depth = 160<LI>Call Chain = llc_ctrl_step &rArr; f_clampf
+<P><STRONG><a name="[df]"></a>llc_bumpless_integ</STRONG> (Thumb, 148 bytes, Stack size 72 bytes, llc_control.o(.text.llc_bumpless_integ))
+<BR><BR>[Stack]<UL><LI>Max Depth = 104<LI>Call Chain = llc_bumpless_integ &rArr; f_clampf
 </UL>
-<BR>[Calls]<UL><LI><a href="#[e0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__hardfp_roundf
+<BR>[Calls]<UL><LI><a href="#[e0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_clampf
+</UL>
+<BR>[Called By]<UL><LI><a href="#[db]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_ctrl_step
+</UL>
+
+<P><STRONG><a name="[db]"></a>llc_ctrl_step</STRONG> (Thumb, 1000 bytes, Stack size 128 bytes, llc_control.o(.text.llc_ctrl_step))
+<BR><BR>[Stack]<UL><LI>Max Depth = 232<LI>Call Chain = llc_ctrl_step &rArr; llc_bumpless_integ &rArr; f_clampf
+</UL>
+<BR>[Calls]<UL><LI><a href="#[e1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__hardfp_roundf
+<LI><a href="#[df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_bumpless_integ
 <LI><a href="#[cb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;fabsf
-<LI><a href="#[df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_clampf
+<LI><a href="#[e0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_clampf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_app_tick_1khz
 <LI><a href="#[d0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_state_enter
 </UL>
 
-<P><STRONG><a name="[da]"></a>llc_current_limit_step</STRONG> (Thumb, 724 bytes, Stack size 80 bytes, llc_control.o(.text.llc_current_limit_step))
+<P><STRONG><a name="[da]"></a>llc_current_limit_step</STRONG> (Thumb, 740 bytes, Stack size 80 bytes, llc_control.o(.text.llc_current_limit_step))
 <BR><BR>[Stack]<UL><LI>Max Depth = 112<LI>Call Chain = llc_current_limit_step &rArr; f_clampf
 </UL>
-<BR>[Calls]<UL><LI><a href="#[df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_clampf
+<BR>[Calls]<UL><LI><a href="#[cb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;fabsf
+<LI><a href="#[e0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_clampf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_app_tick_1khz
 <LI><a href="#[d0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_state_enter
@@ -2181,27 +2187,23 @@ Local Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[79]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rcu_periph_clock_enable
 <LI><a href="#[7a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_init
-<LI><a href="#[e2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_set
-<LI><a href="#[e1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_reset
+<LI><a href="#[e3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_set
+<LI><a href="#[e2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_reset
 </UL>
 <BR>[Called By]<UL><LI><a href="#[af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_app_tick_1khz
 <LI><a href="#[d0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_state_enter
 </UL>
 
 <P><STRONG><a name="[d5]"></a>llc_enter_fault</STRONG> (Thumb, 10 bytes, Stack size 8 bytes, llc_control.o(.text.llc_enter_fault))
-<BR><BR>[Stack]<UL><LI>Max Depth = 292<LI>Call Chain = llc_enter_fault &rArr; llc_state_enter &rArr; llc_softstart_start &rArr; llc_softstart_begin &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
+<BR><BR>[Stack]<UL><LI>Max Depth = 296<LI>Call Chain = llc_enter_fault &rArr; llc_state_enter &rArr; llc_ctrl_step &rArr; llc_bumpless_integ &rArr; f_clampf
 </UL>
 <BR>[Calls]<UL><LI><a href="#[d0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_state_enter
 </UL>
 <BR>[Called By]<UL><LI><a href="#[af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_app_tick_1khz
 </UL>
 
-<P><STRONG><a name="[d4]"></a>llc_faults_present</STRONG> (Thumb, 184 bytes, Stack size 16 bytes, llc_control.o(.text.llc_faults_present))
-<BR><BR>[Stack]<UL><LI>Max Depth = 44<LI>Call Chain = llc_faults_present &rArr; protect_fault_active_hw &rArr; gpio_input_bit_get
-</UL>
-<BR>[Calls]<UL><LI><a href="#[e4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_latched
-<LI><a href="#[e3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_active_hw
-<LI><a href="#[e5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_is_fault
+<P><STRONG><a name="[d4]"></a>llc_faults_present</STRONG> (Thumb, 140 bytes, Stack size 4 bytes, llc_control.o(.text.llc_faults_present))
+<BR><BR>[Stack]<UL><LI>Max Depth = 4<LI>Call Chain = llc_faults_present
 </UL>
 <BR>[Called By]<UL><LI><a href="#[af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_app_tick_1khz
 </UL>
@@ -2221,25 +2223,25 @@ Local Symbols
 <P><STRONG><a name="[dc]"></a>llc_set_freq</STRONG> (Thumb, 78 bytes, Stack size 24 bytes, llc_control.o(.text.llc_set_freq))
 <BR><BR>[Stack]<UL><LI>Max Depth = 172<LI>Call Chain = llc_set_freq &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
 </UL>
-<BR>[Calls]<UL><LI><a href="#[f7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_set_freq
-<LI><a href="#[df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_clampf
+<BR>[Calls]<UL><LI><a href="#[f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_set_freq
+<LI><a href="#[e0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_clampf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_app_tick_1khz
 <LI><a href="#[d0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_state_enter
 </UL>
 
-<P><STRONG><a name="[d0]"></a>llc_state_enter</STRONG> (Thumb, 592 bytes, Stack size 56 bytes, llc_control.o(.text.llc_state_enter))
-<BR><BR>[Stack]<UL><LI>Max Depth = 284<LI>Call Chain = llc_state_enter &rArr; llc_softstart_start &rArr; llc_softstart_begin &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
+<P><STRONG><a name="[d0]"></a>llc_state_enter</STRONG> (Thumb, 576 bytes, Stack size 56 bytes, llc_control.o(.text.llc_state_enter))
+<BR><BR>[Stack]<UL><LI>Max Depth = 288<LI>Call Chain = llc_state_enter &rArr; llc_ctrl_step &rArr; llc_bumpless_integ &rArr; f_clampf
 </UL>
-<BR>[Calls]<UL><LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_start
-<LI><a href="#[fd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_on_fault
+<BR>[Calls]<UL><LI><a href="#[fc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_start
+<LI><a href="#[fb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_on_fault
 <LI><a href="#[d9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_last_hz
 <LI><a href="#[dd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_pwm_outputs_enable
 <LI><a href="#[dc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_set_freq
 <LI><a href="#[de]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_driver_en_set
 <LI><a href="#[da]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_current_limit_step
 <LI><a href="#[db]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_ctrl_step
-<LI><a href="#[100]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_hw_set_main
+<LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_hw_set_main
 </UL>
 <BR>[Called By]<UL><LI><a href="#[af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_app_tick_1khz
 <LI><a href="#[cd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_app_init
@@ -2249,9 +2251,9 @@ Local Symbols
 <P><STRONG><a name="[d1]"></a>llc_update_measurements</STRONG> (Thumb, 100 bytes, Stack size 16 bytes, llc_control.o(.text.llc_update_measurements))
 <BR><BR>[Stack]<UL><LI>Max Depth = 44<LI>Call Chain = llc_update_measurements &rArr; conv_adc_to_v_div
 </UL>
-<BR>[Calls]<UL><LI><a href="#[101]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;conv_adc_to_v_div
-<LI><a href="#[102]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;conv_adc_to_i
-<LI><a href="#[103]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_bus_voltage
+<BR>[Calls]<UL><LI><a href="#[ff]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;conv_adc_to_v_div
+<LI><a href="#[100]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;conv_adc_to_i
+<LI><a href="#[101]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_bus_voltage
 </UL>
 <BR>[Called By]<UL><LI><a href="#[af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_app_tick_1khz
 </UL>
