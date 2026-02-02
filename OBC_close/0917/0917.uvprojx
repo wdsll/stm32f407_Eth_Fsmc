@@ -657,6 +657,11 @@
               <FileType>5</FileType>
               <FilePath>.\HW\include\llc_control.h</FilePath>
             </File>
+            <File>
+              <FileName>log.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\HW\include\log.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

@@ -26,7 +26,7 @@
 #include "add_dma.h"
 #include "pwm_llc.h"
 #include "RCU.h"
-#include "debug_printf.h"
+#include "log.h"
 #include "pwm.h"
 #include "protect_exti.h"
 #include "pfc_control.h"

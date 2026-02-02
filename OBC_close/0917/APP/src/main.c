@@ -151,16 +151,16 @@ static bool adc_startup_check(void)
     }
 
     if (valid == 0U) {
-        debug_printf("[STARTUP] ADC1 3V3 sample failed\n");
+        LOG_ERROR("STARTUP", "ADC1 3V3 sample failed\n");
         return false;
     }
 
      float avg_raw = (float)sum / (float)valid;
      float v3v3 = conv_adc_to_v_test((uint16_t)(avg_raw + 0.5f), V3V3_RTOP_OHM, V3V3_RBOT_OHM);
-    debug_printf("[STARTUP] ADC1 3V3 raw=%.1f -> %.3f V\n", avg_raw, v3v3);
+     LOG_INFO("STARTUP", "ADC1 3V3 raw=%.1f -> %.3f V\n", avg_raw, v3v3);
     if ((v3v3 < ADC_STARTUP_V3V3_MIN_V) || (v3v3 > ADC_STARTUP_V3V3_MAX_V)) {
-        debug_printf("[STARTUP] 3V3 out of range (%.2f..%.2f V)\n",
-                     ADC_STARTUP_V3V3_MIN_V, ADC_STARTUP_V3V3_MAX_V);
+        LOG_ERROR("STARTUP", "3V3 out of range (%.2f..%.2f V)\n",
+                  ADC_STARTUP_V3V3_MIN_V, ADC_STARTUP_V3V3_MAX_V);
         return false;
     }
 
@@ -171,8 +171,8 @@ static bool adc_startup_check(void)
     }
 
     if ((g_adc_multi.vout_raw == 0xFFFFU) || (g_adc_multi.isense_raw == 0xFFFFU)) {
-        debug_printf("[STARTUP] ADC0 DMA sample invalid (vout=%u, isense=%u)\n",
-                     g_adc_multi.vout_raw, g_adc_multi.isense_raw);
+        LOG_ERROR("STARTUP", "ADC0 DMA sample invalid (vout=%u, isense=%u)\n",
+                  g_adc_multi.vout_raw, g_adc_multi.isense_raw);
         return false;
     }
 
@@ -182,27 +182,17 @@ static bool adc_startup_check(void)
 static bool protect_startup_check(void)
 {
     if (protect_fault_active_hw()) {
-        debug_printf("[STARTUP] Hardware fault active (BKIN asserted)\n");
+        LOG_ERROR("STARTUP", "Hardware fault active (BKIN asserted)\n");
         return false;
     }
 
     if (protect_fault_latched()) {
-        debug_printf("[STARTUP] Clearing stale fault latch\n");
+        LOG_WARN("STARTUP", "Clearing stale fault latch\n");
         protect_clear_fault();
     }
 
     return !protect_fault_active_hw();
 }
-
-//去偏置
-//float v_net = v_adc - v_zero;               // 去偏置
-//return v_net / (ISHUNT_OHM * IAMP_GAIN);    // 单位：安培
-//v_zero≈0.17V
-//static inline float conv_adc_to_i(uint16_t raw){
-//    float v = (raw * VREF_ADC) / 4095.0f;
-//		float v1 = v - 0.17;              // 去偏置
-//    return v1 / (ISHUNT_OHM * IAMP_GAIN);
-//}
 
 static void control_loop_tick_1khz(void){
     /* 1 kHz control */ 
@@ -225,7 +215,7 @@ int main(void){
 		nvic_priority_group_set(NVIC_PRIGROUP_PRE2_SUB2);
 
 	  debug_printf_init(DEBUG_PRINTF_DEFAULT_BAUDRATE);
-	  debug_printf("Debug console initialized @%lu baud\n", (unsigned long)DEBUG_PRINTF_DEFAULT_BAUDRATE);
+	  LOG_INFO("SYSTEM", "Debug console initialized @%lu baud\n", (unsigned long)DEBUG_PRINTF_DEFAULT_BAUDRATE);
 	
 		systick_1ms_init();
     /* LLC complementary PWM 配置LLC的PWM频率 、死区时间和占空比，并初始化PWM模块*/
@@ -256,7 +246,7 @@ int main(void){
     bool adc_ok = adc_startup_check();
 		//bool adc_ok = adc_test();
     if (!protect_ok || !adc_ok) {
-       debug_printf("[STARTUP] Preflight checks failed, PFC/LLC hold\n");
+       LOG_ERROR("STARTUP", "Preflight checks failed, PFC/LLC hold\n");
        while (1) {
            __NOP();
         }
