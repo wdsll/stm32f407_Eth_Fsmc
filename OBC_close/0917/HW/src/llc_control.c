@@ -78,7 +78,7 @@ static inline float conv_adc_to_v_div(uint16_t raw, float rtop, float rbot)
 static inline float conv_adc_to_i(uint16_t raw)
 {
     float v = (raw * VREF_ADC) / 4095.0f;
-    float v_net = v - 0.17f;
+    float v_net = v - 0.327f;
     return v_net / (ISHUNT_OHM * IAMP_GAIN);
 }
 
@@ -113,6 +113,21 @@ static void llc_set_freq(float hz)
     s_llc.f_cmd = f;
     llc_pwm_set_freq((uint32_t)f);
 }
+
+static const char* llc_state_str(llc_state_t s)
+{
+    switch (s) {
+    case ST_IDLE: return "IDLE";
+    case ST_PRECHECK: return "PRECHECK";
+    case ST_SOFTSTART: return "SOFTSTART";
+    case ST_RUN_ENTRY_HOLD: return "RUN_ENTRY_HOLD";
+    case ST_LLC_RUN: return "RUN";
+    case ST_STOPPING: return "STOPPING";
+    case ST_FAULT: return "FAULT";
+    default: return "UNKNOWN";
+    }
+}
+
 /*********************************************************************************************************
 * 函数名称：llc_ctrl_step
 * 函数功能：
@@ -180,7 +195,7 @@ static float llc_ctrl_step(float e, bool en, bool limit_active, float f_init, fl
         float f_t = f_clampf(f_track, f_min, f_max); //	电流限制时，跟踪频率
         s_llc.integ = (f_nom - f_t) - kp * e_pi; // 重置积分器以防积分风up
         f_sat = f_t; // 设置限幅后的频率为跟踪频率
-        f_prev = f_t; //	更新上一次的频率
+        //f_prev = f_t; //	更新上一次的频率
     } else {
         float x_candidate = s_llc.integ + ki * e_pi; //候选积分值
 			//u 是 PI 控制器根据电压误差计算出的频率调整量，决定了当前周期应当向 f_nom 增加或减少多少频率，以维持输出电压稳定。它是电压环的核心输出，
@@ -308,10 +323,17 @@ static float llc_current_limit_step(float i_meas,bool en)
 static void llc_update_measurements(void)
 {
     //adc_multi_copy();
+	  static uint32_t last_print_ms = 0U;
     s_llc_rt.meas.vout_v = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
     s_llc_rt.meas.iout_a = conv_adc_to_i(g_adc_multi.isense_raw);
     s_llc_rt.meas.vbus_v = pfc_bus_voltage();
     s_llc.vmeas = s_llc_rt.meas.vout_v;
+	  if ((uint32_t)(g_ms - last_print_ms) >= 200U) {
+        last_print_ms = g_ms;
+        debug_printf("[LLC] IOUT=%.3fA raw=%u\r\n",
+                     s_llc_rt.meas.iout_a,
+                     (unsigned)g_adc_multi.isense_raw);
+    }
 }
 
 static bool llc_precheck_ok(void)
@@ -423,11 +445,27 @@ static void llc_state_enter(llc_state_t next)
 	 }
 	 case ST_RUN_ENTRY_HOLD:
 	 {
+		 static uint32_t last_ms = 0;
 			llc_driver_en_set(true);
 			s_llc_rt.run_entry_hold_begin_ms = g_ms; // 记录运行入口保持开始时间戳
 			s_llc_rt.run_entry_stable_ticks = 0U;  // 重置运行入口稳定计数器
 			s_llc.f_cmd = llc_softstart_last_hz(); // 设置目标频率为软启动最后的频率
 			llc_set_freq(s_llc.f_cmd);
+		  debug_printf("hold status");
+		     
+    if ((uint32_t)(g_ms - last_ms) >= 100U) {
+        last_ms = g_ms;
+        debug_printf("[HOLD] Vout=%.2f err=%.2f win=%.2f ticks=%u/%u t=%ums/%ums en=%u pre=%u\r\n",
+            s_llc_rt.meas.vout_v,
+            2,
+            LLC_RUN_ENTRY_STABLE_WINDOW_V,
+            (unsigned)s_llc_rt.run_entry_stable_ticks,
+            (unsigned)LLC_RUN_ENTRY_STABLE_TICKS,
+            (unsigned)(g_ms - s_llc_rt.run_entry_hold_begin_ms),
+            (unsigned)LLC_RUN_ENTRY_HOLD_MS,
+            (unsigned)2,
+            (unsigned)llc_precheck_ok());
+    }
 			break;
 	 }
 	 case ST_LLC_RUN:
@@ -443,6 +481,7 @@ static void llc_state_enter(llc_state_t next)
       s_llc_rt.stopping_begin_ms = g_ms;
 		  llc_driver_en_set(true);
       llc_set_freq(s_llc.f_max);
+		  debug_printf("stop status");
       break;
 	 }
 	 case ST_FAULT:
@@ -451,6 +490,7 @@ static void llc_state_enter(llc_state_t next)
 			llc_pwm_outputs_enable(0);
 			llc_driver_en_set(false);
 			llc_set_freq(s_llc.f_max);
+		  debug_printf("hold status");
 			break;
 	 }
 	 default:
@@ -504,13 +544,14 @@ void llc_app_tick_1khz(void)
 #endif
 	bool enable_llc = pfc_is_ready();
 	bool pfc_ready_stable = llc_pfc_ready_stable(enable_llc);
-
+#if 0
 	if (s_llc_rt.app.state != ST_IDLE && s_llc_rt.app.state != ST_FAULT) {
 		if (llc_faults_present()) {
 			llc_enter_fault();
 			return;
 		}
-	}
+#endif
+	
 	switch(s_llc_rt.app.state)
 	{
 		case ST_IDLE:
@@ -560,12 +601,14 @@ void llc_app_tick_1khz(void)
 			if(!enable_llc|| !llc_precheck_ok())
 			{
 				llc_state_enter(ST_STOPPING);
+			debug_printf("error 1");
 				break;
 			}
 			float hold_err = s_llc_rt.meas.vout_v - LLC_VOUT_TARGET_V; // з
 			if (fabsf(hold_err) <= LLC_RUN_ENTRY_STABLE_WINDOW_V) { // 在稳定范围内
 				if (s_llc_rt.run_entry_stable_ticks < LLC_RUN_ENTRY_STABLE_TICKS) { // 保持稳定
 					s_llc_rt.run_entry_stable_ticks++;
+					debug_printf("stable ticks");
 				}
 			} 
 			else 
@@ -576,11 +619,13 @@ void llc_app_tick_1khz(void)
 			// 达到保持时间且稳定
 			{
 				llc_state_enter(ST_LLC_RUN);
+				debug_printf("run status");
 				break;
 			}
 
 			if (elapsed_reached(s_llc_rt.run_entry_hold_begin_ms, LLC_RUN_ENTRY_TIMEOUT_MS)){ // 超时
 				llc_state_enter(ST_STOPPING);
+				debug_printf("error 2");
 				break;
 			}
 				break;		

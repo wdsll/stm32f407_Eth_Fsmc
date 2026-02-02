@@ -73,8 +73,8 @@
 
 
 /* ==== Current sense ==== */
-#define ISHUNT_OHM          (0.005f)   /* 5 m¦¸ */
-#define IAMP_GAIN           (19.6f)   /* INA gain */
+#define ISHUNT_OHM          (0.00333f)   /* 5 m¦¸ */
+#define IAMP_GAIN           (19.8198f)  /* INA gain */
 
 /* ==== Control targets/thresholds ==== */
 #define VBUS_TARGET_V       (400.0f)
@@ -106,9 +106,9 @@
 
 /* ==== LLC RUN entry hold ==== */
 #define LLC_RUN_ENTRY_HOLD_MS          (20U)
-#define LLC_RUN_ENTRY_STABLE_TICKS     (5U)
-#define LLC_RUN_ENTRY_STABLE_WINDOW_V  (2.0f)
-#define LLC_RUN_ENTRY_TIMEOUT_MS       (200U)
+#define LLC_RUN_ENTRY_STABLE_TICKS     (2U)
+#define LLC_RUN_ENTRY_STABLE_WINDOW_V  (5.0f)
+#define LLC_RUN_ENTRY_TIMEOUT_MS       (400U)
 
 /* ==== LLC frequency window ==== */
 #define LLC_F_MIN_HZ        (75000.0f)
@@ -130,7 +130,7 @@
 
 /* ==== LLC open-loop safe bands ==== */
 #define LLC_VBUS_MIN_START_V         (360.0f)
-#define LLC_VOUT_TARGET_V            (44.0f)
+#define LLC_VOUT_TARGET_V            (46.0f)
 #define LLC_VOUT_HYST_V              (15.0f)
 #define LLC_VOUT_OVP_V               (58.0f)
 #define LLC_IOUT_OCP_A               (41.0f)
