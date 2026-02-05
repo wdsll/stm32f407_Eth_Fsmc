@@ -36,9 +36,9 @@
   C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdlib.h \
   C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdbool.h \
   C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\math.h HW/include\pwm_llc.h \
-  HW/include\RCU.h HW/include\log.h HW/include/debug_printf.h \
+  HW/include\RCU.h HW/include\debug_printf.h \
   C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stddef.h \
   C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdarg.h HW/include\pwm.h \
   HW/include\protect_exti.h HW/include\pfc_control.h \
   HW/include\llc_control.h APP/include/llc_soft_start.h \
-  APP/include/main.h ARM/include\systick.h
+  APP/include/main.h ARM/include\systick.h HW/include\log.h

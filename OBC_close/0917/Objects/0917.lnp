@@ -35,6 +35,8 @@
 ".\objects\debug_printf.o"
 ".\objects\pfc_control.o"
 ".\objects\llc_control.o"
+".\objects\can_driver.o"
+".\objects\can_driver.o"
 ".\objects\gd32f30x_it.o"
 ".\objects\systick.o"
 ".\objects\startup_gd32f30x_hd.o"

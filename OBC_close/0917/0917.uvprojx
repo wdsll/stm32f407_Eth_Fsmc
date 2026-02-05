@@ -662,6 +662,21 @@
               <FileType>5</FileType>
               <FilePath>.\HW\include\log.h</FilePath>
             </File>
+            <File>
+              <FileName>can_driver.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\HW\include\can_driver.c</FilePath>
+            </File>
+            <File>
+              <FileName>can_driver.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\HW\include\can_driver.h</FilePath>
+            </File>
+            <File>
+              <FileName>can_driver.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\HW\src\can_driver.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
