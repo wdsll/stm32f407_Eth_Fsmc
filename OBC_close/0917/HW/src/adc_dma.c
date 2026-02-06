@@ -97,16 +97,18 @@ uint8_t adc0_is_initialized(void)
 }
 
 /*********************************************************************************************************
-* ADC1相关函数 - 软件触发模式（低速采集）
+* ADC1相关函数 - 软件触发模式（低速采集 1MS）
 *********************************************************************************************************/
 /* ADC1模拟引脚初始化 */
 static void adc1_analog_pins_init(void)
 {   
 		rcu_periph_clock_enable(RCU_GPIOA);
+	  rcu_periph_clock_enable(RCU_GPIOA);
     rcu_periph_clock_enable(RCU_GPIOC);
     /* ADC1通道配置 */
     gpio_init(GPIOC, GPIO_MODE_AIN, GPIO_OSPEED_50MHZ, GPIO_PIN_4|GPIO_PIN_5);
-    gpio_init(GPIOA, GPIO_MODE_AIN, GPIO_OSPEED_50MHZ, GPIO_PIN_1 | GPIO_PIN_3);
+    gpio_init(GPIOA, GPIO_MODE_AIN, GPIO_OSPEED_50MHZ, GPIO_PIN_1 | GPIO_PIN_3 | GPIO_PIN_7);
+	  gpio_init(GPIOB, GPIO_MODE_AIN, GPIO_OSPEED_50MHZ, GPIO_PIN_1);
 }
 
 /* ADC1初始化 - 软件触发模式 */
@@ -209,9 +211,13 @@ void adc1_sample_aux_1khz(void)
     }
     uint16_t v3v3 = adc1_aux_read_channel(AD_3V3_CH, ADC_SAMPLETIME_55POINT5);
     uint16_t vbt = adc1_aux_read_channel(VBT_SENSE_CH, ADC_SAMPLETIME_55POINT5);
-
+    uint16_t tsense_pfc = adc1_aux_read_channel(T_SENSE_PFC_MOS, ADC_SAMPLETIME_55POINT5);
+    uint16_t tsense_llc = adc1_aux_read_channel(T_SENSE_LLCMOS_CH, ADC_SAMPLETIME_55POINT5);
+		
     s_latched.v3v3_raw = v3v3;
     s_latched.vbt_raw = vbt;
+		s_latched.tsense_pfc_raw = tsense_pfc;
+    s_latched.tsense_llc_raw = tsense_llc;
 }
 
 /* ADC1状态检查 */
@@ -244,8 +250,10 @@ void adc_multi_copy(void)
     adc_multi_frame_t frame;
     frame.vout_raw   = s_latched.vout_raw;
     frame.isense_raw = s_latched.isense_raw;
+		frame.tsense_pfc_raw = s_latched.tsense_pfc_raw;
 	  frame.v3v3_raw   = s_latched.v3v3_raw;
     frame.vbt_raw    = s_latched.vbt_raw;
+	  frame.tsense_llc_raw = s_latched.tsense_llc_raw;
     g_adc_multi = frame;
 
 }

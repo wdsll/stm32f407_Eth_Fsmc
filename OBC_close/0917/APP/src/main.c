@@ -3,6 +3,8 @@
 *                                              包含头文件
 *********************************************************************************************************/
 #include "main.h"
+#include "can_test.h"
+#include "temp_control.h"
 /*********************************************************************************************************
 *                                              宏定义
 *********************************************************************************************************/
@@ -198,8 +200,7 @@ static void control_loop_tick_1khz(void){
 		adc_multi_copy(); 
     pfc_tick_1khz();
     llc_app_tick_1khz();
-		//llc_app_tick_adc_test();
-
+		temp_control_tick_1khz();
 }
 
 void SysTick_Handler(void){
@@ -213,7 +214,8 @@ int main(void){
 		nvic_priority_group_set(NVIC_PRIGROUP_PRE2_SUB2);
 
 	  debug_printf_init(DEBUG_PRINTF_DEFAULT_BAUDRATE);
-
+	
+		can_test_init();
 	
 		systick_1ms_init();
     /* LLC complementary PWM 配置LLC的PWM频率 、死区时间和占空比，并初始化PWM模块*/
@@ -232,6 +234,7 @@ int main(void){
     adc_multi_start();
     adc_fast_timer_init_100us(); // 启动100us定时器中断用于ADC0触发
 		adc1_aux_init();
+		temp_control_init();
     /* Protection EXTI PC11 */
     protect_exti_init();
 		
@@ -267,9 +270,9 @@ int main(void){
 			__enable_irq();
 			while(pending_ticks-- > 0U)
 			{
-				 control_loop_tick_1khz();
-			
-				//防止单次主循环处理过多 tick
+				 //control_loop_tick_1khz();
+			   can_test_tick_1khz();
+				 //防止单次主循环处理过多 tick
 					if(pending_ticks > MAX_TICKS_PER_LOOP)
 					{
 						s_tick_drop_count += (pending_ticks - MAX_TICKS_PER_LOOP);

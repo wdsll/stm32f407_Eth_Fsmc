@@ -442,6 +442,26 @@
               <FileType>5</FileType>
               <FilePath>.\APP\LLC电压控制环PI控制器.txt</FilePath>
             </File>
+            <File>
+              <FileName>can_test.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\APP\include\can_test.h</FilePath>
+            </File>
+            <File>
+              <FileName>can_test.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\APP\src\can_test.c</FilePath>
+            </File>
+            <File>
+              <FileName>temp_control.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\APP\src\temp_control.c</FilePath>
+            </File>
+            <File>
+              <FileName>temp_control.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\APP\include\temp_control.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -661,11 +681,6 @@
               <FileName>log.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\HW\include\log.h</FilePath>
-            </File>
-            <File>
-              <FileName>can_driver.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\HW\include\can_driver.c</FilePath>
             </File>
             <File>
               <FileName>can_driver.h</FileName>

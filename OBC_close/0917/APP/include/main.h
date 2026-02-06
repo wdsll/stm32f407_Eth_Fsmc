@@ -193,10 +193,10 @@ static inline uint8_t irq_priority_encode(uint8_t preempt, uint8_t sub)
 
 #define VOUT_SENSE_CH      ADC_CHANNEL_5   /* PA5 */
 #define ADC_ISENSE_CH      ADC_CHANNEL_6   /* PA6 */
-//#define T_SENSE_PFC_MOS    ADC_CHANNEL_7   /* PA7 PFC MOS 管温度 NTC 采样*/
+#define T_SENSE_PFC_MOS    ADC_CHANNEL_7   /* PA7 PFC MOS 管温度 NTC 采样*/
 #define AD_3V3_CH          ADC_CHANNEL_14  /* PC4 3.3V 模拟电源监测（AD_3V3）*/ 
 #define VBT_SENSE_CH       ADC_CHANNEL_15  /* PC5 电池端电压采样*/
-//#define T_SENSE_LLCMOS_CH  ADC_CHANNEL_9   /* PB1 LLC MOS 管温度 NTC 采样*/
+#define T_SENSE_LLCMOS_CH  ADC_CHANNEL_9   /* PB1 LLC MOS 管温度 NTC 采样*/
 
 
 #define OUT_RELAY     GPIOB  //直流输出继电器控制
