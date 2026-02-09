@@ -272,6 +272,7 @@ int main(void){
 			{
 				 //control_loop_tick_1khz();
 			   can_test_tick_1khz();
+				 temp_control_tick_1khz();
 				 //防止单次主循环处理过多 tick
 					if(pending_ticks > MAX_TICKS_PER_LOOP)
 					{

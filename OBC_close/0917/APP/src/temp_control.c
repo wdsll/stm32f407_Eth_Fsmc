@@ -4,7 +4,7 @@
 #define TEMP_PULLUP_OHM        (10000.0f)
 #define TEMP_ADC_MAX_COUNTS    (4095.0f)
 #define TEMP_OVERLIMIT_C       (90.0f)
-
+#define DEBUG_PRINTF_TEMP_CONTROL 1
 typedef struct {
     int8_t temp_c;
     float resistance_ohm;
@@ -142,6 +142,9 @@ static void temp_sensor_update(temp_sensor_data_t *sensor, uint16_t raw)
     sensor->raw = raw;
 	//函数返回 bool 表示计算是否成功（即原始值是否有效、电压是否在合理范围内）通过指针参数 &sensor->resistance_ohm 输出计算出的电阻值（单位：Ω）
     sensor->valid = ntc_resistance_from_adc(raw, &sensor->resistance_ohm);
+	  #if DEBUG_PRINTF_TEMP_CONTROL
+    debug_printf("RAW=%4u, Valid=%d, R=%.1f ohm", raw, sensor->valid, sensor->resistance_ohm);
+    #endif
     if (sensor->valid) {
 			  //ntc_temperature_from_resistance：调用查表插值函数，将电阻值转换为温度（℃）。
         sensor->temperature_c = ntc_temperature_from_resistance(sensor->resistance_ohm);
@@ -151,6 +154,9 @@ static void temp_sensor_update(temp_sensor_data_t *sensor, uint16_t raw)
         sensor->temperature_c = 0.0f;
         sensor->over_limit = false;
     }
+		#if DEBUG_PRINTF_TEMP_CONTROL
+				debug_printf(", T=%.1f C, Over=%d\n", sensor->temperature_c, sensor->over_limit);
+    #endif
 }
 
 void temp_control_init(void)

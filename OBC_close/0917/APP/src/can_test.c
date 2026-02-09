@@ -58,8 +58,8 @@ static void can_test_pack_payload(uint8_t *payload, uint32_t counter)
 
     payload[0] = (uint8_t)(counter & 0xFFU);
     payload[1] = (uint8_t)((counter >> 8U) & 0xFFU);
-    payload[2] = (uint8_t)((counter >> 16U) & 0xFFU);
-    payload[3] = (uint8_t)((counter >> 24U) & 0xFFU);
+    payload[2] = (uint8_t)(((counter) >> 16U) & 0xFFU);
+    payload[3] = (uint8_t)(((counter) >> 24U) & 0xFFU);
     payload[4] = (uint8_t)(s_can_test_rx_count & 0xFFU);
     payload[5] = (uint8_t)((s_can_test_rx_count >> 8U) & 0xFFU);
     payload[6] = (uint8_t)((s_can_test_rx_count >> 16U) & 0xFFU);
