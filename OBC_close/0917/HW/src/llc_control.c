@@ -1,6 +1,6 @@
 #include "llc_control.h"
 #include "float.h"
-
+#include "temp_control.h"
 /*********************************************************************************************************
 *                                              宏定义
 *********************************************************************************************************/
@@ -12,6 +12,8 @@ typedef struct {
     float vbus_v;
     float vout_v;
     float iout_a;
+		float llc_temp_c;
+		bool llc_temp_valid;
 } llc_meas_t;
 typedef struct {
     llc_app_ctx_t app; //应用状态上下文
@@ -31,6 +33,7 @@ static llc_t s_llc; //llc上下文
 
 typedef struct {
     float iref; 	//参考电流
+		float iref_cmd;
     float imeas;  	//测量电流
 	  float i_err_sat; //误差限幅
     float kp;   	//比例系数
@@ -43,6 +46,8 @@ typedef struct {
 	  float df_prev;  //上一拍 df
     float i_on;     //激活电流
     float i_off;    //退出电流
+	  uint32_t derate_step_ms;
+	  uint32_t derate_recover_ms;
     bool limit_active; //限流激活标志
 } llc_curr_t;
 
@@ -67,6 +72,11 @@ static void llc_enter_fault(void);
 static float llc_ctrl_step(float e, bool en, bool limit_active, float f_init, float f_track);
 static float llc_bumpless_integ(float f0, float e0, float kp, float f_nom, float f_min, float f_max);
 static float llc_current_limit_step(float i_meas,bool en);
+static void llc_current_thresholds_update(void);
+static void llc_derate_reset(void);
+static void llc_derate_update(float i_meas, bool enable);
+static bool llc_temp_derate_active(void);
+static bool llc_overtemp_shutdown(void);
 /*********************************************************************************************************
 *                                              静态工具
 *********************************************************************************************************/
@@ -245,7 +255,7 @@ static float llc_ctrl_step(float e, bool en, bool limit_active, float f_init, fl
 static float llc_current_limit_step(float i_meas,bool en)
 {
 	 // 从全局结构体提取控制器参数（避免多次访问）
-    float iref = s_llc_curr.iref;  // 电流参考值（A）
+    float iref = s_llc_curr.iref_cmd;  // 电流参考值（A）
     float i_err_sat = s_llc_curr.i_err_sat;  // 误差限幅值
     float kp = s_llc_curr.kp; // 比例系数（Hz/A）
     float ki = s_llc_curr.ki; // 积分系数（Hz/(A·周期)）
@@ -320,10 +330,128 @@ static float llc_current_limit_step(float i_meas,bool en)
     return df_i;
 }
 
+/*********************************************************************************************************
+* 函数名称：llc_current_thresholds_update
+* 函数功能：
+* 输入参数：void
+* 输出参数：void
+* 返 回 值：void
+* 创建日期：2026年02月10日
+* 注    意：
+*********************************************************************************************************/
+static void llc_current_thresholds_update(void)
+{
+    float i_on  = s_llc_curr.iref_cmd + LLC_IOUT_ON_DELTA_A;
+    float i_off = s_llc_curr.iref_cmd - LLC_IOUT_OFF_DELTA_A;
 
+    /* 1) 电流阈值不允许为负 */
+    if (i_on  < 0.0f) i_on  = 0.0f;
+    if (i_off < 0.0f) i_off = 0.0f;
 
+    /* 2) 保证滞回方向正确：i_on 必须 > i_off */
+    if (i_off >= i_on) {
+        i_off = i_on - 0.1f;          // 给个最小滞回（0.1A 可按需调整）
+        if (i_off < 0.0f) i_off = 0.0f;
+    }
+
+    s_llc_curr.i_on  = i_on;
+    s_llc_curr.i_off = i_off;
+}
+/*********************************************************************************************************
+* 函数名称：llc_derate_reset
+* 函数功能：此函数是 LLC（谐振变换器）电流控制模块 的一部分，专用于管理 降额（Derating）状态 的复位操作
+* 输入参数：void
+* 输出参数：void
+* 返 回 值：void
+* 创建日期：2026年02月10日
+* 注    意：“降额”指在检测到过流、过热等异常工况时，主动降低电流参考值以保护功率器件。该函数作为一个状态重置枢纽，确保系统能从降额模式安全、一致地恢复到正常工作点
+*********************************************************************************************************/
+static void llc_derate_reset(void)
+{
+	//将动态调整后的命令值拉回原始设定点，取消所有降额偏移。这是 状态复位 的核心操作，确保控制器从“干净”的起点重新开始。
+    s_llc_curr.iref_cmd = s_llc_curr.iref;  // (1) 复位命令电流
+	//防误触发：归零后，下一次降额判断将基于新的起始时间，避免残留历史时间导致立即动作
+    s_llc_curr.derate_step_ms = 0U;   // (2) 清除降额步进计时：记录上一次降额步进（减少电流）的时间戳
+    s_llc_curr.derate_recover_ms = 0U; // (3) 清除降额恢复计时：记录上一次降额恢复（增加电流）的时间戳
+	//根据新的 iref_cmd 重新计算迟滞比较阈值 i_on（开启阈值）和 i_off（关闭阈值）
+    llc_current_thresholds_update();  // (4) 更新电流阈值
+}
+
+/*********************************************************************************************************
+* 函数名称：llc_derate_update
+* 函数功能：实现了 自适应降额（Adaptive Derating） 机制
+* 输入参数：i_meas    enable
+* 输出参数：void
+* 返 回 值：void
+* 创建日期：2026年02月10日
+* 注    意：当检测到持续过流或过热等异常工况时，系统不能立即关断（可能引起负载突变），而应逐步降低电流设定值，直至异常消除。该函数通过 迟滞比较 + 时间窗口 
+的双重条件，实现了平滑、抗扰的降额控制。
+*********************************************************************************************************/
+static void llc_derate_update(float i_meas, bool enable)
+{
+	//提供外部开关，允许上层逻辑动态启用/禁用降额功能。
+    if (!enable) {
+			//一旦禁用，立即调用 llc_derate_reset() 确保所有状态变量归零，电流参考值恢复原始设定点。
+        llc_derate_reset(); 
+        return;
+    }
+  //惰性初始化（Lazy Initialization）：仅在第一次进入启用状态时，将计时器设置为当前系统时间 g_ms。
+    if (s_llc_curr.derate_step_ms == 0U) {
+        s_llc_curr.derate_step_ms = g_ms;
+    }
+
+    if (s_llc_curr.derate_recover_ms == 0U) {
+        s_llc_curr.derate_recover_ms = g_ms;
+    }
+    //双阈值迟滞降额逻辑:采用 i_on（开启阈值）和 i_off（关闭阈值），防止在阈值附近频繁切换
+    bool updated = false;
+    if ((i_meas >= s_llc_curr.i_on) && elapsed_reached(s_llc_curr.derate_step_ms, LLC_DERATE_STEP_PERIOD_MS)) {
+        s_llc_curr.iref_cmd -= LLC_DERATE_STEP_A; // 过流：逐步降低电流
+        s_llc_curr.derate_step_ms = g_ms;  // 重置步进计时器
+        updated = true;
+    }
+
+    if ((i_meas <= s_llc_curr.i_off) && elapsed_reached(s_llc_curr.derate_recover_ms, LLC_DERATE_RECOVER_PERIOD_MS)) {
+        s_llc_curr.iref_cmd += LLC_DERATE_RECOVER_STEP_A; // 恢复正常：逐步提高电流
+        s_llc_curr.derate_recover_ms = g_ms;   // 重置恢复计时器
+        updated = true;
+    }
+    //边界保护与阈值同步
+    if (updated) {
+        s_llc_curr.iref_cmd = f_clampf(s_llc_curr.iref_cmd, LLC_DERATE_MIN_A, s_llc_curr.iref);
+        llc_current_thresholds_update();
+    }
+}
+
+static bool llc_temp_derate_active(void)
+{
+    return s_llc_rt.meas.llc_temp_valid && (s_llc_rt.meas.llc_temp_c >= LLC_TEMP_DERATE_START_C);
+}
+
+static bool llc_overtemp_shutdown(void)
+{
+    return s_llc_rt.meas.llc_temp_valid && (s_llc_rt.meas.llc_temp_c >= LLC_TEMP_SHUTDOWN_C);
+}
+/*********************************************************************************************************
+* 函数名称：llc_update_measurements
+* 函数功能：实现了 自适应降额（Adaptive Derating） 机制
+* 输入参数：void
+* 输出参数：void
+* 返 回 值：void
+* 创建日期：2026年02月10日
+* 注    意：测量信号链的聚合点，将来自不同物理接口（温度传感器、ADC通道、电压检测）的原始数据转换为统一的工程单位，并同步更新到系统状态机中
+*********************************************************************************************************/
 static void llc_update_measurements(void)
 {
+	  //零初始化模式：使用 {0} 确保结构体所有字段（raw, resistance_ohm, temperature_c, valid, over_limit）初始化为0或false。
+    //栈变量设计：在函数内声明局部变量，避免直接操作全局状态，提高代码可测试性和模块化。
+	  temp_sensor_data_t llc_temp = {0};  //(1)温度数据容器初始化
+		//接口抽象：调用温度控制模块的API，隐藏底层ADC采样、NTC查表、线性插值等复杂细节。
+    //关注点分离：温度计算逻辑封装在独立的 temp_control.c 模块中，此处只需获取结果。
+    temp_control_get_llc(&llc_temp);  //(2)获取温度传感器数据
+		//同步温度状态 有效性标志优先：先更新 valid 标志，确保后续代码在使用温度值时能判断其可靠性。
+    s_llc_rt.meas.llc_temp_valid = llc_temp.valid; //(3)同步温度有效性标志
+    s_llc_rt.meas.llc_temp_c = llc_temp.temperature_c; //(4)同步温度值
     s_llc_rt.meas.vout_v = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
     s_llc_rt.meas.iout_a = conv_adc_to_i(g_adc_multi.isense_raw);
     s_llc_rt.meas.vbus_v = pfc_bus_voltage();
@@ -370,6 +498,11 @@ static bool llc_faults_present(void)
     if (s_llc_rt.meas.vbus_v < (LLC_VBUS_MIN_START_V - LLC_VOUT_HYST_V)) {
         return true;
     }
+		
+		if (llc_overtemp_shutdown()) {
+        return true;
+    }
+
 
     return false;
 }
@@ -389,6 +522,15 @@ static float llc_bumpless_integ(float f0, float e0, float kp, float f_nom, float
 /*********************************************************************************************************
 *                                              状态机核心
 *********************************************************************************************************/
+/*********************************************************************************************************
+* 函数名称：llc_state_enter
+* 函数功能：作为整个功率变换器的“大脑”，它协调了从启动、运行到保护停机的完整生命周期，实现了 七状态有限状态机（FSM）
+* 输入参数：void
+* 输出参数：void
+* 返 回 值：void
+* 创建日期：2026年02月11日
+* 注    意：
+*********************************************************************************************************/
 static void llc_state_enter(llc_state_t next)
 {
 	// 更新 LLC 状态和进入时间
@@ -401,6 +543,7 @@ static void llc_state_enter(llc_state_t next)
 	if (next != ST_LLC_RUN) {
 		(void)llc_ctrl_step(0.0f, false, false, s_llc.f_cmd, s_llc.f_cmd);
 		(void)llc_current_limit_step(0.0f, false);
+		llc_derate_reset();
 	}
 	#if Bus_Adj
 	//bus_vol_adj_reset();   //重置总线电压调整逻辑 百分之五十的占空比
@@ -493,24 +636,42 @@ void llc_app_init()
 				.f_nom=LLC_VCTRL_F_NOM_HZ, .e_db=LLC_VCTRL_E_DB_V, .f_q_step=LLC_VCTRL_F_Q_STEP_HZ
 		};
 	s_llc_curr = (llc_curr_t){
-				.iref=LLC_IOUT_TARGET_A, .imeas=0.0f, .i_err_sat=LLC_IOUT_ERR_SAT_A,
+				.iref=LLC_IOUT_TARGET_A,.iref_cmd=LLC_IOUT_TARGET_A,.imeas=0.0f, .i_err_sat=LLC_IOUT_ERR_SAT_A,
 				.kp=LLC_IOUT_CTRL_KP, .ki=LLC_IOUT_CTRL_KI * LLC_CTRL_TS_S, .integ=0.0f,
 				.f_min=LLC_F_MIN_HZ, .f_max=LLC_F_MAX_HZ,
 				.df_max=LLC_IOUT_DF_MAX_HZ, .df_slew=LLC_IOUT_DF_SLEW_HZ_S * LLC_CTRL_TS_S, .df_prev=0.0f,
 				.i_on=LLC_IOUT_TARGET_A + LLC_IOUT_ON_DELTA_A,
 				.i_off=LLC_IOUT_TARGET_A - LLC_IOUT_OFF_DELTA_A,
+		    .derate_step_ms=0U, .derate_recover_ms=0U,
 				.limit_active=false
 	};
-	
+	llc_current_thresholds_update();
 	llc_state_enter(ST_IDLE);
 }
 void llc_app_tick_adc_test(void)
 {
 	llc_update_measurements();
 }
+/*********************************************************************************************************
+* 函数名称：llc_app_tick_1khz
+* 函数功能：作为整个功率变换器的“大脑”，它协调了从启动、运行到保护停机的完整生命周期，实现了 七状态有限状态机（FSM）
+* 输入参数：void
+* 输出参数：void
+* 返 回 值：void
+* 创建日期：2026年02月11日
+* 注    意：
+*********************************************************************************************************/
 void llc_app_tick_1khz(void)
 {
-	llc_update_measurements();
+	//1. 数据更新与安全监控
+	llc_update_measurements(); //数据同步优先：首先调用 llc_update_measurements() 更新所有传感器数据，确保状态机基于最新信息决策。
+	if (s_llc_rt.app.state != ST_IDLE && s_llc_rt.app.state != ST_FAULT) {
+		if (llc_overtemp_shutdown())  //热保护最高优先级：在任何非空闲/非故障状态下，温度超限立即触发故障，无条件返回，体现“安全第一”设计原则
+		{
+			llc_enter_fault();
+			return;
+		}
+	}
 
 #if 0	
 	if (llc_faults_present()) {
@@ -518,8 +679,9 @@ void llc_app_tick_1khz(void)
   		return;
   }
 #endif
-	bool enable_llc = pfc_is_ready();
-	bool pfc_ready_stable = llc_pfc_ready_stable(enable_llc);
+	//2. 使能条件与PFC协调,级联系统协调：LLC作为二级变换器，依赖前级PFC（功率因数校正）提供稳定总线电压
+	bool enable_llc = pfc_is_ready(); //PFC硬件就绪（电压建立）
+	bool pfc_ready_stable = llc_pfc_ready_stable(enable_llc); //PFC稳定持续时间达标（防瞬时波动）
 #if 0
 	if (s_llc_rt.app.state != ST_IDLE && s_llc_rt.app.state != ST_FAULT) {
 		if (llc_faults_present()) {
@@ -527,25 +689,26 @@ void llc_app_tick_1khz(void)
 			return;
 		}
 #endif
-	
+	//3. 七状态有限状态机
 	switch(s_llc_rt.app.state)
 	{
 		case ST_IDLE:
 		{
+			//PFC稳定 + 总线电压 ≥ LLC_VBUS_MIN_START_V,双重确认确保启动安全，避免误触发。
 			if(pfc_ready_stable &&llc_precheck_ok())
 			{
 				  llc_state_enter(ST_PRECHECK);
 			}
 			break;
 		}
-		case ST_PRECHECK:
+		case ST_PRECHECK: //
 		{
-			if (!enable_llc) {
-				llc_state_enter(ST_STOPPING);
+			if (!enable_llc) { // PFC失能 → 停止
+				llc_state_enter(ST_STOPPING); //100ms等待确保系统无瞬时异常，体现“慢启动、快保护”原则,条件不满足时进入 ST_STOPPING 而非直接 ST_FAULT，允许有序停机.
 				break;
 			}
-			if (!llc_precheck_ok()) {
-				llc_state_enter(ST_STOPPING);
+			if (!llc_precheck_ok()) { // 电压跌落 → 停止
+				llc_state_enter(ST_STOPPING); //快保护”原则,条件不满足时进入 ST_STOPPING 而非直接 ST_FAULT，允许有序停机.
 				break;
 			}
 			if (!elapsed_reached(s_llc_rt.app.entry_ms, 100U)) { // 100ms 稳定等待
@@ -556,12 +719,13 @@ void llc_app_tick_1khz(void)
 	  }
 		case ST_SOFTSTART:
 		{
-			llc_softstart_tick_1khz();
-			if(!enable_llc|| !llc_precheck_ok())
+			llc_softstart_tick_1khz();  // 专用软启动控制器
+			if(!enable_llc|| !llc_precheck_ok()) // 条件丢失 → 停止
 			{
 				llc_state_enter(ST_STOPPING);
 				break;
 			}
+			//时间+稳定双重结束条件：软启动时间到 + 稳定时间到，确保输出电压平稳过渡
 			if(elapsed_reached(s_llc_rt.softstart_begin_ms,LLC_SOFTSTART_DURATION_MS + LLC_SOFTSTART_STABILIZE_MS)) 
 			// 软启动完成
 			{
@@ -579,6 +743,7 @@ void llc_app_tick_1khz(void)
 				llc_state_enter(ST_STOPPING);
 				break;
 			}
+			//稳定性验证：要求输出电压在目标值 ±LLC_RUN_ENTRY_STABLE_WINDOW_V 范围内连续保持 LLC_RUN_ENTRY_STABLE_TICKS 个周期。
 			float hold_err = s_llc_rt.meas.vout_v - LLC_VOUT_TARGET_V; // з
 			if (fabsf(hold_err) <= LLC_RUN_ENTRY_STABLE_WINDOW_V) { // 在稳定范围内
 				if (s_llc_rt.run_entry_stable_ticks < LLC_RUN_ENTRY_STABLE_TICKS) { // 保持稳定
@@ -602,22 +767,28 @@ void llc_app_tick_1khz(void)
 			}
 				break;		
 		}
-		case ST_LLC_RUN:
+		case ST_LLC_RUN: //这是系统的核心控制环，实现了 电压外环 + 电流内环 + 降额保护 的三层控制架构
 		{
 			if(!enable_llc||(s_llc_rt.meas.vbus_v<(LLC_VBUS_MIN_START_V-LLC_VOUT_HYST_V))) // 电压过低
 			{
 				llc_state_enter(ST_STOPPING);
 				break;
 			}
+			// 1. 电压环计算
 			s_llc.vmeas = s_llc_rt.meas.vout_v;
-			float err = s_llc.vref - s_llc.vmeas;
-			float f_init  = s_llc.f_cmd;                           // 上一拍下发的频率（用于slew基准）
+			float err = s_llc.vref - s_llc.vmeas;		
+			float f_init  = s_llc.f_cmd;                           // 上一拍下发的频率（用于slew基准）			
+			// 2. 降额保护更新
+			llc_derate_update(s_llc_rt.meas.iout_a, llc_temp_derate_active());
+			// 3. 电流限制环
 			float df_i = llc_current_limit_step(s_llc_rt.meas.iout_a, true);
 			float f_cmd_i = s_llc.f_min + df_i;
 			//float f_cmd_i = f_init + df_i;
 			/* 关键：用 df_i 判断当前是否仍被电流环抬高（不要用 limit_active） */
+			// 4. 电压控制环（考虑电流限制）
 			bool lim_for_v = df_i > 1.0f;   // df_i > 0 ==> 10                   
 			float f_cmd_v = llc_ctrl_step(err, true, lim_for_v, f_init, f_cmd_i); 
+			// 5. 最小值选择（保护优先）
 			float f_cmd = (f_cmd_i > f_cmd_v) ? f_cmd_i : f_cmd_v; 
 			llc_set_freq(f_cmd);			
 			break;
@@ -633,8 +804,12 @@ void llc_app_tick_1khz(void)
 			break;
 		}
 		case ST_FAULT:
-
+		{
+			if (s_llc_rt.meas.llc_temp_valid && (s_llc_rt.meas.llc_temp_c <= LLC_TEMP_RESTART_C)) {
+				llc_state_enter(ST_IDLE);
+			}
 			break;
+		}
 			
 		default:
 			break;

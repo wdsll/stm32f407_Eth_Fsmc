@@ -139,6 +139,15 @@
 #define LLC_IOUT_CTRL_KP             (400.0f)
 #define LLC_IOUT_CTRL_KI             (1200.0f)
 
+#define LLC_DERATE_STEP_PERIOD_MS    (100U)
+#define LLC_DERATE_STEP_A            (0.5f)
+#define LLC_DERATE_RECOVER_PERIOD_MS (200U)
+#define LLC_DERATE_RECOVER_STEP_A    (0.5f)
+#define LLC_DERATE_MIN_A             (10.0f)
+
+#define LLC_TEMP_DERATE_START_C      (95.0f)
+#define LLC_TEMP_SHUTDOWN_C          (105.0f)
+#define LLC_TEMP_RESTART_C           (-40.0f)
 
 #define LLC_HOLD_ADJUST_HZ           (400.0f)
 #define LLC_HOLD_ADJUST_PERIOD_MS    (10U)
