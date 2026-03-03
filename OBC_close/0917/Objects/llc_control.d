@@ -41,5 +41,4 @@
   C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdarg.h HW/include\pwm.h \
   HW/include\protect_exti.h HW/include\pfc_control.h \
   APP/include/llc_soft_start.h APP/include/main.h \
-  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\float.h \
-  APP/include\temp_control.h
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\float.h

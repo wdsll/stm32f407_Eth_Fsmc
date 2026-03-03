@@ -5,14 +5,14 @@
 typedef struct {
     uint16_t vout_raw;    /* PA5 */ 
     uint16_t isense_raw;  /* PA6 */
-    uint16_t  tsense_pfc_raw; /* PA7 */
+   // uint16_t tsense_raw;  /* PA7 */
     uint16_t v3v3_raw;    /* PC4 */
     uint16_t vbt_raw;     /* PC5 */
-    uint16_t tsense_llc_raw;   /* PB1 */
+  // uint16_t t_llc_raw;   /* PB1 */
 } adc_multi_frame_t;
 
 enum { 
-	ADC_MULTI_CHANNEL_COUNT = 6U,
+	ADC_MULTI_CHANNEL_COUNT = 4U,
 	ADC_TIM0_TRIGGERED_COUNT = 2U
 };
 //static uint16_t s_buf[ADC_MULTI_CHANNEL_COUNT * 2U];
