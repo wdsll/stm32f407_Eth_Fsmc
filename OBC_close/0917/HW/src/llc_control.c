@@ -508,7 +508,7 @@ void llc_app_tick_adc_test(void)
 {
 	llc_update_measurements();
 }
-void llc_app_tick_1khz(void)
+void llc_app_tick_100us(void)
 {
 	llc_update_measurements();
 

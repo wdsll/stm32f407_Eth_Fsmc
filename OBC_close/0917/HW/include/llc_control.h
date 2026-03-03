@@ -38,7 +38,7 @@ static llc_t s_llc;
 *                                              APIº¯ÊýÉùÃ÷
 *********************************************************************************************************/
 void llc_app_init(void);
-void llc_app_tick_1khz(void);
+void llc_app_tick_100us(void);
 void llc_app_tick_1khz_withoutVbus(void);
 llc_state_t llc_app_state(void);
 

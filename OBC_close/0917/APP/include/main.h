@@ -106,7 +106,7 @@
 
 /* ==== LLC RUN entry hold ==== */
 #define LLC_RUN_ENTRY_HOLD_MS          (20U)
-#define LLC_RUN_ENTRY_STABLE_TICKS     (2U)
+#define LLC_RUN_ENTRY_STABLE_TICKS     (20U)
 #define LLC_RUN_ENTRY_STABLE_WINDOW_V  (5.0f)
 #define LLC_RUN_ENTRY_TIMEOUT_MS       (400U)
 
@@ -116,9 +116,9 @@
 #define LLC_F_INIT_HZ       (100000.0f)
 //#define LLC_F_SLEW_HZ       (500.0f)
 #define LLC_F_SLEW_HZ       (1000.0f)
-#define LLC_CTRL_TS_S           (0.001f)
+#define LLC_CTRL_TS_S           (0.0001f)
 #define LLC_VCTRL_KP            (1400.0f)
-#define LLC_VCTRL_KI            (100.0f)
+#define LLC_VCTRL_KI            (10.0f)
 #define LLC_VCTRL_F_NOM_HZ       (100000.0f)
 #define LLC_VCTRL_E_DB_V         (0.15f)
 #define LLC_VCTRL_F_Q_STEP_HZ    (100.0f)
