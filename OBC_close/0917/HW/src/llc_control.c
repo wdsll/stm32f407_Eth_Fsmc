@@ -348,7 +348,7 @@ static float llc_current_limit_step(float i_meas,bool en)
 }
 
 
-
+static uint32_t dbg_tick = 0;
 static void llc_update_measurements(void)
 {
 		if(!s_llc_adc_enable)
@@ -357,6 +357,15 @@ static void llc_update_measurements(void)
     s_llc_rt.meas.iout_a = conv_adc_to_i(g_adc_multi.isense_raw);
     s_llc_rt.meas.vbus_v = pfc_bus_voltage();
     s_llc.vmeas = s_llc_rt.meas.vout_v;
+		if(++dbg_tick >= 10000)   // 1s打印一次
+    {
+        dbg_tick = 0;
+
+        debug_printf("VBUS=%.1f  VOUT=%.1f  IOUT=%.2f\r\n",
+               s_llc_rt.meas.vbus_v,
+               s_llc_rt.meas.vout_v,
+               s_llc_rt.meas.iout_a);
+    }
 }
 
 static bool llc_precheck_ok(void)
@@ -425,6 +434,10 @@ static void llc_state_enter(llc_state_t next)
 	{
 		return;
 	}
+	debug_printf("LLC STATE: %s -> %s  t=%lu ms\r\n",
+			 llc_state_str(s_llc_rt.app.state),
+			 llc_state_str(next),
+			 g_ms);
 	s_llc_rt.app.state = next; 
 	s_llc_rt.app.entry_ms = g_ms; // 记录进入时间
 	if (next != ST_LLC_RUN) {
@@ -481,6 +494,14 @@ static void llc_state_enter(llc_state_t next)
       s_llc_rt.hold_last_adjust_ms = g_ms; // 记录保持最后调整的时间戳
 			s_llc_curr.df_prev = 0.0f;
 			s_llc_curr.limit_active = false; // 重置限流器状态
+		 
+			/* 扫描模式特殊初始化 */
+			if(s_llc_mode == LLC_MODE_LOOP_SCAN)
+			{
+					s_llc.f_cmd = LLC_LOOP_SCAN_FREQ_HZ;
+					(void)llc_ctrl_step(0.0f, false, false, s_llc.f_cmd, s_llc.f_cmd, 0.0f);
+					(void)llc_current_limit_step(0.0f, false);
+			}
 			break;
 	 }
 	 case ST_STOPPING:
@@ -539,7 +560,18 @@ void llc_app_tick_adc_test(void)
 }
 void llc_app_tick_100us(void)
 {
+	static uint32_t tick_counter = 0;
 	llc_update_measurements();
+	
+	bool enable_llc = pfc_is_ready();
+	bool pfc_ready_stable = llc_pfc_ready_stable(enable_llc);
+	bool precheck_ok = llc_precheck_ok();
+	
+	if (++tick_counter >= 10000) {
+		tick_counter = 0;
+		debug_printf("LLC_TICK: state=%d, en=%d, stable=%d, pre=%d, vbus=%.1f\r\n", 
+					s_llc_rt.app.state, enable_llc, pfc_ready_stable, precheck_ok, s_llc_rt.meas.vbus_v);
+	}
 
 #if 0	
 	if (llc_faults_present()) {
@@ -547,9 +579,7 @@ void llc_app_tick_100us(void)
   		return;
   }
 #endif
-	bool enable_llc = pfc_is_ready();
-	bool pfc_ready_stable = llc_pfc_ready_stable(enable_llc);
-#if 1
+#if 0
 	if (s_llc_rt.app.state != ST_IDLE && s_llc_rt.app.state != ST_FAULT) {
 		if (llc_faults_present()) {
 			llc_enter_fault();
@@ -565,6 +595,8 @@ void llc_app_tick_100us(void)
 			if(pfc_ready_stable &&llc_precheck_ok())
 			{
 				  llc_state_enter(ST_PRECHECK);
+				  debug_printf("idle-->precheck");
+				  
 			}
 			break;
 		}
@@ -590,6 +622,7 @@ void llc_app_tick_100us(void)
 			if(!enable_llc|| !llc_precheck_ok())
 			{
 				llc_state_enter(ST_STOPPING);
+				debug_printf("softwaore-->stop");
 				break;
 			}
 			if(elapsed_reached(s_llc_rt.softstart_begin_ms,LLC_SOFTSTART_DURATION_MS + LLC_SOFTSTART_STABILIZE_MS)) 
@@ -619,7 +652,7 @@ void llc_app_tick_100us(void)
 			if(s_llc_mode == LLC_MODE_LOOP_SCAN)
 			{
 					/* 固定92kHz */
-					llc_set_freq(92000.0f);
+					//llc_set_freq(92000.0f);
           /* 直接进入RUN */
           llc_state_enter(ST_LLC_RUN);
 					/* 禁止PI积分 */
@@ -657,10 +690,22 @@ void llc_app_tick_100us(void)
 				llc_state_enter(ST_STOPPING);
 				break;
 			}
+			static uint32_t dbg_run = 0;
+
+			dbg_run++;
+			if(dbg_run >= 10000)
+			{
+				dbg_run = 0;
+
+				debug_printf("RUN  Vout=%.2f  f_cmd=%.0f\r\n",
+							 s_llc.vmeas,
+							 s_llc.f_cmd);
+			}
 			if(s_llc_mode == LLC_MODE_LOOP_SCAN)
 			{
 					/* 固定92kHz */
-					llc_set_freq(92000.0f);
+					s_llc.f_cmd = LLC_LOOP_SCAN_FREQ_HZ;  // 同步更新状态变量
+					llc_set_freq(s_llc.f_cmd);
 
 					/* 禁止PI积分 */
 					(void)llc_ctrl_step(0.0f,false,false,s_llc.f_cmd,s_llc.f_cmd,0.0f);

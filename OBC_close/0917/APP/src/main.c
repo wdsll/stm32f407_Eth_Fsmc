@@ -222,7 +222,7 @@ int main(void){
 
 	debug_printf_init(DEBUG_PRINTF_DEFAULT_BAUDRATE);
 
-	
+	  debug_printf("uart ok");
 		systick_1ms_init();
     /* LLC complementary PWM 配置LLC的PWM频率 、死区时间和占空比，并初始化PWM模块*/
     llc_pwm_cfg_t lcfg = { .pwm_hz=LLC_PWM_BASE_HZ, .deadtime_ns=LLC_PWM_DEAD_NS, .duty=LLC_PWM_DUTY };//130
@@ -260,6 +260,8 @@ int main(void){
 
 		pfc_init();
 		llc_app_init();
+		
+		llc_set_mode(LLC_MODE_LOOP_SCAN);  // 或 LLC_MODE_LOOP_SCAN
 		delay_ms(1000);
 		pfc_enable();
 
