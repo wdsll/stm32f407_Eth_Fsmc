@@ -34,6 +34,14 @@ typedef struct {
 } llc_t;
 
 static llc_t s_llc;
+
+typedef enum
+{
+    LLC_MODE_NORMAL = 0,
+    LLC_MODE_LOOP_SCAN
+} llc_mode_t;
+
+
 /*********************************************************************************************************
 *                                              APIº¯ÊýÉùÃ÷
 *********************************************************************************************************/
@@ -42,7 +50,7 @@ void llc_app_tick_100us(void);
 void llc_app_tick_1khz_withoutVbus(void);
 llc_state_t llc_app_state(void);
 
-
+void llc_set_mode(llc_mode_t mode);
 void llc_app_tick_adc_test(void);
 
 

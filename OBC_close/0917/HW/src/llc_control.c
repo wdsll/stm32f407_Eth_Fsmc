@@ -52,6 +52,8 @@ enum{
 	LLC_START_DELAY_MS = 10000
 };
 
+static llc_mode_t s_llc_mode = LLC_MODE_NORMAL;
+static bool s_llc_adc_enable = false;
 /*********************************************************************************************************
 *                                              内部函数声明
 *********************************************************************************************************/
@@ -64,7 +66,8 @@ static bool llc_precheck_ok(void);
 static bool llc_pfc_ready_stable(bool enable_llc);
 static bool llc_faults_present(void);
 static void llc_enter_fault(void);
-static float llc_ctrl_step(float e, bool en, bool limit_active, float f_init, float f_track);
+//static float llc_ctrl_step(float e, bool en, bool limit_active, float f_init, float f_track);
+static float llc_ctrl_step(float e, bool en, bool limit_active, float f_init, float f_track, float f_nom_ff);
 static float llc_bumpless_integ(float f0, float e0, float kp, float f_nom, float f_min, float f_max);
 static float llc_current_limit_step(float i_meas,bool en);
 /*********************************************************************************************************
@@ -114,6 +117,22 @@ static void llc_set_freq(float hz)
     llc_pwm_set_freq((uint32_t)f);
 }
 
+static float llc_vbus_feedforward_hz(float vbus_v)
+{
+#if (LLC_VBUS_FF_EN)
+    // 低通滤波截止频率约200Hz (alpha = 0.1 @ 10kHz更新)
+    static float vbus_filtered = 400.0f;
+    const float alpha = 0.1f;
+    vbus_filtered = alpha * vbus_v + (1.0f - alpha) * vbus_filtered;
+    
+    float ff = (vbus_filtered - LLC_VBUS_FF_VNOM_V) * LLC_VBUS_FF_GAIN_HZ_PER_V;
+    return f_clampf(ff, -LLC_VBUS_FF_MAX_HZ, LLC_VBUS_FF_MAX_HZ);
+#else
+    (void)vbus_v;
+    return 0.0f;
+#endif
+}
+
 static const char* llc_state_str(llc_state_t s)
 {
     switch (s) {
@@ -128,6 +147,14 @@ static const char* llc_state_str(llc_state_t s)
     }
 }
 
+void llc_set_mode(llc_mode_t mode)
+{
+    s_llc_mode = mode;
+	   /* reset controller */
+    (void)llc_ctrl_step(0,false,false,s_llc.f_cmd,s_llc.f_cmd,0);
+    (void)llc_current_limit_step(0,false);
+}
+
 /*********************************************************************************************************
 * 函数名称：llc_ctrl_step
 * 函数功能：
@@ -138,7 +165,7 @@ static const char* llc_state_str(llc_state_t s)
 * 创建日期：2026年01月21日
 * 注    意：
 *********************************************************************************************************/
-static float llc_ctrl_step(float e, bool en, bool limit_active, float f_init, float f_track)
+static float llc_ctrl_step(float e, bool en, bool limit_active, float f_init, float f_track, float f_nom_ff)
 {
 	  static bool en_z1 = false;  // 记录上一次的使能状态
     float kp = s_llc.kp;
@@ -146,7 +173,7 @@ static float llc_ctrl_step(float e, bool en, bool limit_active, float f_init, fl
     float f_min = s_llc.f_min;
     float f_max = s_llc.f_max;
     float f_slew = s_llc.f_slew;
-	  float f_nom = s_llc.f_nom;  //额定频率（与软启动末拍对齐）
+	  float f_nom = s_llc.f_nom + f_nom_ff;  //额定频率（与软启动末拍对齐）
     float e_db = s_llc.e_db; 
     float f_q_step = s_llc.f_q_step;  //频率量化步进
 	
@@ -324,6 +351,8 @@ static float llc_current_limit_step(float i_meas,bool en)
 
 static void llc_update_measurements(void)
 {
+		if(!s_llc_adc_enable)
+			return;
     s_llc_rt.meas.vout_v = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
     s_llc_rt.meas.iout_a = conv_adc_to_i(g_adc_multi.isense_raw);
     s_llc_rt.meas.vbus_v = pfc_bus_voltage();
@@ -399,7 +428,7 @@ static void llc_state_enter(llc_state_t next)
 	s_llc_rt.app.state = next; 
 	s_llc_rt.app.entry_ms = g_ms; // 记录进入时间
 	if (next != ST_LLC_RUN) {
-		(void)llc_ctrl_step(0.0f, false, false, s_llc.f_cmd, s_llc.f_cmd);
+		(void)llc_ctrl_step(0.0f, false, false, s_llc.f_cmd, s_llc.f_cmd,0.0f);
 		(void)llc_current_limit_step(0.0f, false);
 	}
 	#if Bus_Adj
@@ -520,12 +549,13 @@ void llc_app_tick_100us(void)
 #endif
 	bool enable_llc = pfc_is_ready();
 	bool pfc_ready_stable = llc_pfc_ready_stable(enable_llc);
-#if 0
+#if 1
 	if (s_llc_rt.app.state != ST_IDLE && s_llc_rt.app.state != ST_FAULT) {
 		if (llc_faults_present()) {
 			llc_enter_fault();
 			return;
 		}
+}
 #endif
 	
 	switch(s_llc_rt.app.state)
@@ -567,6 +597,9 @@ void llc_app_tick_100us(void)
 			{
 				llc_softstart_stop(); // 停止软启动
 				s_llc.f_cmd = llc_softstart_last_hz();	// 设置目标频率为软启动最后的频率
+				
+				/* 软启动结束再打开ADC */
+				s_llc_adc_enable = true;
 				llc_state_enter(ST_RUN_ENTRY_HOLD); // 进入运行入口保持状态
 				break;
 			}
@@ -578,6 +611,21 @@ void llc_app_tick_100us(void)
 			{
 				llc_state_enter(ST_STOPPING);
 				break;
+			}
+			/* ==============================
+       环路扫描模式
+       ============================== */
+
+			if(s_llc_mode == LLC_MODE_LOOP_SCAN)
+			{
+					/* 固定92kHz */
+					llc_set_freq(92000.0f);
+          /* 直接进入RUN */
+          llc_state_enter(ST_LLC_RUN);
+					/* 禁止PI积分 */
+					//(void)llc_ctrl_step(0.0f,false,false,s_llc.f_cmd,s_llc.f_cmd,0.0f);
+
+					break;
 			}
 			float hold_err = s_llc_rt.meas.vout_v - LLC_VOUT_TARGET_V; // з
 			if (fabsf(hold_err) <= LLC_RUN_ENTRY_STABLE_WINDOW_V) { // 在稳定范围内
@@ -609,9 +657,23 @@ void llc_app_tick_100us(void)
 				llc_state_enter(ST_STOPPING);
 				break;
 			}
+			if(s_llc_mode == LLC_MODE_LOOP_SCAN)
+			{
+					/* 固定92kHz */
+					llc_set_freq(92000.0f);
+
+					/* 禁止PI积分 */
+					(void)llc_ctrl_step(0.0f,false,false,s_llc.f_cmd,s_llc.f_cmd,0.0f);
+
+					break;
+			}
+      /* ==============================
+       正常控制模式
+       ============================== */
 			s_llc.vmeas = s_llc_rt.meas.vout_v;
 			float err = s_llc.vref - s_llc.vmeas;
 			float f_init  = s_llc.f_cmd;                           // 上一拍下发的频率（用于slew基准）
+			#if 0
 			float df_i = llc_current_limit_step(s_llc_rt.meas.iout_a, true);
 			float f_cmd_i = s_llc.f_min + df_i;
 			//float f_cmd_i = f_init + df_i;
@@ -619,6 +681,10 @@ void llc_app_tick_100us(void)
 			bool lim_for_v = df_i > 1.0f;   // df_i > 0 ==> 10                   
 			float f_cmd_v = llc_ctrl_step(err, true, lim_for_v, f_init, f_cmd_i); 
 			float f_cmd = (f_cmd_i > f_cmd_v) ? f_cmd_i : f_cmd_v; 
+			#endif
+			(void)llc_current_limit_step(0.0f, false);
+			float f_nom_ff = llc_vbus_feedforward_hz(s_llc_rt.meas.vbus_v);
+			float f_cmd = llc_ctrl_step(err, true, false, f_init, f_init, f_nom_ff);
 			llc_set_freq(f_cmd);			
 			break;
 		}

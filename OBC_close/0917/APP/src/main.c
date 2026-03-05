@@ -12,7 +12,7 @@
 #define CONTROL_LOOP_DT_S          (1.0f / (float)CONTROL_LOOP_HZ)
 /* 主循环一次最多处理的 tick，超过将计数为丢弃（避免主循环长时间占用） */
 #define MAX_TICKS_PER_LOOP         (5U)
-#define FAST_ADC_MAX_TICKS_PER_LOOP (20U)
+#define FAST_ADC_MAX_TICKS_PER_LOOP (10U)
 #define FAULT_RECOVER_DELAY_MS     (200U)
 /*********************************************************************************************************
 *                                              枚举结构体
@@ -123,7 +123,7 @@ void TIMER3_IRQHandler(void)
     if (timer_interrupt_flag_get(TIMER3, TIMER_INT_FLAG_UP) == SET) {
         timer_interrupt_flag_clear(TIMER3, TIMER_INT_FLAG_UP);
         adc_fast_task_100us(); // 直接触发ADC0软件采集
-			  s_fast_loop_tick_pending++;
+			  //s_fast_loop_tick_pending++;
     }
 }
 
@@ -199,16 +199,16 @@ static bool protect_startup_check(void)
 static void control_loop_tick_1khz(void){
     /* 1 kHz control */ 
 		adc_multi_sample_aux_1khz();
-		//adc_multi_copy(); 
+		adc_multi_copy(); 
     pfc_tick_1khz();
-    //llc_app_tick_1khz();
+    llc_app_tick_100us();
 		//llc_app_tick_adc_test();
 
 }
 static void llc_control_tick_100us(void)
 {
-    adc_multi_copy();
-    llc_app_tick_100us();
+    //adc_multi_copy();
+    //llc_app_tick_100us();
 }
 void SysTick_Handler(void){
     g_ms++;
@@ -217,10 +217,10 @@ void SysTick_Handler(void){
 
 int main(void){
 
-	  InitRCU();
-		nvic_priority_group_set(NVIC_PRIGROUP_PRE2_SUB2);
+	InitRCU();
+	nvic_priority_group_set(NVIC_PRIGROUP_PRE2_SUB2);
 
-	  debug_printf_init(DEBUG_PRINTF_DEFAULT_BAUDRATE);
+	debug_printf_init(DEBUG_PRINTF_DEFAULT_BAUDRATE);
 
 	
 		systick_1ms_init();
@@ -273,11 +273,13 @@ int main(void){
 					pending_ticks = s_control_tick_pending; //pending_ticks ：用于逐个处理待执行的控制任务。
 					s_control_tick_pending = 0U;  //记录待处理的控制周期任务数量。
 			}
+			#if 0
 			if (s_fast_loop_tick_pending > 0U)
 			{
 					fast_pending_ticks = s_fast_loop_tick_pending;
 					s_fast_loop_tick_pending = 0U;
 			}
+			#endif
 			__enable_irq();
 			while(pending_ticks-- > 0U)
 			{
@@ -290,6 +292,7 @@ int main(void){
 						pending_ticks = MAX_TICKS_PER_LOOP;
 					}
 			}
+			#if 0
 			while (fast_pending_ticks-- > 0U)
 			{
 				llc_control_tick_100us();
@@ -299,6 +302,7 @@ int main(void){
 					fast_pending_ticks = FAST_ADC_MAX_TICKS_PER_LOOP;
 				}
 			}
+			#endif
     }
 }
 

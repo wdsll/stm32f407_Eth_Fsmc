@@ -22,7 +22,6 @@ Section Cross References
     main.o(.text.TIMER3_IRQHandler) refers to gd32f30x_timer.o(.text.timer_interrupt_flag_get) for timer_interrupt_flag_get
     main.o(.text.TIMER3_IRQHandler) refers to gd32f30x_timer.o(.text.timer_interrupt_flag_clear) for timer_interrupt_flag_clear
     main.o(.text.TIMER3_IRQHandler) refers to main.o(.text.adc_fast_task_100us) for adc_fast_task_100us
-    main.o(.text.TIMER3_IRQHandler) refers to main.o(.bss.s_fast_loop_tick_pending) for s_fast_loop_tick_pending
     main.o(.ARM.exidx.text.TIMER3_IRQHandler) refers to main.o(.text.TIMER3_IRQHandler) for [Anonymous Symbol]
     main.o(.text.adc_fast_task_100us) refers to adc_dma.o(.text.adc_multi_trigger_fast) for adc_multi_trigger_fast
     main.o(.ARM.exidx.text.adc_fast_task_100us) refers to main.o(.text.adc_fast_task_100us) for [Anonymous Symbol]
@@ -51,11 +50,8 @@ Section Cross References
     main.o(.text.main) refers to main.o(.text.delay_ms) for delay_ms
     main.o(.text.main) refers to pfc_control.o(.text.pfc_enable) for pfc_enable
     main.o(.text.main) refers to main.o(.bss.s_control_tick_pending) for s_control_tick_pending
-    main.o(.text.main) refers to main.o(.bss.s_fast_loop_tick_pending) for s_fast_loop_tick_pending
     main.o(.text.main) refers to main.o(.text.control_loop_tick_1khz) for control_loop_tick_1khz
     main.o(.text.main) refers to main.o(.bss.s_tick_drop_count) for s_tick_drop_count
-    main.o(.text.main) refers to main.o(.text.llc_control_tick_100us) for llc_control_tick_100us
-    main.o(.text.main) refers to main.o(.bss.s_fast_tick_drop_count) for s_fast_tick_drop_count
     main.o(.ARM.exidx.text.main) refers to main.o(.text.main) for [Anonymous Symbol]
     main.o(.text.adc_fast_timer_init_100us) refers to gd32f30x_rcu.o(.text.rcu_periph_clock_enable) for rcu_periph_clock_enable
     main.o(.text.adc_fast_timer_init_100us) refers to gd32f30x_timer.o(.text.timer_deinit) for timer_deinit
@@ -78,11 +74,10 @@ Section Cross References
     main.o(.text.adc_startup_check) refers to adc_dma.o(.bss.g_adc_multi) for g_adc_multi
     main.o(.ARM.exidx.text.adc_startup_check) refers to main.o(.text.adc_startup_check) for [Anonymous Symbol]
     main.o(.text.control_loop_tick_1khz) refers to adc_dma.o(.text.adc_multi_sample_aux_1khz) for adc_multi_sample_aux_1khz
+    main.o(.text.control_loop_tick_1khz) refers to adc_dma.o(.text.adc_multi_copy) for adc_multi_copy
     main.o(.text.control_loop_tick_1khz) refers to pfc_control.o(.text.pfc_tick_1khz) for pfc_tick_1khz
+    main.o(.text.control_loop_tick_1khz) refers to llc_control.o(.text.llc_app_tick_100us) for llc_app_tick_100us
     main.o(.ARM.exidx.text.control_loop_tick_1khz) refers to main.o(.text.control_loop_tick_1khz) for [Anonymous Symbol]
-    main.o(.text.llc_control_tick_100us) refers to adc_dma.o(.text.adc_multi_copy) for adc_multi_copy
-    main.o(.text.llc_control_tick_100us) refers to llc_control.o(.text.llc_app_tick_100us) for llc_app_tick_100us
-    main.o(.ARM.exidx.text.llc_control_tick_100us) refers to main.o(.text.llc_control_tick_100us) for [Anonymous Symbol]
     main.o(.text.adc_fast_timer_clk_hz) refers to gd32f30x_rcu.o(.text.rcu_clock_freq_get) for rcu_clock_freq_get
     main.o(.ARM.exidx.text.adc_fast_timer_clk_hz) refers to main.o(.text.adc_fast_timer_clk_hz) for [Anonymous Symbol]
     main.o(.ARM.exidx.text.conv_adc_to_v_test) refers to main.o(.text.conv_adc_to_v_test) for [Anonymous Symbol]
@@ -1212,6 +1207,8 @@ Section Cross References
     pfc_control.o(.ARM.exidx.text.pfc_ac_ok) refers to pfc_control.o(.text.pfc_ac_ok) for [Anonymous Symbol]
     pfc_control.o(.text.elapsed_since) refers to main.o(.bss.g_ms) for g_ms
     pfc_control.o(.ARM.exidx.text.elapsed_since) refers to pfc_control.o(.text.elapsed_since) for [Anonymous Symbol]
+    llc_control.o(.text.llc_set_mode) refers to llc_control.o(.bss.s_llc_mode) for s_llc_mode
+    llc_control.o(.ARM.exidx.text.llc_set_mode) refers to llc_control.o(.text.llc_set_mode) for [Anonymous Symbol]
     llc_control.o(.text.llc_app_init) refers to llc_soft_start.o(.text.llc_softstart_init) for llc_softstart_init
     llc_control.o(.text.llc_app_init) refers to llc_control.o(.bss.s_llc) for s_llc
     llc_control.o(.text.llc_app_init) refers to memcpya.o(.text) for __aeabi_memcpy4
@@ -1245,6 +1242,8 @@ Section Cross References
     llc_control.o(.text.llc_app_tick_100us) refers to pfc_control.o(.text.pfc_is_ready) for pfc_is_ready
     llc_control.o(.text.llc_app_tick_100us) refers to llc_control.o(.text.llc_pfc_ready_stable) for llc_pfc_ready_stable
     llc_control.o(.text.llc_app_tick_100us) refers to llc_control.o(.bss.s_llc_rt) for s_llc_rt
+    llc_control.o(.text.llc_app_tick_100us) refers to llc_control.o(.text.llc_faults_present) for llc_faults_present
+    llc_control.o(.text.llc_app_tick_100us) refers to llc_control.o(.text.llc_enter_fault) for llc_enter_fault
     llc_control.o(.text.llc_app_tick_100us) refers to llc_control.o(.text.llc_precheck_ok) for llc_precheck_ok
     llc_control.o(.text.llc_app_tick_100us) refers to llc_control.o(.text.llc_state_enter) for llc_state_enter
     llc_control.o(.text.llc_app_tick_100us) refers to llc_control.o(.text.elapsed_reached) for elapsed_reached
@@ -1254,6 +1253,7 @@ Section Cross References
     llc_control.o(.text.llc_app_tick_100us) refers to llc_control.o(.bss.s_llc) for s_llc
     llc_control.o(.text.llc_app_tick_100us) refers to llc_control.o(.text.fabsf) for fabsf
     llc_control.o(.text.llc_app_tick_100us) refers to llc_control.o(.text.llc_current_limit_step) for llc_current_limit_step
+    llc_control.o(.text.llc_app_tick_100us) refers to llc_control.o(.text.llc_vbus_feedforward_hz) for llc_vbus_feedforward_hz
     llc_control.o(.text.llc_app_tick_100us) refers to llc_control.o(.text.llc_ctrl_step) for llc_ctrl_step
     llc_control.o(.text.llc_app_tick_100us) refers to llc_control.o(.text.llc_set_freq) for llc_set_freq
     llc_control.o(.text.llc_app_tick_100us) refers to pwm_llc.o(.text.llc_pwm_outputs_enable) for llc_pwm_outputs_enable
@@ -1263,6 +1263,10 @@ Section Cross References
     llc_control.o(.text.llc_pfc_ready_stable) refers to main.o(.bss.g_ms) for g_ms
     llc_control.o(.text.llc_pfc_ready_stable) refers to llc_control.o(.text.elapsed_reached) for elapsed_reached
     llc_control.o(.ARM.exidx.text.llc_pfc_ready_stable) refers to llc_control.o(.text.llc_pfc_ready_stable) for [Anonymous Symbol]
+    llc_control.o(.text.llc_faults_present) refers to llc_control.o(.bss.s_llc_rt) for s_llc_rt
+    llc_control.o(.ARM.exidx.text.llc_faults_present) refers to llc_control.o(.text.llc_faults_present) for [Anonymous Symbol]
+    llc_control.o(.text.llc_enter_fault) refers to llc_control.o(.text.llc_state_enter) for llc_state_enter
+    llc_control.o(.ARM.exidx.text.llc_enter_fault) refers to llc_control.o(.text.llc_enter_fault) for [Anonymous Symbol]
     llc_control.o(.text.llc_precheck_ok) refers to llc_control.o(.bss.s_llc_rt) for s_llc_rt
     llc_control.o(.ARM.exidx.text.llc_precheck_ok) refers to llc_control.o(.text.llc_precheck_ok) for [Anonymous Symbol]
     llc_control.o(.text.elapsed_reached) refers to llc_control.o(.text.elapsed_since) for elapsed_since
@@ -1273,6 +1277,9 @@ Section Cross References
     llc_control.o(.text.llc_current_limit_step) refers to llc_control.o(.text.fabsf) for fabsf
     llc_control.o(.text.llc_current_limit_step) refers to llc_control.o(.text.f_clampf) for f_clampf
     llc_control.o(.ARM.exidx.text.llc_current_limit_step) refers to llc_control.o(.text.llc_current_limit_step) for [Anonymous Symbol]
+    llc_control.o(.text.llc_vbus_feedforward_hz) refers to llc_control.o(.data.llc_vbus_feedforward_hz.vbus_filtered) for llc_vbus_feedforward_hz.vbus_filtered
+    llc_control.o(.text.llc_vbus_feedforward_hz) refers to llc_control.o(.text.f_clampf) for f_clampf
+    llc_control.o(.ARM.exidx.text.llc_vbus_feedforward_hz) refers to llc_control.o(.text.llc_vbus_feedforward_hz) for [Anonymous Symbol]
     llc_control.o(.text.llc_ctrl_step) refers to llc_control.o(.bss.s_llc) for s_llc
     llc_control.o(.text.llc_ctrl_step) refers to llc_control.o(.bss.llc_ctrl_step.en_z1) for llc_ctrl_step.en_z1
     llc_control.o(.text.llc_ctrl_step) refers to llc_control.o(.text.fabsf) for fabsf
@@ -1564,7 +1571,6 @@ Removing Unused input sections from the image.
     Removing main.o(.ARM.exidx.text.protect_startup_check), (8 bytes).
     Removing main.o(.ARM.exidx.text.adc_startup_check), (8 bytes).
     Removing main.o(.ARM.exidx.text.control_loop_tick_1khz), (8 bytes).
-    Removing main.o(.ARM.exidx.text.llc_control_tick_100us), (8 bytes).
     Removing main.o(.ARM.exidx.text.adc_fast_timer_clk_hz), (8 bytes).
     Removing main.o(.ARM.exidx.text.conv_adc_to_v_test), (8 bytes).
     Removing llc_soft_start.o(.text), (0 bytes).
@@ -2843,6 +2849,8 @@ Removing Unused input sections from the image.
     Removing pfc_control.o(.bss.bkin_flag), (4 bytes).
     Removing pfc_control.o(.bss.pfc_sample_inputs.last_print_ms), (4 bytes).
     Removing llc_control.o(.text), (0 bytes).
+    Removing llc_control.o(.text.llc_set_mode), (28 bytes).
+    Removing llc_control.o(.ARM.exidx.text.llc_set_mode), (8 bytes).
     Removing llc_control.o(.ARM.exidx.text.llc_app_init), (8 bytes).
     Removing llc_control.o(.ARM.exidx.text.llc_state_enter), (8 bytes).
     Removing llc_control.o(.text.llc_app_tick_adc_test), (8 bytes).
@@ -2850,10 +2858,13 @@ Removing Unused input sections from the image.
     Removing llc_control.o(.ARM.exidx.text.llc_update_measurements), (8 bytes).
     Removing llc_control.o(.ARM.exidx.text.llc_app_tick_100us), (8 bytes).
     Removing llc_control.o(.ARM.exidx.text.llc_pfc_ready_stable), (8 bytes).
+    Removing llc_control.o(.ARM.exidx.text.llc_faults_present), (8 bytes).
+    Removing llc_control.o(.ARM.exidx.text.llc_enter_fault), (8 bytes).
     Removing llc_control.o(.ARM.exidx.text.llc_precheck_ok), (8 bytes).
     Removing llc_control.o(.ARM.exidx.text.elapsed_reached), (8 bytes).
     Removing llc_control.o(.ARM.exidx.text.fabsf), (8 bytes).
     Removing llc_control.o(.ARM.exidx.text.llc_current_limit_step), (8 bytes).
+    Removing llc_control.o(.ARM.exidx.text.llc_vbus_feedforward_hz), (8 bytes).
     Removing llc_control.o(.ARM.exidx.text.llc_ctrl_step), (8 bytes).
     Removing llc_control.o(.ARM.exidx.text.llc_set_freq), (8 bytes).
     Removing llc_control.o(.ARM.exidx.text.llc_driver_en_set), (8 bytes).
@@ -2864,6 +2875,7 @@ Removing Unused input sections from the image.
     Removing llc_control.o(.ARM.exidx.text.elapsed_since), (8 bytes).
     Removing llc_control.o(.ARM.exidx.text.f_clampf), (8 bytes).
     Removing llc_control.o(.ARM.exidx.text.llc_bumpless_integ), (8 bytes).
+    Removing llc_control.o(.bss.s_llc_mode), (1 bytes).
     Removing gd32f30x_it.o(.text), (0 bytes).
     Removing gd32f30x_it.o(.ARM.exidx.text.NMI_Handler), (8 bytes).
     Removing gd32f30x_it.o(.ARM.exidx.text.HardFault_Handler), (8 bytes).
@@ -2900,7 +2912,7 @@ Removing Unused input sections from the image.
     Removing cdrcmple.o(.text), (48 bytes).
     Removing dfixi.o(.text), (62 bytes).
 
-1352 unused section(s) (total 43715 bytes) removed from the image.
+1357 unused section(s) (total 43768 bytes) removed from the image.
 
 ==============================================================================
 
@@ -2913,43 +2925,43 @@ Image Symbol Table
     ../clib/microlib/division.c              0x00000000   Number         0  uldiv.o ABSOLUTE
     ../clib/microlib/division.c              0x00000000   Number         0  uidiv.o ABSOLUTE
     ../clib/microlib/errno.c                 0x00000000   Number         0  errno.o ABSOLUTE
-    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry9a.o ABSOLUTE
-    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry10b.o ABSOLUTE
-    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry11a.o ABSOLUTE
-    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry8a.o ABSOLUTE
     ../clib/microlib/init/entry.s            0x00000000   Number         0  entry11b.o ABSOLUTE
-    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry10a.o ABSOLUTE
-    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry2.o ABSOLUTE
-    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry.o ABSOLUTE
-    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry7b.o ABSOLUTE
-    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry9b.o ABSOLUTE
     ../clib/microlib/init/entry.s            0x00000000   Number         0  entry7a.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry8a.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry11a.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry10b.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry7b.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry10a.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry9b.o ABSOLUTE
     ../clib/microlib/init/entry.s            0x00000000   Number         0  entry5.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry2.o ABSOLUTE
     ../clib/microlib/init/entry.s            0x00000000   Number         0  entry8b.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry9a.o ABSOLUTE
     ../clib/microlib/longlong.c              0x00000000   Number         0  llushr.o ABSOLUTE
     ../clib/microlib/longlong.c              0x00000000   Number         0  llsshr.o ABSOLUTE
     ../clib/microlib/longlong.c              0x00000000   Number         0  llshl.o ABSOLUTE
     ../clib/microlib/printf/printf.c         0x00000000   Number         0  printfa.o ABSOLUTE
-    ../clib/microlib/stdio/fputc.c           0x00000000   Number         0  fputc_h.o ABSOLUTE
     ../clib/microlib/stdio/fputc.c           0x00000000   Number         0  fputc.o ABSOLUTE
+    ../clib/microlib/stdio/fputc.c           0x00000000   Number         0  fputc_h.o ABSOLUTE
     ../clib/microlib/stdio/semi.s            0x00000000   Number         0  semi.o ABSOLUTE
     ../clib/microlib/stdio/streams.c         0x00000000   Number         0  stdout.o ABSOLUTE
-    ../clib/microlib/string/memcpy.c         0x00000000   Number         0  memcpya.o ABSOLUTE
     ../clib/microlib/string/memcpy.c         0x00000000   Number         0  memcpyb.o ABSOLUTE
+    ../clib/microlib/string/memcpy.c         0x00000000   Number         0  memcpya.o ABSOLUTE
     ../clib/microlib/string/memset.c         0x00000000   Number         0  memseta.o ABSOLUTE
-    ../clib/microlib/stubs.s                 0x00000000   Number         0  iusesemip.o ABSOLUTE
     ../clib/microlib/stubs.s                 0x00000000   Number         0  iusefp.o ABSOLUTE
+    ../clib/microlib/stubs.s                 0x00000000   Number         0  iusesemip.o ABSOLUTE
     ../fplib/microlib/fpadd.c                0x00000000   Number         0  dadd.o ABSOLUTE
-    ../fplib/microlib/fpcmp.c                0x00000000   Number         0  dcmpgt.o ABSOLUTE
-    ../fplib/microlib/fpcmp.c                0x00000000   Number         0  dcmpge.o ABSOLUTE
-    ../fplib/microlib/fpcmp.c                0x00000000   Number         0  dcmplt.o ABSOLUTE
     ../fplib/microlib/fpcmp.c                0x00000000   Number         0  dcmple.o ABSOLUTE
+    ../fplib/microlib/fpcmp.c                0x00000000   Number         0  dcmplt.o ABSOLUTE
+    ../fplib/microlib/fpcmp.c                0x00000000   Number         0  dcmpge.o ABSOLUTE
+    ../fplib/microlib/fpcmp.c                0x00000000   Number         0  dcmpgt.o ABSOLUTE
     ../fplib/microlib/fpdiv.c                0x00000000   Number         0  ddiv.o ABSOLUTE
     ../fplib/microlib/fpepilogue.c           0x00000000   Number         0  fepilogue.o ABSOLUTE
     ../fplib/microlib/fpepilogue.c           0x00000000   Number         0  depilogue.o ABSOLUTE
-    ../fplib/microlib/fpfix.c                0x00000000   Number         0  dfixi.o ABSOLUTE
-    ../fplib/microlib/fpfix.c                0x00000000   Number         0  dfixul.o ABSOLUTE
     ../fplib/microlib/fpfix.c                0x00000000   Number         0  dfixui.o ABSOLUTE
+    ../fplib/microlib/fpfix.c                0x00000000   Number         0  dfixul.o ABSOLUTE
+    ../fplib/microlib/fpfix.c                0x00000000   Number         0  dfixi.o ABSOLUTE
     ../fplib/microlib/fpflt.c                0x00000000   Number         0  dflti.o ABSOLUTE
     ../fplib/microlib/fpflt.c                0x00000000   Number         0  dfltui.o ABSOLUTE
     ../fplib/microlib/fpmul.c                0x00000000   Number         0  dmul.o ABSOLUTE
@@ -3060,292 +3072,294 @@ Image Symbol Table
     [Anonymous Symbol]                       0x080009a4   Section        0  system_gd32f30x.o(.text.SystemInit)
     [Anonymous Symbol]                       0x08000a08   Section        0  protect_exti.o(.text.TIMER0_BRK_IRQHandler)
     [Anonymous Symbol]                       0x08000a34   Section        0  main.o(.text.TIMER3_IRQHandler)
-    [Anonymous Symbol]                       0x08000a70   Section        0  timer.o(.text.TIMER5_IRQHandler)
-    [Anonymous Symbol]                       0x08000ac8   Section        0  timer.o(.text.TIMER6_IRQHandler)
-    [Anonymous Symbol]                       0x08000b24   Section        0  gd32f30x_it.o(.text.UsageFault_Handler)
-    [Anonymous Symbol]                       0x08000b28   Section        0  main.o(.text.__NVIC_SetPriority)
-    __NVIC_SetPriority                       0x08000b29   Thumb Code    74  main.o(.text.__NVIC_SetPriority)
-    [Anonymous Symbol]                       0x08000b74   Section        0  adc_dma.o(.text.adc0_analog_pins_init)
-    adc0_analog_pins_init                    0x08000b75   Thumb Code    30  adc_dma.o(.text.adc0_analog_pins_init)
-    [Anonymous Symbol]                       0x08000b94   Section        0  adc_dma.o(.text.adc0_dma_cfg)
-    adc0_dma_cfg                             0x08000b95   Thumb Code   218  adc_dma.o(.text.adc0_dma_cfg)
-    [Anonymous Symbol]                       0x08000c70   Section        0  adc_dma.o(.text.adc0_dma_init)
-    [Anonymous Symbol]                       0x08000d54   Section        0  adc_dma.o(.text.adc0_dma_start)
-    [Anonymous Symbol]                       0x08000d68   Section        0  adc_dma.o(.text.adc1_analog_pins_init)
-    adc1_analog_pins_init                    0x08000d69   Thumb Code    72  adc_dma.o(.text.adc1_analog_pins_init)
-    [Anonymous Symbol]                       0x08000db0   Section        0  adc_dma.o(.text.adc1_aux_init)
-    [Anonymous Symbol]                       0x08000efc   Section        0  adc_dma.o(.text.adc1_aux_read_channel)
-    [Anonymous Symbol]                       0x0800103c   Section        0  adc_dma.o(.text.adc1_sample_aux_1khz)
-    [Anonymous Symbol]                       0x08001088   Section        0  gd32f30x_adc.o(.text.adc_calibration_enable)
-    [Anonymous Symbol]                       0x080010c8   Section        0  gd32f30x_adc.o(.text.adc_channel_length_config)
-    [Anonymous Symbol]                       0x08001148   Section        0  gd32f30x_adc.o(.text.adc_data_alignment_config)
-    [Anonymous Symbol]                       0x0800117c   Section        0  gd32f30x_adc.o(.text.adc_deinit)
-    [Anonymous Symbol]                       0x080011f4   Section        0  gd32f30x_adc.o(.text.adc_dma_mode_enable)
-    [Anonymous Symbol]                       0x0800120c   Section        0  gd32f30x_adc.o(.text.adc_enable)
-    [Anonymous Symbol]                       0x08001230   Section        0  gd32f30x_adc.o(.text.adc_external_trigger_config)
-    [Anonymous Symbol]                       0x080012c0   Section        0  gd32f30x_adc.o(.text.adc_external_trigger_source_config)
-    [Anonymous Symbol]                       0x08001324   Section        0  main.o(.text.adc_fast_task_100us)
-    adc_fast_task_100us                      0x08001325   Thumb Code     8  main.o(.text.adc_fast_task_100us)
-    [Anonymous Symbol]                       0x0800132c   Section        0  main.o(.text.adc_fast_timer_clk_hz)
-    adc_fast_timer_clk_hz                    0x0800132d   Thumb Code    50  main.o(.text.adc_fast_timer_clk_hz)
-    [Anonymous Symbol]                       0x08001360   Section        0  main.o(.text.adc_fast_timer_init_100us)
-    adc_fast_timer_init_100us                0x08001361   Thumb Code   174  main.o(.text.adc_fast_timer_init_100us)
-    [Anonymous Symbol]                       0x08001410   Section        0  gd32f30x_adc.o(.text.adc_flag_clear)
-    [Anonymous Symbol]                       0x08001430   Section        0  gd32f30x_adc.o(.text.adc_flag_get)
-    [Anonymous Symbol]                       0x08001460   Section        0  gd32f30x_adc.o(.text.adc_mode_config)
-    [Anonymous Symbol]                       0x08001484   Section        0  adc_dma.o(.text.adc_multi_copy)
-    [Anonymous Symbol]                       0x080014bc   Section        0  adc_dma.o(.text.adc_multi_init_dma)
-    [Anonymous Symbol]                       0x080014d0   Section        0  adc_dma.o(.text.adc_multi_sample_aux_1khz)
-    [Anonymous Symbol]                       0x080014d8   Section        0  adc_dma.o(.text.adc_multi_start)
-    [Anonymous Symbol]                       0x080014e4   Section        0  adc_dma.o(.text.adc_multi_store_frame)
-    adc_multi_store_frame                    0x080014e5   Thumb Code    30  adc_dma.o(.text.adc_multi_store_frame)
-    [Anonymous Symbol]                       0x08001504   Section        0  adc_dma.o(.text.adc_multi_trigger_fast)
-    [Anonymous Symbol]                       0x0800152c   Section        0  gd32f30x_adc.o(.text.adc_regular_channel_config)
-    [Anonymous Symbol]                       0x08001684   Section        0  gd32f30x_adc.o(.text.adc_regular_data_read)
-    [Anonymous Symbol]                       0x08001698   Section        0  gd32f30x_adc.o(.text.adc_software_trigger_enable)
-    [Anonymous Symbol]                       0x080016dc   Section        0  gd32f30x_adc.o(.text.adc_special_function_config)
-    [Anonymous Symbol]                       0x08001790   Section        0  main.o(.text.adc_startup_check)
-    adc_startup_check                        0x08001791   Thumb Code   364  main.o(.text.adc_startup_check)
-    [Anonymous Symbol]                       0x080018fc   Section        0  pfc_control.o(.text.adc_to_v_scaled)
-    adc_to_v_scaled                          0x080018fd   Thumb Code    80  pfc_control.o(.text.adc_to_v_scaled)
-    [Anonymous Symbol]                       0x08001950   Section        0  pwm_llc.o(.text.bdtr_deadtime_code_ns)
-    bdtr_deadtime_code_ns                    0x08001951   Thumb Code   536  pwm_llc.o(.text.bdtr_deadtime_code_ns)
-    [Anonymous Symbol]                       0x08001b68   Section        0  pwm_llc.o(.text.clampf)
-    clampf                                   0x08001b69   Thumb Code   126  pwm_llc.o(.text.clampf)
-    [Anonymous Symbol]                       0x08001be8   Section        0  pwm.o(.text.clampf)
-    clampf                                   0x08001be9   Thumb Code   126  pwm.o(.text.clampf)
-    [Anonymous Symbol]                       0x08001c68   Section        0  main.o(.text.control_loop_tick_1khz)
-    control_loop_tick_1khz                   0x08001c69   Thumb Code    12  main.o(.text.control_loop_tick_1khz)
-    [Anonymous Symbol]                       0x08001c74   Section        0  llc_control.o(.text.conv_adc_to_i)
-    conv_adc_to_i                            0x08001c75   Thumb Code    92  llc_control.o(.text.conv_adc_to_i)
-    [Anonymous Symbol]                       0x08001cd0   Section        0  llc_control.o(.text.conv_adc_to_v_div)
-    conv_adc_to_v_div                        0x08001cd1   Thumb Code   104  llc_control.o(.text.conv_adc_to_v_div)
-    [Anonymous Symbol]                       0x08001d38   Section        0  main.o(.text.conv_adc_to_v_test)
-    conv_adc_to_v_test                       0x08001d39   Thumb Code    92  main.o(.text.conv_adc_to_v_test)
-    [Anonymous Symbol]                       0x08001d94   Section        0  debug_printf.o(.text.debug_printf_init)
-    [Anonymous Symbol]                       0x08001e58   Section        0  main.o(.text.delay_ms)
-    [Anonymous Symbol]                       0x08001e98   Section        0  gd32f30x_dma.o(.text.dma_channel_enable)
-    [Anonymous Symbol]                       0x08001ed8   Section        0  gd32f30x_dma.o(.text.dma_circulation_enable)
-    [Anonymous Symbol]                       0x08001f18   Section        0  gd32f30x_dma.o(.text.dma_deinit)
-    [Anonymous Symbol]                       0x08001fb0   Section        0  gd32f30x_dma.o(.text.dma_init)
-    [Anonymous Symbol]                       0x08002130   Section        0  gd32f30x_dma.o(.text.dma_interrupt_enable)
-    [Anonymous Symbol]                       0x0800217c   Section        0  gd32f30x_dma.o(.text.dma_interrupt_flag_clear)
-    [Anonymous Symbol]                       0x080021b0   Section        0  gd32f30x_dma.o(.text.dma_interrupt_flag_get)
-    [Anonymous Symbol]                       0x0800228c   Section        0  gd32f30x_dma.o(.text.dma_periph_and_channel_check)
-    dma_periph_and_channel_check             0x0800228d   Thumb Code    66  gd32f30x_dma.o(.text.dma_periph_and_channel_check)
-    [Anonymous Symbol]                       0x080022d0   Section        0  pwm_llc.o(.text.duty_to_ccr)
-    duty_to_ccr                              0x080022d1   Thumb Code   188  pwm_llc.o(.text.duty_to_ccr)
-    [Anonymous Symbol]                       0x0800238c   Section        0  llc_soft_start.o(.text.ease_cos)
-    ease_cos                                 0x0800238d   Thumb Code   116  llc_soft_start.o(.text.ease_cos)
-    [Anonymous Symbol]                       0x08002400   Section        0  pfc_control.o(.text.elapsed_reached)
-    elapsed_reached                          0x08002401   Thumb Code    80  pfc_control.o(.text.elapsed_reached)
-    [Anonymous Symbol]                       0x08002450   Section        0  llc_control.o(.text.elapsed_reached)
-    elapsed_reached                          0x08002451   Thumb Code    80  llc_control.o(.text.elapsed_reached)
-    [Anonymous Symbol]                       0x080024a0   Section        0  pfc_control.o(.text.elapsed_since)
-    elapsed_since                            0x080024a1   Thumb Code    46  pfc_control.o(.text.elapsed_since)
-    [Anonymous Symbol]                       0x080024d0   Section        0  llc_control.o(.text.elapsed_since)
-    elapsed_since                            0x080024d1   Thumb Code    46  llc_control.o(.text.elapsed_since)
-    [Anonymous Symbol]                       0x08002500   Section        0  llc_soft_start.o(.text.f_clampf)
-    f_clampf                                 0x08002501   Thumb Code   126  llc_soft_start.o(.text.f_clampf)
-    [Anonymous Symbol]                       0x08002580   Section        0  llc_control.o(.text.f_clampf)
-    f_clampf                                 0x08002581   Thumb Code   126  llc_control.o(.text.f_clampf)
-    [Anonymous Symbol]                       0x08002600   Section        0  llc_control.o(.text.fabsf)
-    fabsf                                    0x08002601   Thumb Code    28  llc_control.o(.text.fabsf)
-    [Anonymous Symbol]                       0x0800261c   Section        0  gd32f30x_fmc.o(.text.fmc_wscnt_set)
-    [Anonymous Symbol]                       0x08002644   Section        0  gd32f30x_gpio.o(.text.gpio_bit_reset)
-    [Anonymous Symbol]                       0x0800265c   Section        0  gd32f30x_gpio.o(.text.gpio_bit_set)
-    [Anonymous Symbol]                       0x08002674   Section        0  gd32f30x_gpio.o(.text.gpio_init)
-    [Anonymous Symbol]                       0x080027dc   Section        0  gd32f30x_gpio.o(.text.gpio_input_bit_get)
-    [Anonymous Symbol]                       0x08002810   Section        0  main.o(.text.irq_priority_encode)
-    irq_priority_encode                      0x08002811   Thumb Code    40  main.o(.text.irq_priority_encode)
-    [Anonymous Symbol]                       0x08002838   Section        0  llc_control.o(.text.llc_app_init)
-    [Anonymous Symbol]                       0x080029a8   Section        0  llc_control.o(.text.llc_app_tick_100us)
-    [Anonymous Symbol]                       0x08002cac   Section        0  llc_control.o(.text.llc_bumpless_integ)
-    llc_bumpless_integ                       0x08002cad   Thumb Code   148  llc_control.o(.text.llc_bumpless_integ)
-    [Anonymous Symbol]                       0x08002d40   Section        0  main.o(.text.llc_control_tick_100us)
-    llc_control_tick_100us                   0x08002d41   Thumb Code    12  main.o(.text.llc_control_tick_100us)
-    [Anonymous Symbol]                       0x08002d4c   Section        0  llc_control.o(.text.llc_ctrl_step)
-    llc_ctrl_step                            0x08002d4d   Thumb Code   996  llc_control.o(.text.llc_ctrl_step)
-    [Anonymous Symbol]                       0x08003130   Section        0  llc_control.o(.text.llc_current_limit_step)
-    llc_current_limit_step                   0x08003131   Thumb Code   740  llc_control.o(.text.llc_current_limit_step)
-    [Anonymous Symbol]                       0x08003414   Section        0  llc_control.o(.text.llc_driver_en_set)
-    llc_driver_en_set                        0x08003415   Thumb Code   182  llc_control.o(.text.llc_driver_en_set)
-    [Anonymous Symbol]                       0x080034cc   Section        0  llc_control.o(.text.llc_pfc_ready_stable)
-    llc_pfc_ready_stable                     0x080034cd   Thumb Code   110  llc_control.o(.text.llc_pfc_ready_stable)
-    [Anonymous Symbol]                       0x0800353c   Section        0  llc_control.o(.text.llc_precheck_ok)
-    llc_precheck_ok                          0x0800353d   Thumb Code    36  llc_control.o(.text.llc_precheck_ok)
-    [Anonymous Symbol]                       0x08003560   Section        0  pwm_llc.o(.text.llc_pwm_force_start)
-    llc_pwm_force_start                      0x08003561   Thumb Code   160  pwm_llc.o(.text.llc_pwm_force_start)
-    [Anonymous Symbol]                       0x08003600   Section        0  pwm_llc.o(.text.llc_pwm_init)
-    [Anonymous Symbol]                       0x08003724   Section        0  pwm_llc.o(.text.llc_pwm_outputs_enable)
-    [Anonymous Symbol]                       0x0800376c   Section        0  pwm_llc.o(.text.llc_pwm_restore_pwm)
-    llc_pwm_restore_pwm                      0x0800376d   Thumb Code   152  pwm_llc.o(.text.llc_pwm_restore_pwm)
-    [Anonymous Symbol]                       0x08003804   Section        0  pwm_llc.o(.text.llc_pwm_set_duty)
-    [Anonymous Symbol]                       0x08003868   Section        0  pwm_llc.o(.text.llc_pwm_set_freq)
-    [Anonymous Symbol]                       0x08003904   Section        0  llc_control.o(.text.llc_set_freq)
-    llc_set_freq                             0x08003905   Thumb Code    78  llc_control.o(.text.llc_set_freq)
-    [Anonymous Symbol]                       0x08003954   Section        0  llc_soft_start.o(.text.llc_softstart_abort)
-    [Anonymous Symbol]                       0x0800398c   Section        0  llc_soft_start.o(.text.llc_softstart_begin)
-    llc_softstart_begin                      0x0800398d   Thumb Code   204  llc_soft_start.o(.text.llc_softstart_begin)
-    [Anonymous Symbol]                       0x08003a58   Section        0  llc_soft_start.o(.text.llc_softstart_init)
-    [Anonymous Symbol]                       0x08003a84   Section        0  llc_soft_start.o(.text.llc_softstart_last_hz)
-    [Anonymous Symbol]                       0x08003ad4   Section        0  llc_soft_start.o(.text.llc_softstart_on_fault)
-    [Anonymous Symbol]                       0x08003af4   Section        0  llc_soft_start.o(.text.llc_softstart_reset)
-    llc_softstart_reset                      0x08003af5   Thumb Code   112  llc_soft_start.o(.text.llc_softstart_reset)
-    [Anonymous Symbol]                       0x08003b64   Section        0  llc_soft_start.o(.text.llc_softstart_start)
-    [Anonymous Symbol]                       0x08003b98   Section        0  llc_soft_start.o(.text.llc_softstart_stop)
-    [Anonymous Symbol]                       0x08003bc0   Section        0  llc_soft_start.o(.text.llc_softstart_tick)
-    llc_softstart_tick                       0x08003bc1   Thumb Code   242  llc_soft_start.o(.text.llc_softstart_tick)
-    [Anonymous Symbol]                       0x08003cb4   Section        0  llc_soft_start.o(.text.llc_softstart_tick_1khz)
-    [Anonymous Symbol]                       0x08003cd4   Section        0  llc_control.o(.text.llc_state_enter)
-    llc_state_enter                          0x08003cd5   Thumb Code   576  llc_control.o(.text.llc_state_enter)
-    [Anonymous Symbol]                       0x08003f14   Section        0  llc_control.o(.text.llc_update_measurements)
-    llc_update_measurements                  0x08003f15   Thumb Code   100  llc_control.o(.text.llc_update_measurements)
-    [Anonymous Symbol]                       0x08003f78   Section        0  main.o(.text.main)
-    [Anonymous Symbol]                       0x080040f4   Section        0  gd32f30x_misc.o(.text.nvic_irq_enable)
-    [Anonymous Symbol]                       0x0800422c   Section        0  gd32f30x_misc.o(.text.nvic_priority_group_set)
-    [Anonymous Symbol]                       0x0800424c   Section        0  pwm.o(.text.pb0_pwm_init)
-    [Anonymous Symbol]                       0x08004318   Section        0  pwm.o(.text.pb0_pwm_set_duty)
-    [Anonymous Symbol]                       0x0800437c   Section        0  pfc_control.o(.text.pfc_ac_loss_debounced)
-    pfc_ac_loss_debounced                    0x0800437d   Thumb Code   106  pfc_control.o(.text.pfc_ac_loss_debounced)
-    [Anonymous Symbol]                       0x080043e8   Section        0  pfc_control.o(.text.pfc_ac_ok)
-    pfc_ac_ok                                0x080043e9   Thumb Code    84  pfc_control.o(.text.pfc_ac_ok)
-    [Anonymous Symbol]                       0x0800443c   Section        0  pfc_control.o(.text.pfc_ac_ok_debounced)
-    pfc_ac_ok_debounced                      0x0800443d   Thumb Code   106  pfc_control.o(.text.pfc_ac_ok_debounced)
-    [Anonymous Symbol]                       0x080044a8   Section        0  pfc_control.o(.text.pfc_bus_voltage)
-    [Anonymous Symbol]                       0x080044b0   Section        0  pfc_control.o(.text.pfc_enable)
-    [Anonymous Symbol]                       0x080044d4   Section        0  pfc_control.o(.text.pfc_get_vbus)
-    [Anonymous Symbol]                       0x080044e4   Section        0  pfc_control.o(.text.pfc_handle_fault)
-    pfc_handle_fault                         0x080044e5   Thumb Code    24  pfc_control.o(.text.pfc_handle_fault)
-    [Anonymous Symbol]                       0x080044fc   Section        0  pfc_control.o(.text.pfc_hw_set_main)
-    [Anonymous Symbol]                       0x080045bc   Section        0  pfc_control.o(.text.pfc_init)
-    [Anonymous Symbol]                       0x08004614   Section        0  pfc_control.o(.text.pfc_is_ready)
-    [Anonymous Symbol]                       0x08004628   Section        0  pfc_control.o(.text.pfc_outputs_off)
-    pfc_outputs_off                          0x08004629   Thumb Code    56  pfc_control.o(.text.pfc_outputs_off)
-    [Anonymous Symbol]                       0x08004660   Section        0  pfc_control.o(.text.pfc_pwm_set)
-    pfc_pwm_set                              0x08004661   Thumb Code    50  pfc_control.o(.text.pfc_pwm_set)
-    [Anonymous Symbol]                       0x08004694   Section        0  pfc_control.o(.text.pfc_reset_startup_timers)
-    pfc_reset_startup_timers                 0x08004695   Thumb Code    18  pfc_control.o(.text.pfc_reset_startup_timers)
-    [Anonymous Symbol]                       0x080046a8   Section        0  pfc_control.o(.text.pfc_sample_inputs)
-    pfc_sample_inputs                        0x080046a9   Thumb Code   316  pfc_control.o(.text.pfc_sample_inputs)
-    [Anonymous Symbol]                       0x080047e4   Section        0  pfc_control.o(.text.pfc_state_enter)
-    pfc_state_enter                          0x080047e5   Thumb Code   204  pfc_control.o(.text.pfc_state_enter)
-    [Anonymous Symbol]                       0x080048b0   Section        0  pfc_control.o(.text.pfc_tick_1khz)
-    __arm_cp.8_6                             0x08004c20   Number         4  pfc_control.o(.text.pfc_tick_1khz)
-    [Anonymous Symbol]                       0x08004cfc   Section        0  pwm_llc.o(.text.pins_init)
-    pins_init                                0x08004cfd   Thumb Code   152  pwm_llc.o(.text.pins_init)
-    [Anonymous Symbol]                       0x08004d94   Section        0  protect_exti.o(.text.protect_clear_fault)
-    [Anonymous Symbol]                       0x08004dac   Section        0  protect_exti.o(.text.protect_exti_init)
-    [Anonymous Symbol]                       0x08004e18   Section        0  protect_exti.o(.text.protect_fault_active_hw)
-    [Anonymous Symbol]                       0x08004e34   Section        0  protect_exti.o(.text.protect_fault_latched)
-    [Anonymous Symbol]                       0x08004e48   Section        0  protect_exti.o(.text.protect_fault_trigger)
-    protect_fault_trigger                    0x08004e49   Thumb Code    44  protect_exti.o(.text.protect_fault_trigger)
-    [Anonymous Symbol]                       0x08004e74   Section        0  main.o(.text.protect_startup_check)
-    protect_startup_check                    0x08004e75   Thumb Code    62  main.o(.text.protect_startup_check)
-    [Anonymous Symbol]                       0x08004eb4   Section        0  gd32f30x_rcu.o(.text.rcu_adc_clock_config)
-    [Anonymous Symbol]                       0x08004f70   Section        0  gd32f30x_rcu.o(.text.rcu_ahb_clock_config)
-    [Anonymous Symbol]                       0x08004f98   Section        0  gd32f30x_rcu.o(.text.rcu_apb1_clock_config)
-    [Anonymous Symbol]                       0x08004fc0   Section        0  gd32f30x_rcu.o(.text.rcu_apb2_clock_config)
-    [Anonymous Symbol]                       0x08004fe8   Section        0  gd32f30x_rcu.o(.text.rcu_clock_freq_get)
-    [Anonymous Symbol]                       0x080051e4   Section        0  gd32f30x_rcu.o(.text.rcu_deinit)
-    [Anonymous Symbol]                       0x08005260   Section        0  gd32f30x_rcu.o(.text.rcu_flag_get)
-    [Anonymous Symbol]                       0x080052a8   Section        0  gd32f30x_rcu.o(.text.rcu_osci_on)
-    [Anonymous Symbol]                       0x080052d8   Section        0  gd32f30x_rcu.o(.text.rcu_osci_stab_wait)
-    [Anonymous Symbol]                       0x08005568   Section        0  gd32f30x_rcu.o(.text.rcu_periph_clock_enable)
-    [Anonymous Symbol]                       0x08005598   Section        0  gd32f30x_rcu.o(.text.rcu_periph_reset_disable)
-    [Anonymous Symbol]                       0x080055c8   Section        0  gd32f30x_rcu.o(.text.rcu_periph_reset_enable)
-    [Anonymous Symbol]                       0x080055f8   Section        0  gd32f30x_rcu.o(.text.rcu_pll_config)
-    [Anonymous Symbol]                       0x08005644   Section        0  gd32f30x_rcu.o(.text.rcu_pllpresel_config)
-    [Anonymous Symbol]                       0x08005674   Section        0  gd32f30x_rcu.o(.text.rcu_predv0_config)
-    [Anonymous Symbol]                       0x080056b8   Section        0  gd32f30x_rcu.o(.text.rcu_system_clock_source_config)
-    [Anonymous Symbol]                       0x080056e0   Section        0  gd32f30x_rcu.o(.text.rcu_system_clock_source_get)
-    [Anonymous Symbol]                       0x080056f0   Section        0  llc_soft_start.o(.text.ss_apply)
-    ss_apply                                 0x080056f1   Thumb Code    92  llc_soft_start.o(.text.ss_apply)
-    [Anonymous Symbol]                       0x0800574c   Section        0  system_gd32f30x.o(.text.system_clock_120m_hxtal)
-    system_clock_120m_hxtal                  0x0800574d   Thumb Code   374  system_gd32f30x.o(.text.system_clock_120m_hxtal)
-    [Anonymous Symbol]                       0x080058c4   Section        0  system_gd32f30x.o(.text.system_clock_config)
-    system_clock_config                      0x080058c5   Thumb Code     8  system_gd32f30x.o(.text.system_clock_config)
-    [Anonymous Symbol]                       0x080058cc   Section        0  main.o(.text.systick_1ms_init)
-    [Anonymous Symbol]                       0x0800596c   Section        0  pwm.o(.text.tim_apb1_clk_hz)
-    tim_apb1_clk_hz                          0x0800596d   Thumb Code    50  pwm.o(.text.tim_apb1_clk_hz)
-    [Anonymous Symbol]                       0x080059a0   Section        0  pwm_llc.o(.text.timer0_clk_hz)
-    timer0_clk_hz                            0x080059a1   Thumb Code    50  pwm_llc.o(.text.timer0_clk_hz)
-    [Anonymous Symbol]                       0x080059d4   Section        0  gd32f30x_timer.o(.text.timer_auto_reload_shadow_enable)
-    [Anonymous Symbol]                       0x080059ec   Section        0  gd32f30x_timer.o(.text.timer_break_config)
-    [Anonymous Symbol]                       0x08005a34   Section        0  gd32f30x_timer.o(.text.timer_channel_output_config)
-    [Anonymous Symbol]                       0x08005d18   Section        0  gd32f30x_timer.o(.text.timer_channel_output_mode_config)
-    [Anonymous Symbol]                       0x08005db8   Section        0  gd32f30x_timer.o(.text.timer_channel_output_pulse_value_config)
-    [Anonymous Symbol]                       0x08005e10   Section        0  gd32f30x_timer.o(.text.timer_channel_output_shadow_config)
-    [Anonymous Symbol]                       0x08005eb0   Section        0  pwm.o(.text.timer_clk_hz)
-    timer_clk_hz                             0x08005eb1   Thumb Code     8  pwm.o(.text.timer_clk_hz)
-    [Anonymous Symbol]                       0x08005eb8   Section        0  gd32f30x_timer.o(.text.timer_deinit)
-    [Anonymous Symbol]                       0x08005fd4   Section        0  gd32f30x_timer.o(.text.timer_enable)
-    [Anonymous Symbol]                       0x08005fec   Section        0  gd32f30x_timer.o(.text.timer_event_software_generate)
-    [Anonymous Symbol]                       0x08006010   Section        0  gd32f30x_timer.o(.text.timer_flag_clear)
-    [Anonymous Symbol]                       0x08006030   Section        0  gd32f30x_timer.o(.text.timer_flag_get)
-    [Anonymous Symbol]                       0x08006064   Section        0  gd32f30x_timer.o(.text.timer_init)
-    [Anonymous Symbol]                       0x08006170   Section        0  gd32f30x_timer.o(.text.timer_interrupt_enable)
-    [Anonymous Symbol]                       0x08006190   Section        0  gd32f30x_timer.o(.text.timer_interrupt_flag_clear)
-    [Anonymous Symbol]                       0x080061b0   Section        0  gd32f30x_timer.o(.text.timer_interrupt_flag_get)
-    [Anonymous Symbol]                       0x080061f4   Section        0  gd32f30x_timer.o(.text.timer_master_output_trigger_source_select)
-    [Anonymous Symbol]                       0x08006220   Section        0  gd32f30x_timer.o(.text.timer_primary_output_config)
-    [Anonymous Symbol]                       0x08006258   Section        0  gd32f30x_timer.o(.text.timer_struct_para_init)
-    [Anonymous Symbol]                       0x08006284   Section        0  gd32f30x_usart.o(.text.usart_baudrate_set)
-    [Anonymous Symbol]                       0x08006358   Section        0  gd32f30x_usart.o(.text.usart_deinit)
-    [Anonymous Symbol]                       0x08006414   Section        0  gd32f30x_usart.o(.text.usart_enable)
-    [Anonymous Symbol]                       0x0800642c   Section        0  gd32f30x_usart.o(.text.usart_hardware_flow_cts_config)
-    [Anonymous Symbol]                       0x08006460   Section        0  gd32f30x_usart.o(.text.usart_hardware_flow_rts_config)
-    [Anonymous Symbol]                       0x08006494   Section        0  gd32f30x_usart.o(.text.usart_parity_config)
-    [Anonymous Symbol]                       0x080064c0   Section        0  gd32f30x_usart.o(.text.usart_receive_config)
-    [Anonymous Symbol]                       0x080064f4   Section        0  gd32f30x_usart.o(.text.usart_stop_bit_set)
-    [Anonymous Symbol]                       0x08006520   Section        0  gd32f30x_usart.o(.text.usart_transmit_config)
-    [Anonymous Symbol]                       0x08006554   Section        0  gd32f30x_usart.o(.text.usart_word_length_set)
-    i.__hardfp__fabsf                        0x0800657e   Section        0  fabsf.o(i.__hardfp__fabsf)
-    i.__hardfp_cosf                          0x0800658c   Section        0  cosf.o(i.__hardfp_cosf)
-    i.__hardfp_roundf                        0x080066dc   Section        0  roundf.o(i.__hardfp_roundf)
-    i.__mathlib_flt_infnan                   0x08006776   Section        0  funder.o(i.__mathlib_flt_infnan)
-    i.__mathlib_flt_invalid                  0x0800677c   Section        0  funder.o(i.__mathlib_flt_invalid)
-    i.__mathlib_rredf2                       0x0800678c   Section        0  rredf.o(i.__mathlib_rredf2)
-    i.__scatterload_copy                     0x080068e0   Section       14  handlers.o(i.__scatterload_copy)
-    i.__scatterload_null                     0x080068ee   Section        2  handlers.o(i.__scatterload_null)
-    i.__scatterload_zeroinit                 0x080068f0   Section       14  handlers.o(i.__scatterload_zeroinit)
-    i.__set_errno                            0x08006900   Section        0  errno.o(i.__set_errno)
-    .constdata                               0x0800690c   Section       32  rredf.o(.constdata)
-    twooverpi                                0x0800690c   Data          32  rredf.o(.constdata)
-    .Lmain.lcfg                              0x0800692c   Data          12  main.o(.rodata..Lmain.lcfg)
-    [Anonymous Symbol]                       0x08006938   Section        0  pfc_control.o(.rodata.str1.1)
-    .L.str.1                                 0x08006938   Data          10  pfc_control.o(.rodata.str1.1)
-    .L.str                                   0x08006942   Data           8  pfc_control.o(.rodata.str1.1)
+    [Anonymous Symbol]                       0x08000a60   Section        0  timer.o(.text.TIMER5_IRQHandler)
+    [Anonymous Symbol]                       0x08000ab8   Section        0  timer.o(.text.TIMER6_IRQHandler)
+    [Anonymous Symbol]                       0x08000b14   Section        0  gd32f30x_it.o(.text.UsageFault_Handler)
+    [Anonymous Symbol]                       0x08000b18   Section        0  main.o(.text.__NVIC_SetPriority)
+    __NVIC_SetPriority                       0x08000b19   Thumb Code    74  main.o(.text.__NVIC_SetPriority)
+    [Anonymous Symbol]                       0x08000b64   Section        0  adc_dma.o(.text.adc0_analog_pins_init)
+    adc0_analog_pins_init                    0x08000b65   Thumb Code    30  adc_dma.o(.text.adc0_analog_pins_init)
+    [Anonymous Symbol]                       0x08000b84   Section        0  adc_dma.o(.text.adc0_dma_cfg)
+    adc0_dma_cfg                             0x08000b85   Thumb Code   218  adc_dma.o(.text.adc0_dma_cfg)
+    [Anonymous Symbol]                       0x08000c60   Section        0  adc_dma.o(.text.adc0_dma_init)
+    [Anonymous Symbol]                       0x08000d44   Section        0  adc_dma.o(.text.adc0_dma_start)
+    [Anonymous Symbol]                       0x08000d58   Section        0  adc_dma.o(.text.adc1_analog_pins_init)
+    adc1_analog_pins_init                    0x08000d59   Thumb Code    72  adc_dma.o(.text.adc1_analog_pins_init)
+    [Anonymous Symbol]                       0x08000da0   Section        0  adc_dma.o(.text.adc1_aux_init)
+    [Anonymous Symbol]                       0x08000eec   Section        0  adc_dma.o(.text.adc1_aux_read_channel)
+    [Anonymous Symbol]                       0x0800102c   Section        0  adc_dma.o(.text.adc1_sample_aux_1khz)
+    [Anonymous Symbol]                       0x08001078   Section        0  gd32f30x_adc.o(.text.adc_calibration_enable)
+    [Anonymous Symbol]                       0x080010b8   Section        0  gd32f30x_adc.o(.text.adc_channel_length_config)
+    [Anonymous Symbol]                       0x08001138   Section        0  gd32f30x_adc.o(.text.adc_data_alignment_config)
+    [Anonymous Symbol]                       0x0800116c   Section        0  gd32f30x_adc.o(.text.adc_deinit)
+    [Anonymous Symbol]                       0x080011e4   Section        0  gd32f30x_adc.o(.text.adc_dma_mode_enable)
+    [Anonymous Symbol]                       0x080011fc   Section        0  gd32f30x_adc.o(.text.adc_enable)
+    [Anonymous Symbol]                       0x08001220   Section        0  gd32f30x_adc.o(.text.adc_external_trigger_config)
+    [Anonymous Symbol]                       0x080012b0   Section        0  gd32f30x_adc.o(.text.adc_external_trigger_source_config)
+    [Anonymous Symbol]                       0x08001314   Section        0  main.o(.text.adc_fast_task_100us)
+    adc_fast_task_100us                      0x08001315   Thumb Code     8  main.o(.text.adc_fast_task_100us)
+    [Anonymous Symbol]                       0x0800131c   Section        0  main.o(.text.adc_fast_timer_clk_hz)
+    adc_fast_timer_clk_hz                    0x0800131d   Thumb Code    50  main.o(.text.adc_fast_timer_clk_hz)
+    [Anonymous Symbol]                       0x08001350   Section        0  main.o(.text.adc_fast_timer_init_100us)
+    adc_fast_timer_init_100us                0x08001351   Thumb Code   174  main.o(.text.adc_fast_timer_init_100us)
+    [Anonymous Symbol]                       0x08001400   Section        0  gd32f30x_adc.o(.text.adc_flag_clear)
+    [Anonymous Symbol]                       0x08001420   Section        0  gd32f30x_adc.o(.text.adc_flag_get)
+    [Anonymous Symbol]                       0x08001450   Section        0  gd32f30x_adc.o(.text.adc_mode_config)
+    [Anonymous Symbol]                       0x08001474   Section        0  adc_dma.o(.text.adc_multi_copy)
+    [Anonymous Symbol]                       0x080014c4   Section        0  adc_dma.o(.text.adc_multi_init_dma)
+    [Anonymous Symbol]                       0x080014d8   Section        0  adc_dma.o(.text.adc_multi_sample_aux_1khz)
+    [Anonymous Symbol]                       0x080014e0   Section        0  adc_dma.o(.text.adc_multi_start)
+    [Anonymous Symbol]                       0x080014ec   Section        0  adc_dma.o(.text.adc_multi_store_frame)
+    adc_multi_store_frame                    0x080014ed   Thumb Code    30  adc_dma.o(.text.adc_multi_store_frame)
+    [Anonymous Symbol]                       0x0800150c   Section        0  adc_dma.o(.text.adc_multi_trigger_fast)
+    [Anonymous Symbol]                       0x08001534   Section        0  gd32f30x_adc.o(.text.adc_regular_channel_config)
+    [Anonymous Symbol]                       0x0800168c   Section        0  gd32f30x_adc.o(.text.adc_regular_data_read)
+    [Anonymous Symbol]                       0x080016a0   Section        0  gd32f30x_adc.o(.text.adc_software_trigger_enable)
+    [Anonymous Symbol]                       0x080016e4   Section        0  gd32f30x_adc.o(.text.adc_special_function_config)
+    [Anonymous Symbol]                       0x08001798   Section        0  main.o(.text.adc_startup_check)
+    adc_startup_check                        0x08001799   Thumb Code   364  main.o(.text.adc_startup_check)
+    [Anonymous Symbol]                       0x08001904   Section        0  pfc_control.o(.text.adc_to_v_scaled)
+    adc_to_v_scaled                          0x08001905   Thumb Code    80  pfc_control.o(.text.adc_to_v_scaled)
+    [Anonymous Symbol]                       0x08001958   Section        0  pwm_llc.o(.text.bdtr_deadtime_code_ns)
+    bdtr_deadtime_code_ns                    0x08001959   Thumb Code   536  pwm_llc.o(.text.bdtr_deadtime_code_ns)
+    [Anonymous Symbol]                       0x08001b70   Section        0  pwm_llc.o(.text.clampf)
+    clampf                                   0x08001b71   Thumb Code   126  pwm_llc.o(.text.clampf)
+    [Anonymous Symbol]                       0x08001bf0   Section        0  pwm.o(.text.clampf)
+    clampf                                   0x08001bf1   Thumb Code   126  pwm.o(.text.clampf)
+    [Anonymous Symbol]                       0x08001c70   Section        0  main.o(.text.control_loop_tick_1khz)
+    control_loop_tick_1khz                   0x08001c71   Thumb Code    20  main.o(.text.control_loop_tick_1khz)
+    [Anonymous Symbol]                       0x08001c84   Section        0  llc_control.o(.text.conv_adc_to_i)
+    conv_adc_to_i                            0x08001c85   Thumb Code    92  llc_control.o(.text.conv_adc_to_i)
+    [Anonymous Symbol]                       0x08001ce0   Section        0  llc_control.o(.text.conv_adc_to_v_div)
+    conv_adc_to_v_div                        0x08001ce1   Thumb Code   104  llc_control.o(.text.conv_adc_to_v_div)
+    [Anonymous Symbol]                       0x08001d48   Section        0  main.o(.text.conv_adc_to_v_test)
+    conv_adc_to_v_test                       0x08001d49   Thumb Code    92  main.o(.text.conv_adc_to_v_test)
+    [Anonymous Symbol]                       0x08001da4   Section        0  debug_printf.o(.text.debug_printf_init)
+    [Anonymous Symbol]                       0x08001e68   Section        0  main.o(.text.delay_ms)
+    [Anonymous Symbol]                       0x08001ea8   Section        0  gd32f30x_dma.o(.text.dma_channel_enable)
+    [Anonymous Symbol]                       0x08001ee8   Section        0  gd32f30x_dma.o(.text.dma_circulation_enable)
+    [Anonymous Symbol]                       0x08001f28   Section        0  gd32f30x_dma.o(.text.dma_deinit)
+    [Anonymous Symbol]                       0x08001fc0   Section        0  gd32f30x_dma.o(.text.dma_init)
+    [Anonymous Symbol]                       0x08002140   Section        0  gd32f30x_dma.o(.text.dma_interrupt_enable)
+    [Anonymous Symbol]                       0x0800218c   Section        0  gd32f30x_dma.o(.text.dma_interrupt_flag_clear)
+    [Anonymous Symbol]                       0x080021c0   Section        0  gd32f30x_dma.o(.text.dma_interrupt_flag_get)
+    [Anonymous Symbol]                       0x0800229c   Section        0  gd32f30x_dma.o(.text.dma_periph_and_channel_check)
+    dma_periph_and_channel_check             0x0800229d   Thumb Code    66  gd32f30x_dma.o(.text.dma_periph_and_channel_check)
+    [Anonymous Symbol]                       0x080022e0   Section        0  pwm_llc.o(.text.duty_to_ccr)
+    duty_to_ccr                              0x080022e1   Thumb Code   188  pwm_llc.o(.text.duty_to_ccr)
+    [Anonymous Symbol]                       0x0800239c   Section        0  llc_soft_start.o(.text.ease_cos)
+    ease_cos                                 0x0800239d   Thumb Code   116  llc_soft_start.o(.text.ease_cos)
+    [Anonymous Symbol]                       0x08002410   Section        0  pfc_control.o(.text.elapsed_reached)
+    elapsed_reached                          0x08002411   Thumb Code    80  pfc_control.o(.text.elapsed_reached)
+    [Anonymous Symbol]                       0x08002460   Section        0  llc_control.o(.text.elapsed_reached)
+    elapsed_reached                          0x08002461   Thumb Code    80  llc_control.o(.text.elapsed_reached)
+    [Anonymous Symbol]                       0x080024b0   Section        0  pfc_control.o(.text.elapsed_since)
+    elapsed_since                            0x080024b1   Thumb Code    46  pfc_control.o(.text.elapsed_since)
+    [Anonymous Symbol]                       0x080024e0   Section        0  llc_control.o(.text.elapsed_since)
+    elapsed_since                            0x080024e1   Thumb Code    46  llc_control.o(.text.elapsed_since)
+    [Anonymous Symbol]                       0x08002510   Section        0  llc_soft_start.o(.text.f_clampf)
+    f_clampf                                 0x08002511   Thumb Code   126  llc_soft_start.o(.text.f_clampf)
+    [Anonymous Symbol]                       0x08002590   Section        0  llc_control.o(.text.f_clampf)
+    f_clampf                                 0x08002591   Thumb Code   126  llc_control.o(.text.f_clampf)
+    [Anonymous Symbol]                       0x08002610   Section        0  llc_control.o(.text.fabsf)
+    fabsf                                    0x08002611   Thumb Code    28  llc_control.o(.text.fabsf)
+    [Anonymous Symbol]                       0x0800262c   Section        0  gd32f30x_fmc.o(.text.fmc_wscnt_set)
+    [Anonymous Symbol]                       0x08002654   Section        0  gd32f30x_gpio.o(.text.gpio_bit_reset)
+    [Anonymous Symbol]                       0x0800266c   Section        0  gd32f30x_gpio.o(.text.gpio_bit_set)
+    [Anonymous Symbol]                       0x08002684   Section        0  gd32f30x_gpio.o(.text.gpio_init)
+    [Anonymous Symbol]                       0x080027ec   Section        0  gd32f30x_gpio.o(.text.gpio_input_bit_get)
+    [Anonymous Symbol]                       0x08002820   Section        0  main.o(.text.irq_priority_encode)
+    irq_priority_encode                      0x08002821   Thumb Code    40  main.o(.text.irq_priority_encode)
+    [Anonymous Symbol]                       0x08002848   Section        0  llc_control.o(.text.llc_app_init)
+    [Anonymous Symbol]                       0x0800299c   Section        0  llc_control.o(.text.llc_app_tick_100us)
+    [Anonymous Symbol]                       0x08002c8c   Section        0  llc_control.o(.text.llc_bumpless_integ)
+    llc_bumpless_integ                       0x08002c8d   Thumb Code   148  llc_control.o(.text.llc_bumpless_integ)
+    [Anonymous Symbol]                       0x08002d20   Section        0  llc_control.o(.text.llc_ctrl_step)
+    llc_ctrl_step                            0x08002d21   Thumb Code  1012  llc_control.o(.text.llc_ctrl_step)
+    [Anonymous Symbol]                       0x08003114   Section        0  llc_control.o(.text.llc_current_limit_step)
+    llc_current_limit_step                   0x08003115   Thumb Code   740  llc_control.o(.text.llc_current_limit_step)
+    [Anonymous Symbol]                       0x080033f8   Section        0  llc_control.o(.text.llc_driver_en_set)
+    llc_driver_en_set                        0x080033f9   Thumb Code   182  llc_control.o(.text.llc_driver_en_set)
+    [Anonymous Symbol]                       0x080034b0   Section        0  llc_control.o(.text.llc_enter_fault)
+    llc_enter_fault                          0x080034b1   Thumb Code    10  llc_control.o(.text.llc_enter_fault)
+    [Anonymous Symbol]                       0x080034bc   Section        0  llc_control.o(.text.llc_faults_present)
+    llc_faults_present                       0x080034bd   Thumb Code   140  llc_control.o(.text.llc_faults_present)
+    [Anonymous Symbol]                       0x08003548   Section        0  llc_control.o(.text.llc_pfc_ready_stable)
+    llc_pfc_ready_stable                     0x08003549   Thumb Code   110  llc_control.o(.text.llc_pfc_ready_stable)
+    [Anonymous Symbol]                       0x080035b8   Section        0  llc_control.o(.text.llc_precheck_ok)
+    llc_precheck_ok                          0x080035b9   Thumb Code    36  llc_control.o(.text.llc_precheck_ok)
+    [Anonymous Symbol]                       0x080035dc   Section        0  pwm_llc.o(.text.llc_pwm_force_start)
+    llc_pwm_force_start                      0x080035dd   Thumb Code   160  pwm_llc.o(.text.llc_pwm_force_start)
+    [Anonymous Symbol]                       0x0800367c   Section        0  pwm_llc.o(.text.llc_pwm_init)
+    [Anonymous Symbol]                       0x080037a0   Section        0  pwm_llc.o(.text.llc_pwm_outputs_enable)
+    [Anonymous Symbol]                       0x080037e8   Section        0  pwm_llc.o(.text.llc_pwm_restore_pwm)
+    llc_pwm_restore_pwm                      0x080037e9   Thumb Code   152  pwm_llc.o(.text.llc_pwm_restore_pwm)
+    [Anonymous Symbol]                       0x08003880   Section        0  pwm_llc.o(.text.llc_pwm_set_duty)
+    [Anonymous Symbol]                       0x080038e4   Section        0  pwm_llc.o(.text.llc_pwm_set_freq)
+    [Anonymous Symbol]                       0x08003980   Section        0  llc_control.o(.text.llc_set_freq)
+    llc_set_freq                             0x08003981   Thumb Code    78  llc_control.o(.text.llc_set_freq)
+    [Anonymous Symbol]                       0x080039d0   Section        0  llc_soft_start.o(.text.llc_softstart_abort)
+    [Anonymous Symbol]                       0x08003a08   Section        0  llc_soft_start.o(.text.llc_softstart_begin)
+    llc_softstart_begin                      0x08003a09   Thumb Code   204  llc_soft_start.o(.text.llc_softstart_begin)
+    [Anonymous Symbol]                       0x08003ad4   Section        0  llc_soft_start.o(.text.llc_softstart_init)
+    [Anonymous Symbol]                       0x08003b00   Section        0  llc_soft_start.o(.text.llc_softstart_last_hz)
+    [Anonymous Symbol]                       0x08003b50   Section        0  llc_soft_start.o(.text.llc_softstart_on_fault)
+    [Anonymous Symbol]                       0x08003b70   Section        0  llc_soft_start.o(.text.llc_softstart_reset)
+    llc_softstart_reset                      0x08003b71   Thumb Code   112  llc_soft_start.o(.text.llc_softstart_reset)
+    [Anonymous Symbol]                       0x08003be0   Section        0  llc_soft_start.o(.text.llc_softstart_start)
+    [Anonymous Symbol]                       0x08003c14   Section        0  llc_soft_start.o(.text.llc_softstart_stop)
+    [Anonymous Symbol]                       0x08003c3c   Section        0  llc_soft_start.o(.text.llc_softstart_tick)
+    llc_softstart_tick                       0x08003c3d   Thumb Code   242  llc_soft_start.o(.text.llc_softstart_tick)
+    [Anonymous Symbol]                       0x08003d30   Section        0  llc_soft_start.o(.text.llc_softstart_tick_1khz)
+    [Anonymous Symbol]                       0x08003d50   Section        0  llc_control.o(.text.llc_state_enter)
+    llc_state_enter                          0x08003d51   Thumb Code   580  llc_control.o(.text.llc_state_enter)
+    [Anonymous Symbol]                       0x08003f94   Section        0  llc_control.o(.text.llc_update_measurements)
+    llc_update_measurements                  0x08003f95   Thumb Code   100  llc_control.o(.text.llc_update_measurements)
+    [Anonymous Symbol]                       0x08003ff8   Section        0  llc_control.o(.text.llc_vbus_feedforward_hz)
+    llc_vbus_feedforward_hz                  0x08003ff9   Thumb Code   136  llc_control.o(.text.llc_vbus_feedforward_hz)
+    [Anonymous Symbol]                       0x08004080   Section        0  main.o(.text.main)
+    [Anonymous Symbol]                       0x080041a4   Section        0  gd32f30x_misc.o(.text.nvic_irq_enable)
+    [Anonymous Symbol]                       0x080042dc   Section        0  gd32f30x_misc.o(.text.nvic_priority_group_set)
+    [Anonymous Symbol]                       0x080042fc   Section        0  pwm.o(.text.pb0_pwm_init)
+    [Anonymous Symbol]                       0x080043c8   Section        0  pwm.o(.text.pb0_pwm_set_duty)
+    [Anonymous Symbol]                       0x0800442c   Section        0  pfc_control.o(.text.pfc_ac_loss_debounced)
+    pfc_ac_loss_debounced                    0x0800442d   Thumb Code   106  pfc_control.o(.text.pfc_ac_loss_debounced)
+    [Anonymous Symbol]                       0x08004498   Section        0  pfc_control.o(.text.pfc_ac_ok)
+    pfc_ac_ok                                0x08004499   Thumb Code    84  pfc_control.o(.text.pfc_ac_ok)
+    [Anonymous Symbol]                       0x080044ec   Section        0  pfc_control.o(.text.pfc_ac_ok_debounced)
+    pfc_ac_ok_debounced                      0x080044ed   Thumb Code   106  pfc_control.o(.text.pfc_ac_ok_debounced)
+    [Anonymous Symbol]                       0x08004558   Section        0  pfc_control.o(.text.pfc_bus_voltage)
+    [Anonymous Symbol]                       0x08004560   Section        0  pfc_control.o(.text.pfc_enable)
+    [Anonymous Symbol]                       0x08004584   Section        0  pfc_control.o(.text.pfc_get_vbus)
+    [Anonymous Symbol]                       0x08004594   Section        0  pfc_control.o(.text.pfc_handle_fault)
+    pfc_handle_fault                         0x08004595   Thumb Code    24  pfc_control.o(.text.pfc_handle_fault)
+    [Anonymous Symbol]                       0x080045ac   Section        0  pfc_control.o(.text.pfc_hw_set_main)
+    [Anonymous Symbol]                       0x0800466c   Section        0  pfc_control.o(.text.pfc_init)
+    [Anonymous Symbol]                       0x080046c4   Section        0  pfc_control.o(.text.pfc_is_ready)
+    [Anonymous Symbol]                       0x080046d8   Section        0  pfc_control.o(.text.pfc_outputs_off)
+    pfc_outputs_off                          0x080046d9   Thumb Code    56  pfc_control.o(.text.pfc_outputs_off)
+    [Anonymous Symbol]                       0x08004710   Section        0  pfc_control.o(.text.pfc_pwm_set)
+    pfc_pwm_set                              0x08004711   Thumb Code    50  pfc_control.o(.text.pfc_pwm_set)
+    [Anonymous Symbol]                       0x08004744   Section        0  pfc_control.o(.text.pfc_reset_startup_timers)
+    pfc_reset_startup_timers                 0x08004745   Thumb Code    18  pfc_control.o(.text.pfc_reset_startup_timers)
+    [Anonymous Symbol]                       0x08004758   Section        0  pfc_control.o(.text.pfc_sample_inputs)
+    pfc_sample_inputs                        0x08004759   Thumb Code   316  pfc_control.o(.text.pfc_sample_inputs)
+    [Anonymous Symbol]                       0x08004894   Section        0  pfc_control.o(.text.pfc_state_enter)
+    pfc_state_enter                          0x08004895   Thumb Code   204  pfc_control.o(.text.pfc_state_enter)
+    [Anonymous Symbol]                       0x08004960   Section        0  pfc_control.o(.text.pfc_tick_1khz)
+    __arm_cp.8_6                             0x08004cd0   Number         4  pfc_control.o(.text.pfc_tick_1khz)
+    [Anonymous Symbol]                       0x08004dac   Section        0  pwm_llc.o(.text.pins_init)
+    pins_init                                0x08004dad   Thumb Code   152  pwm_llc.o(.text.pins_init)
+    [Anonymous Symbol]                       0x08004e44   Section        0  protect_exti.o(.text.protect_clear_fault)
+    [Anonymous Symbol]                       0x08004e5c   Section        0  protect_exti.o(.text.protect_exti_init)
+    [Anonymous Symbol]                       0x08004ec8   Section        0  protect_exti.o(.text.protect_fault_active_hw)
+    [Anonymous Symbol]                       0x08004ee4   Section        0  protect_exti.o(.text.protect_fault_latched)
+    [Anonymous Symbol]                       0x08004ef8   Section        0  protect_exti.o(.text.protect_fault_trigger)
+    protect_fault_trigger                    0x08004ef9   Thumb Code    44  protect_exti.o(.text.protect_fault_trigger)
+    [Anonymous Symbol]                       0x08004f24   Section        0  main.o(.text.protect_startup_check)
+    protect_startup_check                    0x08004f25   Thumb Code    62  main.o(.text.protect_startup_check)
+    [Anonymous Symbol]                       0x08004f64   Section        0  gd32f30x_rcu.o(.text.rcu_adc_clock_config)
+    [Anonymous Symbol]                       0x08005020   Section        0  gd32f30x_rcu.o(.text.rcu_ahb_clock_config)
+    [Anonymous Symbol]                       0x08005048   Section        0  gd32f30x_rcu.o(.text.rcu_apb1_clock_config)
+    [Anonymous Symbol]                       0x08005070   Section        0  gd32f30x_rcu.o(.text.rcu_apb2_clock_config)
+    [Anonymous Symbol]                       0x08005098   Section        0  gd32f30x_rcu.o(.text.rcu_clock_freq_get)
+    [Anonymous Symbol]                       0x08005294   Section        0  gd32f30x_rcu.o(.text.rcu_deinit)
+    [Anonymous Symbol]                       0x08005310   Section        0  gd32f30x_rcu.o(.text.rcu_flag_get)
+    [Anonymous Symbol]                       0x08005358   Section        0  gd32f30x_rcu.o(.text.rcu_osci_on)
+    [Anonymous Symbol]                       0x08005388   Section        0  gd32f30x_rcu.o(.text.rcu_osci_stab_wait)
+    [Anonymous Symbol]                       0x08005618   Section        0  gd32f30x_rcu.o(.text.rcu_periph_clock_enable)
+    [Anonymous Symbol]                       0x08005648   Section        0  gd32f30x_rcu.o(.text.rcu_periph_reset_disable)
+    [Anonymous Symbol]                       0x08005678   Section        0  gd32f30x_rcu.o(.text.rcu_periph_reset_enable)
+    [Anonymous Symbol]                       0x080056a8   Section        0  gd32f30x_rcu.o(.text.rcu_pll_config)
+    [Anonymous Symbol]                       0x080056f4   Section        0  gd32f30x_rcu.o(.text.rcu_pllpresel_config)
+    [Anonymous Symbol]                       0x08005724   Section        0  gd32f30x_rcu.o(.text.rcu_predv0_config)
+    [Anonymous Symbol]                       0x08005768   Section        0  gd32f30x_rcu.o(.text.rcu_system_clock_source_config)
+    [Anonymous Symbol]                       0x08005790   Section        0  gd32f30x_rcu.o(.text.rcu_system_clock_source_get)
+    [Anonymous Symbol]                       0x080057a0   Section        0  llc_soft_start.o(.text.ss_apply)
+    ss_apply                                 0x080057a1   Thumb Code    92  llc_soft_start.o(.text.ss_apply)
+    [Anonymous Symbol]                       0x080057fc   Section        0  system_gd32f30x.o(.text.system_clock_120m_hxtal)
+    system_clock_120m_hxtal                  0x080057fd   Thumb Code   374  system_gd32f30x.o(.text.system_clock_120m_hxtal)
+    [Anonymous Symbol]                       0x08005974   Section        0  system_gd32f30x.o(.text.system_clock_config)
+    system_clock_config                      0x08005975   Thumb Code     8  system_gd32f30x.o(.text.system_clock_config)
+    [Anonymous Symbol]                       0x0800597c   Section        0  main.o(.text.systick_1ms_init)
+    [Anonymous Symbol]                       0x08005a1c   Section        0  pwm.o(.text.tim_apb1_clk_hz)
+    tim_apb1_clk_hz                          0x08005a1d   Thumb Code    50  pwm.o(.text.tim_apb1_clk_hz)
+    [Anonymous Symbol]                       0x08005a50   Section        0  pwm_llc.o(.text.timer0_clk_hz)
+    timer0_clk_hz                            0x08005a51   Thumb Code    50  pwm_llc.o(.text.timer0_clk_hz)
+    [Anonymous Symbol]                       0x08005a84   Section        0  gd32f30x_timer.o(.text.timer_auto_reload_shadow_enable)
+    [Anonymous Symbol]                       0x08005a9c   Section        0  gd32f30x_timer.o(.text.timer_break_config)
+    [Anonymous Symbol]                       0x08005ae4   Section        0  gd32f30x_timer.o(.text.timer_channel_output_config)
+    [Anonymous Symbol]                       0x08005dc8   Section        0  gd32f30x_timer.o(.text.timer_channel_output_mode_config)
+    [Anonymous Symbol]                       0x08005e68   Section        0  gd32f30x_timer.o(.text.timer_channel_output_pulse_value_config)
+    [Anonymous Symbol]                       0x08005ec0   Section        0  gd32f30x_timer.o(.text.timer_channel_output_shadow_config)
+    [Anonymous Symbol]                       0x08005f60   Section        0  pwm.o(.text.timer_clk_hz)
+    timer_clk_hz                             0x08005f61   Thumb Code     8  pwm.o(.text.timer_clk_hz)
+    [Anonymous Symbol]                       0x08005f68   Section        0  gd32f30x_timer.o(.text.timer_deinit)
+    [Anonymous Symbol]                       0x08006084   Section        0  gd32f30x_timer.o(.text.timer_enable)
+    [Anonymous Symbol]                       0x0800609c   Section        0  gd32f30x_timer.o(.text.timer_event_software_generate)
+    [Anonymous Symbol]                       0x080060c0   Section        0  gd32f30x_timer.o(.text.timer_flag_clear)
+    [Anonymous Symbol]                       0x080060e0   Section        0  gd32f30x_timer.o(.text.timer_flag_get)
+    [Anonymous Symbol]                       0x08006114   Section        0  gd32f30x_timer.o(.text.timer_init)
+    [Anonymous Symbol]                       0x08006220   Section        0  gd32f30x_timer.o(.text.timer_interrupt_enable)
+    [Anonymous Symbol]                       0x08006240   Section        0  gd32f30x_timer.o(.text.timer_interrupt_flag_clear)
+    [Anonymous Symbol]                       0x08006260   Section        0  gd32f30x_timer.o(.text.timer_interrupt_flag_get)
+    [Anonymous Symbol]                       0x080062a4   Section        0  gd32f30x_timer.o(.text.timer_master_output_trigger_source_select)
+    [Anonymous Symbol]                       0x080062d0   Section        0  gd32f30x_timer.o(.text.timer_primary_output_config)
+    [Anonymous Symbol]                       0x08006308   Section        0  gd32f30x_timer.o(.text.timer_struct_para_init)
+    [Anonymous Symbol]                       0x08006334   Section        0  gd32f30x_usart.o(.text.usart_baudrate_set)
+    [Anonymous Symbol]                       0x08006408   Section        0  gd32f30x_usart.o(.text.usart_deinit)
+    [Anonymous Symbol]                       0x080064c4   Section        0  gd32f30x_usart.o(.text.usart_enable)
+    [Anonymous Symbol]                       0x080064dc   Section        0  gd32f30x_usart.o(.text.usart_hardware_flow_cts_config)
+    [Anonymous Symbol]                       0x08006510   Section        0  gd32f30x_usart.o(.text.usart_hardware_flow_rts_config)
+    [Anonymous Symbol]                       0x08006544   Section        0  gd32f30x_usart.o(.text.usart_parity_config)
+    [Anonymous Symbol]                       0x08006570   Section        0  gd32f30x_usart.o(.text.usart_receive_config)
+    [Anonymous Symbol]                       0x080065a4   Section        0  gd32f30x_usart.o(.text.usart_stop_bit_set)
+    [Anonymous Symbol]                       0x080065d0   Section        0  gd32f30x_usart.o(.text.usart_transmit_config)
+    [Anonymous Symbol]                       0x08006604   Section        0  gd32f30x_usart.o(.text.usart_word_length_set)
+    i.__hardfp__fabsf                        0x0800662e   Section        0  fabsf.o(i.__hardfp__fabsf)
+    i.__hardfp_cosf                          0x0800663c   Section        0  cosf.o(i.__hardfp_cosf)
+    i.__hardfp_roundf                        0x0800678c   Section        0  roundf.o(i.__hardfp_roundf)
+    i.__mathlib_flt_infnan                   0x08006826   Section        0  funder.o(i.__mathlib_flt_infnan)
+    i.__mathlib_flt_invalid                  0x0800682c   Section        0  funder.o(i.__mathlib_flt_invalid)
+    i.__mathlib_rredf2                       0x0800683c   Section        0  rredf.o(i.__mathlib_rredf2)
+    i.__scatterload_copy                     0x08006990   Section       14  handlers.o(i.__scatterload_copy)
+    i.__scatterload_null                     0x0800699e   Section        2  handlers.o(i.__scatterload_null)
+    i.__scatterload_zeroinit                 0x080069a0   Section       14  handlers.o(i.__scatterload_zeroinit)
+    i.__set_errno                            0x080069b0   Section        0  errno.o(i.__set_errno)
+    .constdata                               0x080069bc   Section       32  rredf.o(.constdata)
+    twooverpi                                0x080069bc   Data          32  rredf.o(.constdata)
+    .Lmain.lcfg                              0x080069dc   Data          12  main.o(.rodata..Lmain.lcfg)
+    [Anonymous Symbol]                       0x080069e8   Section        0  pfc_control.o(.rodata.str1.1)
+    .L.str.1                                 0x080069e8   Data          10  pfc_control.o(.rodata.str1.1)
+    .L.str                                   0x080069f2   Data           8  pfc_control.o(.rodata.str1.1)
     .data                                    0x20000000   Section        4  errno.o(.data)
     _errno                                   0x20000000   Data           4  errno.o(.data)
-    [Anonymous Symbol]                       0x20000008   Section        0  timer.o(.bss.TIMER5_IRQHandler.s_iCnt2)
-    TIMER5_IRQHandler.s_iCnt2                0x20000008   Data           2  timer.o(.bss.TIMER5_IRQHandler.s_iCnt2)
-    [Anonymous Symbol]                       0x2000000a   Section        0  timer.o(.bss.TIMER6_IRQHandler.s_iCnt1000)
-    TIMER6_IRQHandler.s_iCnt1000             0x2000000a   Data           2  timer.o(.bss.TIMER6_IRQHandler.s_iCnt1000)
-    [Anonymous Symbol]                       0x2000000c   Section        0  adc_dma.o(.bss.adc0_initialized)
-    adc0_initialized                         0x2000000c   Data           1  adc_dma.o(.bss.adc0_initialized)
-    [Anonymous Symbol]                       0x2000000d   Section        0  adc_dma.o(.bss.adc1_initialized)
-    adc1_initialized                         0x2000000d   Data           1  adc_dma.o(.bss.adc1_initialized)
-    [Anonymous Symbol]                       0x2000001c   Section        0  llc_control.o(.bss.llc_ctrl_step.en_z1)
-    llc_ctrl_step.en_z1                      0x2000001c   Data           1  llc_control.o(.bss.llc_ctrl_step.en_z1)
-    [Anonymous Symbol]                       0x2000001d   Section        0  llc_control.o(.bss.llc_driver_en_set.initialized)
-    llc_driver_en_set.initialized            0x2000001d   Data           1  llc_control.o(.bss.llc_driver_en_set.initialized)
-    [Anonymous Symbol]                       0x2000001e   Section        0  llc_control.o(.bss.llc_driver_en_set.last)
-    llc_driver_en_set.last                   0x2000001e   Data           1  llc_control.o(.bss.llc_driver_en_set.last)
-    [Anonymous Symbol]                       0x2000001f   Section        0  pfc_control.o(.bss.pfc_hw_set_main.s_gpio_initialized)
-    pfc_hw_set_main.s_gpio_initialized       0x2000001f   Data           1  pfc_control.o(.bss.pfc_hw_set_main.s_gpio_initialized)
-    [Anonymous Symbol]                       0x20000020   Section        0  pfc_control.o(.bss.pfc_hw_set_main.s_last)
-    pfc_hw_set_main.s_last                   0x20000020   Data           1  pfc_control.o(.bss.pfc_hw_set_main.s_last)
-    [Anonymous Symbol]                       0x20000022   Section        0  adc_dma.o(.bss.s_buf)
-    s_buf                                    0x20000022   Data           8  adc_dma.o(.bss.s_buf)
-    [Anonymous Symbol]                       0x2000002c   Section        0  pwm_llc.o(.bss.s_cfg)
-    s_cfg                                    0x2000002c   Data          12  pwm_llc.o(.bss.s_cfg)
-    [Anonymous Symbol]                       0x20000038   Section        0  main.o(.bss.s_control_tick_pending)
-    s_control_tick_pending                   0x20000038   Data           4  main.o(.bss.s_control_tick_pending)
-    [Anonymous Symbol]                       0x2000003c   Section        0  main.o(.bss.s_fast_loop_tick_pending)
-    s_fast_loop_tick_pending                 0x2000003c   Data           4  main.o(.bss.s_fast_loop_tick_pending)
-    [Anonymous Symbol]                       0x20000040   Section        0  main.o(.bss.s_fast_tick_drop_count)
-    s_fast_tick_drop_count                   0x20000040   Data           4  main.o(.bss.s_fast_tick_drop_count)
+    [Anonymous Symbol]                       0x20000008   Section        0  llc_control.o(.data.llc_vbus_feedforward_hz.vbus_filtered)
+    llc_vbus_feedforward_hz.vbus_filtered    0x20000008   Data           4  llc_control.o(.data.llc_vbus_feedforward_hz.vbus_filtered)
+    [Anonymous Symbol]                       0x20000010   Section        0  timer.o(.bss.TIMER5_IRQHandler.s_iCnt2)
+    TIMER5_IRQHandler.s_iCnt2                0x20000010   Data           2  timer.o(.bss.TIMER5_IRQHandler.s_iCnt2)
+    [Anonymous Symbol]                       0x20000012   Section        0  timer.o(.bss.TIMER6_IRQHandler.s_iCnt1000)
+    TIMER6_IRQHandler.s_iCnt1000             0x20000012   Data           2  timer.o(.bss.TIMER6_IRQHandler.s_iCnt1000)
+    [Anonymous Symbol]                       0x20000014   Section        0  adc_dma.o(.bss.adc0_initialized)
+    adc0_initialized                         0x20000014   Data           1  adc_dma.o(.bss.adc0_initialized)
+    [Anonymous Symbol]                       0x20000015   Section        0  adc_dma.o(.bss.adc1_initialized)
+    adc1_initialized                         0x20000015   Data           1  adc_dma.o(.bss.adc1_initialized)
+    [Anonymous Symbol]                       0x20000024   Section        0  llc_control.o(.bss.llc_ctrl_step.en_z1)
+    llc_ctrl_step.en_z1                      0x20000024   Data           1  llc_control.o(.bss.llc_ctrl_step.en_z1)
+    [Anonymous Symbol]                       0x20000025   Section        0  llc_control.o(.bss.llc_driver_en_set.initialized)
+    llc_driver_en_set.initialized            0x20000025   Data           1  llc_control.o(.bss.llc_driver_en_set.initialized)
+    [Anonymous Symbol]                       0x20000026   Section        0  llc_control.o(.bss.llc_driver_en_set.last)
+    llc_driver_en_set.last                   0x20000026   Data           1  llc_control.o(.bss.llc_driver_en_set.last)
+    [Anonymous Symbol]                       0x20000027   Section        0  pfc_control.o(.bss.pfc_hw_set_main.s_gpio_initialized)
+    pfc_hw_set_main.s_gpio_initialized       0x20000027   Data           1  pfc_control.o(.bss.pfc_hw_set_main.s_gpio_initialized)
+    [Anonymous Symbol]                       0x20000028   Section        0  pfc_control.o(.bss.pfc_hw_set_main.s_last)
+    pfc_hw_set_main.s_last                   0x20000028   Data           1  pfc_control.o(.bss.pfc_hw_set_main.s_last)
+    [Anonymous Symbol]                       0x2000002a   Section        0  adc_dma.o(.bss.s_buf)
+    s_buf                                    0x2000002a   Data           8  adc_dma.o(.bss.s_buf)
+    [Anonymous Symbol]                       0x20000034   Section        0  pwm_llc.o(.bss.s_cfg)
+    s_cfg                                    0x20000034   Data          12  pwm_llc.o(.bss.s_cfg)
+    [Anonymous Symbol]                       0x20000040   Section        0  main.o(.bss.s_control_tick_pending)
+    s_control_tick_pending                   0x20000040   Data           4  main.o(.bss.s_control_tick_pending)
     [Anonymous Symbol]                       0x20000044   Section        0  protect_exti.o(.bss.s_fault)
     s_fault                                  0x20000044   Data           1  protect_exti.o(.bss.s_fault)
     [Anonymous Symbol]                       0x20000045   Section        0  protect_exti.o(.bss.s_fault_source_hw)
@@ -3496,139 +3510,139 @@ Image Symbol Table
     SystemCoreClockUpdate                    0x08000841   Thumb Code   354  system_gd32f30x.o(.text.SystemCoreClockUpdate)
     SystemInit                               0x080009a5   Thumb Code    98  system_gd32f30x.o(.text.SystemInit)
     TIMER0_BRK_IRQHandler                    0x08000a09   Thumb Code    44  protect_exti.o(.text.TIMER0_BRK_IRQHandler)
-    TIMER3_IRQHandler                        0x08000a35   Thumb Code    58  main.o(.text.TIMER3_IRQHandler)
-    TIMER5_IRQHandler                        0x08000a71   Thumb Code    88  timer.o(.text.TIMER5_IRQHandler)
-    TIMER6_IRQHandler                        0x08000ac9   Thumb Code    92  timer.o(.text.TIMER6_IRQHandler)
-    UsageFault_Handler                       0x08000b25   Thumb Code     4  gd32f30x_it.o(.text.UsageFault_Handler)
-    adc0_dma_init                            0x08000c71   Thumb Code   228  adc_dma.o(.text.adc0_dma_init)
-    adc0_dma_start                           0x08000d55   Thumb Code    20  adc_dma.o(.text.adc0_dma_start)
-    adc1_aux_init                            0x08000db1   Thumb Code   330  adc_dma.o(.text.adc1_aux_init)
-    adc1_aux_read_channel                    0x08000efd   Thumb Code   320  adc_dma.o(.text.adc1_aux_read_channel)
-    adc1_sample_aux_1khz                     0x0800103d   Thumb Code    74  adc_dma.o(.text.adc1_sample_aux_1khz)
-    adc_calibration_enable                   0x08001089   Thumb Code    64  gd32f30x_adc.o(.text.adc_calibration_enable)
-    adc_channel_length_config                0x080010c9   Thumb Code   128  gd32f30x_adc.o(.text.adc_channel_length_config)
-    adc_data_alignment_config                0x08001149   Thumb Code    50  gd32f30x_adc.o(.text.adc_data_alignment_config)
-    adc_deinit                               0x0800117d   Thumb Code   120  gd32f30x_adc.o(.text.adc_deinit)
-    adc_dma_mode_enable                      0x080011f5   Thumb Code    22  gd32f30x_adc.o(.text.adc_dma_mode_enable)
-    adc_enable                               0x0800120d   Thumb Code    36  gd32f30x_adc.o(.text.adc_enable)
-    adc_external_trigger_config              0x08001231   Thumb Code   144  gd32f30x_adc.o(.text.adc_external_trigger_config)
-    adc_external_trigger_source_config       0x080012c1   Thumb Code   100  gd32f30x_adc.o(.text.adc_external_trigger_source_config)
-    adc_flag_clear                           0x08001411   Thumb Code    32  gd32f30x_adc.o(.text.adc_flag_clear)
-    adc_flag_get                             0x08001431   Thumb Code    48  gd32f30x_adc.o(.text.adc_flag_get)
-    adc_mode_config                          0x08001461   Thumb Code    36  gd32f30x_adc.o(.text.adc_mode_config)
-    adc_multi_copy                           0x08001485   Thumb Code    54  adc_dma.o(.text.adc_multi_copy)
-    adc_multi_init_dma                       0x080014bd   Thumb Code    20  adc_dma.o(.text.adc_multi_init_dma)
-    adc_multi_sample_aux_1khz                0x080014d1   Thumb Code     8  adc_dma.o(.text.adc_multi_sample_aux_1khz)
-    adc_multi_start                          0x080014d9   Thumb Code    12  adc_dma.o(.text.adc_multi_start)
-    adc_multi_trigger_fast                   0x08001505   Thumb Code    38  adc_dma.o(.text.adc_multi_trigger_fast)
-    adc_regular_channel_config               0x0800152d   Thumb Code   342  gd32f30x_adc.o(.text.adc_regular_channel_config)
-    adc_regular_data_read                    0x08001685   Thumb Code    18  gd32f30x_adc.o(.text.adc_regular_data_read)
-    adc_software_trigger_enable              0x08001699   Thumb Code    68  gd32f30x_adc.o(.text.adc_software_trigger_enable)
-    adc_special_function_config              0x080016dd   Thumb Code   178  gd32f30x_adc.o(.text.adc_special_function_config)
-    debug_printf_init                        0x08001d95   Thumb Code   194  debug_printf.o(.text.debug_printf_init)
-    delay_ms                                 0x08001e59   Thumb Code    62  main.o(.text.delay_ms)
-    dma_channel_enable                       0x08001e99   Thumb Code    64  gd32f30x_dma.o(.text.dma_channel_enable)
-    dma_circulation_enable                   0x08001ed9   Thumb Code    64  gd32f30x_dma.o(.text.dma_circulation_enable)
-    dma_deinit                               0x08001f19   Thumb Code   150  gd32f30x_dma.o(.text.dma_deinit)
-    dma_init                                 0x08001fb1   Thumb Code   382  gd32f30x_dma.o(.text.dma_init)
-    dma_interrupt_enable                     0x08002131   Thumb Code    74  gd32f30x_dma.o(.text.dma_interrupt_enable)
-    dma_interrupt_flag_clear                 0x0800217d   Thumb Code    50  gd32f30x_dma.o(.text.dma_interrupt_flag_clear)
-    dma_interrupt_flag_get                   0x080021b1   Thumb Code   218  gd32f30x_dma.o(.text.dma_interrupt_flag_get)
-    fmc_wscnt_set                            0x0800261d   Thumb Code    40  gd32f30x_fmc.o(.text.fmc_wscnt_set)
-    gpio_bit_reset                           0x08002645   Thumb Code    24  gd32f30x_gpio.o(.text.gpio_bit_reset)
-    gpio_bit_set                             0x0800265d   Thumb Code    24  gd32f30x_gpio.o(.text.gpio_bit_set)
-    gpio_init                                0x08002675   Thumb Code   360  gd32f30x_gpio.o(.text.gpio_init)
-    gpio_input_bit_get                       0x080027dd   Thumb Code    50  gd32f30x_gpio.o(.text.gpio_input_bit_get)
-    llc_app_init                             0x08002839   Thumb Code   368  llc_control.o(.text.llc_app_init)
-    llc_app_tick_100us                       0x080029a9   Thumb Code   772  llc_control.o(.text.llc_app_tick_100us)
-    llc_pwm_init                             0x08003601   Thumb Code   292  pwm_llc.o(.text.llc_pwm_init)
-    llc_pwm_outputs_enable                   0x08003725   Thumb Code    70  pwm_llc.o(.text.llc_pwm_outputs_enable)
-    llc_pwm_set_duty                         0x08003805   Thumb Code   100  pwm_llc.o(.text.llc_pwm_set_duty)
-    llc_pwm_set_freq                         0x08003869   Thumb Code   156  pwm_llc.o(.text.llc_pwm_set_freq)
-    llc_softstart_abort                      0x08003955   Thumb Code    56  llc_soft_start.o(.text.llc_softstart_abort)
-    llc_softstart_init                       0x08003a59   Thumb Code    42  llc_soft_start.o(.text.llc_softstart_init)
-    llc_softstart_last_hz                    0x08003a85   Thumb Code    80  llc_soft_start.o(.text.llc_softstart_last_hz)
-    llc_softstart_on_fault                   0x08003ad5   Thumb Code    30  llc_soft_start.o(.text.llc_softstart_on_fault)
-    llc_softstart_start                      0x08003b65   Thumb Code    52  llc_soft_start.o(.text.llc_softstart_start)
-    llc_softstart_stop                       0x08003b99   Thumb Code    40  llc_soft_start.o(.text.llc_softstart_stop)
-    llc_softstart_tick_1khz                  0x08003cb5   Thumb Code    32  llc_soft_start.o(.text.llc_softstart_tick_1khz)
-    main                                     0x08003f79   Thumb Code   380  main.o(.text.main)
-    nvic_irq_enable                          0x080040f5   Thumb Code   310  gd32f30x_misc.o(.text.nvic_irq_enable)
-    nvic_priority_group_set                  0x0800422d   Thumb Code    32  gd32f30x_misc.o(.text.nvic_priority_group_set)
-    pb0_pwm_init                             0x0800424d   Thumb Code   204  pwm.o(.text.pb0_pwm_init)
-    pb0_pwm_set_duty                         0x08004319   Thumb Code   100  pwm.o(.text.pb0_pwm_set_duty)
-    pfc_bus_voltage                          0x080044a9   Thumb Code     8  pfc_control.o(.text.pfc_bus_voltage)
-    pfc_enable                               0x080044b1   Thumb Code    36  pfc_control.o(.text.pfc_enable)
-    pfc_get_vbus                             0x080044d5   Thumb Code    14  pfc_control.o(.text.pfc_get_vbus)
-    pfc_hw_set_main                          0x080044fd   Thumb Code   192  pfc_control.o(.text.pfc_hw_set_main)
-    pfc_init                                 0x080045bd   Thumb Code    88  pfc_control.o(.text.pfc_init)
-    pfc_is_ready                             0x08004615   Thumb Code    20  pfc_control.o(.text.pfc_is_ready)
-    pfc_tick_1khz                            0x080048b1   Thumb Code  1100  pfc_control.o(.text.pfc_tick_1khz)
-    protect_clear_fault                      0x08004d95   Thumb Code    24  protect_exti.o(.text.protect_clear_fault)
-    protect_exti_init                        0x08004dad   Thumb Code   106  protect_exti.o(.text.protect_exti_init)
-    protect_fault_active_hw                  0x08004e19   Thumb Code    26  protect_exti.o(.text.protect_fault_active_hw)
-    protect_fault_latched                    0x08004e35   Thumb Code    18  protect_exti.o(.text.protect_fault_latched)
-    rcu_adc_clock_config                     0x08004eb5   Thumb Code   186  gd32f30x_rcu.o(.text.rcu_adc_clock_config)
-    rcu_ahb_clock_config                     0x08004f71   Thumb Code    40  gd32f30x_rcu.o(.text.rcu_ahb_clock_config)
-    rcu_apb1_clock_config                    0x08004f99   Thumb Code    40  gd32f30x_rcu.o(.text.rcu_apb1_clock_config)
-    rcu_apb2_clock_config                    0x08004fc1   Thumb Code    40  gd32f30x_rcu.o(.text.rcu_apb2_clock_config)
-    rcu_clock_freq_get                       0x08004fe9   Thumb Code   506  gd32f30x_rcu.o(.text.rcu_clock_freq_get)
-    rcu_deinit                               0x080051e5   Thumb Code   122  gd32f30x_rcu.o(.text.rcu_deinit)
-    rcu_flag_get                             0x08005261   Thumb Code    70  gd32f30x_rcu.o(.text.rcu_flag_get)
-    rcu_osci_on                              0x080052a9   Thumb Code    48  gd32f30x_rcu.o(.text.rcu_osci_on)
-    rcu_osci_stab_wait                       0x080052d9   Thumb Code   654  gd32f30x_rcu.o(.text.rcu_osci_stab_wait)
-    rcu_periph_clock_enable                  0x08005569   Thumb Code    48  gd32f30x_rcu.o(.text.rcu_periph_clock_enable)
-    rcu_periph_reset_disable                 0x08005599   Thumb Code    48  gd32f30x_rcu.o(.text.rcu_periph_reset_disable)
-    rcu_periph_reset_enable                  0x080055c9   Thumb Code    48  gd32f30x_rcu.o(.text.rcu_periph_reset_enable)
-    rcu_pll_config                           0x080055f9   Thumb Code    74  gd32f30x_rcu.o(.text.rcu_pll_config)
-    rcu_pllpresel_config                     0x08005645   Thumb Code    48  gd32f30x_rcu.o(.text.rcu_pllpresel_config)
-    rcu_predv0_config                        0x08005675   Thumb Code    66  gd32f30x_rcu.o(.text.rcu_predv0_config)
-    rcu_system_clock_source_config           0x080056b9   Thumb Code    40  gd32f30x_rcu.o(.text.rcu_system_clock_source_config)
-    rcu_system_clock_source_get              0x080056e1   Thumb Code    16  gd32f30x_rcu.o(.text.rcu_system_clock_source_get)
-    systick_1ms_init                         0x080058cd   Thumb Code   158  main.o(.text.systick_1ms_init)
-    timer_auto_reload_shadow_enable          0x080059d5   Thumb Code    22  gd32f30x_timer.o(.text.timer_auto_reload_shadow_enable)
-    timer_break_config                       0x080059ed   Thumb Code    70  gd32f30x_timer.o(.text.timer_break_config)
-    timer_channel_output_config              0x08005a35   Thumb Code   738  gd32f30x_timer.o(.text.timer_channel_output_config)
-    timer_channel_output_mode_config         0x08005d19   Thumb Code   158  gd32f30x_timer.o(.text.timer_channel_output_mode_config)
-    timer_channel_output_pulse_value_config  0x08005db9   Thumb Code    88  gd32f30x_timer.o(.text.timer_channel_output_pulse_value_config)
-    timer_channel_output_shadow_config       0x08005e11   Thumb Code   158  gd32f30x_timer.o(.text.timer_channel_output_shadow_config)
-    timer_deinit                             0x08005eb9   Thumb Code   284  gd32f30x_timer.o(.text.timer_deinit)
-    timer_enable                             0x08005fd5   Thumb Code    22  gd32f30x_timer.o(.text.timer_enable)
-    timer_event_software_generate            0x08005fed   Thumb Code    36  gd32f30x_timer.o(.text.timer_event_software_generate)
-    timer_flag_clear                         0x08006011   Thumb Code    32  gd32f30x_timer.o(.text.timer_flag_clear)
-    timer_flag_get                           0x08006031   Thumb Code    50  gd32f30x_timer.o(.text.timer_flag_get)
-    timer_init                               0x08006065   Thumb Code   268  gd32f30x_timer.o(.text.timer_init)
-    timer_interrupt_enable                   0x08006171   Thumb Code    32  gd32f30x_timer.o(.text.timer_interrupt_enable)
-    timer_interrupt_flag_clear               0x08006191   Thumb Code    32  gd32f30x_timer.o(.text.timer_interrupt_flag_clear)
-    timer_interrupt_flag_get                 0x080061b1   Thumb Code    68  gd32f30x_timer.o(.text.timer_interrupt_flag_get)
-    timer_master_output_trigger_source_select 0x080061f5   Thumb Code    42  gd32f30x_timer.o(.text.timer_master_output_trigger_source_select)
-    timer_primary_output_config              0x08006221   Thumb Code    54  gd32f30x_timer.o(.text.timer_primary_output_config)
-    timer_struct_para_init                   0x08006259   Thumb Code    42  gd32f30x_timer.o(.text.timer_struct_para_init)
-    usart_baudrate_set                       0x08006285   Thumb Code   210  gd32f30x_usart.o(.text.usart_baudrate_set)
-    usart_deinit                             0x08006359   Thumb Code   188  gd32f30x_usart.o(.text.usart_deinit)
-    usart_enable                             0x08006415   Thumb Code    22  gd32f30x_usart.o(.text.usart_enable)
-    usart_hardware_flow_cts_config           0x0800642d   Thumb Code    50  gd32f30x_usart.o(.text.usart_hardware_flow_cts_config)
-    usart_hardware_flow_rts_config           0x08006461   Thumb Code    50  gd32f30x_usart.o(.text.usart_hardware_flow_rts_config)
-    usart_parity_config                      0x08006495   Thumb Code    42  gd32f30x_usart.o(.text.usart_parity_config)
-    usart_receive_config                     0x080064c1   Thumb Code    50  gd32f30x_usart.o(.text.usart_receive_config)
-    usart_stop_bit_set                       0x080064f5   Thumb Code    42  gd32f30x_usart.o(.text.usart_stop_bit_set)
-    usart_transmit_config                    0x08006521   Thumb Code    50  gd32f30x_usart.o(.text.usart_transmit_config)
-    usart_word_length_set                    0x08006555   Thumb Code    42  gd32f30x_usart.o(.text.usart_word_length_set)
-    __hardfp__fabsf                          0x0800657f   Thumb Code    14  fabsf.o(i.__hardfp__fabsf)
-    __hardfp_cosf                            0x0800658d   Thumb Code   280  cosf.o(i.__hardfp_cosf)
-    __hardfp_roundf                          0x080066dd   Thumb Code   154  roundf.o(i.__hardfp_roundf)
-    __mathlib_flt_infnan                     0x08006777   Thumb Code     6  funder.o(i.__mathlib_flt_infnan)
-    __mathlib_flt_invalid                    0x0800677d   Thumb Code    10  funder.o(i.__mathlib_flt_invalid)
-    __mathlib_rredf2                         0x0800678d   Thumb Code   316  rredf.o(i.__mathlib_rredf2)
-    __scatterload_copy                       0x080068e1   Thumb Code    14  handlers.o(i.__scatterload_copy)
-    __scatterload_null                       0x080068ef   Thumb Code     2  handlers.o(i.__scatterload_null)
-    __scatterload_zeroinit                   0x080068f1   Thumb Code    14  handlers.o(i.__scatterload_zeroinit)
-    __set_errno                              0x08006901   Thumb Code     6  errno.o(i.__set_errno)
-    Region$$Table$$Base                      0x0800694c   Number         0  anon$$obj.o(Region$$Table)
-    Region$$Table$$Limit                     0x0800696c   Number         0  anon$$obj.o(Region$$Table)
+    TIMER3_IRQHandler                        0x08000a35   Thumb Code    44  main.o(.text.TIMER3_IRQHandler)
+    TIMER5_IRQHandler                        0x08000a61   Thumb Code    88  timer.o(.text.TIMER5_IRQHandler)
+    TIMER6_IRQHandler                        0x08000ab9   Thumb Code    92  timer.o(.text.TIMER6_IRQHandler)
+    UsageFault_Handler                       0x08000b15   Thumb Code     4  gd32f30x_it.o(.text.UsageFault_Handler)
+    adc0_dma_init                            0x08000c61   Thumb Code   228  adc_dma.o(.text.adc0_dma_init)
+    adc0_dma_start                           0x08000d45   Thumb Code    20  adc_dma.o(.text.adc0_dma_start)
+    adc1_aux_init                            0x08000da1   Thumb Code   330  adc_dma.o(.text.adc1_aux_init)
+    adc1_aux_read_channel                    0x08000eed   Thumb Code   320  adc_dma.o(.text.adc1_aux_read_channel)
+    adc1_sample_aux_1khz                     0x0800102d   Thumb Code    74  adc_dma.o(.text.adc1_sample_aux_1khz)
+    adc_calibration_enable                   0x08001079   Thumb Code    64  gd32f30x_adc.o(.text.adc_calibration_enable)
+    adc_channel_length_config                0x080010b9   Thumb Code   128  gd32f30x_adc.o(.text.adc_channel_length_config)
+    adc_data_alignment_config                0x08001139   Thumb Code    50  gd32f30x_adc.o(.text.adc_data_alignment_config)
+    adc_deinit                               0x0800116d   Thumb Code   120  gd32f30x_adc.o(.text.adc_deinit)
+    adc_dma_mode_enable                      0x080011e5   Thumb Code    22  gd32f30x_adc.o(.text.adc_dma_mode_enable)
+    adc_enable                               0x080011fd   Thumb Code    36  gd32f30x_adc.o(.text.adc_enable)
+    adc_external_trigger_config              0x08001221   Thumb Code   144  gd32f30x_adc.o(.text.adc_external_trigger_config)
+    adc_external_trigger_source_config       0x080012b1   Thumb Code   100  gd32f30x_adc.o(.text.adc_external_trigger_source_config)
+    adc_flag_clear                           0x08001401   Thumb Code    32  gd32f30x_adc.o(.text.adc_flag_clear)
+    adc_flag_get                             0x08001421   Thumb Code    48  gd32f30x_adc.o(.text.adc_flag_get)
+    adc_mode_config                          0x08001451   Thumb Code    36  gd32f30x_adc.o(.text.adc_mode_config)
+    adc_multi_copy                           0x08001475   Thumb Code    78  adc_dma.o(.text.adc_multi_copy)
+    adc_multi_init_dma                       0x080014c5   Thumb Code    20  adc_dma.o(.text.adc_multi_init_dma)
+    adc_multi_sample_aux_1khz                0x080014d9   Thumb Code     8  adc_dma.o(.text.adc_multi_sample_aux_1khz)
+    adc_multi_start                          0x080014e1   Thumb Code    12  adc_dma.o(.text.adc_multi_start)
+    adc_multi_trigger_fast                   0x0800150d   Thumb Code    38  adc_dma.o(.text.adc_multi_trigger_fast)
+    adc_regular_channel_config               0x08001535   Thumb Code   342  gd32f30x_adc.o(.text.adc_regular_channel_config)
+    adc_regular_data_read                    0x0800168d   Thumb Code    18  gd32f30x_adc.o(.text.adc_regular_data_read)
+    adc_software_trigger_enable              0x080016a1   Thumb Code    68  gd32f30x_adc.o(.text.adc_software_trigger_enable)
+    adc_special_function_config              0x080016e5   Thumb Code   178  gd32f30x_adc.o(.text.adc_special_function_config)
+    debug_printf_init                        0x08001da5   Thumb Code   194  debug_printf.o(.text.debug_printf_init)
+    delay_ms                                 0x08001e69   Thumb Code    62  main.o(.text.delay_ms)
+    dma_channel_enable                       0x08001ea9   Thumb Code    64  gd32f30x_dma.o(.text.dma_channel_enable)
+    dma_circulation_enable                   0x08001ee9   Thumb Code    64  gd32f30x_dma.o(.text.dma_circulation_enable)
+    dma_deinit                               0x08001f29   Thumb Code   150  gd32f30x_dma.o(.text.dma_deinit)
+    dma_init                                 0x08001fc1   Thumb Code   382  gd32f30x_dma.o(.text.dma_init)
+    dma_interrupt_enable                     0x08002141   Thumb Code    74  gd32f30x_dma.o(.text.dma_interrupt_enable)
+    dma_interrupt_flag_clear                 0x0800218d   Thumb Code    50  gd32f30x_dma.o(.text.dma_interrupt_flag_clear)
+    dma_interrupt_flag_get                   0x080021c1   Thumb Code   218  gd32f30x_dma.o(.text.dma_interrupt_flag_get)
+    fmc_wscnt_set                            0x0800262d   Thumb Code    40  gd32f30x_fmc.o(.text.fmc_wscnt_set)
+    gpio_bit_reset                           0x08002655   Thumb Code    24  gd32f30x_gpio.o(.text.gpio_bit_reset)
+    gpio_bit_set                             0x0800266d   Thumb Code    24  gd32f30x_gpio.o(.text.gpio_bit_set)
+    gpio_init                                0x08002685   Thumb Code   360  gd32f30x_gpio.o(.text.gpio_init)
+    gpio_input_bit_get                       0x080027ed   Thumb Code    50  gd32f30x_gpio.o(.text.gpio_input_bit_get)
+    llc_app_init                             0x08002849   Thumb Code   338  llc_control.o(.text.llc_app_init)
+    llc_app_tick_100us                       0x0800299d   Thumb Code   752  llc_control.o(.text.llc_app_tick_100us)
+    llc_pwm_init                             0x0800367d   Thumb Code   292  pwm_llc.o(.text.llc_pwm_init)
+    llc_pwm_outputs_enable                   0x080037a1   Thumb Code    70  pwm_llc.o(.text.llc_pwm_outputs_enable)
+    llc_pwm_set_duty                         0x08003881   Thumb Code   100  pwm_llc.o(.text.llc_pwm_set_duty)
+    llc_pwm_set_freq                         0x080038e5   Thumb Code   156  pwm_llc.o(.text.llc_pwm_set_freq)
+    llc_softstart_abort                      0x080039d1   Thumb Code    56  llc_soft_start.o(.text.llc_softstart_abort)
+    llc_softstart_init                       0x08003ad5   Thumb Code    42  llc_soft_start.o(.text.llc_softstart_init)
+    llc_softstart_last_hz                    0x08003b01   Thumb Code    80  llc_soft_start.o(.text.llc_softstart_last_hz)
+    llc_softstart_on_fault                   0x08003b51   Thumb Code    30  llc_soft_start.o(.text.llc_softstart_on_fault)
+    llc_softstart_start                      0x08003be1   Thumb Code    52  llc_soft_start.o(.text.llc_softstart_start)
+    llc_softstart_stop                       0x08003c15   Thumb Code    40  llc_soft_start.o(.text.llc_softstart_stop)
+    llc_softstart_tick_1khz                  0x08003d31   Thumb Code    32  llc_soft_start.o(.text.llc_softstart_tick_1khz)
+    main                                     0x08004081   Thumb Code   290  main.o(.text.main)
+    nvic_irq_enable                          0x080041a5   Thumb Code   310  gd32f30x_misc.o(.text.nvic_irq_enable)
+    nvic_priority_group_set                  0x080042dd   Thumb Code    32  gd32f30x_misc.o(.text.nvic_priority_group_set)
+    pb0_pwm_init                             0x080042fd   Thumb Code   204  pwm.o(.text.pb0_pwm_init)
+    pb0_pwm_set_duty                         0x080043c9   Thumb Code   100  pwm.o(.text.pb0_pwm_set_duty)
+    pfc_bus_voltage                          0x08004559   Thumb Code     8  pfc_control.o(.text.pfc_bus_voltage)
+    pfc_enable                               0x08004561   Thumb Code    36  pfc_control.o(.text.pfc_enable)
+    pfc_get_vbus                             0x08004585   Thumb Code    14  pfc_control.o(.text.pfc_get_vbus)
+    pfc_hw_set_main                          0x080045ad   Thumb Code   192  pfc_control.o(.text.pfc_hw_set_main)
+    pfc_init                                 0x0800466d   Thumb Code    88  pfc_control.o(.text.pfc_init)
+    pfc_is_ready                             0x080046c5   Thumb Code    20  pfc_control.o(.text.pfc_is_ready)
+    pfc_tick_1khz                            0x08004961   Thumb Code  1100  pfc_control.o(.text.pfc_tick_1khz)
+    protect_clear_fault                      0x08004e45   Thumb Code    24  protect_exti.o(.text.protect_clear_fault)
+    protect_exti_init                        0x08004e5d   Thumb Code   106  protect_exti.o(.text.protect_exti_init)
+    protect_fault_active_hw                  0x08004ec9   Thumb Code    26  protect_exti.o(.text.protect_fault_active_hw)
+    protect_fault_latched                    0x08004ee5   Thumb Code    18  protect_exti.o(.text.protect_fault_latched)
+    rcu_adc_clock_config                     0x08004f65   Thumb Code   186  gd32f30x_rcu.o(.text.rcu_adc_clock_config)
+    rcu_ahb_clock_config                     0x08005021   Thumb Code    40  gd32f30x_rcu.o(.text.rcu_ahb_clock_config)
+    rcu_apb1_clock_config                    0x08005049   Thumb Code    40  gd32f30x_rcu.o(.text.rcu_apb1_clock_config)
+    rcu_apb2_clock_config                    0x08005071   Thumb Code    40  gd32f30x_rcu.o(.text.rcu_apb2_clock_config)
+    rcu_clock_freq_get                       0x08005099   Thumb Code   506  gd32f30x_rcu.o(.text.rcu_clock_freq_get)
+    rcu_deinit                               0x08005295   Thumb Code   122  gd32f30x_rcu.o(.text.rcu_deinit)
+    rcu_flag_get                             0x08005311   Thumb Code    70  gd32f30x_rcu.o(.text.rcu_flag_get)
+    rcu_osci_on                              0x08005359   Thumb Code    48  gd32f30x_rcu.o(.text.rcu_osci_on)
+    rcu_osci_stab_wait                       0x08005389   Thumb Code   654  gd32f30x_rcu.o(.text.rcu_osci_stab_wait)
+    rcu_periph_clock_enable                  0x08005619   Thumb Code    48  gd32f30x_rcu.o(.text.rcu_periph_clock_enable)
+    rcu_periph_reset_disable                 0x08005649   Thumb Code    48  gd32f30x_rcu.o(.text.rcu_periph_reset_disable)
+    rcu_periph_reset_enable                  0x08005679   Thumb Code    48  gd32f30x_rcu.o(.text.rcu_periph_reset_enable)
+    rcu_pll_config                           0x080056a9   Thumb Code    74  gd32f30x_rcu.o(.text.rcu_pll_config)
+    rcu_pllpresel_config                     0x080056f5   Thumb Code    48  gd32f30x_rcu.o(.text.rcu_pllpresel_config)
+    rcu_predv0_config                        0x08005725   Thumb Code    66  gd32f30x_rcu.o(.text.rcu_predv0_config)
+    rcu_system_clock_source_config           0x08005769   Thumb Code    40  gd32f30x_rcu.o(.text.rcu_system_clock_source_config)
+    rcu_system_clock_source_get              0x08005791   Thumb Code    16  gd32f30x_rcu.o(.text.rcu_system_clock_source_get)
+    systick_1ms_init                         0x0800597d   Thumb Code   158  main.o(.text.systick_1ms_init)
+    timer_auto_reload_shadow_enable          0x08005a85   Thumb Code    22  gd32f30x_timer.o(.text.timer_auto_reload_shadow_enable)
+    timer_break_config                       0x08005a9d   Thumb Code    70  gd32f30x_timer.o(.text.timer_break_config)
+    timer_channel_output_config              0x08005ae5   Thumb Code   738  gd32f30x_timer.o(.text.timer_channel_output_config)
+    timer_channel_output_mode_config         0x08005dc9   Thumb Code   158  gd32f30x_timer.o(.text.timer_channel_output_mode_config)
+    timer_channel_output_pulse_value_config  0x08005e69   Thumb Code    88  gd32f30x_timer.o(.text.timer_channel_output_pulse_value_config)
+    timer_channel_output_shadow_config       0x08005ec1   Thumb Code   158  gd32f30x_timer.o(.text.timer_channel_output_shadow_config)
+    timer_deinit                             0x08005f69   Thumb Code   284  gd32f30x_timer.o(.text.timer_deinit)
+    timer_enable                             0x08006085   Thumb Code    22  gd32f30x_timer.o(.text.timer_enable)
+    timer_event_software_generate            0x0800609d   Thumb Code    36  gd32f30x_timer.o(.text.timer_event_software_generate)
+    timer_flag_clear                         0x080060c1   Thumb Code    32  gd32f30x_timer.o(.text.timer_flag_clear)
+    timer_flag_get                           0x080060e1   Thumb Code    50  gd32f30x_timer.o(.text.timer_flag_get)
+    timer_init                               0x08006115   Thumb Code   268  gd32f30x_timer.o(.text.timer_init)
+    timer_interrupt_enable                   0x08006221   Thumb Code    32  gd32f30x_timer.o(.text.timer_interrupt_enable)
+    timer_interrupt_flag_clear               0x08006241   Thumb Code    32  gd32f30x_timer.o(.text.timer_interrupt_flag_clear)
+    timer_interrupt_flag_get                 0x08006261   Thumb Code    68  gd32f30x_timer.o(.text.timer_interrupt_flag_get)
+    timer_master_output_trigger_source_select 0x080062a5   Thumb Code    42  gd32f30x_timer.o(.text.timer_master_output_trigger_source_select)
+    timer_primary_output_config              0x080062d1   Thumb Code    54  gd32f30x_timer.o(.text.timer_primary_output_config)
+    timer_struct_para_init                   0x08006309   Thumb Code    42  gd32f30x_timer.o(.text.timer_struct_para_init)
+    usart_baudrate_set                       0x08006335   Thumb Code   210  gd32f30x_usart.o(.text.usart_baudrate_set)
+    usart_deinit                             0x08006409   Thumb Code   188  gd32f30x_usart.o(.text.usart_deinit)
+    usart_enable                             0x080064c5   Thumb Code    22  gd32f30x_usart.o(.text.usart_enable)
+    usart_hardware_flow_cts_config           0x080064dd   Thumb Code    50  gd32f30x_usart.o(.text.usart_hardware_flow_cts_config)
+    usart_hardware_flow_rts_config           0x08006511   Thumb Code    50  gd32f30x_usart.o(.text.usart_hardware_flow_rts_config)
+    usart_parity_config                      0x08006545   Thumb Code    42  gd32f30x_usart.o(.text.usart_parity_config)
+    usart_receive_config                     0x08006571   Thumb Code    50  gd32f30x_usart.o(.text.usart_receive_config)
+    usart_stop_bit_set                       0x080065a5   Thumb Code    42  gd32f30x_usart.o(.text.usart_stop_bit_set)
+    usart_transmit_config                    0x080065d1   Thumb Code    50  gd32f30x_usart.o(.text.usart_transmit_config)
+    usart_word_length_set                    0x08006605   Thumb Code    42  gd32f30x_usart.o(.text.usart_word_length_set)
+    __hardfp__fabsf                          0x0800662f   Thumb Code    14  fabsf.o(i.__hardfp__fabsf)
+    __hardfp_cosf                            0x0800663d   Thumb Code   280  cosf.o(i.__hardfp_cosf)
+    __hardfp_roundf                          0x0800678d   Thumb Code   154  roundf.o(i.__hardfp_roundf)
+    __mathlib_flt_infnan                     0x08006827   Thumb Code     6  funder.o(i.__mathlib_flt_infnan)
+    __mathlib_flt_invalid                    0x0800682d   Thumb Code    10  funder.o(i.__mathlib_flt_invalid)
+    __mathlib_rredf2                         0x0800683d   Thumb Code   316  rredf.o(i.__mathlib_rredf2)
+    __scatterload_copy                       0x08006991   Thumb Code    14  handlers.o(i.__scatterload_copy)
+    __scatterload_null                       0x0800699f   Thumb Code     2  handlers.o(i.__scatterload_null)
+    __scatterload_zeroinit                   0x080069a1   Thumb Code    14  handlers.o(i.__scatterload_zeroinit)
+    __set_errno                              0x080069b1   Thumb Code     6  errno.o(i.__set_errno)
+    Region$$Table$$Base                      0x080069fc   Number         0  anon$$obj.o(Region$$Table)
+    Region$$Table$$Limit                     0x08006a1c   Number         0  anon$$obj.o(Region$$Table)
     SystemCoreClock                          0x20000004   Data           4  system_gd32f30x.o(.data.SystemCoreClock)
-    g_adc_multi                              0x2000000e   Data           8  adc_dma.o(.bss.g_adc_multi)
-    g_ms                                     0x20000018   Data           4  main.o(.bss.g_ms)
+    g_adc_multi                              0x20000016   Data           8  adc_dma.o(.bss.g_adc_multi)
+    g_ms                                     0x20000020   Data           4  main.o(.bss.g_ms)
     __initial_sp                             0x20000570   Data           0  startup_gd32f30x_hd.o(STACK)
 
 
@@ -3639,376 +3653,380 @@ Memory Map of the image
 
   Image Entry point : 0x08000131
 
-  Load Region LR_IROM1 (Base: 0x08000000, Size: 0x00006978, Max: 0x00080000, ABSOLUTE)
+  Load Region LR_IROM1 (Base: 0x08000000, Size: 0x00006a30, Max: 0x00080000, ABSOLUTE)
 
-    Execution Region ER_IROM1 (Exec base: 0x08000000, Load base: 0x08000000, Size: 0x0000696c, Max: 0x00080000, ABSOLUTE)
+    Execution Region ER_IROM1 (Exec base: 0x08000000, Load base: 0x08000000, Size: 0x00006a1c, Max: 0x00080000, ABSOLUTE)
 
     Exec Addr    Load Addr    Size         Type   Attr      Idx    E Section Name        Object
 
-    0x08000000   0x08000000   0x00000130   Data   RO         1874    RESET               startup_gd32f30x_hd.o
-    0x08000130   0x08000130   0x00000000   Code   RO         1953  * .ARM.Collect$$$$00000000  mc_w.l(entry.o)
-    0x08000130   0x08000130   0x00000004   Code   RO         2057    .ARM.Collect$$$$00000001  mc_w.l(entry2.o)
-    0x08000134   0x08000134   0x00000004   Code   RO         2060    .ARM.Collect$$$$00000004  mc_w.l(entry5.o)
-    0x08000138   0x08000138   0x00000000   Code   RO         2062    .ARM.Collect$$$$00000008  mc_w.l(entry7b.o)
-    0x08000138   0x08000138   0x00000000   Code   RO         2064    .ARM.Collect$$$$0000000A  mc_w.l(entry8b.o)
-    0x08000138   0x08000138   0x00000008   Code   RO         2065    .ARM.Collect$$$$0000000B  mc_w.l(entry9a.o)
-    0x08000140   0x08000140   0x00000000   Code   RO         2067    .ARM.Collect$$$$0000000D  mc_w.l(entry10a.o)
-    0x08000140   0x08000140   0x00000000   Code   RO         2069    .ARM.Collect$$$$0000000F  mc_w.l(entry11a.o)
-    0x08000140   0x08000140   0x00000004   Code   RO         2058    .ARM.Collect$$$$00002712  mc_w.l(entry2.o)
-    0x08000144   0x08000144   0x00000024   Code   RO         1875    .text               startup_gd32f30x_hd.o
-    0x08000168   0x08000168   0x00000024   Code   RO         1958    .text               mc_w.l(memcpya.o)
-    0x0800018c   0x0800018c   0x00000024   Code   RO         1960    .text               mc_w.l(memseta.o)
-    0x080001b0   0x080001b0   0x0000014e   Code   RO         1992    .text               mf_w.l(dadd.o)
-    0x080002fe   0x080002fe   0x000000e4   Code   RO         1994    .text               mf_w.l(dmul.o)
-    0x080003e2   0x080003e2   0x000000de   Code   RO         1996    .text               mf_w.l(ddiv.o)
-    0x080004c0   0x080004c0   0x0000001a   Code   RO         2008    .text               mf_w.l(dfltui.o)
-    0x080004da   0x080004da   0x00000032   Code   RO         2010    .text               mf_w.l(dfixui.o)
-    0x0800050c   0x0800050c   0x0000001e   Code   RO         2078    .text               mc_w.l(llshl.o)
-    0x0800052a   0x0800052a   0x00000020   Code   RO         2080    .text               mc_w.l(llushr.o)
-    0x0800054a   0x0800054a   0x00000024   Code   RO         2082    .text               mc_w.l(llsshr.o)
-    0x0800056e   0x0800056e   0x00000000   Code   RO         2091    .text               mc_w.l(iusefp.o)
-    0x0800056e   0x0800056e   0x0000003c   Code   RO         2092    .text               mf_w.l(frnd.o)
-    0x080005aa   0x080005aa   0x000000ba   Code   RO         2094    .text               mf_w.l(depilogue.o)
-    0x08000664   0x08000664   0x00000024   Code   RO         2112    .text               mc_w.l(init.o)
-    0x08000688   0x08000688   0x0000006e   Code   RO         2116    .text               mf_w.l(fepilogue.o)
+    0x08000000   0x08000000   0x00000130   Data   RO         1880    RESET               startup_gd32f30x_hd.o
+    0x08000130   0x08000130   0x00000000   Code   RO         1959  * .ARM.Collect$$$$00000000  mc_w.l(entry.o)
+    0x08000130   0x08000130   0x00000004   Code   RO         2063    .ARM.Collect$$$$00000001  mc_w.l(entry2.o)
+    0x08000134   0x08000134   0x00000004   Code   RO         2066    .ARM.Collect$$$$00000004  mc_w.l(entry5.o)
+    0x08000138   0x08000138   0x00000000   Code   RO         2068    .ARM.Collect$$$$00000008  mc_w.l(entry7b.o)
+    0x08000138   0x08000138   0x00000000   Code   RO         2070    .ARM.Collect$$$$0000000A  mc_w.l(entry8b.o)
+    0x08000138   0x08000138   0x00000008   Code   RO         2071    .ARM.Collect$$$$0000000B  mc_w.l(entry9a.o)
+    0x08000140   0x08000140   0x00000000   Code   RO         2073    .ARM.Collect$$$$0000000D  mc_w.l(entry10a.o)
+    0x08000140   0x08000140   0x00000000   Code   RO         2075    .ARM.Collect$$$$0000000F  mc_w.l(entry11a.o)
+    0x08000140   0x08000140   0x00000004   Code   RO         2064    .ARM.Collect$$$$00002712  mc_w.l(entry2.o)
+    0x08000144   0x08000144   0x00000024   Code   RO         1881    .text               startup_gd32f30x_hd.o
+    0x08000168   0x08000168   0x00000024   Code   RO         1964    .text               mc_w.l(memcpya.o)
+    0x0800018c   0x0800018c   0x00000024   Code   RO         1966    .text               mc_w.l(memseta.o)
+    0x080001b0   0x080001b0   0x0000014e   Code   RO         1998    .text               mf_w.l(dadd.o)
+    0x080002fe   0x080002fe   0x000000e4   Code   RO         2000    .text               mf_w.l(dmul.o)
+    0x080003e2   0x080003e2   0x000000de   Code   RO         2002    .text               mf_w.l(ddiv.o)
+    0x080004c0   0x080004c0   0x0000001a   Code   RO         2014    .text               mf_w.l(dfltui.o)
+    0x080004da   0x080004da   0x00000032   Code   RO         2016    .text               mf_w.l(dfixui.o)
+    0x0800050c   0x0800050c   0x0000001e   Code   RO         2084    .text               mc_w.l(llshl.o)
+    0x0800052a   0x0800052a   0x00000020   Code   RO         2086    .text               mc_w.l(llushr.o)
+    0x0800054a   0x0800054a   0x00000024   Code   RO         2088    .text               mc_w.l(llsshr.o)
+    0x0800056e   0x0800056e   0x00000000   Code   RO         2097    .text               mc_w.l(iusefp.o)
+    0x0800056e   0x0800056e   0x0000003c   Code   RO         2098    .text               mf_w.l(frnd.o)
+    0x080005aa   0x080005aa   0x000000ba   Code   RO         2100    .text               mf_w.l(depilogue.o)
+    0x08000664   0x08000664   0x00000024   Code   RO         2118    .text               mc_w.l(init.o)
+    0x08000688   0x08000688   0x0000006e   Code   RO         2122    .text               mf_w.l(fepilogue.o)
     0x080006f6   0x080006f6   0x00000002   PAD
-    0x080006f8   0x080006f8   0x00000004   Code   RO         1852    .text.BusFault_Handler  gd32f30x_it.o
-    0x080006fc   0x080006fc   0x0000008e   Code   RO         1506    .text.ConfigRCU     rcu.o
+    0x080006f8   0x080006f8   0x00000004   Code   RO         1858    .text.BusFault_Handler  gd32f30x_it.o
+    0x080006fc   0x080006fc   0x0000008e   Code   RO         1502    .text.ConfigRCU     rcu.o
     0x0800078a   0x0800078a   0x00000002   PAD
-    0x0800078c   0x0800078c   0x00000074   Code   RO         1584    .text.DMA0_Channel0_IRQHandler  adc_dma.o
-    0x08000800   0x08000800   0x00000002   Code   RO         1858    .text.DebugMon_Handler  gd32f30x_it.o
+    0x0800078c   0x0800078c   0x00000074   Code   RO         1580    .text.DMA0_Channel0_IRQHandler  adc_dma.o
+    0x08000800   0x08000800   0x00000002   Code   RO         1864    .text.DebugMon_Handler  gd32f30x_it.o
     0x08000802   0x08000802   0x00000002   PAD
-    0x08000804   0x08000804   0x00000004   Code   RO         1848    .text.HardFault_Handler  gd32f30x_it.o
-    0x08000808   0x08000808   0x00000008   Code   RO         1504    .text.InitRCU       rcu.o
-    0x08000810   0x08000810   0x00000004   Code   RO         1850    .text.MemManage_Handler  gd32f30x_it.o
-    0x08000814   0x08000814   0x00000002   Code   RO         1846    .text.NMI_Handler   gd32f30x_it.o
+    0x08000804   0x08000804   0x00000004   Code   RO         1854    .text.HardFault_Handler  gd32f30x_it.o
+    0x08000808   0x08000808   0x00000008   Code   RO         1500    .text.InitRCU       rcu.o
+    0x08000810   0x08000810   0x00000004   Code   RO         1856    .text.MemManage_Handler  gd32f30x_it.o
+    0x08000814   0x08000814   0x00000002   Code   RO         1852    .text.NMI_Handler   gd32f30x_it.o
     0x08000816   0x08000816   0x00000002   PAD
-    0x08000818   0x08000818   0x00000002   Code   RO         1860    .text.PendSV_Handler  gd32f30x_it.o
+    0x08000818   0x08000818   0x00000002   Code   RO         1866    .text.PendSV_Handler  gd32f30x_it.o
     0x0800081a   0x0800081a   0x00000002   PAD
-    0x0800081c   0x0800081c   0x00000002   Code   RO         1856    .text.SVC_Handler   gd32f30x_it.o
+    0x0800081c   0x0800081c   0x00000002   Code   RO         1862    .text.SVC_Handler   gd32f30x_it.o
     0x0800081e   0x0800081e   0x00000002   PAD
     0x08000820   0x08000820   0x0000001e   Code   RO           18    .text.SysTick_Handler  main.o
     0x0800083e   0x0800083e   0x00000002   PAD
-    0x08000840   0x08000840   0x00000162   Code   RO         1886    .text.SystemCoreClockUpdate  system_gd32f30x.o
+    0x08000840   0x08000840   0x00000162   Code   RO         1892    .text.SystemCoreClockUpdate  system_gd32f30x.o
     0x080009a2   0x080009a2   0x00000002   PAD
-    0x080009a4   0x080009a4   0x00000062   Code   RO         1882    .text.SystemInit    system_gd32f30x.o
+    0x080009a4   0x080009a4   0x00000062   Code   RO         1888    .text.SystemInit    system_gd32f30x.o
     0x08000a06   0x08000a06   0x00000002   PAD
-    0x08000a08   0x08000a08   0x0000002c   Code   RO         1676    .text.TIMER0_BRK_IRQHandler  protect_exti.o
-    0x08000a34   0x08000a34   0x0000003a   Code   RO           14    .text.TIMER3_IRQHandler  main.o
-    0x08000a6e   0x08000a6e   0x00000002   PAD
-    0x08000a70   0x08000a70   0x00000058   Code   RO         1518    .text.TIMER5_IRQHandler  timer.o
-    0x08000ac8   0x08000ac8   0x0000005c   Code   RO         1520    .text.TIMER6_IRQHandler  timer.o
-    0x08000b24   0x08000b24   0x00000004   Code   RO         1854    .text.UsageFault_Handler  gd32f30x_it.o
-    0x08000b28   0x08000b28   0x0000004a   Code   RO            8    .text.__NVIC_SetPriority  main.o
-    0x08000b72   0x08000b72   0x00000002   PAD
-    0x08000b74   0x08000b74   0x0000001e   Code   RO         1552    .text.adc0_analog_pins_init  adc_dma.o
-    0x08000b92   0x08000b92   0x00000002   PAD
-    0x08000b94   0x08000b94   0x000000da   Code   RO         1554    .text.adc0_dma_cfg  adc_dma.o
-    0x08000c6e   0x08000c6e   0x00000002   PAD
-    0x08000c70   0x08000c70   0x000000e4   Code   RO         1550    .text.adc0_dma_init  adc_dma.o
-    0x08000d54   0x08000d54   0x00000014   Code   RO         1556    .text.adc0_dma_start  adc_dma.o
-    0x08000d68   0x08000d68   0x00000048   Code   RO         1562    .text.adc1_analog_pins_init  adc_dma.o
-    0x08000db0   0x08000db0   0x0000014a   Code   RO         1560    .text.adc1_aux_init  adc_dma.o
-    0x08000efa   0x08000efa   0x00000002   PAD
-    0x08000efc   0x08000efc   0x00000140   Code   RO         1564    .text.adc1_aux_read_channel  adc_dma.o
-    0x0800103c   0x0800103c   0x0000004a   Code   RO         1566    .text.adc1_sample_aux_1khz  adc_dma.o
-    0x08001086   0x08001086   0x00000002   PAD
-    0x08001088   0x08001088   0x00000040   Code   RO           99    .text.adc_calibration_enable  gd32f30x_adc.o
-    0x080010c8   0x080010c8   0x00000080   Code   RO          119    .text.adc_channel_length_config  gd32f30x_adc.o
-    0x08001148   0x08001148   0x00000032   Code   RO          117    .text.adc_data_alignment_config  gd32f30x_adc.o
-    0x0800117a   0x0800117a   0x00000002   PAD
-    0x0800117c   0x0800117c   0x00000078   Code   RO           93    .text.adc_deinit    gd32f30x_adc.o
-    0x080011f4   0x080011f4   0x00000016   Code   RO          101    .text.adc_dma_mode_enable  gd32f30x_adc.o
-    0x0800120a   0x0800120a   0x00000002   PAD
-    0x0800120c   0x0800120c   0x00000024   Code   RO           95    .text.adc_enable    gd32f30x_adc.o
-    0x08001230   0x08001230   0x00000090   Code   RO          127    .text.adc_external_trigger_config  gd32f30x_adc.o
-    0x080012c0   0x080012c0   0x00000064   Code   RO          129    .text.adc_external_trigger_source_config  gd32f30x_adc.o
-    0x08001324   0x08001324   0x00000008   Code   RO           16    .text.adc_fast_task_100us  main.o
-    0x0800132c   0x0800132c   0x00000032   Code   RO           32    .text.adc_fast_timer_clk_hz  main.o
-    0x0800135e   0x0800135e   0x00000002   PAD
-    0x08001360   0x08001360   0x000000ae   Code   RO           22    .text.adc_fast_timer_init_100us  main.o
-    0x0800140e   0x0800140e   0x00000002   PAD
-    0x08001410   0x08001410   0x00000020   Code   RO          141    .text.adc_flag_clear  gd32f30x_adc.o
-    0x08001430   0x08001430   0x00000030   Code   RO          139    .text.adc_flag_get  gd32f30x_adc.o
-    0x08001460   0x08001460   0x00000024   Code   RO          113    .text.adc_mode_config  gd32f30x_adc.o
-    0x08001484   0x08001484   0x00000036   Code   RO         1572    .text.adc_multi_copy  adc_dma.o
-    0x080014ba   0x080014ba   0x00000002   PAD
-    0x080014bc   0x080014bc   0x00000014   Code   RO         1574    .text.adc_multi_init_dma  adc_dma.o
-    0x080014d0   0x080014d0   0x00000008   Code   RO         1578    .text.adc_multi_sample_aux_1khz  adc_dma.o
-    0x080014d8   0x080014d8   0x0000000c   Code   RO         1576    .text.adc_multi_start  adc_dma.o
-    0x080014e4   0x080014e4   0x0000001e   Code   RO         1586    .text.adc_multi_store_frame  adc_dma.o
-    0x08001502   0x08001502   0x00000002   PAD
-    0x08001504   0x08001504   0x00000026   Code   RO         1570    .text.adc_multi_trigger_fast  adc_dma.o
-    0x0800152a   0x0800152a   0x00000002   PAD
-    0x0800152c   0x0800152c   0x00000156   Code   RO          121    .text.adc_regular_channel_config  gd32f30x_adc.o
-    0x08001682   0x08001682   0x00000002   PAD
-    0x08001684   0x08001684   0x00000012   Code   RO          133    .text.adc_regular_data_read  gd32f30x_adc.o
-    0x08001696   0x08001696   0x00000002   PAD
-    0x08001698   0x08001698   0x00000044   Code   RO          131    .text.adc_software_trigger_enable  gd32f30x_adc.o
-    0x080016dc   0x080016dc   0x000000b2   Code   RO          115    .text.adc_special_function_config  gd32f30x_adc.o
-    0x0800178e   0x0800178e   0x00000002   PAD
-    0x08001790   0x08001790   0x0000016c   Code   RO           26    .text.adc_startup_check  main.o
-    0x080018fc   0x080018fc   0x00000050   Code   RO         1770    .text.adc_to_v_scaled  pfc_control.o
-    0x0800194c   0x0800194c   0x00000004   PAD
-    0x08001950   0x08001950   0x00000218   Code   RO         1610    .text.bdtr_deadtime_code_ns  pwm_llc.o
-    0x08001b68   0x08001b68   0x0000007e   Code   RO         1616    .text.clampf        pwm_llc.o
-    0x08001be6   0x08001be6   0x00000002   PAD
-    0x08001be8   0x08001be8   0x0000007e   Code   RO         1648    .text.clampf        pwm.o
-    0x08001c66   0x08001c66   0x00000002   PAD
-    0x08001c68   0x08001c68   0x0000000c   Code   RO           28    .text.control_loop_tick_1khz  main.o
-    0x08001c74   0x08001c74   0x0000005c   Code   RO         1822    .text.conv_adc_to_i  llc_control.o
-    0x08001cd0   0x08001cd0   0x00000068   Code   RO         1820    .text.conv_adc_to_v_div  llc_control.o
-    0x08001d38   0x08001d38   0x0000005c   Code   RO           34    .text.conv_adc_to_v_test  main.o
-    0x08001d94   0x08001d94   0x000000c2   Code   RO         1696    .text.debug_printf_init  debug_printf.o
-    0x08001e56   0x08001e56   0x00000002   PAD
-    0x08001e58   0x08001e58   0x0000003e   Code   RO            2    .text.delay_ms      main.o
-    0x08001e96   0x08001e96   0x00000002   PAD
-    0x08001e98   0x08001e98   0x00000040   Code   RO          461    .text.dma_channel_enable  gd32f30x_dma.o
-    0x08001ed8   0x08001ed8   0x00000040   Code   RO          453    .text.dma_circulation_enable  gd32f30x_dma.o
-    0x08001f18   0x08001f18   0x00000096   Code   RO          447    .text.dma_deinit    gd32f30x_dma.o
-    0x08001fae   0x08001fae   0x00000002   PAD
-    0x08001fb0   0x08001fb0   0x0000017e   Code   RO          451    .text.dma_init      gd32f30x_dma.o
-    0x0800212e   0x0800212e   0x00000002   PAD
-    0x08002130   0x08002130   0x0000004a   Code   RO          497    .text.dma_interrupt_enable  gd32f30x_dma.o
-    0x0800217a   0x0800217a   0x00000002   PAD
-    0x0800217c   0x0800217c   0x00000032   Code   RO          495    .text.dma_interrupt_flag_clear  gd32f30x_dma.o
-    0x080021ae   0x080021ae   0x00000002   PAD
-    0x080021b0   0x080021b0   0x000000da   Code   RO          493    .text.dma_interrupt_flag_get  gd32f30x_dma.o
-    0x0800228a   0x0800228a   0x00000002   PAD
-    0x0800228c   0x0800228c   0x00000042   Code   RO          449    .text.dma_periph_and_channel_check  gd32f30x_dma.o
-    0x080022ce   0x080022ce   0x00000002   PAD
-    0x080022d0   0x080022d0   0x000000bc   Code   RO         1618    .text.duty_to_ccr   pwm_llc.o
-    0x0800238c   0x0800238c   0x00000074   Code   RO           80    .text.ease_cos      llc_soft_start.o
-    0x08002400   0x08002400   0x00000050   Code   RO         1748    .text.elapsed_reached  pfc_control.o
-    0x08002450   0x08002450   0x00000050   Code   RO         1806    .text.elapsed_reached  llc_control.o
-    0x080024a0   0x080024a0   0x0000002e   Code   RO         1774    .text.elapsed_since  pfc_control.o
-    0x080024ce   0x080024ce   0x00000002   PAD
-    0x080024d0   0x080024d0   0x0000002e   Code   RO         1824    .text.elapsed_since  llc_control.o
-    0x080024fe   0x080024fe   0x00000002   PAD
-    0x08002500   0x08002500   0x0000007e   Code   RO           54    .text.f_clampf      llc_soft_start.o
-    0x0800257e   0x0800257e   0x00000002   PAD
-    0x08002580   0x08002580   0x0000007e   Code   RO         1826    .text.f_clampf      llc_control.o
-    0x080025fe   0x080025fe   0x00000002   PAD
-    0x08002600   0x08002600   0x0000001c   Code   RO         1808    .text.fabsf         llc_control.o
-    0x0800261c   0x0800261c   0x00000028   Code   RO          604    .text.fmc_wscnt_set  gd32f30x_fmc.o
-    0x08002644   0x08002644   0x00000018   Code   RO          710    .text.gpio_bit_reset  gd32f30x_gpio.o
-    0x0800265c   0x0800265c   0x00000018   Code   RO          708    .text.gpio_bit_set  gd32f30x_gpio.o
-    0x08002674   0x08002674   0x00000168   Code   RO          706    .text.gpio_init     gd32f30x_gpio.o
-    0x080027dc   0x080027dc   0x00000032   Code   RO          716    .text.gpio_input_bit_get  gd32f30x_gpio.o
-    0x0800280e   0x0800280e   0x00000002   PAD
-    0x08002810   0x08002810   0x00000028   Code   RO           12    .text.irq_priority_encode  main.o
-    0x08002838   0x08002838   0x00000170   Code   RO         1792    .text.llc_app_init  llc_control.o
-    0x080029a8   0x080029a8   0x00000304   Code   RO         1800    .text.llc_app_tick_100us  llc_control.o
-    0x08002cac   0x08002cac   0x00000094   Code   RO         1828    .text.llc_bumpless_integ  llc_control.o
-    0x08002d40   0x08002d40   0x0000000c   Code   RO           30    .text.llc_control_tick_100us  main.o
-    0x08002d4c   0x08002d4c   0x000003e4   Code   RO         1812    .text.llc_ctrl_step  llc_control.o
-    0x08003130   0x08003130   0x000002e4   Code   RO         1810    .text.llc_current_limit_step  llc_control.o
-    0x08003414   0x08003414   0x000000b6   Code   RO         1816    .text.llc_driver_en_set  llc_control.o
-    0x080034ca   0x080034ca   0x00000002   PAD
-    0x080034cc   0x080034cc   0x0000006e   Code   RO         1802    .text.llc_pfc_ready_stable  llc_control.o
-    0x0800353a   0x0800353a   0x00000002   PAD
-    0x0800353c   0x0800353c   0x00000024   Code   RO         1804    .text.llc_precheck_ok  llc_control.o
-    0x08003560   0x08003560   0x000000a0   Code   RO         1620    .text.llc_pwm_force_start  pwm_llc.o
-    0x08003600   0x08003600   0x00000124   Code   RO         1604    .text.llc_pwm_init  pwm_llc.o
-    0x08003724   0x08003724   0x00000046   Code   RO         1612    .text.llc_pwm_outputs_enable  pwm_llc.o
-    0x0800376a   0x0800376a   0x00000002   PAD
-    0x0800376c   0x0800376c   0x00000098   Code   RO         1622    .text.llc_pwm_restore_pwm  pwm_llc.o
-    0x08003804   0x08003804   0x00000064   Code   RO         1614    .text.llc_pwm_set_duty  pwm_llc.o
-    0x08003868   0x08003868   0x0000009c   Code   RO         1626    .text.llc_pwm_set_freq  pwm_llc.o
-    0x08003904   0x08003904   0x0000004e   Code   RO         1814    .text.llc_set_freq  llc_control.o
-    0x08003952   0x08003952   0x00000002   PAD
-    0x08003954   0x08003954   0x00000038   Code   RO           66    .text.llc_softstart_abort  llc_soft_start.o
-    0x0800398c   0x0800398c   0x000000cc   Code   RO           62    .text.llc_softstart_begin  llc_soft_start.o
-    0x08003a58   0x08003a58   0x0000002a   Code   RO           56    .text.llc_softstart_init  llc_soft_start.o
-    0x08003a82   0x08003a82   0x00000002   PAD
-    0x08003a84   0x08003a84   0x00000050   Code   RO           74    .text.llc_softstart_last_hz  llc_soft_start.o
-    0x08003ad4   0x08003ad4   0x0000001e   Code   RO           64    .text.llc_softstart_on_fault  llc_soft_start.o
-    0x08003af2   0x08003af2   0x00000002   PAD
-    0x08003af4   0x08003af4   0x00000070   Code   RO           58    .text.llc_softstart_reset  llc_soft_start.o
-    0x08003b64   0x08003b64   0x00000034   Code   RO           60    .text.llc_softstart_start  llc_soft_start.o
-    0x08003b98   0x08003b98   0x00000028   Code   RO           72    .text.llc_softstart_stop  llc_soft_start.o
-    0x08003bc0   0x08003bc0   0x000000f2   Code   RO           78    .text.llc_softstart_tick  llc_soft_start.o
-    0x08003cb2   0x08003cb2   0x00000002   PAD
-    0x08003cb4   0x08003cb4   0x00000020   Code   RO           76    .text.llc_softstart_tick_1khz  llc_soft_start.o
-    0x08003cd4   0x08003cd4   0x00000240   Code   RO         1794    .text.llc_state_enter  llc_control.o
-    0x08003f14   0x08003f14   0x00000064   Code   RO         1798    .text.llc_update_measurements  llc_control.o
-    0x08003f78   0x08003f78   0x0000017c   Code   RO           20    .text.main          main.o
-    0x080040f4   0x080040f4   0x00000136   Code   RO          822    .text.nvic_irq_enable  gd32f30x_misc.o
-    0x0800422a   0x0800422a   0x00000002   PAD
-    0x0800422c   0x0800422c   0x00000020   Code   RO          820    .text.nvic_priority_group_set  gd32f30x_misc.o
-    0x0800424c   0x0800424c   0x000000cc   Code   RO         1644    .text.pb0_pwm_init  pwm.o
-    0x08004318   0x08004318   0x00000064   Code   RO         1646    .text.pb0_pwm_set_duty  pwm.o
-    0x0800437c   0x0800437c   0x0000006a   Code   RO         1752    .text.pfc_ac_loss_debounced  pfc_control.o
-    0x080043e6   0x080043e6   0x00000002   PAD
-    0x080043e8   0x080043e8   0x00000054   Code   RO         1772    .text.pfc_ac_ok     pfc_control.o
-    0x0800443c   0x0800443c   0x0000006a   Code   RO         1744    .text.pfc_ac_ok_debounced  pfc_control.o
-    0x080044a6   0x080044a6   0x00000002   PAD
-    0x080044a8   0x080044a8   0x00000008   Code   RO         1760    .text.pfc_bus_voltage  pfc_control.o
-    0x080044b0   0x080044b0   0x00000024   Code   RO         1730    .text.pfc_enable    pfc_control.o
-    0x080044d4   0x080044d4   0x0000000e   Code   RO         1754    .text.pfc_get_vbus  pfc_control.o
-    0x080044e2   0x080044e2   0x00000002   PAD
-    0x080044e4   0x080044e4   0x00000018   Code   RO         1742    .text.pfc_handle_fault  pfc_control.o
-    0x080044fc   0x080044fc   0x000000c0   Code   RO         1724    .text.pfc_hw_set_main  pfc_control.o
-    0x080045bc   0x080045bc   0x00000058   Code   RO         1726    .text.pfc_init      pfc_control.o
-    0x08004614   0x08004614   0x00000014   Code   RO         1762    .text.pfc_is_ready  pfc_control.o
-    0x08004628   0x08004628   0x00000038   Code   RO         1728    .text.pfc_outputs_off  pfc_control.o
-    0x08004660   0x08004660   0x00000032   Code   RO         1750    .text.pfc_pwm_set   pfc_control.o
-    0x08004692   0x08004692   0x00000002   PAD
-    0x08004694   0x08004694   0x00000012   Code   RO         1746    .text.pfc_reset_startup_timers  pfc_control.o
-    0x080046a6   0x080046a6   0x00000002   PAD
-    0x080046a8   0x080046a8   0x0000013c   Code   RO         1738    .text.pfc_sample_inputs  pfc_control.o
-    0x080047e4   0x080047e4   0x000000cc   Code   RO         1734    .text.pfc_state_enter  pfc_control.o
-    0x080048b0   0x080048b0   0x0000044c   Code   RO         1740    .text.pfc_tick_1khz  pfc_control.o
-    0x08004cfc   0x08004cfc   0x00000098   Code   RO         1606    .text.pins_init     pwm_llc.o
-    0x08004d94   0x08004d94   0x00000018   Code   RO         1682    .text.protect_clear_fault  protect_exti.o
-    0x08004dac   0x08004dac   0x0000006a   Code   RO         1672    .text.protect_exti_init  protect_exti.o
-    0x08004e16   0x08004e16   0x00000002   PAD
-    0x08004e18   0x08004e18   0x0000001a   Code   RO         1670    .text.protect_fault_active_hw  protect_exti.o
-    0x08004e32   0x08004e32   0x00000002   PAD
-    0x08004e34   0x08004e34   0x00000012   Code   RO         1678    .text.protect_fault_latched  protect_exti.o
-    0x08004e46   0x08004e46   0x00000002   PAD
-    0x08004e48   0x08004e48   0x0000002c   Code   RO         1674    .text.protect_fault_trigger  protect_exti.o
-    0x08004e74   0x08004e74   0x0000003e   Code   RO           24    .text.protect_startup_check  main.o
-    0x08004eb2   0x08004eb2   0x00000002   PAD
-    0x08004eb4   0x08004eb4   0x000000ba   Code   RO          932    .text.rcu_adc_clock_config  gd32f30x_rcu.o
-    0x08004f6e   0x08004f6e   0x00000002   PAD
-    0x08004f70   0x08004f70   0x00000028   Code   RO          918    .text.rcu_ahb_clock_config  gd32f30x_rcu.o
-    0x08004f98   0x08004f98   0x00000028   Code   RO          920    .text.rcu_apb1_clock_config  gd32f30x_rcu.o
-    0x08004fc0   0x08004fc0   0x00000028   Code   RO          922    .text.rcu_apb2_clock_config  gd32f30x_rcu.o
-    0x08004fe8   0x08004fe8   0x000001fa   Code   RO          970    .text.rcu_clock_freq_get  gd32f30x_rcu.o
-    0x080051e2   0x080051e2   0x00000002   PAD
-    0x080051e4   0x080051e4   0x0000007a   Code   RO          894    .text.rcu_deinit    gd32f30x_rcu.o
-    0x0800525e   0x0800525e   0x00000002   PAD
-    0x08005260   0x08005260   0x00000046   Code   RO          940    .text.rcu_flag_get  gd32f30x_rcu.o
-    0x080052a6   0x080052a6   0x00000002   PAD
-    0x080052a8   0x080052a8   0x00000030   Code   RO          954    .text.rcu_osci_on   gd32f30x_rcu.o
-    0x080052d8   0x080052d8   0x0000028e   Code   RO          896    .text.rcu_osci_stab_wait  gd32f30x_rcu.o
-    0x08005566   0x08005566   0x00000002   PAD
-    0x08005568   0x08005568   0x00000030   Code   RO          898    .text.rcu_periph_clock_enable  gd32f30x_rcu.o
-    0x08005598   0x08005598   0x00000030   Code   RO          908    .text.rcu_periph_reset_disable  gd32f30x_rcu.o
-    0x080055c8   0x080055c8   0x00000030   Code   RO          906    .text.rcu_periph_reset_enable  gd32f30x_rcu.o
-    0x080055f8   0x080055f8   0x0000004a   Code   RO          926    .text.rcu_pll_config  gd32f30x_rcu.o
-    0x08005642   0x08005642   0x00000002   PAD
-    0x08005644   0x08005644   0x00000030   Code   RO          928    .text.rcu_pllpresel_config  gd32f30x_rcu.o
-    0x08005674   0x08005674   0x00000042   Code   RO          930    .text.rcu_predv0_config  gd32f30x_rcu.o
-    0x080056b6   0x080056b6   0x00000002   PAD
-    0x080056b8   0x080056b8   0x00000028   Code   RO          914    .text.rcu_system_clock_source_config  gd32f30x_rcu.o
-    0x080056e0   0x080056e0   0x00000010   Code   RO          916    .text.rcu_system_clock_source_get  gd32f30x_rcu.o
-    0x080056f0   0x080056f0   0x0000005c   Code   RO           70    .text.ss_apply      llc_soft_start.o
-    0x0800574c   0x0800574c   0x00000176   Code   RO         1888    .text.system_clock_120m_hxtal  system_gd32f30x.o
-    0x080058c2   0x080058c2   0x00000002   PAD
-    0x080058c4   0x080058c4   0x00000008   Code   RO         1884    .text.system_clock_config  system_gd32f30x.o
-    0x080058cc   0x080058cc   0x0000009e   Code   RO           10    .text.systick_1ms_init  main.o
-    0x0800596a   0x0800596a   0x00000002   PAD
-    0x0800596c   0x0800596c   0x00000032   Code   RO         1656    .text.tim_apb1_clk_hz  pwm.o
-    0x0800599e   0x0800599e   0x00000002   PAD
-    0x080059a0   0x080059a0   0x00000032   Code   RO         1608    .text.timer0_clk_hz  pwm_llc.o
-    0x080059d2   0x080059d2   0x00000002   PAD
-    0x080059d4   0x080059d4   0x00000016   Code   RO         1220    .text.timer_auto_reload_shadow_enable  gd32f30x_timer.o
-    0x080059ea   0x080059ea   0x00000002   PAD
-    0x080059ec   0x080059ec   0x00000046   Code   RO         1272    .text.timer_break_config  gd32f30x_timer.o
-    0x08005a32   0x08005a32   0x00000002   PAD
-    0x08005a34   0x08005a34   0x000002e2   Code   RO         1288    .text.timer_channel_output_config  gd32f30x_timer.o
-    0x08005d16   0x08005d16   0x00000002   PAD
-    0x08005d18   0x08005d18   0x0000009e   Code   RO         1290    .text.timer_channel_output_mode_config  gd32f30x_timer.o
-    0x08005db6   0x08005db6   0x00000002   PAD
-    0x08005db8   0x08005db8   0x00000058   Code   RO         1292    .text.timer_channel_output_pulse_value_config  gd32f30x_timer.o
-    0x08005e10   0x08005e10   0x0000009e   Code   RO         1294    .text.timer_channel_output_shadow_config  gd32f30x_timer.o
-    0x08005eae   0x08005eae   0x00000002   PAD
-    0x08005eb0   0x08005eb0   0x00000008   Code   RO         1654    .text.timer_clk_hz  pwm.o
-    0x08005eb8   0x08005eb8   0x0000011c   Code   RO         1210    .text.timer_deinit  gd32f30x_timer.o
-    0x08005fd4   0x08005fd4   0x00000016   Code   RO         1216    .text.timer_enable  gd32f30x_timer.o
-    0x08005fea   0x08005fea   0x00000002   PAD
-    0x08005fec   0x08005fec   0x00000024   Code   RO         1270    .text.timer_event_software_generate  gd32f30x_timer.o
-    0x08006010   0x08006010   0x00000020   Code   RO         1260    .text.timer_flag_clear  gd32f30x_timer.o
-    0x08006030   0x08006030   0x00000032   Code   RO         1258    .text.timer_flag_get  gd32f30x_timer.o
-    0x08006062   0x08006062   0x00000002   PAD
-    0x08006064   0x08006064   0x0000010c   Code   RO         1214    .text.timer_init    gd32f30x_timer.o
-    0x08006170   0x08006170   0x00000020   Code   RO         1250    .text.timer_interrupt_enable  gd32f30x_timer.o
-    0x08006190   0x08006190   0x00000020   Code   RO         1256    .text.timer_interrupt_flag_clear  gd32f30x_timer.o
-    0x080061b0   0x080061b0   0x00000044   Code   RO         1254    .text.timer_interrupt_flag_get  gd32f30x_timer.o
-    0x080061f4   0x080061f4   0x0000002a   Code   RO         1320    .text.timer_master_output_trigger_source_select  gd32f30x_timer.o
-    0x0800621e   0x0800621e   0x00000002   PAD
-    0x08006220   0x08006220   0x00000036   Code   RO         1282    .text.timer_primary_output_config  gd32f30x_timer.o
-    0x08006256   0x08006256   0x00000002   PAD
-    0x08006258   0x08006258   0x0000002a   Code   RO         1212    .text.timer_struct_para_init  gd32f30x_timer.o
-    0x08006282   0x08006282   0x00000002   PAD
-    0x08006284   0x08006284   0x000000d2   Code   RO         1358    .text.usart_baudrate_set  gd32f30x_usart.o
-    0x08006356   0x08006356   0x00000002   PAD
-    0x08006358   0x08006358   0x000000bc   Code   RO         1356    .text.usart_deinit  gd32f30x_usart.o
-    0x08006414   0x08006414   0x00000016   Code   RO         1366    .text.usart_enable  gd32f30x_usart.o
-    0x0800642a   0x0800642a   0x00000002   PAD
-    0x0800642c   0x0800642c   0x00000032   Code   RO         1438    .text.usart_hardware_flow_cts_config  gd32f30x_usart.o
-    0x0800645e   0x0800645e   0x00000002   PAD
-    0x08006460   0x08006460   0x00000032   Code   RO         1436    .text.usart_hardware_flow_rts_config  gd32f30x_usart.o
-    0x08006492   0x08006492   0x00000002   PAD
-    0x08006494   0x08006494   0x0000002a   Code   RO         1360    .text.usart_parity_config  gd32f30x_usart.o
-    0x080064be   0x080064be   0x00000002   PAD
-    0x080064c0   0x080064c0   0x00000032   Code   RO         1372    .text.usart_receive_config  gd32f30x_usart.o
-    0x080064f2   0x080064f2   0x00000002   PAD
-    0x080064f4   0x080064f4   0x0000002a   Code   RO         1364    .text.usart_stop_bit_set  gd32f30x_usart.o
-    0x0800651e   0x0800651e   0x00000002   PAD
-    0x08006520   0x08006520   0x00000032   Code   RO         1370    .text.usart_transmit_config  gd32f30x_usart.o
-    0x08006552   0x08006552   0x00000002   PAD
-    0x08006554   0x08006554   0x0000002a   Code   RO         1362    .text.usart_word_length_set  gd32f30x_usart.o
-    0x0800657e   0x0800657e   0x0000000e   Code   RO         1943    i.__hardfp__fabsf   m_wm.l(fabsf.o)
-    0x0800658c   0x0800658c   0x00000150   Code   RO         1931    i.__hardfp_cosf     m_wm.l(cosf.o)
-    0x080066dc   0x080066dc   0x0000009a   Code   RO         1949    i.__hardfp_roundf   m_wm.l(roundf.o)
-    0x08006776   0x08006776   0x00000006   Code   RO         2030    i.__mathlib_flt_infnan  m_wm.l(funder.o)
-    0x0800677c   0x0800677c   0x00000010   Code   RO         2032    i.__mathlib_flt_invalid  m_wm.l(funder.o)
-    0x0800678c   0x0800678c   0x00000154   Code   RO         2048    i.__mathlib_rredf2  m_wm.l(rredf.o)
-    0x080068e0   0x080068e0   0x0000000e   Code   RO         2122    i.__scatterload_copy  mc_w.l(handlers.o)
-    0x080068ee   0x080068ee   0x00000002   Code   RO         2123    i.__scatterload_null  mc_w.l(handlers.o)
-    0x080068f0   0x080068f0   0x0000000e   Code   RO         2124    i.__scatterload_zeroinit  mc_w.l(handlers.o)
-    0x080068fe   0x080068fe   0x00000002   PAD
-    0x08006900   0x08006900   0x0000000c   Code   RO         2086    i.__set_errno       mc_w.l(errno.o)
-    0x0800690c   0x0800690c   0x00000020   Data   RO         2049    .constdata          m_wm.l(rredf.o)
-    0x0800692c   0x0800692c   0x0000000c   Data   RO           39    .rodata..Lmain.lcfg  main.o
-    0x08006938   0x08006938   0x00000012   Data   RO         1780    .rodata.str1.1      pfc_control.o
-    0x0800694a   0x0800694a   0x00000002   PAD
-    0x0800694c   0x0800694c   0x00000020   Data   RO         2120    Region$$Table       anon$$obj.o
+    0x08000a08   0x08000a08   0x0000002c   Code   RO         1672    .text.TIMER0_BRK_IRQHandler  protect_exti.o
+    0x08000a34   0x08000a34   0x0000002c   Code   RO           14    .text.TIMER3_IRQHandler  main.o
+    0x08000a60   0x08000a60   0x00000058   Code   RO         1514    .text.TIMER5_IRQHandler  timer.o
+    0x08000ab8   0x08000ab8   0x0000005c   Code   RO         1516    .text.TIMER6_IRQHandler  timer.o
+    0x08000b14   0x08000b14   0x00000004   Code   RO         1860    .text.UsageFault_Handler  gd32f30x_it.o
+    0x08000b18   0x08000b18   0x0000004a   Code   RO            8    .text.__NVIC_SetPriority  main.o
+    0x08000b62   0x08000b62   0x00000002   PAD
+    0x08000b64   0x08000b64   0x0000001e   Code   RO         1548    .text.adc0_analog_pins_init  adc_dma.o
+    0x08000b82   0x08000b82   0x00000002   PAD
+    0x08000b84   0x08000b84   0x000000da   Code   RO         1550    .text.adc0_dma_cfg  adc_dma.o
+    0x08000c5e   0x08000c5e   0x00000002   PAD
+    0x08000c60   0x08000c60   0x000000e4   Code   RO         1546    .text.adc0_dma_init  adc_dma.o
+    0x08000d44   0x08000d44   0x00000014   Code   RO         1552    .text.adc0_dma_start  adc_dma.o
+    0x08000d58   0x08000d58   0x00000048   Code   RO         1558    .text.adc1_analog_pins_init  adc_dma.o
+    0x08000da0   0x08000da0   0x0000014a   Code   RO         1556    .text.adc1_aux_init  adc_dma.o
+    0x08000eea   0x08000eea   0x00000002   PAD
+    0x08000eec   0x08000eec   0x00000140   Code   RO         1560    .text.adc1_aux_read_channel  adc_dma.o
+    0x0800102c   0x0800102c   0x0000004a   Code   RO         1562    .text.adc1_sample_aux_1khz  adc_dma.o
+    0x08001076   0x08001076   0x00000002   PAD
+    0x08001078   0x08001078   0x00000040   Code   RO           95    .text.adc_calibration_enable  gd32f30x_adc.o
+    0x080010b8   0x080010b8   0x00000080   Code   RO          115    .text.adc_channel_length_config  gd32f30x_adc.o
+    0x08001138   0x08001138   0x00000032   Code   RO          113    .text.adc_data_alignment_config  gd32f30x_adc.o
+    0x0800116a   0x0800116a   0x00000002   PAD
+    0x0800116c   0x0800116c   0x00000078   Code   RO           89    .text.adc_deinit    gd32f30x_adc.o
+    0x080011e4   0x080011e4   0x00000016   Code   RO           97    .text.adc_dma_mode_enable  gd32f30x_adc.o
+    0x080011fa   0x080011fa   0x00000002   PAD
+    0x080011fc   0x080011fc   0x00000024   Code   RO           91    .text.adc_enable    gd32f30x_adc.o
+    0x08001220   0x08001220   0x00000090   Code   RO          123    .text.adc_external_trigger_config  gd32f30x_adc.o
+    0x080012b0   0x080012b0   0x00000064   Code   RO          125    .text.adc_external_trigger_source_config  gd32f30x_adc.o
+    0x08001314   0x08001314   0x00000008   Code   RO           16    .text.adc_fast_task_100us  main.o
+    0x0800131c   0x0800131c   0x00000032   Code   RO           30    .text.adc_fast_timer_clk_hz  main.o
+    0x0800134e   0x0800134e   0x00000002   PAD
+    0x08001350   0x08001350   0x000000ae   Code   RO           22    .text.adc_fast_timer_init_100us  main.o
+    0x080013fe   0x080013fe   0x00000002   PAD
+    0x08001400   0x08001400   0x00000020   Code   RO          137    .text.adc_flag_clear  gd32f30x_adc.o
+    0x08001420   0x08001420   0x00000030   Code   RO          135    .text.adc_flag_get  gd32f30x_adc.o
+    0x08001450   0x08001450   0x00000024   Code   RO          109    .text.adc_mode_config  gd32f30x_adc.o
+    0x08001474   0x08001474   0x0000004e   Code   RO         1568    .text.adc_multi_copy  adc_dma.o
+    0x080014c2   0x080014c2   0x00000002   PAD
+    0x080014c4   0x080014c4   0x00000014   Code   RO         1570    .text.adc_multi_init_dma  adc_dma.o
+    0x080014d8   0x080014d8   0x00000008   Code   RO         1574    .text.adc_multi_sample_aux_1khz  adc_dma.o
+    0x080014e0   0x080014e0   0x0000000c   Code   RO         1572    .text.adc_multi_start  adc_dma.o
+    0x080014ec   0x080014ec   0x0000001e   Code   RO         1582    .text.adc_multi_store_frame  adc_dma.o
+    0x0800150a   0x0800150a   0x00000002   PAD
+    0x0800150c   0x0800150c   0x00000026   Code   RO         1566    .text.adc_multi_trigger_fast  adc_dma.o
+    0x08001532   0x08001532   0x00000002   PAD
+    0x08001534   0x08001534   0x00000156   Code   RO          117    .text.adc_regular_channel_config  gd32f30x_adc.o
+    0x0800168a   0x0800168a   0x00000002   PAD
+    0x0800168c   0x0800168c   0x00000012   Code   RO          129    .text.adc_regular_data_read  gd32f30x_adc.o
+    0x0800169e   0x0800169e   0x00000002   PAD
+    0x080016a0   0x080016a0   0x00000044   Code   RO          127    .text.adc_software_trigger_enable  gd32f30x_adc.o
+    0x080016e4   0x080016e4   0x000000b2   Code   RO          111    .text.adc_special_function_config  gd32f30x_adc.o
+    0x08001796   0x08001796   0x00000002   PAD
+    0x08001798   0x08001798   0x0000016c   Code   RO           26    .text.adc_startup_check  main.o
+    0x08001904   0x08001904   0x00000050   Code   RO         1766    .text.adc_to_v_scaled  pfc_control.o
+    0x08001954   0x08001954   0x00000004   PAD
+    0x08001958   0x08001958   0x00000218   Code   RO         1606    .text.bdtr_deadtime_code_ns  pwm_llc.o
+    0x08001b70   0x08001b70   0x0000007e   Code   RO         1612    .text.clampf        pwm_llc.o
+    0x08001bee   0x08001bee   0x00000002   PAD
+    0x08001bf0   0x08001bf0   0x0000007e   Code   RO         1644    .text.clampf        pwm.o
+    0x08001c6e   0x08001c6e   0x00000002   PAD
+    0x08001c70   0x08001c70   0x00000014   Code   RO           28    .text.control_loop_tick_1khz  main.o
+    0x08001c84   0x08001c84   0x0000005c   Code   RO         1826    .text.conv_adc_to_i  llc_control.o
+    0x08001ce0   0x08001ce0   0x00000068   Code   RO         1824    .text.conv_adc_to_v_div  llc_control.o
+    0x08001d48   0x08001d48   0x0000005c   Code   RO           32    .text.conv_adc_to_v_test  main.o
+    0x08001da4   0x08001da4   0x000000c2   Code   RO         1692    .text.debug_printf_init  debug_printf.o
+    0x08001e66   0x08001e66   0x00000002   PAD
+    0x08001e68   0x08001e68   0x0000003e   Code   RO            2    .text.delay_ms      main.o
+    0x08001ea6   0x08001ea6   0x00000002   PAD
+    0x08001ea8   0x08001ea8   0x00000040   Code   RO          457    .text.dma_channel_enable  gd32f30x_dma.o
+    0x08001ee8   0x08001ee8   0x00000040   Code   RO          449    .text.dma_circulation_enable  gd32f30x_dma.o
+    0x08001f28   0x08001f28   0x00000096   Code   RO          443    .text.dma_deinit    gd32f30x_dma.o
+    0x08001fbe   0x08001fbe   0x00000002   PAD
+    0x08001fc0   0x08001fc0   0x0000017e   Code   RO          447    .text.dma_init      gd32f30x_dma.o
+    0x0800213e   0x0800213e   0x00000002   PAD
+    0x08002140   0x08002140   0x0000004a   Code   RO          493    .text.dma_interrupt_enable  gd32f30x_dma.o
+    0x0800218a   0x0800218a   0x00000002   PAD
+    0x0800218c   0x0800218c   0x00000032   Code   RO          491    .text.dma_interrupt_flag_clear  gd32f30x_dma.o
+    0x080021be   0x080021be   0x00000002   PAD
+    0x080021c0   0x080021c0   0x000000da   Code   RO          489    .text.dma_interrupt_flag_get  gd32f30x_dma.o
+    0x0800229a   0x0800229a   0x00000002   PAD
+    0x0800229c   0x0800229c   0x00000042   Code   RO          445    .text.dma_periph_and_channel_check  gd32f30x_dma.o
+    0x080022de   0x080022de   0x00000002   PAD
+    0x080022e0   0x080022e0   0x000000bc   Code   RO         1614    .text.duty_to_ccr   pwm_llc.o
+    0x0800239c   0x0800239c   0x00000074   Code   RO           76    .text.ease_cos      llc_soft_start.o
+    0x08002410   0x08002410   0x00000050   Code   RO         1744    .text.elapsed_reached  pfc_control.o
+    0x08002460   0x08002460   0x00000050   Code   RO         1808    .text.elapsed_reached  llc_control.o
+    0x080024b0   0x080024b0   0x0000002e   Code   RO         1770    .text.elapsed_since  pfc_control.o
+    0x080024de   0x080024de   0x00000002   PAD
+    0x080024e0   0x080024e0   0x0000002e   Code   RO         1828    .text.elapsed_since  llc_control.o
+    0x0800250e   0x0800250e   0x00000002   PAD
+    0x08002510   0x08002510   0x0000007e   Code   RO           50    .text.f_clampf      llc_soft_start.o
+    0x0800258e   0x0800258e   0x00000002   PAD
+    0x08002590   0x08002590   0x0000007e   Code   RO         1830    .text.f_clampf      llc_control.o
+    0x0800260e   0x0800260e   0x00000002   PAD
+    0x08002610   0x08002610   0x0000001c   Code   RO         1810    .text.fabsf         llc_control.o
+    0x0800262c   0x0800262c   0x00000028   Code   RO          600    .text.fmc_wscnt_set  gd32f30x_fmc.o
+    0x08002654   0x08002654   0x00000018   Code   RO          706    .text.gpio_bit_reset  gd32f30x_gpio.o
+    0x0800266c   0x0800266c   0x00000018   Code   RO          704    .text.gpio_bit_set  gd32f30x_gpio.o
+    0x08002684   0x08002684   0x00000168   Code   RO          702    .text.gpio_init     gd32f30x_gpio.o
+    0x080027ec   0x080027ec   0x00000032   Code   RO          712    .text.gpio_input_bit_get  gd32f30x_gpio.o
+    0x0800281e   0x0800281e   0x00000002   PAD
+    0x08002820   0x08002820   0x00000028   Code   RO           12    .text.irq_priority_encode  main.o
+    0x08002848   0x08002848   0x00000152   Code   RO         1790    .text.llc_app_init  llc_control.o
+    0x0800299a   0x0800299a   0x00000002   PAD
+    0x0800299c   0x0800299c   0x000002f0   Code   RO         1798    .text.llc_app_tick_100us  llc_control.o
+    0x08002c8c   0x08002c8c   0x00000094   Code   RO         1832    .text.llc_bumpless_integ  llc_control.o
+    0x08002d20   0x08002d20   0x000003f4   Code   RO         1816    .text.llc_ctrl_step  llc_control.o
+    0x08003114   0x08003114   0x000002e4   Code   RO         1812    .text.llc_current_limit_step  llc_control.o
+    0x080033f8   0x080033f8   0x000000b6   Code   RO         1820    .text.llc_driver_en_set  llc_control.o
+    0x080034ae   0x080034ae   0x00000002   PAD
+    0x080034b0   0x080034b0   0x0000000a   Code   RO         1804    .text.llc_enter_fault  llc_control.o
+    0x080034ba   0x080034ba   0x00000002   PAD
+    0x080034bc   0x080034bc   0x0000008c   Code   RO         1802    .text.llc_faults_present  llc_control.o
+    0x08003548   0x08003548   0x0000006e   Code   RO         1800    .text.llc_pfc_ready_stable  llc_control.o
+    0x080035b6   0x080035b6   0x00000002   PAD
+    0x080035b8   0x080035b8   0x00000024   Code   RO         1806    .text.llc_precheck_ok  llc_control.o
+    0x080035dc   0x080035dc   0x000000a0   Code   RO         1616    .text.llc_pwm_force_start  pwm_llc.o
+    0x0800367c   0x0800367c   0x00000124   Code   RO         1600    .text.llc_pwm_init  pwm_llc.o
+    0x080037a0   0x080037a0   0x00000046   Code   RO         1608    .text.llc_pwm_outputs_enable  pwm_llc.o
+    0x080037e6   0x080037e6   0x00000002   PAD
+    0x080037e8   0x080037e8   0x00000098   Code   RO         1618    .text.llc_pwm_restore_pwm  pwm_llc.o
+    0x08003880   0x08003880   0x00000064   Code   RO         1610    .text.llc_pwm_set_duty  pwm_llc.o
+    0x080038e4   0x080038e4   0x0000009c   Code   RO         1622    .text.llc_pwm_set_freq  pwm_llc.o
+    0x08003980   0x08003980   0x0000004e   Code   RO         1818    .text.llc_set_freq  llc_control.o
+    0x080039ce   0x080039ce   0x00000002   PAD
+    0x080039d0   0x080039d0   0x00000038   Code   RO           62    .text.llc_softstart_abort  llc_soft_start.o
+    0x08003a08   0x08003a08   0x000000cc   Code   RO           58    .text.llc_softstart_begin  llc_soft_start.o
+    0x08003ad4   0x08003ad4   0x0000002a   Code   RO           52    .text.llc_softstart_init  llc_soft_start.o
+    0x08003afe   0x08003afe   0x00000002   PAD
+    0x08003b00   0x08003b00   0x00000050   Code   RO           70    .text.llc_softstart_last_hz  llc_soft_start.o
+    0x08003b50   0x08003b50   0x0000001e   Code   RO           60    .text.llc_softstart_on_fault  llc_soft_start.o
+    0x08003b6e   0x08003b6e   0x00000002   PAD
+    0x08003b70   0x08003b70   0x00000070   Code   RO           54    .text.llc_softstart_reset  llc_soft_start.o
+    0x08003be0   0x08003be0   0x00000034   Code   RO           56    .text.llc_softstart_start  llc_soft_start.o
+    0x08003c14   0x08003c14   0x00000028   Code   RO           68    .text.llc_softstart_stop  llc_soft_start.o
+    0x08003c3c   0x08003c3c   0x000000f2   Code   RO           74    .text.llc_softstart_tick  llc_soft_start.o
+    0x08003d2e   0x08003d2e   0x00000002   PAD
+    0x08003d30   0x08003d30   0x00000020   Code   RO           72    .text.llc_softstart_tick_1khz  llc_soft_start.o
+    0x08003d50   0x08003d50   0x00000244   Code   RO         1792    .text.llc_state_enter  llc_control.o
+    0x08003f94   0x08003f94   0x00000064   Code   RO         1796    .text.llc_update_measurements  llc_control.o
+    0x08003ff8   0x08003ff8   0x00000088   Code   RO         1814    .text.llc_vbus_feedforward_hz  llc_control.o
+    0x08004080   0x08004080   0x00000122   Code   RO           20    .text.main          main.o
+    0x080041a2   0x080041a2   0x00000002   PAD
+    0x080041a4   0x080041a4   0x00000136   Code   RO          818    .text.nvic_irq_enable  gd32f30x_misc.o
+    0x080042da   0x080042da   0x00000002   PAD
+    0x080042dc   0x080042dc   0x00000020   Code   RO          816    .text.nvic_priority_group_set  gd32f30x_misc.o
+    0x080042fc   0x080042fc   0x000000cc   Code   RO         1640    .text.pb0_pwm_init  pwm.o
+    0x080043c8   0x080043c8   0x00000064   Code   RO         1642    .text.pb0_pwm_set_duty  pwm.o
+    0x0800442c   0x0800442c   0x0000006a   Code   RO         1748    .text.pfc_ac_loss_debounced  pfc_control.o
+    0x08004496   0x08004496   0x00000002   PAD
+    0x08004498   0x08004498   0x00000054   Code   RO         1768    .text.pfc_ac_ok     pfc_control.o
+    0x080044ec   0x080044ec   0x0000006a   Code   RO         1740    .text.pfc_ac_ok_debounced  pfc_control.o
+    0x08004556   0x08004556   0x00000002   PAD
+    0x08004558   0x08004558   0x00000008   Code   RO         1756    .text.pfc_bus_voltage  pfc_control.o
+    0x08004560   0x08004560   0x00000024   Code   RO         1726    .text.pfc_enable    pfc_control.o
+    0x08004584   0x08004584   0x0000000e   Code   RO         1750    .text.pfc_get_vbus  pfc_control.o
+    0x08004592   0x08004592   0x00000002   PAD
+    0x08004594   0x08004594   0x00000018   Code   RO         1738    .text.pfc_handle_fault  pfc_control.o
+    0x080045ac   0x080045ac   0x000000c0   Code   RO         1720    .text.pfc_hw_set_main  pfc_control.o
+    0x0800466c   0x0800466c   0x00000058   Code   RO         1722    .text.pfc_init      pfc_control.o
+    0x080046c4   0x080046c4   0x00000014   Code   RO         1758    .text.pfc_is_ready  pfc_control.o
+    0x080046d8   0x080046d8   0x00000038   Code   RO         1724    .text.pfc_outputs_off  pfc_control.o
+    0x08004710   0x08004710   0x00000032   Code   RO         1746    .text.pfc_pwm_set   pfc_control.o
+    0x08004742   0x08004742   0x00000002   PAD
+    0x08004744   0x08004744   0x00000012   Code   RO         1742    .text.pfc_reset_startup_timers  pfc_control.o
+    0x08004756   0x08004756   0x00000002   PAD
+    0x08004758   0x08004758   0x0000013c   Code   RO         1734    .text.pfc_sample_inputs  pfc_control.o
+    0x08004894   0x08004894   0x000000cc   Code   RO         1730    .text.pfc_state_enter  pfc_control.o
+    0x08004960   0x08004960   0x0000044c   Code   RO         1736    .text.pfc_tick_1khz  pfc_control.o
+    0x08004dac   0x08004dac   0x00000098   Code   RO         1602    .text.pins_init     pwm_llc.o
+    0x08004e44   0x08004e44   0x00000018   Code   RO         1678    .text.protect_clear_fault  protect_exti.o
+    0x08004e5c   0x08004e5c   0x0000006a   Code   RO         1668    .text.protect_exti_init  protect_exti.o
+    0x08004ec6   0x08004ec6   0x00000002   PAD
+    0x08004ec8   0x08004ec8   0x0000001a   Code   RO         1666    .text.protect_fault_active_hw  protect_exti.o
+    0x08004ee2   0x08004ee2   0x00000002   PAD
+    0x08004ee4   0x08004ee4   0x00000012   Code   RO         1674    .text.protect_fault_latched  protect_exti.o
+    0x08004ef6   0x08004ef6   0x00000002   PAD
+    0x08004ef8   0x08004ef8   0x0000002c   Code   RO         1670    .text.protect_fault_trigger  protect_exti.o
+    0x08004f24   0x08004f24   0x0000003e   Code   RO           24    .text.protect_startup_check  main.o
+    0x08004f62   0x08004f62   0x00000002   PAD
+    0x08004f64   0x08004f64   0x000000ba   Code   RO          928    .text.rcu_adc_clock_config  gd32f30x_rcu.o
+    0x0800501e   0x0800501e   0x00000002   PAD
+    0x08005020   0x08005020   0x00000028   Code   RO          914    .text.rcu_ahb_clock_config  gd32f30x_rcu.o
+    0x08005048   0x08005048   0x00000028   Code   RO          916    .text.rcu_apb1_clock_config  gd32f30x_rcu.o
+    0x08005070   0x08005070   0x00000028   Code   RO          918    .text.rcu_apb2_clock_config  gd32f30x_rcu.o
+    0x08005098   0x08005098   0x000001fa   Code   RO          966    .text.rcu_clock_freq_get  gd32f30x_rcu.o
+    0x08005292   0x08005292   0x00000002   PAD
+    0x08005294   0x08005294   0x0000007a   Code   RO          890    .text.rcu_deinit    gd32f30x_rcu.o
+    0x0800530e   0x0800530e   0x00000002   PAD
+    0x08005310   0x08005310   0x00000046   Code   RO          936    .text.rcu_flag_get  gd32f30x_rcu.o
+    0x08005356   0x08005356   0x00000002   PAD
+    0x08005358   0x08005358   0x00000030   Code   RO          950    .text.rcu_osci_on   gd32f30x_rcu.o
+    0x08005388   0x08005388   0x0000028e   Code   RO          892    .text.rcu_osci_stab_wait  gd32f30x_rcu.o
+    0x08005616   0x08005616   0x00000002   PAD
+    0x08005618   0x08005618   0x00000030   Code   RO          894    .text.rcu_periph_clock_enable  gd32f30x_rcu.o
+    0x08005648   0x08005648   0x00000030   Code   RO          904    .text.rcu_periph_reset_disable  gd32f30x_rcu.o
+    0x08005678   0x08005678   0x00000030   Code   RO          902    .text.rcu_periph_reset_enable  gd32f30x_rcu.o
+    0x080056a8   0x080056a8   0x0000004a   Code   RO          922    .text.rcu_pll_config  gd32f30x_rcu.o
+    0x080056f2   0x080056f2   0x00000002   PAD
+    0x080056f4   0x080056f4   0x00000030   Code   RO          924    .text.rcu_pllpresel_config  gd32f30x_rcu.o
+    0x08005724   0x08005724   0x00000042   Code   RO          926    .text.rcu_predv0_config  gd32f30x_rcu.o
+    0x08005766   0x08005766   0x00000002   PAD
+    0x08005768   0x08005768   0x00000028   Code   RO          910    .text.rcu_system_clock_source_config  gd32f30x_rcu.o
+    0x08005790   0x08005790   0x00000010   Code   RO          912    .text.rcu_system_clock_source_get  gd32f30x_rcu.o
+    0x080057a0   0x080057a0   0x0000005c   Code   RO           66    .text.ss_apply      llc_soft_start.o
+    0x080057fc   0x080057fc   0x00000176   Code   RO         1894    .text.system_clock_120m_hxtal  system_gd32f30x.o
+    0x08005972   0x08005972   0x00000002   PAD
+    0x08005974   0x08005974   0x00000008   Code   RO         1890    .text.system_clock_config  system_gd32f30x.o
+    0x0800597c   0x0800597c   0x0000009e   Code   RO           10    .text.systick_1ms_init  main.o
+    0x08005a1a   0x08005a1a   0x00000002   PAD
+    0x08005a1c   0x08005a1c   0x00000032   Code   RO         1652    .text.tim_apb1_clk_hz  pwm.o
+    0x08005a4e   0x08005a4e   0x00000002   PAD
+    0x08005a50   0x08005a50   0x00000032   Code   RO         1604    .text.timer0_clk_hz  pwm_llc.o
+    0x08005a82   0x08005a82   0x00000002   PAD
+    0x08005a84   0x08005a84   0x00000016   Code   RO         1216    .text.timer_auto_reload_shadow_enable  gd32f30x_timer.o
+    0x08005a9a   0x08005a9a   0x00000002   PAD
+    0x08005a9c   0x08005a9c   0x00000046   Code   RO         1268    .text.timer_break_config  gd32f30x_timer.o
+    0x08005ae2   0x08005ae2   0x00000002   PAD
+    0x08005ae4   0x08005ae4   0x000002e2   Code   RO         1284    .text.timer_channel_output_config  gd32f30x_timer.o
+    0x08005dc6   0x08005dc6   0x00000002   PAD
+    0x08005dc8   0x08005dc8   0x0000009e   Code   RO         1286    .text.timer_channel_output_mode_config  gd32f30x_timer.o
+    0x08005e66   0x08005e66   0x00000002   PAD
+    0x08005e68   0x08005e68   0x00000058   Code   RO         1288    .text.timer_channel_output_pulse_value_config  gd32f30x_timer.o
+    0x08005ec0   0x08005ec0   0x0000009e   Code   RO         1290    .text.timer_channel_output_shadow_config  gd32f30x_timer.o
+    0x08005f5e   0x08005f5e   0x00000002   PAD
+    0x08005f60   0x08005f60   0x00000008   Code   RO         1650    .text.timer_clk_hz  pwm.o
+    0x08005f68   0x08005f68   0x0000011c   Code   RO         1206    .text.timer_deinit  gd32f30x_timer.o
+    0x08006084   0x08006084   0x00000016   Code   RO         1212    .text.timer_enable  gd32f30x_timer.o
+    0x0800609a   0x0800609a   0x00000002   PAD
+    0x0800609c   0x0800609c   0x00000024   Code   RO         1266    .text.timer_event_software_generate  gd32f30x_timer.o
+    0x080060c0   0x080060c0   0x00000020   Code   RO         1256    .text.timer_flag_clear  gd32f30x_timer.o
+    0x080060e0   0x080060e0   0x00000032   Code   RO         1254    .text.timer_flag_get  gd32f30x_timer.o
+    0x08006112   0x08006112   0x00000002   PAD
+    0x08006114   0x08006114   0x0000010c   Code   RO         1210    .text.timer_init    gd32f30x_timer.o
+    0x08006220   0x08006220   0x00000020   Code   RO         1246    .text.timer_interrupt_enable  gd32f30x_timer.o
+    0x08006240   0x08006240   0x00000020   Code   RO         1252    .text.timer_interrupt_flag_clear  gd32f30x_timer.o
+    0x08006260   0x08006260   0x00000044   Code   RO         1250    .text.timer_interrupt_flag_get  gd32f30x_timer.o
+    0x080062a4   0x080062a4   0x0000002a   Code   RO         1316    .text.timer_master_output_trigger_source_select  gd32f30x_timer.o
+    0x080062ce   0x080062ce   0x00000002   PAD
+    0x080062d0   0x080062d0   0x00000036   Code   RO         1278    .text.timer_primary_output_config  gd32f30x_timer.o
+    0x08006306   0x08006306   0x00000002   PAD
+    0x08006308   0x08006308   0x0000002a   Code   RO         1208    .text.timer_struct_para_init  gd32f30x_timer.o
+    0x08006332   0x08006332   0x00000002   PAD
+    0x08006334   0x08006334   0x000000d2   Code   RO         1354    .text.usart_baudrate_set  gd32f30x_usart.o
+    0x08006406   0x08006406   0x00000002   PAD
+    0x08006408   0x08006408   0x000000bc   Code   RO         1352    .text.usart_deinit  gd32f30x_usart.o
+    0x080064c4   0x080064c4   0x00000016   Code   RO         1362    .text.usart_enable  gd32f30x_usart.o
+    0x080064da   0x080064da   0x00000002   PAD
+    0x080064dc   0x080064dc   0x00000032   Code   RO         1434    .text.usart_hardware_flow_cts_config  gd32f30x_usart.o
+    0x0800650e   0x0800650e   0x00000002   PAD
+    0x08006510   0x08006510   0x00000032   Code   RO         1432    .text.usart_hardware_flow_rts_config  gd32f30x_usart.o
+    0x08006542   0x08006542   0x00000002   PAD
+    0x08006544   0x08006544   0x0000002a   Code   RO         1356    .text.usart_parity_config  gd32f30x_usart.o
+    0x0800656e   0x0800656e   0x00000002   PAD
+    0x08006570   0x08006570   0x00000032   Code   RO         1368    .text.usart_receive_config  gd32f30x_usart.o
+    0x080065a2   0x080065a2   0x00000002   PAD
+    0x080065a4   0x080065a4   0x0000002a   Code   RO         1360    .text.usart_stop_bit_set  gd32f30x_usart.o
+    0x080065ce   0x080065ce   0x00000002   PAD
+    0x080065d0   0x080065d0   0x00000032   Code   RO         1366    .text.usart_transmit_config  gd32f30x_usart.o
+    0x08006602   0x08006602   0x00000002   PAD
+    0x08006604   0x08006604   0x0000002a   Code   RO         1358    .text.usart_word_length_set  gd32f30x_usart.o
+    0x0800662e   0x0800662e   0x0000000e   Code   RO         1949    i.__hardfp__fabsf   m_wm.l(fabsf.o)
+    0x0800663c   0x0800663c   0x00000150   Code   RO         1937    i.__hardfp_cosf     m_wm.l(cosf.o)
+    0x0800678c   0x0800678c   0x0000009a   Code   RO         1955    i.__hardfp_roundf   m_wm.l(roundf.o)
+    0x08006826   0x08006826   0x00000006   Code   RO         2036    i.__mathlib_flt_infnan  m_wm.l(funder.o)
+    0x0800682c   0x0800682c   0x00000010   Code   RO         2038    i.__mathlib_flt_invalid  m_wm.l(funder.o)
+    0x0800683c   0x0800683c   0x00000154   Code   RO         2054    i.__mathlib_rredf2  m_wm.l(rredf.o)
+    0x08006990   0x08006990   0x0000000e   Code   RO         2128    i.__scatterload_copy  mc_w.l(handlers.o)
+    0x0800699e   0x0800699e   0x00000002   Code   RO         2129    i.__scatterload_null  mc_w.l(handlers.o)
+    0x080069a0   0x080069a0   0x0000000e   Code   RO         2130    i.__scatterload_zeroinit  mc_w.l(handlers.o)
+    0x080069ae   0x080069ae   0x00000002   PAD
+    0x080069b0   0x080069b0   0x0000000c   Code   RO         2092    i.__set_errno       mc_w.l(errno.o)
+    0x080069bc   0x080069bc   0x00000020   Data   RO         2055    .constdata          m_wm.l(rredf.o)
+    0x080069dc   0x080069dc   0x0000000c   Data   RO           36    .rodata..Lmain.lcfg  main.o
+    0x080069e8   0x080069e8   0x00000012   Data   RO         1776    .rodata.str1.1      pfc_control.o
+    0x080069fa   0x080069fa   0x00000002   PAD
+    0x080069fc   0x080069fc   0x00000020   Data   RO         2126    Region$$Table       anon$$obj.o
 
 
-    Execution Region RW_IRAM1 (Exec base: 0x20000000, Load base: 0x08006970, Size: 0x00000570, Max: 0x00010000, ABSOLUTE)
+    Execution Region RW_IRAM1 (Exec base: 0x20000000, Load base: 0x08006a20, Size: 0x00000570, Max: 0x00010000, ABSOLUTE)
 
     Exec Addr    Load Addr    Size         Type   Attr      Idx    E Section Name        Object
 
-    0x20000000   0x08006970   0x00000004   Data   RW         2087    .data               mc_w.l(errno.o)
-    0x20000004   0x08006974   0x00000004   Data   RW         1890    .data.SystemCoreClock  system_gd32f30x.o
-    0x20000008        -       0x00000002   Zero   RW         1536    .bss.TIMER5_IRQHandler.s_iCnt2  timer.o
-    0x2000000a        -       0x00000002   Zero   RW         1538    .bss.TIMER6_IRQHandler.s_iCnt1000  timer.o
-    0x2000000c        -       0x00000001   Zero   RW         1588    .bss.adc0_initialized  adc_dma.o
-    0x2000000d        -       0x00000001   Zero   RW         1589    .bss.adc1_initialized  adc_dma.o
-    0x2000000e        -       0x00000008   Zero   RW         1591    .bss.g_adc_multi    adc_dma.o
-    0x20000016   0x08006978   0x00000002   PAD
-    0x20000018        -       0x00000004   Zero   RW           36    .bss.g_ms           main.o
-    0x2000001c        -       0x00000001   Zero   RW         1833    .bss.llc_ctrl_step.en_z1  llc_control.o
-    0x2000001d        -       0x00000001   Zero   RW         1834    .bss.llc_driver_en_set.initialized  llc_control.o
-    0x2000001e        -       0x00000001   Zero   RW         1835    .bss.llc_driver_en_set.last  llc_control.o
-    0x2000001f        -       0x00000001   Zero   RW         1776    .bss.pfc_hw_set_main.s_gpio_initialized  pfc_control.o
-    0x20000020        -       0x00000001   Zero   RW         1777    .bss.pfc_hw_set_main.s_last  pfc_control.o
-    0x20000021   0x08006978   0x00000001   PAD
-    0x20000022        -       0x00000008   Zero   RW         1593    .bss.s_buf          adc_dma.o
-    0x2000002a   0x08006978   0x00000002   PAD
-    0x2000002c        -       0x0000000c   Zero   RW         1632    .bss.s_cfg          pwm_llc.o
-    0x20000038        -       0x00000004   Zero   RW           38    .bss.s_control_tick_pending  main.o
-    0x2000003c        -       0x00000004   Zero   RW           37    .bss.s_fast_loop_tick_pending  main.o
-    0x20000040        -       0x00000004   Zero   RW           41    .bss.s_fast_tick_drop_count  main.o
-    0x20000044        -       0x00000001   Zero   RW         1684    .bss.s_fault        protect_exti.o
-    0x20000045        -       0x00000001   Zero   RW         1685    .bss.s_fault_source_hw  protect_exti.o
-    0x20000046        -       0x00000001   Zero   RW         1539    .bss.s_i1secFlag    timer.o
-    0x20000047        -       0x00000001   Zero   RW         1537    .bss.s_i2msFlag     timer.o
-    0x20000048        -       0x00000008   Zero   RW         1590    .bss.s_latched      adc_dma.o
-    0x20000050        -       0x0000004c   Zero   RW         1830    .bss.s_llc          llc_control.o
-    0x2000009c        -       0x00000038   Zero   RW         1831    .bss.s_llc_curr     llc_control.o
-    0x200000d4        -       0x0000002c   Zero   RW         1832    .bss.s_llc_rt       llc_control.o
-    0x20000100        -       0x0000001c   Zero   RW           82    .bss.s_llc_softstart  llc_soft_start.o
-    0x2000011c        -       0x00000004   Zero   RW         1633    .bss.s_period       pwm_llc.o
-    0x20000120        -       0x00000004   Zero   RW         1658    .bss.s_period       pwm.o
-    0x20000124        -       0x00000044   Zero   RW         1778    .bss.s_pfc          pfc_control.o
-    0x20000168        -       0x00000004   Zero   RW           40    .bss.s_tick_drop_count  main.o
-    0x2000016c   0x08006978   0x00000004   PAD
-    0x20000170        -       0x00000400   Zero   RW         1872    STACK               startup_gd32f30x_hd.o
+    0x20000000   0x08006a20   0x00000004   Data   RW         2093    .data               mc_w.l(errno.o)
+    0x20000004   0x08006a24   0x00000004   Data   RW         1896    .data.SystemCoreClock  system_gd32f30x.o
+    0x20000008   0x08006a28   0x00000004   Data   RW         1838    .data.llc_vbus_feedforward_hz.vbus_filtered  llc_control.o
+    0x2000000c   0x08006a2c   0x00000004   PAD
+    0x20000010        -       0x00000002   Zero   RW         1532    .bss.TIMER5_IRQHandler.s_iCnt2  timer.o
+    0x20000012        -       0x00000002   Zero   RW         1534    .bss.TIMER6_IRQHandler.s_iCnt1000  timer.o
+    0x20000014        -       0x00000001   Zero   RW         1584    .bss.adc0_initialized  adc_dma.o
+    0x20000015        -       0x00000001   Zero   RW         1585    .bss.adc1_initialized  adc_dma.o
+    0x20000016        -       0x00000008   Zero   RW         1587    .bss.g_adc_multi    adc_dma.o
+    0x2000001e   0x08006a2c   0x00000002   PAD
+    0x20000020        -       0x00000004   Zero   RW           34    .bss.g_ms           main.o
+    0x20000024        -       0x00000001   Zero   RW         1839    .bss.llc_ctrl_step.en_z1  llc_control.o
+    0x20000025        -       0x00000001   Zero   RW         1840    .bss.llc_driver_en_set.initialized  llc_control.o
+    0x20000026        -       0x00000001   Zero   RW         1841    .bss.llc_driver_en_set.last  llc_control.o
+    0x20000027        -       0x00000001   Zero   RW         1772    .bss.pfc_hw_set_main.s_gpio_initialized  pfc_control.o
+    0x20000028        -       0x00000001   Zero   RW         1773    .bss.pfc_hw_set_main.s_last  pfc_control.o
+    0x20000029   0x08006a2c   0x00000001   PAD
+    0x2000002a        -       0x00000008   Zero   RW         1589    .bss.s_buf          adc_dma.o
+    0x20000032   0x08006a2c   0x00000002   PAD
+    0x20000034        -       0x0000000c   Zero   RW         1628    .bss.s_cfg          pwm_llc.o
+    0x20000040        -       0x00000004   Zero   RW           35    .bss.s_control_tick_pending  main.o
+    0x20000044        -       0x00000001   Zero   RW         1680    .bss.s_fault        protect_exti.o
+    0x20000045        -       0x00000001   Zero   RW         1681    .bss.s_fault_source_hw  protect_exti.o
+    0x20000046        -       0x00000001   Zero   RW         1535    .bss.s_i1secFlag    timer.o
+    0x20000047        -       0x00000001   Zero   RW         1533    .bss.s_i2msFlag     timer.o
+    0x20000048        -       0x00000008   Zero   RW         1586    .bss.s_latched      adc_dma.o
+    0x20000050        -       0x0000004c   Zero   RW         1835    .bss.s_llc          llc_control.o
+    0x2000009c        -       0x00000038   Zero   RW         1836    .bss.s_llc_curr     llc_control.o
+    0x200000d4        -       0x0000002c   Zero   RW         1837    .bss.s_llc_rt       llc_control.o
+    0x20000100        -       0x0000001c   Zero   RW           78    .bss.s_llc_softstart  llc_soft_start.o
+    0x2000011c        -       0x00000004   Zero   RW         1629    .bss.s_period       pwm_llc.o
+    0x20000120        -       0x00000004   Zero   RW         1654    .bss.s_period       pwm.o
+    0x20000124        -       0x00000044   Zero   RW         1774    .bss.s_pfc          pfc_control.o
+    0x20000168        -       0x00000004   Zero   RW           37    .bss.s_tick_drop_count  main.o
+    0x2000016c   0x08006a2c   0x00000004   PAD
+    0x20000170        -       0x00000400   Zero   RW         1878    STACK               startup_gd32f30x_hd.o
 
 
 ==============================================================================
@@ -4018,7 +4036,7 @@ Image component sizes
 
       Code (inc. data)   RO Data    RW Data    ZI Data      Debug   Object Name
 
-      1570          0          0          0         26       7663   adc_dma.o
+      1594          0          0          0         26       8125   adc_dma.o
        194          0          0          0          0       4102   debug_printf.o
       1386          0          0          0          0       9595   gd32f30x_adc.o
       1068          0          0          0          0       7241   gd32f30x_dma.o
@@ -4029,10 +4047,10 @@ Image component sizes
       2094          4          0          0          0      11914   gd32f30x_rcu.o
       2196         20          0          0          0      18790   gd32f30x_timer.o
        746          0          0          0          0      11439   gd32f30x_usart.o
-      4582         90          0          0        179       9013   llc_control.o
+      4838        130          0          4        179       9831   llc_control.o
       1224         52          0          0         28       3887   llc_soft_start.o
-      1576         24         12          0         20       8899   main.o
-      2628         72         18          0         70       7261   pfc_control.o
+      1468         24         12          0         12       8568   main.o
+      2628         72         18          0         70       7285   pfc_control.o
        262          0          0          0          2       3958   protect_exti.o
        488          8          0          0          4       3600   pwm.o
       1982         48          0          0         16       6015   pwm_llc.o
@@ -4042,9 +4060,9 @@ Image component sizes
        180          0          0          0          6       4656   timer.o
 
     ----------------------------------------------------------------------
-     24234        330        368          4       1384     141386   Object Totals
+     24410        370        368          8       1380     142359   Object Totals
          0          0         32          0          0          0   (incl. Generated)
-       174          4          2          0          9          0   (incl. Padding)
+       178          4          2          0         13          0   (incl. Padding)
 
     ----------------------------------------------------------------------
 
@@ -4103,15 +4121,15 @@ Image component sizes
 
       Code (inc. data)   RO Data    RW Data    ZI Data      Debug   
 
-     26588        438        400          8       1384     142310   Grand Totals
-     26588        438        400          8       1384     142310   ELF Image Totals
-     26588        438        400          8          0          0   ROM Totals
+     26764        478        400         12       1380     143283   Grand Totals
+     26764        478        400         12       1380     143283   ELF Image Totals
+     26764        478        400         12          0          0   ROM Totals
 
 ==============================================================================
 
-    Total RO  Size (Code + RO Data)                26988 (  26.36kB)
+    Total RO  Size (Code + RO Data)                27164 (  26.53kB)
     Total RW  Size (RW Data + ZI Data)              1392 (   1.36kB)
-    Total ROM Size (Code + RO Data + RW Data)      26996 (  26.36kB)
+    Total ROM Size (Code + RO Data + RW Data)      27176 (  26.54kB)
 
 ==============================================================================
 
