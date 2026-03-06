@@ -123,7 +123,7 @@ void TIMER3_IRQHandler(void)
     if (timer_interrupt_flag_get(TIMER3, TIMER_INT_FLAG_UP) == SET) {
         timer_interrupt_flag_clear(TIMER3, TIMER_INT_FLAG_UP);
         adc_fast_task_100us(); // 直接触发ADC0软件采集
-			  //s_fast_loop_tick_pending++;
+			  s_fast_loop_tick_pending++;
     }
 }
 
@@ -199,16 +199,16 @@ static bool protect_startup_check(void)
 static void control_loop_tick_1khz(void){
     /* 1 kHz control */ 
 		adc_multi_sample_aux_1khz();
-		adc_multi_copy(); 
+		//adc_multi_copy(); 
     pfc_tick_1khz();
-    llc_app_tick_100us();
+    // llc_app_tick_100us();
 		//llc_app_tick_adc_test();
 
 }
 static void llc_control_tick_100us(void)
 {
-    //adc_multi_copy();
-    //llc_app_tick_100us();
+    adc_multi_copy();
+    llc_app_tick_100us();
 }
 void SysTick_Handler(void){
     g_ms++;
@@ -275,7 +275,7 @@ int main(void){
 					pending_ticks = s_control_tick_pending; //pending_ticks ：用于逐个处理待执行的控制任务。
 					s_control_tick_pending = 0U;  //记录待处理的控制周期任务数量。
 			}
-			#if 0
+			#if 1
 			if (s_fast_loop_tick_pending > 0U)
 			{
 					fast_pending_ticks = s_fast_loop_tick_pending;
@@ -294,7 +294,7 @@ int main(void){
 						pending_ticks = MAX_TICKS_PER_LOOP;
 					}
 			}
-			#if 0
+			#if 1
 			while (fast_pending_ticks-- > 0U)
 			{
 				llc_control_tick_100us();

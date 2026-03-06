@@ -62,6 +62,7 @@ static void llc_update_measurements(void);
 static inline float conv_adc_to_v_div(uint16_t raw, float rtop, float rbot);
 static inline float conv_adc_to_i(uint16_t raw);
 static void llc_set_freq(float hz);
+static float llc_loop_scan_freq_from_adc(void);
 static bool llc_precheck_ok(void);
 static bool llc_pfc_ready_stable(bool enable_llc);
 static bool llc_faults_present(void);
@@ -76,7 +77,7 @@ static float llc_current_limit_step(float i_meas,bool en);
 static inline float conv_adc_to_v_div(uint16_t raw, float rtop, float rbot)
 {
     float v = (raw * VREF_ADC) / 4095.0f;
-    return v * (rtop + rbot) / rbot;
+    return v;
 }
 static inline float conv_adc_to_i(uint16_t raw)
 {
@@ -85,6 +86,21 @@ static inline float conv_adc_to_i(uint16_t raw)
     return v_net / (ISHUNT_OHM * IAMP_GAIN);
 }
 
+static float llc_loop_scan_freq_from_adc(void)
+{
+	float vadc_v = ((float)g_adc_multi.vout_raw * VREF_ADC) / 4095.0f;
+	    /* 低通滤波 */
+   //vadc_f = 0.9f * vadc_f + 0.1f * vadc;
+	if (vadc_v < LLC_LOOP_SCAN_ADC_MIN_V) {
+			return LLC_LOOP_SCAN_FREQ_HZ;
+	}
+	float pctrl = LLC_LOOP_SCAN_K_PCTRL_PER_V * vadc_v;
+	if (pctrl < 1.0f) {
+			return LLC_LOOP_SCAN_FREQ_HZ;
+	}
+
+	return LLC_LOOP_SCAN_CTRL_CLK_HZ / pctrl;
+}
 static void llc_driver_en_set(bool on)
 {
 	static bool initialized = false;
@@ -351,13 +367,20 @@ static float llc_current_limit_step(float i_meas,bool en)
 static uint32_t dbg_tick = 0;
 static void llc_update_measurements(void)
 {
+	  s_llc_rt.meas.vbus_v = pfc_bus_voltage();
+	
 		if(!s_llc_adc_enable)
+		{
+			s_llc_rt.meas.vout_v = 0.0f;
+			s_llc_rt.meas.iout_a = 0.0f;
+			s_llc.vmeas = 0.0f;
 			return;
+		}
     s_llc_rt.meas.vout_v = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
     s_llc_rt.meas.iout_a = conv_adc_to_i(g_adc_multi.isense_raw);
-    s_llc_rt.meas.vbus_v = pfc_bus_voltage();
+  
     s_llc.vmeas = s_llc_rt.meas.vout_v;
-		if(++dbg_tick >= 10000)   // 1s打印一次
+		if(++dbg_tick >= 1000)   // 1s打印一次
     {
         dbg_tick = 0;
 
@@ -498,7 +521,7 @@ static void llc_state_enter(llc_state_t next)
 			/* 扫描模式特殊初始化 */
 			if(s_llc_mode == LLC_MODE_LOOP_SCAN)
 			{
-					s_llc.f_cmd = LLC_LOOP_SCAN_FREQ_HZ;
+					s_llc.f_cmd = llc_loop_scan_freq_from_adc();
 					(void)llc_ctrl_step(0.0f, false, false, s_llc.f_cmd, s_llc.f_cmd, 0.0f);
 					(void)llc_current_limit_step(0.0f, false);
 			}
@@ -560,25 +583,10 @@ void llc_app_tick_adc_test(void)
 }
 void llc_app_tick_100us(void)
 {
-	static uint32_t tick_counter = 0;
 	llc_update_measurements();
-	
+
 	bool enable_llc = pfc_is_ready();
 	bool pfc_ready_stable = llc_pfc_ready_stable(enable_llc);
-	bool precheck_ok = llc_precheck_ok();
-	
-	if (++tick_counter >= 10000) {
-		tick_counter = 0;
-		debug_printf("LLC_TICK: state=%d, en=%d, stable=%d, pre=%d, vbus=%.1f\r\n", 
-					s_llc_rt.app.state, enable_llc, pfc_ready_stable, precheck_ok, s_llc_rt.meas.vbus_v);
-	}
-
-#if 0	
-	if (llc_faults_present()) {
-      llc_enter_fault();
-  		return;
-  }
-#endif
 #if 0
 	if (s_llc_rt.app.state != ST_IDLE && s_llc_rt.app.state != ST_FAULT) {
 		if (llc_faults_present()) {
@@ -594,9 +602,7 @@ void llc_app_tick_100us(void)
 		{
 			if(pfc_ready_stable &&llc_precheck_ok())
 			{
-				  llc_state_enter(ST_PRECHECK);
-				  debug_printf("idle-->precheck");
-				  
+				  llc_state_enter(ST_PRECHECK);				  
 			}
 			break;
 		}
@@ -622,7 +628,7 @@ void llc_app_tick_100us(void)
 			if(!enable_llc|| !llc_precheck_ok())
 			{
 				llc_state_enter(ST_STOPPING);
-				debug_printf("softwaore-->stop");
+				
 				break;
 			}
 			if(elapsed_reached(s_llc_rt.softstart_begin_ms,LLC_SOFTSTART_DURATION_MS + LLC_SOFTSTART_STABILIZE_MS)) 
@@ -693,7 +699,7 @@ void llc_app_tick_100us(void)
 			static uint32_t dbg_run = 0;
 
 			dbg_run++;
-			if(dbg_run >= 10000)
+			if(dbg_run >= 1000)
 			{
 				dbg_run = 0;
 
@@ -704,7 +710,7 @@ void llc_app_tick_100us(void)
 			if(s_llc_mode == LLC_MODE_LOOP_SCAN)
 			{
 					/* 固定92kHz */
-					s_llc.f_cmd = LLC_LOOP_SCAN_FREQ_HZ;  // 同步更新状态变量
+					s_llc.f_cmd = llc_loop_scan_freq_from_adc();;  // 同步更新状态变量
 					llc_set_freq(s_llc.f_cmd);
 
 					/* 禁止PI积分 */
