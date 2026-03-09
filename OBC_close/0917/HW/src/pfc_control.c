@@ -489,6 +489,7 @@ void pfc_tick_1khz(void)
         /* AC掉电去抖机制：AC电源失效时回退到IDLE */
         if (pfc_ac_loss_debounced()) {                                    // AC电源是否正常
 						pfc_state_enter(PFC_ST_IDLE);   					// 回到IDLE状态
+					 debug_printf("ac error ---> idle");
 					  break;
         }
 
@@ -499,17 +500,22 @@ void pfc_tick_1khz(void)
 					  s_pfc.hw_enable_since_ms = g_ms;
 					  s_pfc.vbus_ok_since_ms = 0U;                       // 重置VBUS监控计时器
 					  s_pfc.dropout_since_ms = 0U;                       // 重置掉电监控计时器
+					  
+					  debug_printf("pfc disable");
         }
         pfc_pwm_set(0.0f);                                   // 保持PWM为0，让NCP1654闭环
 		
 				/* VBUS掉电去抖：VBUS低于阈值持续一段时间才退回IDLE */
 				if (vbus_v >= PFC_VBUS_DROPOUT_THRESHOLD_V) {          // VBUS正常
 					s_pfc.dropout_since_ms = 0U;                       // 重置掉电计时
+					//debug_printf("vbus dropout reset");
 				} else {                                                // VBUS低于阈值
 				if (s_pfc.dropout_since_ms == 0U) {                // 首次检测到掉电
 					s_pfc.dropout_since_ms = g_ms;                 // 开始掉电计时
+					debug_printf("vbus first dropout");
 				} else if (elapsed_reached(s_pfc.dropout_since_ms, PFC_VBUS_DROPOUT_MS)) { // 掉电时间达到
 					pfc_state_enter(PFC_ST_IDLE);                  // 回到IDLE状态
+					debug_printf("vbus start diaodian");
 					break;
 			  }
 		}

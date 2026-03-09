@@ -46,7 +46,20 @@ typedef enum
 *                                              API函数声明
 *********************************************************************************************************/
 void llc_app_init(void);
+
+/* 20us周期入口：三层任务架构（20us高频 + 100us中速 + 1ms低速）
+ * 需在定时器中断中每20us调用一次
+ */
+void llc_app_tick_20us(void);
+
+/* 100us兼容入口：当定时器配置为100us时使用
+ * 自动分频为100us中速任务 + 1ms低速任务
+ */
+void llc_app_tick_100us_compat(void);
+
+/* 保持向后兼容：实际调用llc_app_tick_20us()实现 */
 void llc_app_tick_100us(void);
+
 void llc_app_tick_1khz_withoutVbus(void);
 llc_state_t llc_app_state(void);
 

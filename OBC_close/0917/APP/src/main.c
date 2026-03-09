@@ -47,7 +47,8 @@ void delay_ms(uint32_t duration_ms)
 uint16_t adc1_channel14_test(void);
 uint16_t adc1_channel14_multiple_samples(uint16_t sample_count, uint16_t *samples);
 static void adc_fast_task_100us(void);
-static void llc_control_tick_100us(void);
+static void llc_control_tick_20us(void);
+
 /*********************************************************************************************************
 *                                              内部函数实现
 *********************************************************************************************************/
@@ -92,7 +93,10 @@ static uint32_t adc_fast_timer_clk_hz(void)
     uint32_t apb1 = rcu_clock_freq_get(CK_APB1);
     return (RCU_CFG0 & RCU_CFG0_APB1PSC) ? (apb1 * 2U) : apb1;
 }
-static void adc_fast_timer_init_100us(void)
+/* TIMER3初始化：20us周期（50kHz）
+ * 用于ADC快速采样和LLC高频控制
+ */
+static void adc_fast_timer_init_20us(void)
 {
     rcu_periph_clock_enable(RCU_TIMER3);
     timer_deinit(TIMER3);
@@ -118,16 +122,20 @@ static void adc_fast_timer_init_100us(void)
     nvic_irq_enable(TIMER3_IRQn, 1U, 0U);
     timer_enable(TIMER3);
 }
+/* TIMER3中断处理：20us周期
+ * 触发ADC采样和LLC高频控制
+ */
 void TIMER3_IRQHandler(void)
 {
     if (timer_interrupt_flag_get(TIMER3, TIMER_INT_FLAG_UP) == SET) {
         timer_interrupt_flag_clear(TIMER3, TIMER_INT_FLAG_UP);
-        adc_fast_task_100us(); // 直接触发ADC0软件采集
-			  s_fast_loop_tick_pending++;
+        adc_fast_task_20us();     // 触发ADC采样
+        s_fast_loop_tick_pending++;  // 标记LLC控制任务待处理
     }
 }
 
-static void adc_fast_task_100us(void)
+/* ADC快速采样任务：20us周期调用 */
+static void adc_fast_task_20us(void)
 {
     adc_multi_trigger_fast();
 }
@@ -205,10 +213,13 @@ static void control_loop_tick_1khz(void){
 		//llc_app_tick_adc_test();
 
 }
-static void llc_control_tick_100us(void)
+/* LLC控制任务：20us周期
+ * 从TIMER3中断触发，在main循环中执行
+ */
+static void llc_control_tick_20us(void)
 {
-    adc_multi_copy();
-    llc_app_tick_100us();
+    adc_multi_copy();      // 复制ADC采样数据
+    llc_app_tick_20us();   // LLC 20us控制（内部分频为20us+100us+1ms）
 }
 void SysTick_Handler(void){
     g_ms++;
@@ -235,10 +246,12 @@ int main(void){
 		pb0_pwm_set_duty(0.5f);
 		#endif
 		
-    /* ADC multi (PA3/PA1 removed) triggered by TIMER3 interrupt @100us (software trigger) */
+    /* ADC multi triggered by TIMER3 interrupt @20us (software trigger)
+     * 20us周期 = 50kHz采样率，与LLC高频控制同步
+     */
     adc_multi_init_dma(ADC0_1_2_EXTTRIG_REGULAR_NONE); 
     adc_multi_start();
-    adc_fast_timer_init_100us(); // 启动100us定时器中断用于ADC0触发
+    adc_fast_timer_init_20us(); // 启动20us定时器中断用于ADC触发
 		adc1_aux_init();
     /* Protection EXTI PC11 */
     protect_exti_init();
@@ -295,9 +308,10 @@ int main(void){
 					}
 			}
 			#if 1
+			/* 处理LLC 20us高频控制任务 */
 			while (fast_pending_ticks-- > 0U)
 			{
-				llc_control_tick_100us();
+				llc_app_tick_20us();  // 20us周期控制
 				if (fast_pending_ticks > FAST_ADC_MAX_TICKS_PER_LOOP)
 				{
 					s_fast_tick_drop_count += (fast_pending_ticks - FAST_ADC_MAX_TICKS_PER_LOOP);

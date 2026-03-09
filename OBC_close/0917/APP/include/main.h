@@ -68,8 +68,12 @@
 #define ADC_STARTUP_SAMPLE_COUNT      (8U)
 #define ADC_STARTUP_SAMPLE_DELAY_MS   (2U)
 
-#define ADC_FAST_SAMPLE_US           (100U)
-#define ADC_FAST_SAMPLE_HZ           (1000000U / ADC_FAST_SAMPLE_US)
+/* ADC采样周期配置
+ * 20us周期 = 50kHz采样率
+ * 与llc_app_tick_20us()同步，实现20us控制周期
+ */
+#define ADC_FAST_SAMPLE_US           (20U)
+#define ADC_FAST_SAMPLE_HZ           (1000000U / ADC_FAST_SAMPLE_US)  // 50000Hz
 
 
 /* ==== Current sense ==== */
@@ -123,9 +127,9 @@
 #define LLC_VCTRL_E_DB_V         (0.15f)
 #define LLC_VCTRL_F_Q_STEP_HZ    (100.0f)
 
-#define LLC_LOOP_SCAN_FREQ_HZ            (92000.0f)    // 环路扫描模式默认频率（异常回退）
+#define LLC_LOOP_SCAN_FREQ_HZ            (130000.0f)    // 环路扫描模式默认频率（异常回退）
 #define LLC_LOOP_SCAN_CTRL_CLK_HZ        (120000000.0f)
-#define LLC_LOOP_SCAN_K_PCTRL_PER_V      (652.0f)      // Pctrl = K * Vin(ac)
+#define LLC_LOOP_SCAN_K_PCTRL_PER_V      (923.070f)      // Pctrl = K * Vin(ac)
 #define LLC_LOOP_SCAN_ADC_MIN_V          (0.05f)       // 防止交流注入接近0V导致除0
 
 //vbus 前馈

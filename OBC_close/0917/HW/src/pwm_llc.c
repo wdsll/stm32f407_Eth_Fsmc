@@ -231,6 +231,7 @@ static void llc_pwm_restore_pwm(void)
  */
 void llc_pwm_outputs_enable(bool en)
 { 
+	 //debug_printf("[PWM] outputs %s t=%lums\r\n", en ? "ENABLED" : "DISABLED", g_ms);
    if (en) {
 		//原理上只要这两行 等实际测看下
 		//强制下管先导通自举升压
