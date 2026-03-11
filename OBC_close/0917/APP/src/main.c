@@ -13,7 +13,7 @@
 /* 主循环一次最多处理的 tick，超过将计数为丢弃（避免主循环长时间占用） */
 #define MAX_TICKS_PER_LOOP         (5U)
 #define FAST_ADC_MAX_TICKS_PER_LOOP (10U)
-#define FAULT_RECOVER_DELAY_MS     (200U)
+
 /*********************************************************************************************************
 *                                              枚举结构体
 *********************************************************************************************************/
@@ -22,10 +22,13 @@
 *                                              内部变量定义
 *********************************************************************************************************/
 volatile uint32_t g_ms=0;
-static volatile uint32_t s_control_tick_pending = 0U;
-static volatile uint32_t s_fast_loop_tick_pending = 0U;
+static volatile uint32_t s_control_tick_pending = 0U;  /*1ms 慢环*/
+static volatile uint32_t s_fast_loop_tick_pending = 0U;  /*20us 快环*/
 static volatile uint32_t s_tick_drop_count = 0U; /* 被丢弃的 tick 计数 */
 static volatile uint32_t s_fast_tick_drop_count = 0U;
+static volatile uint32_t s_llc_1ms_tick_pending = 0U;  /* LLC 1ms任务pending计数 */
+
+
 void delay_ms(uint32_t duration_ms)
 {
     if (duration_ms == 0U) {
@@ -46,7 +49,7 @@ void delay_ms(uint32_t duration_ms)
 /* ADC1通道14测试函数声明 */
 uint16_t adc1_channel14_test(void);
 uint16_t adc1_channel14_multiple_samples(uint16_t sample_count, uint16_t *samples);
-static void adc_fast_task_100us(void);
+static void adc_fast_task_20us(void);
 static void llc_control_tick_20us(void);
 
 /*********************************************************************************************************
@@ -139,6 +142,9 @@ static void adc_fast_task_20us(void)
 {
     adc_multi_trigger_fast();
 }
+/*********************************************************************************************************
+*                                              启动检测
+*********************************************************************************************************/
 
 static inline float conv_adc_to_v_div(uint16_t raw, float rtop, float rbot){
     float v = ((float)raw * VREF_ADC) / 4095.0f;  
@@ -203,12 +209,16 @@ static bool protect_startup_check(void)
 
     return !protect_fault_active_hw();
 }
+/*********************************************************************************************************
+*                                              控制任务
+*********************************************************************************************************/
 
 static void control_loop_tick_1khz(void){
     /* 1 kHz control */ 
 		adc_multi_sample_aux_1khz();
 		//adc_multi_copy(); 
     pfc_tick_1khz();
+	  llc_app_tick_1ms_core();
     // llc_app_tick_100us();
 		//llc_app_tick_adc_test();
 
@@ -224,6 +234,7 @@ static void llc_control_tick_20us(void)
 void SysTick_Handler(void){
     g_ms++;
     s_control_tick_pending++;
+    s_llc_1ms_tick_pending++;  /* LLC 1ms任务pending */
 }
 
 int main(void){
@@ -233,7 +244,7 @@ int main(void){
 
 	debug_printf_init(DEBUG_PRINTF_DEFAULT_BAUDRATE);
 
-	  debug_printf("uart ok");
+	  debug_printf("uart ok \r\n");
 		systick_1ms_init();
     /* LLC complementary PWM 配置LLC的PWM频率 、死区时间和占空比，并初始化PWM模块*/
     llc_pwm_cfg_t lcfg = { .pwm_hz=LLC_PWM_BASE_HZ, .deadtime_ns=LLC_PWM_DEAD_NS, .duty=LLC_PWM_DUTY };//130
@@ -282,43 +293,44 @@ int main(void){
     while(1){
 			uint32_t pending_ticks = 0U;
 			uint32_t fast_pending_ticks = 0U;
+			
 			__disable_irq();
 			if(s_control_tick_pending > 0U)
 			{
-					pending_ticks = s_control_tick_pending; //pending_ticks ：用于逐个处理待执行的控制任务。
-					s_control_tick_pending = 0U;  //记录待处理的控制周期任务数量。
+					pending_ticks = s_control_tick_pending;
+					s_control_tick_pending = 0U;
 			}
-			#if 1
 			if (s_fast_loop_tick_pending > 0U)
 			{
 					fast_pending_ticks = s_fast_loop_tick_pending;
 					s_fast_loop_tick_pending = 0U;
 			}
-			#endif
 			__enable_irq();
+			
+			/* 处理PFC 1ms控制任务 */
 			while(pending_ticks-- > 0U)
 			{
 				 control_loop_tick_1khz();
-			
-				//防止单次主循环处理过多 tick
-					if(pending_ticks > MAX_TICKS_PER_LOOP)
-					{
-						s_tick_drop_count += (pending_ticks - MAX_TICKS_PER_LOOP);
-						pending_ticks = MAX_TICKS_PER_LOOP;
-					}
+				 if(pending_ticks > MAX_TICKS_PER_LOOP)
+				 {
+					 s_tick_drop_count += (pending_ticks - MAX_TICKS_PER_LOOP);
+					 pending_ticks = MAX_TICKS_PER_LOOP;
+				 }
 			}
-			#if 1
+			
 			/* 处理LLC 20us高频控制任务 */
 			while (fast_pending_ticks-- > 0U)
 			{
-				llc_app_tick_20us();  // 20us周期控制
+				llc_control_tick_20us();
 				if (fast_pending_ticks > FAST_ADC_MAX_TICKS_PER_LOOP)
 				{
 					s_fast_tick_drop_count += (fast_pending_ticks - FAST_ADC_MAX_TICKS_PER_LOOP);
 					fast_pending_ticks = FAST_ADC_MAX_TICKS_PER_LOOP;
 				}
 			}
-			#endif
+			
+			/* 刷新LLC日志缓冲区（主循环中打印，避免ISR中阻塞） */
+			llc_log_flush();
     }
 }
 

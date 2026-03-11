@@ -127,7 +127,7 @@
 #define LLC_VCTRL_E_DB_V         (0.15f)
 #define LLC_VCTRL_F_Q_STEP_HZ    (100.0f)
 
-#define LLC_LOOP_SCAN_FREQ_HZ            (130000.0f)    // 环路扫描模式默认频率（异常回退）
+#define LLC_LOOP_SCAN_FREQ_HZ            (80000.0f)    // 环路扫描模式默认频率（异常回退）
 #define LLC_LOOP_SCAN_CTRL_CLK_HZ        (120000000.0f)
 #define LLC_LOOP_SCAN_K_PCTRL_PER_V      (923.070f)      // Pctrl = K * Vin(ac)
 #define LLC_LOOP_SCAN_ADC_MIN_V          (0.05f)       // 防止交流注入接近0V导致除0

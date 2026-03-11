@@ -65,7 +65,19 @@ llc_state_t llc_app_state(void);
 
 void llc_set_mode(llc_mode_t mode);
 void llc_app_tick_adc_test(void);
+void llc_fault_and_state_print(void);
 
+/* 1ms任务：需在主循环中每1ms调用（已移出ISR） */
+void llc_app_tick_1ms_core(void);
 
+/* 日志缓冲区（ISR记录，主循环打印） */
+#define LLC_LOG_BUF_SIZE  16
+typedef struct {
+    char msg[64];
+    uint32_t timestamp;
+    bool valid;
+} llc_log_entry_t;
+
+void llc_log_flush(void);  /* 主循环调用，打印所有日志 */
 
 #endif /* LLC_CONTROL_H */

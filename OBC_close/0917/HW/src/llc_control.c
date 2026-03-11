@@ -1,5 +1,7 @@
 #include "llc_control.h"
 #include "float.h"
+#include <stdarg.h>
+#include <stdio.h>
 
 /*********************************************************************************************************
 *                                              宏定义
@@ -55,6 +57,28 @@ enum{
 static llc_mode_t s_llc_mode = LLC_MODE_NORMAL;
 static bool s_llc_adc_enable = false;
 
+/* 故障快照结构：20us快环记录，1ms慢环打印 */
+typedef struct {
+    bool ovp_active;        /* 过压故障 */
+    bool ocp_active;        /* 过流故障 */
+    bool vbus_uv_active;    /* 母线欠压故障 */
+    float vout_snapshot;    /* 故障时Vout值 */
+    float iout_snapshot;    /* 故障时Iout值 */
+    float vbus_snapshot;    /* 故障时Vbus值 */
+    bool state_changed;     /* 状态转换标志 */
+    llc_state_t prev_state; /* 前一状态 */
+    llc_state_t new_state;  /* 新状态 */
+    uint32_t state_change_ms; /* 状态转换时间 */
+    bool pending_print;     /* 待打印标志 */
+} llc_fault_snapshot_t;
+
+static llc_fault_snapshot_t s_fault_snapshot = {0};
+
+/* 日志缓冲区：ISR记录，主循环打印 */
+static llc_log_entry_t s_log_buf[LLC_LOG_BUF_SIZE];
+static volatile uint8_t s_log_write_idx = 0;
+static volatile uint8_t s_log_read_idx = 0;
+
 /*********************************************************************************************************
 *                                              内部函数声明
 *********************************************************************************************************/
@@ -68,6 +92,7 @@ static bool llc_precheck_ok(void);
 static bool llc_pfc_ready_stable(bool enable_llc);
 static bool llc_faults_present(void);
 static void llc_enter_fault(void);
+
 //static float llc_ctrl_step(float e, bool en, bool limit_active, float f_init, float f_track);
 static float llc_ctrl_step(float e, bool en, bool limit_active, float f_init, float f_track, float f_nom_ff);
 static float llc_bumpless_integ(float f0, float e0, float kp, float f_nom, float f_min, float f_max);
@@ -77,8 +102,8 @@ static float llc_current_limit_step(float i_meas,bool en);
 *********************************************************************************************************/
 static inline float conv_adc_to_v_div(uint16_t raw, float rtop, float rbot)
 {
-    float v = (raw * VREF_ADC) / 4095.0f;
-    return v;
+    float v_adc = (raw * VREF_ADC) / 4095.0f;  /* ADC输入电压 */
+    return v_adc * ((rtop + rbot) / rbot);      /* 分压比换算到实际电压 */
 }
 static inline float conv_adc_to_i(uint16_t raw)
 {
@@ -86,50 +111,117 @@ static inline float conv_adc_to_i(uint16_t raw)
     float v_net = v - 0.327f;
     return v_net / (ISHUNT_OHM * IAMP_GAIN);
 }
-
+#if 0
 static float llc_loop_scan_freq_from_adc(void)
 {
-	/* 使用ADC原始值直接计算，避免电压转换误差
-	 * 系数转换：k_adc = k_volt * (VREF_ADC / 4095.0f) / 1.6
-	 * 1.6是外部实际小信号干扰量到ADC输入的衰减系数
-	 * 例如：923.0 * (3.3 / 4095) / 1.6 ≈ 0.464
-	 */
-	const float k_adc = LLC_LOOP_SCAN_K_PCTRL_PER_V * ((VREF_ADC / 1.6f) / 4095.0f);
-	
+	float k = 0.41240f;   //130 --> 0.465   80
+	// 0.465
+
 	/* 一阶低通滤波，alpha = 0.005 对应截止频率约 40Hz (50kHz采样)
 	 * 公式：fc ≈ alpha * fs / (2*pi)，fs = 50000Hz
 	 * 较小的alpha提供更平滑的滤波效果
 	 */
 	static float vadc_filtered = 0.0f;
-	static bool initialized = false;
-	const float alpha = 0.005f;
+	const float alpha = 0.1f;
 	
-	/* 获取ADC原始值（0-4095范围） */
-	float vadc_raw = (float)g_adc_multi.vout_raw;
+	float vadc_v = ((float)g_adc_multi.vout_raw * VREF_ADC) / 4095.0f;
 	
 	/* 首次调用初始化 */
-	if (!initialized) {
-		vadc_filtered = vadc_raw;
-		initialized = true;
+	if (vadc_filtered < 0.001f) {
+		vadc_filtered = vadc_v;
 	}
 	
 	/* 低通滤波: y[n] = (1-alpha)*y[n-1] + alpha*x[n] */
-	vadc_filtered = (1.0f - alpha) * vadc_filtered + alpha * vadc_raw;
+	vadc_filtered = (1.0f - alpha) * vadc_filtered + alpha * vadc_v;
 	
-	/* 将ADC最小阈值从电压转换为ADC值 */
-	float adc_min_raw = LLC_LOOP_SCAN_ADC_MIN_V * 4095.0f / VREF_ADC;
-	if (vadc_filtered < adc_min_raw) {
-		return LLC_LOOP_SCAN_FREQ_HZ;
+	if (vadc_filtered < LLC_LOOP_SCAN_ADC_MIN_V) {
+			return LLC_LOOP_SCAN_FREQ_HZ;
 	}
-	
-	/* 直接使用ADC值计算pctrl */
-	float pctrl = k_adc * vadc_filtered;
-	if (pctrl < 1.0f) {
-		return LLC_LOOP_SCAN_FREQ_HZ;
-	}
+	float vad_test = vadc_filtered/3.3*4095;
+	// 1.565  1.625
+	float pctrl = k * vad_test;
+
 
 	return LLC_LOOP_SCAN_CTRL_CLK_HZ / pctrl;
 }
+#else
+static float llc_loop_scan_freq_from_adc(void)
+{
+    enum {
+			  /* Q12定点系数
+         * K = 0.41240
+         * K_Q12 = round(0.41240 * 4096) = round(1689.1904) = 1689
+         * 实际等效系数 = 1689 / 4096 = 0.412353515625
+         */
+        K_Q12 = 1689    /* round(0.41240 * 4096) */
+    };
+		const float f_step_max = 500.0f;
+		/* 最小ADC阈值:
+     * adc_min_code = round(LLC_LOOP_SCAN_ADC_MIN_V / VREF_ADC * 4095)
+     * 若ADC低于该值，则认为注入无效，保持上一频率
+     */
+    const uint16_t adc_min_code = (uint16_t)((LLC_LOOP_SCAN_ADC_MIN_V / VREF_ADC) * 4095.0f + 0.5f);
+		
+		static uint32_t adc_filtered_q4 = 0;   // ADC滤波值，Q4提高一点分辨率
+    static float f_last = LLC_LOOP_SCAN_FREQ_HZ;
+		
+		uint16_t adc_now = g_adc_multi.vout_raw;
+    /* Q4滤波状态:
+     * adc_filtered_q4 = adc_filtered * 16
+     * 用Q4提高滤波过程的小数分辨率
+     */
+    if (adc_filtered_q4 == 0U) {
+		/* 首次初始化:
+     * adc_filtered_q4 = adc_now << 4
+     * f_last = 当前LLC频率命令
+     */
+        adc_filtered_q4 = ((uint32_t)adc_now << 4);
+			/* 上一次输出频率 */
+        f_last = s_llc.f_cmd;
+    }
+		/* alpha = 1/8: y += (x - y)/8 */
+		/* 一阶IIR滤波, alpha = 1/8
+     * x_q4 = adc_now * 16
+     * adc_filtered_q4 = adc_filtered_q4 + (x_q4 - adc_filtered_q4)/8
+     */
+    {
+        uint32_t x_q4 = ((uint32_t)adc_now << 4);
+        adc_filtered_q4 += (x_q4 - adc_filtered_q4) >> 3;
+    }
+		uint16_t adc_filtered = (uint16_t)(adc_filtered_q4 >> 4);
+    /* ADC过低，保持上一频率 */
+    if (adc_filtered < adc_min_code) {
+        return f_last;
+    }
+		 /* 定点计算 pctrl
+     * pctrl = floor(adc_filtered * K_Q12 / 4096)
+     *       = floor(adc_filtered * 1689 / 4096)
+     *       ≈ adc_filtered * 0.412353515625
+     */
+    uint32_t pctrl = ((uint32_t)adc_filtered * (uint32_t)K_Q12) >> 12;
+    if (pctrl < 2U) {
+        pctrl = 2U;
+    }
+		 /* 频率计算
+     * f_target = CTRL_CLK / pctrl
+     *          = 120000000 / pctrl
+     */
+		float f_target = LLC_LOOP_SCAN_CTRL_CLK_HZ / (float)pctrl;
+    f_target = f_clampf(f_target, s_llc.f_min, s_llc.f_max);
+		
+		
+		//频率步进限制
+		float df = f_target - f_last;
+    if (df > f_step_max) {
+        f_target = f_last + f_step_max;
+    } else if (df < -f_step_max) {
+        f_target = f_last - f_step_max;
+    }
+
+    f_last = f_target;
+    return f_target;
+}
+#endif
 static void llc_driver_en_set(bool on)
 {
 	static bool initialized = false;
@@ -409,15 +501,6 @@ static void llc_update_measurements(void)
     s_llc_rt.meas.iout_a = conv_adc_to_i(g_adc_multi.isense_raw);
   
     s_llc.vmeas = s_llc_rt.meas.vout_v;
-		if(++dbg_tick >= 1000)   // 1s打印一次
-    {
-        dbg_tick = 0;
-
-        debug_printf("VBUS=%.1f  VOUT=%.1f  IOUT=%.2f\r\n",
-               s_llc_rt.meas.vbus_v,
-               s_llc_rt.meas.vout_v,
-               s_llc_rt.meas.iout_a);
-    }
 }
 
 static bool llc_precheck_ok(void)
@@ -441,37 +524,129 @@ static bool llc_pfc_ready_stable(bool enable_llc)
 
 static bool llc_faults_present(void)
 {
-   // if (protect_fault_active_hw() || protect_fault_latched()) {
-   //     return true;
-   // }
+    bool fault = false;
+    
+    /* 20us快环：只记录故障快照，不打印
+     * 注意：只记录第一次故障值，避免被后续覆盖
+     */
+    /* IDLE / PRECHECK 不做输出故障判断 */
+    if (s_llc_rt.app.state == ST_IDLE || s_llc_rt.app.state == ST_PRECHECK) {
+        return false;
+    }
+		if (s_llc_adc_enable){
+			if (s_llc_rt.meas.vout_v > LLC_VOUT_OVP_V) {
+					if (!s_fault_snapshot.ovp_active) {  /* 首次触发才记录 */
+							s_fault_snapshot.ovp_active = true;
+							s_fault_snapshot.vout_snapshot = s_llc_rt.meas.vout_v;
+					}
+					fault = true;
+			}
 
-   // if (pfc_is_fault()) {
-   //     return true;
-   // }
-
-    if (s_llc_rt.meas.vout_v > LLC_VOUT_OVP_V) {  //56
-			        debug_printf("[FAULT] OVP! Vout=%.1fV > %.1fV\r\n", 
-                     s_llc_rt.meas.vout_v, LLC_VOUT_OVP_V);  // 添加
-        return true;
+			if (s_llc_rt.meas.iout_a > LLC_IOUT_OCP_A) {
+					if (!s_fault_snapshot.ocp_active) {  /* 首次触发才记录 */
+							s_fault_snapshot.ocp_active = true;
+							s_fault_snapshot.iout_snapshot = s_llc_rt.meas.iout_a;
+					}
+					fault = true;
+			}
+		}
+		/* VBUS欠压建议只在 RUN / HOLD / SOFTSTART 阶段判断 */
+		if (s_llc_rt.app.state == ST_SOFTSTART ||
+        s_llc_rt.app.state == ST_RUN_ENTRY_HOLD ||
+        s_llc_rt.app.state == ST_LLC_RUN) {
+				if (s_llc_rt.meas.vbus_v < (LLC_VBUS_MIN_START_V - LLC_VOUT_HYST_V)) {
+						if (!s_fault_snapshot.vbus_uv_active) {  /* 首次触发才记录 */
+								s_fault_snapshot.vbus_uv_active = true;
+								s_fault_snapshot.vbus_snapshot = s_llc_rt.meas.vbus_v;
+						}
+						fault = true;
+				}
+			}
+    
+    /* 标记有待打印的故障 */
+    if (fault) {
+        s_fault_snapshot.pending_print = true;
     }
 
-    if (s_llc_rt.meas.iout_a > LLC_IOUT_OCP_A) { //41
-			        debug_printf("[FAULT] OCP! Iout=%.2fA > %.2fA\r\n", 
-                     s_llc_rt.meas.iout_a, LLC_IOUT_OCP_A);  // 添加
-        return true;
-    }
+    return fault;
+}
 
-    if (s_llc_rt.meas.vbus_v < (LLC_VBUS_MIN_START_V - LLC_VOUT_HYST_V)) {
-			        debug_printf("[FAULT] VBUS_UV! Vbus=%.1fV\r\n", 
-                     s_llc_rt.meas.vbus_v);  // 添加
-        return true;
+/* 1ms慢环：统一打印故障和状态转换信息 */
+void llc_fault_and_state_print(void)
+{
+    if (!s_fault_snapshot.pending_print) {
+        return;
     }
-
-    return false;
+    
+    /* 打印状态转换 */
+    if (s_fault_snapshot.state_changed) {
+        debug_printf("LLC STATE: %s -> %s  t=%lu ms\r\n",
+                     llc_state_str(s_fault_snapshot.prev_state),
+                     llc_state_str(s_fault_snapshot.new_state),
+                     s_fault_snapshot.state_change_ms);
+        s_fault_snapshot.state_changed = false;
+    }
+    
+    /* 打印故障信息 */
+    if (s_fault_snapshot.ovp_active) {
+        debug_printf("[FAULT] OVP! Vout=%.1fV > %.1fV\r\n", 
+                     s_fault_snapshot.vout_snapshot, LLC_VOUT_OVP_V);
+        s_fault_snapshot.ovp_active = false;
+    }
+    
+    if (s_fault_snapshot.ocp_active) {
+        debug_printf("[FAULT] OCP! Iout=%.2fA > %.2fA\r\n", 
+                     s_fault_snapshot.iout_snapshot, LLC_IOUT_OCP_A);
+        s_fault_snapshot.ocp_active = false;
+    }
+    
+    if (s_fault_snapshot.vbus_uv_active) {
+        debug_printf("[FAULT] VBUS_UV! Vbus=%.1fV\r\n", 
+                     s_fault_snapshot.vbus_snapshot);
+        s_fault_snapshot.vbus_uv_active = false;
+    }
+    
+    s_fault_snapshot.pending_print = false;
 }
 static void llc_enter_fault(void)
 {
     llc_state_enter(ST_FAULT);
+}
+
+/* ISR中调用：记录日志到缓冲区（非打印） */
+static void llc_log_isr(const char* fmt, ...)
+{
+    uint8_t idx = s_log_write_idx;
+    llc_log_entry_t* entry = &s_log_buf[idx];
+    
+    if (entry->valid) {
+        return;  /* 缓冲区满，丢弃 */
+    }
+    
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(entry->msg, sizeof(entry->msg), fmt, args);
+    va_end(args);
+    
+    entry->timestamp = g_ms;
+    entry->valid = true;
+    
+    s_log_write_idx = (idx + 1) % LLC_LOG_BUF_SIZE;
+}
+
+/* 主循环调用：刷新并打印所有日志 */
+void llc_log_flush(void)
+{
+    while (s_log_read_idx != s_log_write_idx) {
+        llc_log_entry_t* entry = &s_log_buf[s_log_read_idx];
+        
+        if (entry->valid) {
+            debug_printf("[%lu] %s\r\n", entry->timestamp, entry->msg);
+            entry->valid = false;
+        }
+        
+        s_log_read_idx = (s_log_read_idx + 1) % LLC_LOG_BUF_SIZE;
+    }
 }
 
 static float llc_bumpless_integ(float f0, float e0, float kp, float f_nom, float f_min, float f_max)
@@ -492,10 +667,16 @@ static void llc_state_enter(llc_state_t next)
 	{
 		return;
 	}
-	debug_printf("LLC STATE: %s -> %s  t=%lu ms\r\n",
-			 llc_state_str(s_llc_rt.app.state),
-			 llc_state_str(next),
-			 g_ms);
+	/* 状态转换记录到快照，1ms统一打印
+	 * 只记录首次跳变，避免被后续覆盖
+	 */
+	if (!s_fault_snapshot.state_changed) {
+		s_fault_snapshot.state_changed = true;
+		s_fault_snapshot.prev_state = s_llc_rt.app.state;
+		s_fault_snapshot.new_state = next;
+		s_fault_snapshot.state_change_ms = g_ms;
+	}
+	s_fault_snapshot.pending_print = true;
 	
 	s_llc_rt.app.state = next; 
 	s_llc_rt.app.entry_ms = g_ms; // 记录进入时间
@@ -594,6 +775,11 @@ static void llc_state_enter(llc_state_t next)
 *********************************************************************************************************/
 void llc_app_init()
 {
+	/* PC7 GPIO初始化：用于20us task执行时间测试 */
+	rcu_periph_clock_enable(RCU_GPIOC);
+	gpio_init(GPIOC, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_7);
+	gpio_bit_reset(GPIOC, GPIO_PIN_7);
+	
 	llc_softstart_init();
 	s_llc = (llc_t){
 				.vref=LLC_VOUT_TARGET_V, .vmeas=0.0f,
@@ -610,7 +796,7 @@ void llc_app_init()
 				.i_off=LLC_IOUT_TARGET_A - LLC_IOUT_OFF_DELTA_A,
 				.limit_active=false
 	};
-	
+	s_llc_rt.app.state = (llc_state_t)0xFF;
 	llc_state_enter(ST_IDLE);
 }
 void llc_app_tick_adc_test(void)
@@ -620,109 +806,93 @@ void llc_app_tick_adc_test(void)
 /* 20us 优化版本：分离1ms任务，简化运算 */
 static volatile uint32_t s_tick_1ms_cnt = 0;  // 1ms分频计数器
 
-/* 20us核心任务：仅高频必要操作 */
+/* 20us核心任务：极简版，仅保留SCAN模式必要功能
+ * - 故障检测
+ * - IDLE→PRECHECK 转换
+ * - RUN状态：SCAN频率实时更新
+ */
 static void llc_app_tick_20us_core(void)
 {
 	llc_update_measurements();
-	
+	static uint8_t scan_div = 0U;
+	/* 故障检测 */
+	if (llc_faults_present()) {
+		llc_state_enter(ST_FAULT);
+		return;
+	}
 	bool enable_llc = pfc_is_ready();
-	
 	switch(s_llc_rt.app.state)
 	{
-		case ST_IDLE:
-			if(llc_pfc_ready_stable(enable_llc) && llc_precheck_ok()) {
-				llc_state_enter(ST_PRECHECK);
-			}
-			break;
-			
-		case ST_PRECHECK:
-			if (!enable_llc || !llc_precheck_ok()) {
-				llc_state_enter(ST_STOPPING);
-			}
-			break;
-			
-		case ST_SOFTSTART:
-			if(!enable_llc || !llc_precheck_ok()) {
-				llc_state_enter(ST_STOPPING);
-			}
-			break;
-			
-		case ST_RUN_ENTRY_HOLD:
-			if(!enable_llc || !llc_precheck_ok()) {
-				llc_state_enter(ST_STOPPING);
-				break;
-			}
-			if(s_llc_mode == LLC_MODE_LOOP_SCAN) {
-				llc_state_enter(ST_LLC_RUN);
-			}
-			break;
+    case ST_IDLE:
+        if (llc_pfc_ready_stable(enable_llc) && llc_precheck_ok()) {
+            llc_state_enter(ST_PRECHECK);
+        }
+        break;
+
+    case ST_PRECHECK:
+        if (!enable_llc || !llc_precheck_ok()) {
+            llc_state_enter(ST_STOPPING);
+        }
+        break;
+
+    case ST_SOFTSTART:
+        if (!enable_llc || !llc_precheck_ok()) {
+            llc_state_enter(ST_STOPPING);
+        }
+        break;
+
+    case ST_RUN_ENTRY_HOLD:
+        if (!enable_llc || !llc_precheck_ok()) {
+            llc_state_enter(ST_STOPPING);
+        }
+        break;
 			
 		case ST_LLC_RUN:
-			if(!enable_llc || (s_llc_rt.meas.vbus_v < (LLC_VBUS_MIN_START_V - LLC_VOUT_HYST_V))) {
-				llc_state_enter(ST_STOPPING);
-				break;
-			}
+        if (!enable_llc || (s_llc_rt.meas.vbus_v < (LLC_VBUS_MIN_START_V - LLC_VOUT_HYST_V))) {
+            llc_state_enter(ST_STOPPING);
+            break;
+        }
+
+        if (s_llc_mode == LLC_MODE_LOOP_SCAN) {
+            scan_div++;
+            if (scan_div >= 5U) {   /* 100us更新一次 */
+                scan_div = 0U;
+                s_llc.f_cmd = llc_loop_scan_freq_from_adc();
+                llc_set_freq(s_llc.f_cmd);
+            }
+        }
+        break;
 			
-			if(s_llc_mode == LLC_MODE_LOOP_SCAN) {
-				/* SCAN模式：直接读ADC设频率 */
-				s_llc.f_cmd = llc_loop_scan_freq_from_adc();
-				llc_pwm_set_freq((uint32_t)s_llc.f_cmd);
-			}
-			break;
-			
-		case ST_STOPPING:
-		case ST_FAULT:
 		default:
+			/* 其他状态由100us/1ms任务处理 */
 			break;
 	}
 }
 
-/* 100us中速任务：时序控制和状态检查 */
-static void llc_app_tick_100us_core(void)
+/* 软启流程统一任务：由主循环每1ms调用
+ * 处理PRECHECK→SOFTSTART→RUN_ENTRY_HOLD→RUN完整流程
+ */
+void llc_app_tick_1ms_core(void)
 {
-	bool enable_llc = pfc_is_ready();
-	
+	s_tick_1ms_cnt++;
+
+  llc_fault_and_state_print();
 	switch(s_llc_rt.app.state)
 	{
 		case ST_PRECHECK:
+			/* 100ms后进入软启 */
 			if (elapsed_reached(s_llc_rt.app.entry_ms, 100U)) {
 				llc_state_enter(ST_SOFTSTART);
 			}
 			break;
 			
 		case ST_SOFTSTART:
+			/* 软启tick */
 			llc_softstart_tick_1khz();
-			break;
 			
-		case ST_RUN_ENTRY_HOLD:
-			if(s_llc_mode != LLC_MODE_LOOP_SCAN) {
-				float hold_err = s_llc_rt.meas.vout_v - LLC_VOUT_TARGET_V;
-				if (fabsf(hold_err) <= LLC_RUN_ENTRY_STABLE_WINDOW_V) {
-					if (s_llc_rt.run_entry_stable_ticks < LLC_RUN_ENTRY_STABLE_TICKS) {
-						s_llc_rt.run_entry_stable_ticks++;
-					}
-				} else {
-					s_llc_rt.run_entry_stable_ticks = 0U;
-				}
-			}
-			break;
-			
-		default:
-			break;
-	}
-}
-
-/* 1ms低速任务：复杂计算和时序控制 */
-static void llc_app_tick_1ms_core(void)
-{
-	s_tick_1ms_cnt++;
-	
-	bool enable_llc = pfc_is_ready();
-	
-	switch(s_llc_rt.app.state)
-	{
-		case ST_SOFTSTART:
-			if(elapsed_reached(s_llc_rt.softstart_begin_ms, LLC_SOFTSTART_DURATION_MS + LLC_SOFTSTART_STABILIZE_MS)) {
+			/* 软启完成进入RUN_ENTRY_HOLD */
+			if(elapsed_reached(s_llc_rt.softstart_begin_ms, 
+			                   LLC_SOFTSTART_DURATION_MS + LLC_SOFTSTART_STABILIZE_MS)) {
 				llc_softstart_stop();
 				s_llc.f_cmd = llc_softstart_last_hz();
 				s_llc_adc_enable = true;
@@ -731,99 +901,80 @@ static void llc_app_tick_1ms_core(void)
 			break;
 			
 		case ST_RUN_ENTRY_HOLD:
-			if(s_llc_mode != LLC_MODE_LOOP_SCAN) {
-				if (elapsed_reached(s_llc_rt.run_entry_hold_begin_ms, LLC_RUN_ENTRY_HOLD_MS) && 
-				    s_llc_rt.run_entry_stable_ticks >= LLC_RUN_ENTRY_STABLE_TICKS) {
-					llc_state_enter(ST_LLC_RUN);
-				} else if (elapsed_reached(s_llc_rt.run_entry_hold_begin_ms, LLC_RUN_ENTRY_TIMEOUT_MS)) {
-					llc_state_enter(ST_STOPPING);
-				}
-			}
-			break;
+        if (s_llc_mode == LLC_MODE_LOOP_SCAN) {
+            if (elapsed_reached(s_llc_rt.run_entry_hold_begin_ms, LLC_RUN_ENTRY_HOLD_MS)) {
+                llc_state_enter(ST_LLC_RUN);
+            }
+        } else {
+            if (elapsed_reached(s_llc_rt.run_entry_hold_begin_ms, LLC_RUN_ENTRY_HOLD_MS) &&
+                s_llc_rt.run_entry_stable_ticks >= LLC_RUN_ENTRY_STABLE_TICKS) {
+                llc_state_enter(ST_LLC_RUN);
+            } else if (elapsed_reached(s_llc_rt.run_entry_hold_begin_ms, LLC_RUN_ENTRY_TIMEOUT_MS)) {
+                llc_state_enter(ST_STOPPING);
+            }
+        }
+        break;
 			
 		case ST_LLC_RUN:
-			if(s_llc_mode == LLC_MODE_LOOP_SCAN) {
-				/* SCAN模式：重置PI积分器 */
-				(void)llc_ctrl_step(0.0f, false, false, s_llc.f_cmd, s_llc.f_cmd, 0.0f);
-				
-				/* 1秒打印一次 */
-				if((s_tick_1ms_cnt % 1000) == 0) {
-					debug_printf("SCAN: adc=%u f=%.0f\r\n", 
-					             g_adc_multi.vout_raw, s_llc.f_cmd);
-				}
-			} else {
-				/* 正常模式：PI控制 */
-				s_llc.vmeas = s_llc_rt.meas.vout_v;
-				float err = s_llc.vref - s_llc.vmeas;
-				float f_init = s_llc.f_cmd;
-				(void)llc_current_limit_step(0.0f, false);
-				float f_nom_ff = llc_vbus_feedforward_hz(s_llc_rt.meas.vbus_v);
-				float f_cmd = llc_ctrl_step(err, true, false, f_init, f_init, f_nom_ff);
-				llc_set_freq(f_cmd);
-				
-				/* 1秒打印一次 */
-				if((s_tick_1ms_cnt % 1000) == 0) {
-					debug_printf("RUN: V=%.1f f=%.0f\r\n", s_llc.vmeas, s_llc.f_cmd);
-				}
-			}
-			break;
-			
-		case ST_STOPPING:
-			if(elapsed_reached(s_llc_rt.stopping_begin_ms, LLC_STOPPING_FREQ_HOLD_MS)) {
-				llc_pwm_outputs_enable(0);
-				llc_driver_en_set(false);
-				llc_state_enter(ST_IDLE);
-			}
-			break;
-			
+        if (s_llc_mode == LLC_MODE_LOOP_SCAN) {
+            (void)llc_ctrl_step(0.0f, false, false, s_llc.f_cmd, s_llc.f_cmd, 0.0f);
+
+            if ((s_tick_1ms_cnt % 1000U) == 0U) {
+                debug_printf("SCAN: adc=%u f=%.0f\r\n", g_adc_multi.vout_raw, s_llc.f_cmd);
+            }
+        } else {
+            s_llc.vmeas = s_llc_rt.meas.vout_v;
+            float err = s_llc.vref - s_llc.vmeas;
+            float f_init = s_llc.f_cmd;
+
+            (void)llc_current_limit_step(0.0f, false);
+
+            float f_nom_ff = llc_vbus_feedforward_hz(s_llc_rt.meas.vbus_v);
+            float f_cmd = llc_ctrl_step(err, true, false, f_init, f_init, f_nom_ff);
+            llc_set_freq(f_cmd);
+
+            if ((s_tick_1ms_cnt % 1000U) == 0U) {
+                debug_printf("RUN: V=%.1f f=%.0f\r\n", s_llc.vmeas, s_llc.f_cmd);
+            }
+        }
+        break;
+
+			case ST_STOPPING:
+        if (elapsed_reached(s_llc_rt.stopping_begin_ms, LLC_STOPPING_FREQ_HOLD_MS)) {
+            llc_pwm_outputs_enable(0);
+            llc_driver_en_set(false);
+            llc_state_enter(ST_IDLE);
+        }
+        break;
 		default:
 			break;
 	}
 }
 
-/* 兼容性：原有100us调用入口，内部做50分频到20us */
-/* 20us周期入口：从定时器中断直接调用（需配置定时器为20us周期）
- * 分频逻辑：
- *   - 20us任务：每周期执行（100%）
- *   - 100us任务：每5个20us执行（分频比5:1）
- *   - 1ms任务：每50个20us执行（分频比50:1）
+/* 20us周期入口：极简ISR，只执行高频任务
+ * 软启流程已移至主循环1ms任务
  */
 void llc_app_tick_20us(void)
 {
-	static uint8_t tick_cnt = 0;
+	/* PC7 GPIO测试 */
+	gpio_bit_set(GPIOC, GPIO_PIN_7);
 	
-	/* ==== 20us高频任务：每周期执行 ==== */
+	/* 20us高频任务（故障检测+SCAN频率更新） */
 	llc_app_tick_20us_core();
 	
-	tick_cnt++;
-	
-	/* ==== 100us中速任务：每5个20us ==== */
-	if((tick_cnt % 5) == 0) {
-		llc_app_tick_100us_core();
-	}
-	
-	/* ==== 1ms低速任务：每50个20us ==== */
-	if(tick_cnt >= 50) {
-		tick_cnt = 0;
-		llc_app_tick_1ms_core();
-	}
+	gpio_bit_reset(GPIOC, GPIO_PIN_7);
 }
 
 /* 兼容性保留：如果定时器仍是100us，用这个入口 */
 void llc_app_tick_100us_compat(void)
 {
-	static uint8_t div10 = 0;
+	/* PC7 GPIO测试 */
+	gpio_bit_set(GPIOC, GPIO_PIN_7);
 	
-	/* 100us任务 */
-	llc_app_tick_100us_core();
+	/* 20us高频任务（故障检测+SCAN频率更新） */
+	llc_app_tick_20us_core();
 	
-	div10++;
-	
-	/* 1ms任务：每10个100us */
-	if(div10 >= 10) {
-		div10 = 0;
-		llc_app_tick_1ms_core();
-	}
+	gpio_bit_reset(GPIOC, GPIO_PIN_7);
 }
 
 /* 向后兼容：llc_app_tick_100us 映射到兼容版本
