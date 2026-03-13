@@ -208,13 +208,19 @@ static void llc_softstart_tick(void)
 		{
 			return;
 		}
+		
+    /* 用你项目已有的故障判据 */
+    //if (protect_fault_latched() || protect_fault_active_hw()) {
+    //    llc_softstart_abort();
+    //    return;
+    //}
 
 	 if (s_llc_softstart.pause) {
         ss_apply(s_llc_softstart.last_hz);
         return;
     }
 
-	 uint32_t elapsed = (uint32_t)(g_ms - s_llc_softstart.start_ms);
+	uint32_t elapsed = (uint32_t)(g_ms - s_llc_softstart.start_ms);
 
     if (elapsed >= s_llc_softstart.duration_ms) {
         s_llc_softstart.active = false;

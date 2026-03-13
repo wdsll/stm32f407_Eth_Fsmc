@@ -1,0 +1,56 @@
+# LLC 电压环闭环流程（基于离散 PI + 频率/斜率限幅）
+本文档描述当前工程中 LLC 电压环闭环的详细执行流程，结合 `HW/src/llc_control.c` 的实现和 `llc_ctrl_step()` 的 PI 控制逻辑。
+## 1. 主要状态与入口
+闭环控制在 `llc_app_tick_1khz()` 中运行，系统 1kHz 周期刷新。
+1. **测量更新**
+   - `llc_update_measurements()` 更新 `Vout/Vbus/Iout`。
+2. **故障判定**
+   - `llc_faults_present()` 若有故障，进入 `ST_FAULT`。
+3. **状态机处理**
+   - 按 `s_llc_rt.app.state` 进入各状态分支。
+   
+## 2. 进入闭环前的流程
+1. **ST_IDLE**
+   - 关闭 PFC 与 LLC PWM，清理软启动与 PI 变量。
+2. **ST_PRECHECK**
+   - 使能驱动，等待 PFC 准备完成与母线电压满足阈值。
+3. **ST_SOFTSTART**
+   - 软启动频率斜坡至 `LLC_SOFTSTART_TARGET_HZ`。
+4. **ST_SWEEP**
+   - 频率扫描寻找最小电压误差点，记录 `sweep_best_freq`。
+5. **ST_LLC_RUN**
+   - 进入闭环控制，初始化 PI 频率控制器状态。
+  
+## 3. 闭环运行（ST_LLC_RUN）详细流程
+每个 1kHz 控制周期执行如下步骤：
+1. **电压误差计算**
+   - `error = Vref - Vout`，其中 `Vref = LLC_VOUT_TARGET_V`。
+2. **PI 位置式计算（离散域）**
+   - 积分候选：`x_candidate = x_int + ki * error`。
+   - 控制量：`u = kp * error + x_candidate`。
+   - 频率请求：`f_req = f_nom - u`。
+   - 说明：`f_nom = (f_min + f_max) / 2`，LLC 采用“电压偏低降频”的方向。
+3. **频率限幅**
+   - `f_req` 限制在 `[f_min, f_max]` 内得到 `f_sat`。
+4. **抗饱和（冻结积分）**
+   - 若 `f_req` 触发限幅，则冻结积分；
+   - 若未饱和，更新积分并进行积分限幅。
+5. **斜率限幅**
+   - `f_cmd` 在单周期内限制变化量 `±f_slew`。
+6. **频率下发**
+   - 调用 `llc_set_freq(f_cmd)` 更新 PWM 频率。
+   
+## 4. 退出闭环条件
+闭环运行时若出现以下条件，将退出闭环并进入停机或故障处理：
+- PFC 未 ready。
+- `Vbus` 低于门限。
+- 过压/过流/硬件保护等故障条件。
+
+## 5. 关键变量对照
+- `kp/ki/f_min/f_max/f_slew`：来自 `llc_t` 配置结构。
+- `pi_integ/pi_f_prev`：离散 PI 的积分状态与上一周期频率。
+- `f_cmd`：最终 PWM 输出频率。
+
+## 6. 文件位置
+- 控制逻辑实现：`HW/src/llc_control.c`。
+- 相关宏定义：`APP/include/main.h`。

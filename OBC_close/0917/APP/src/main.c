@@ -12,23 +12,24 @@
 #define CONTROL_LOOP_DT_S          (1.0f / (float)CONTROL_LOOP_HZ)
 /* 主循环一次最多处理的 tick，超过将计数为丢弃（避免主循环长时间占用） */
 #define MAX_TICKS_PER_LOOP         (5U)
-#define FAST_ADC_MAX_TICKS_PER_LOOP (10U)
-
+#define FAST_ADC_MAX_TICKS_PER_LOOP (20U)
+#define FAULT_RECOVER_DELAY_MS     (200U)
 /*********************************************************************************************************
 *                                              枚举结构体
 *********************************************************************************************************/
-
+typedef enum{
+	APP_STATE_INIT = 0,
+	APP_STATE_RUN,
+	APP_STATE_FAULT,
+}app_state_t;
+static app_state_t s_app_state = APP_STATE_INIT;
+static uint32_t s_fault_latched_ms = 0U;
 /*********************************************************************************************************
 *                                              内部变量定义
 *********************************************************************************************************/
 volatile uint32_t g_ms=0;
-static volatile uint32_t s_control_tick_pending = 0U;  /*1ms 慢环*/
-static volatile uint32_t s_fast_loop_tick_pending = 0U;  /*20us 快环*/
+static volatile uint32_t s_control_tick_pending = 0U;
 static volatile uint32_t s_tick_drop_count = 0U; /* 被丢弃的 tick 计数 */
-static volatile uint32_t s_fast_tick_drop_count = 0U;
-static volatile uint32_t s_llc_1ms_tick_pending = 0U;  /* LLC 1ms任务pending计数 */
-
-
 void delay_ms(uint32_t duration_ms)
 {
     if (duration_ms == 0U) {
@@ -49,9 +50,7 @@ void delay_ms(uint32_t duration_ms)
 /* ADC1通道14测试函数声明 */
 uint16_t adc1_channel14_test(void);
 uint16_t adc1_channel14_multiple_samples(uint16_t sample_count, uint16_t *samples);
-static void adc_fast_task_20us(void);
-static void llc_control_tick_20us(void);
-
+static void adc_fast_task_100us(void);
 /*********************************************************************************************************
 *                                              内部函数实现
 *********************************************************************************************************/
@@ -96,10 +95,7 @@ static uint32_t adc_fast_timer_clk_hz(void)
     uint32_t apb1 = rcu_clock_freq_get(CK_APB1);
     return (RCU_CFG0 & RCU_CFG0_APB1PSC) ? (apb1 * 2U) : apb1;
 }
-/* TIMER3初始化：20us周期（50kHz）
- * 用于ADC快速采样和LLC高频控制
- */
-static void adc_fast_timer_init_20us(void)
+static void adc_fast_timer_init_100us(void)
 {
     rcu_periph_clock_enable(RCU_TIMER3);
     timer_deinit(TIMER3);
@@ -125,26 +121,18 @@ static void adc_fast_timer_init_20us(void)
     nvic_irq_enable(TIMER3_IRQn, 1U, 0U);
     timer_enable(TIMER3);
 }
-/* TIMER3中断处理：20us周期
- * 触发ADC采样和LLC高频控制
- */
 void TIMER3_IRQHandler(void)
 {
     if (timer_interrupt_flag_get(TIMER3, TIMER_INT_FLAG_UP) == SET) {
         timer_interrupt_flag_clear(TIMER3, TIMER_INT_FLAG_UP);
-        adc_fast_task_20us();     // 触发ADC采样
-        s_fast_loop_tick_pending++;  // 标记LLC控制任务待处理
+        adc_fast_task_100us(); // 直接触发ADC0软件采集
     }
 }
 
-/* ADC快速采样任务：20us周期调用 */
-static void adc_fast_task_20us(void)
+static void adc_fast_task_100us(void)
 {
     adc_multi_trigger_fast();
 }
-/*********************************************************************************************************
-*                                              启动检测
-*********************************************************************************************************/
 
 static inline float conv_adc_to_v_div(uint16_t raw, float rtop, float rbot){
     float v = ((float)raw * VREF_ADC) / 4095.0f;  
@@ -169,15 +157,16 @@ static bool adc_startup_check(void)
     }
 
     if (valid == 0U) {
-
+        debug_printf("[STARTUP] ADC1 3V3 sample failed\n");
         return false;
     }
 
      float avg_raw = (float)sum / (float)valid;
      float v3v3 = conv_adc_to_v_test((uint16_t)(avg_raw + 0.5f), V3V3_RTOP_OHM, V3V3_RBOT_OHM);
-
+    debug_printf("[STARTUP] ADC1 3V3 raw=%.1f -> %.3f V\n", avg_raw, v3v3);
     if ((v3v3 < ADC_STARTUP_V3V3_MIN_V) || (v3v3 > ADC_STARTUP_V3V3_MAX_V)) {
- 
+        debug_printf("[STARTUP] 3V3 out of range (%.2f..%.2f V)\n",
+                     ADC_STARTUP_V3V3_MIN_V, ADC_STARTUP_V3V3_MAX_V);
         return false;
     }
 
@@ -188,7 +177,8 @@ static bool adc_startup_check(void)
     }
 
     if ((g_adc_multi.vout_raw == 0xFFFFU) || (g_adc_multi.isense_raw == 0xFFFFU)) {
-
+        debug_printf("[STARTUP] ADC0 DMA sample invalid (vout=%u, isense=%u)\n",
+                     g_adc_multi.vout_raw, g_adc_multi.isense_raw);
         return false;
     }
 
@@ -198,53 +188,51 @@ static bool adc_startup_check(void)
 static bool protect_startup_check(void)
 {
     if (protect_fault_active_hw()) {
-
+        debug_printf("[STARTUP] Hardware fault active (BKIN asserted)\n");
         return false;
     }
 
     if (protect_fault_latched()) {
-
+        debug_printf("[STARTUP] Clearing stale fault latch\n");
         protect_clear_fault();
     }
 
     return !protect_fault_active_hw();
 }
-/*********************************************************************************************************
-*                                              控制任务
-*********************************************************************************************************/
+
+//去偏置
+//float v_net = v_adc - v_zero;               // 去偏置
+//return v_net / (ISHUNT_OHM * IAMP_GAIN);    // 单位：安培
+//v_zero≈0.17V
+//static inline float conv_adc_to_i(uint16_t raw){
+//    float v = (raw * VREF_ADC) / 4095.0f;
+//		float v1 = v - 0.17;              // 去偏置
+//    return v1 / (ISHUNT_OHM * IAMP_GAIN);
+//}
 
 static void control_loop_tick_1khz(void){
     /* 1 kHz control */ 
 		adc_multi_sample_aux_1khz();
-		//adc_multi_copy(); 
+		adc_multi_copy(); 
     pfc_tick_1khz();
-	  llc_app_tick_1ms_core();
-    // llc_app_tick_100us();
+    llc_app_tick_1khz();
 		//llc_app_tick_adc_test();
 
 }
-/* LLC控制任务：20us周期
- * 从TIMER3中断触发，在main循环中执行
- */
-static void llc_control_tick_20us(void)
-{
-    adc_multi_copy();      // 复制ADC采样数据
-    llc_app_tick_20us();   // LLC 20us控制（内部分频为20us+100us+1ms）
-}
+
 void SysTick_Handler(void){
     g_ms++;
     s_control_tick_pending++;
-    s_llc_1ms_tick_pending++;  /* LLC 1ms任务pending */
 }
 
 int main(void){
 
-	InitRCU();
-	nvic_priority_group_set(NVIC_PRIGROUP_PRE2_SUB2);
+	  InitRCU();
+		nvic_priority_group_set(NVIC_PRIGROUP_PRE2_SUB2);
 
-	debug_printf_init(DEBUG_PRINTF_DEFAULT_BAUDRATE);
-
-	  debug_printf("uart ok \r\n");
+	  debug_printf_init(DEBUG_PRINTF_DEFAULT_BAUDRATE);
+	  debug_printf("Debug console initialized @%lu baud\n", (unsigned long)DEBUG_PRINTF_DEFAULT_BAUDRATE);
+	
 		systick_1ms_init();
     /* LLC complementary PWM 配置LLC的PWM频率 、死区时间和占空比，并初始化PWM模块*/
     llc_pwm_cfg_t lcfg = { .pwm_hz=LLC_PWM_BASE_HZ, .deadtime_ns=LLC_PWM_DEAD_NS, .duty=LLC_PWM_DUTY };//130
@@ -257,12 +245,10 @@ int main(void){
 		pb0_pwm_set_duty(0.5f);
 		#endif
 		
-    /* ADC multi triggered by TIMER3 interrupt @20us (software trigger)
-     * 20us周期 = 50kHz采样率，与LLC高频控制同步
-     */
+    /* ADC multi (PA3/PA1 removed) triggered by TIMER3 interrupt @100us (software trigger) */
     adc_multi_init_dma(ADC0_1_2_EXTTRIG_REGULAR_NONE); 
     adc_multi_start();
-    adc_fast_timer_init_20us(); // 启动20us定时器中断用于ADC触发
+    adc_fast_timer_init_100us(); // 启动100us定时器中断用于ADC0触发
 		adc1_aux_init();
     /* Protection EXTI PC11 */
     protect_exti_init();
@@ -276,7 +262,7 @@ int main(void){
     bool adc_ok = adc_startup_check();
 		//bool adc_ok = adc_test();
     if (!protect_ok || !adc_ok) {
-
+       debug_printf("[STARTUP] Preflight checks failed, PFC/LLC hold\n");
        while (1) {
            __NOP();
         }
@@ -284,53 +270,30 @@ int main(void){
 
 		pfc_init();
 		llc_app_init();
-		
-		llc_set_mode(LLC_MODE_LOOP_SCAN);  // 或 LLC_MODE_LOOP_SCAN
 		delay_ms(1000);
 		pfc_enable();
 
 		
     while(1){
 			uint32_t pending_ticks = 0U;
-			uint32_t fast_pending_ticks = 0U;
-			
 			__disable_irq();
 			if(s_control_tick_pending > 0U)
 			{
-					pending_ticks = s_control_tick_pending;
-					s_control_tick_pending = 0U;
-			}
-			if (s_fast_loop_tick_pending > 0U)
-			{
-					fast_pending_ticks = s_fast_loop_tick_pending;
-					s_fast_loop_tick_pending = 0U;
+					pending_ticks = s_control_tick_pending; //pending_ticks ：用于逐个处理待执行的控制任务。
+					s_control_tick_pending = 0U;  //记录待处理的控制周期任务数量。
 			}
 			__enable_irq();
-			
-			/* 处理PFC 1ms控制任务 */
 			while(pending_ticks-- > 0U)
 			{
 				 control_loop_tick_1khz();
-				 if(pending_ticks > MAX_TICKS_PER_LOOP)
-				 {
-					 s_tick_drop_count += (pending_ticks - MAX_TICKS_PER_LOOP);
-					 pending_ticks = MAX_TICKS_PER_LOOP;
-				 }
-			}
 			
-			/* 处理LLC 20us高频控制任务 */
-			while (fast_pending_ticks-- > 0U)
-			{
-				llc_control_tick_20us();
-				if (fast_pending_ticks > FAST_ADC_MAX_TICKS_PER_LOOP)
-				{
-					s_fast_tick_drop_count += (fast_pending_ticks - FAST_ADC_MAX_TICKS_PER_LOOP);
-					fast_pending_ticks = FAST_ADC_MAX_TICKS_PER_LOOP;
-				}
+				//防止单次主循环处理过多 tick
+					if(pending_ticks > MAX_TICKS_PER_LOOP)
+					{
+						s_tick_drop_count += (pending_ticks - MAX_TICKS_PER_LOOP);
+						pending_ticks = MAX_TICKS_PER_LOOP;
+					}
 			}
-			
-			/* 刷新LLC日志缓冲区（主循环中打印，避免ISR中阻塞） */
-			llc_log_flush();
     }
 }
 

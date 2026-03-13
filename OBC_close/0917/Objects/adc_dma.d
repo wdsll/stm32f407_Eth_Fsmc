@@ -41,4 +41,4 @@
   C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdarg.h HW/include\pwm.h \
   HW/include\protect_exti.h HW/include\pfc_control.h \
   HW/include\llc_control.h APP/include/llc_soft_start.h \
-  APP/include/main.h ARM/include\systick.h HW/include\log.h
+  APP/include/main.h ARM/include\systick.h

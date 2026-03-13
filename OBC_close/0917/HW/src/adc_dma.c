@@ -1,7 +1,7 @@
 #include "add_dma.h"
 #include "main.h"
 #include "systick.h"
-#include "log.h"
+#include "Debug_printf.h"
 volatile adc_multi_frame_t g_adc_multi;
 
 // ADC状态标志
@@ -242,18 +242,10 @@ static inline void adc_multi_store_frame(const uint16_t *src)
 void adc_multi_copy(void)
 {
     adc_multi_frame_t frame;
-	  /* 禁用中断以确保读取s_latched时数据一致 */
-    uint32_t primask = __get_PRIMASK();
-    __disable_irq();
     frame.vout_raw   = s_latched.vout_raw;
     frame.isense_raw = s_latched.isense_raw;
 	  frame.v3v3_raw   = s_latched.v3v3_raw;
     frame.vbt_raw    = s_latched.vbt_raw;
-	  /* 恢复中断状态 */
-    if (!primask) {
-        __enable_irq();
-    }
-    
     g_adc_multi = frame;
 
 }

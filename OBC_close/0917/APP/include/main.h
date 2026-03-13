@@ -1,23 +1,23 @@
 /*********************************************************************************************************
-* 模块名称：main.h
-* 摘    要：主模块
-* 当前版本：1.0.0
-* 作    者：Rengar
-* 完成日期：2025年10月08日 
-* 内    容：
-* 注    意：                                                                  
+* ģ�����ƣ�main.h
+* ժ    Ҫ����ģ��
+* ��ǰ�汾��1.0.0
+* ��    �ߣ�Rengar
+* ������ڣ�2025��10��08�� 
+* ��    �ݣ�
+* ע    �⣺                                                                  
 **********************************************************************************************************
-* 取代版本：
-* 作    者：
-* 完成日期：
-* 修改内容：
-* 修改文件：
+* ȡ���汾��
+* ��    �ߣ�
+* ������ڣ�
+* �޸����ݣ�
+* �޸��ļ���
 *********************************************************************************************************/
 #ifndef _MAIN_H_
 #define _MAIN_H_
 
 /*********************************************************************************************************
-*                                              包含头文件
+*                                              ����ͷ�ļ�
 *********************************************************************************************************/
 #include "gd32f30x_conf.h"
 #include <stdint.h>
@@ -33,7 +33,7 @@
 #include "llc_control.h"
 #include "llc_soft_start.h"
 /*********************************************************************************************************
-*                                              宏定义
+*                                              �궨��
 *********************************************************************************************************/
 /* ==== Voltage sense dividers (top to bus, bottom to gnd) ==== */
 #define VBUS_RTOP_OHM       (200000.0f)
@@ -42,11 +42,11 @@
 #define VREF_ADC            (3.30f)
 
 
-/* PFC sensing networks 待定未确认*/
+/* PFC sensing networks ����δȷ��*/
 #define PFC_VBUS_RTOP_OHM   (0.0f) 
 #define PFC_VBUS_RBOT_OHM   (1.0f) 
-/* PFC sensing networks - AC side (ZMPT + LM358 后端 RC) */
-//这两个宏只反映“运放输出 → ADC”这一段 1/3 的分压。
+/* PFC sensing networks - AC side (ZMPT + LM358 ��� RC) */
+//��������ֻ��ӳ���˷���� �� ADC����һ�� 1/3 �ķ�ѹ��
 #define PFC_AC_RTOP_OHM     (20000.0f)// R7 + R19
 #define PFC_AC_RBOT_OHM     (10000.0f)// R8
 #define PFC_NTC_PULLUP_OHM  (10000.0f)
@@ -68,17 +68,13 @@
 #define ADC_STARTUP_SAMPLE_COUNT      (8U)
 #define ADC_STARTUP_SAMPLE_DELAY_MS   (2U)
 
-/* ADC采样周期配置
- * 20us周期 = 50kHz采样率
- * 与llc_app_tick_20us()同步，实现20us控制周期
- */
-#define ADC_FAST_SAMPLE_US           (20U)
-#define ADC_FAST_SAMPLE_HZ           (1000000U / ADC_FAST_SAMPLE_US)  // 50000Hz
+#define ADC_FAST_SAMPLE_US           (100U)
+#define ADC_FAST_SAMPLE_HZ           (1000000U / ADC_FAST_SAMPLE_US)
 
 
 /* ==== Current sense ==== */
-#define ISHUNT_OHM          (0.00333f)   /* 5 mΩ */
-#define IAMP_GAIN           (19.8198f)  /* INA gain */
+#define ISHUNT_OHM          (0.005f)   /* 5 m�� */
+#define IAMP_GAIN           (19.6f)   /* INA gain */
 
 /* ==== Control targets/thresholds ==== */
 #define VBUS_TARGET_V       (400.0f)
@@ -96,65 +92,45 @@
 #define LLC_SOFTSTART_ENABLE        (1)
 #endif
 /* ==== LLC_SOFTSTART ==== */
-#define LLC_SOFTSTART_DURATION_MS     300U      // 软启动总时长
-#define LLC_SOFTSTART_STABILIZE_MS     50U      // 软启动后稳定等待时间
+#define LLC_SOFTSTART_DURATION_MS     300U      // ��������ʱ��
+#define LLC_SOFTSTART_STABILIZE_MS     50U      // ���������ȶ��ȴ�ʱ��
 #define LLC_SOFTSTART_MIN_DURATION_MS 20U  
 #define LLC_SOFTSTART_START_HZ     (LLC_F_MAX_HZ)
 #define LLC_SOFTSTART_TARGET_HZ    (100000.0f)
 #define LLC_SOFTSTART_FAILSAFE_HZ  (LLC_F_MAX_HZ)
 
-#define LLC_SOFTSTART_USE_COSINE_EASE 1        // 1: 余弦S曲线；0: 指数曲线
-#define LLC_SOFTSTART_EXP_K           3.0f     // 指数陡峭度（越大前期越缓）
-#define LLC_SOFTSTART_EXTRA_MARGIN      (0.02f)   /* 安全窗额外余量（防抖） */
+#define LLC_SOFTSTART_USE_COSINE_EASE 1        // 1: ����S���ߣ�0: ָ������
+#define LLC_SOFTSTART_EXP_K           3.0f     // ָ�����Ͷȣ�Խ��ǰ��Խ����
+#define LLC_SOFTSTART_EXTRA_MARGIN      (0.02f)   /* ��ȫ������������������ */
 #define LLC_SOFTSTART_TICK_MS         (0.1f)
 
 /* ==== LLC RUN entry hold ==== */
 #define LLC_RUN_ENTRY_HOLD_MS          (20U)
-#define LLC_RUN_ENTRY_STABLE_TICKS     (20U)
-#define LLC_RUN_ENTRY_STABLE_WINDOW_V  (5.0f)
-#define LLC_RUN_ENTRY_TIMEOUT_MS       (400U)
+#define LLC_RUN_ENTRY_STABLE_TICKS     (5U)
+#define LLC_RUN_ENTRY_STABLE_WINDOW_V  (2.0f)
+#define LLC_RUN_ENTRY_TIMEOUT_MS       (200U)
 
 /* ==== LLC frequency window ==== */
 #define LLC_F_MIN_HZ        (75000.0f)
 #define LLC_F_MAX_HZ        (200000.0f)
-#define LLC_F_INIT_HZ       (100000.0f)
-//#define LLC_F_SLEW_HZ       (500.0f)
-#define LLC_F_SLEW_HZ       (3000.0f)
-#define LLC_CTRL_TS_S           (0.001f)
-#define LLC_VCTRL_KP            (1400.0f)
-#define LLC_VCTRL_KI            (1.0f)
-#define LLC_VCTRL_F_NOM_HZ       (100000.0f)
-#define LLC_VCTRL_E_DB_V         (0.15f)
-#define LLC_VCTRL_F_Q_STEP_HZ    (100.0f)
-
-#define LLC_LOOP_SCAN_FREQ_HZ            (80000.0f)    // 环路扫描模式默认频率（异常回退）
-#define LLC_LOOP_SCAN_CTRL_CLK_HZ        (120000000.0f)
-#define LLC_LOOP_SCAN_K_PCTRL_PER_V      (923.070f)      // Pctrl = K * Vin(ac)
-#define LLC_LOOP_SCAN_ADC_MIN_V          (0.05f)       // 防止交流注入接近0V导致除0
-
-//vbus 前馈
-#define LLC_VBUS_FF_EN            (1)
-#define LLC_VBUS_FF_VNOM_V        (410.0f)
-#define LLC_VBUS_FF_GAIN_HZ_PER_V (180.0f)
-#define LLC_VBUS_FF_MAX_HZ        (20000.0f)
-
-#define LLC_IOUT_ERR_SAT_A       (5.0f)
-#define LLC_IOUT_DF_MAX_HZ       (75000.0f)
-#define LLC_IOUT_DF_SLEW_HZ_S    (1000000.0f)
-#define LLC_IOUT_ON_DELTA_A      (0.5f)
-#define LLC_IOUT_OFF_DELTA_A     (1.0f)
+#define LLC_F_INIT_HZ       (91000.0f)
+#define LLC_F_SLEW_HZ       (500.0f)
+#define LLC_F_DEBUG_HZ      (130000.0f)
 
 /* ==== LLC open-loop safe bands ==== */
 #define LLC_VBUS_MIN_START_V         (360.0f)
-#define LLC_VOUT_TARGET_V            (46.0f)
+#define LLC_VOUT_TARGET_V            (55.0f)
 #define LLC_VOUT_HYST_V              (15.0f)
 #define LLC_VOUT_OVP_V               (58.0f)
-#define LLC_IOUT_OCP_A               (41.0f)
+#define LLC_IOUT_OCP_A               (15.0f)
 
-#define LLC_IOUT_TARGET_A            (20.0f)
-#define LLC_IOUT_CTRL_KP             (400.0f)
-#define LLC_IOUT_CTRL_KI             (1200.0f)
-
+#define LLC_SWEEP_START_HZ           (100000.0f)
+#define LLC_SWEEP_STOP_HZ            (80000.0f)
+#define LLC_SWEEP_STEP_HZ            (800.0f) 
+#define LLC_SWEEP_STEP_MS            (5U)
+#define LLC_SWEEP_TIMEOUT_MS         (1600U)
+#define LLC_SWEEP_STABLE_COUNT       (2U)
+#define LLC_SWEEP_TARGET_WINDOW_V    (2.0f)
 
 #define LLC_HOLD_ADJUST_HZ           (400.0f)
 #define LLC_HOLD_ADJUST_PERIOD_MS    (10U)
@@ -202,24 +178,24 @@ static inline uint8_t irq_priority_encode(uint8_t preempt, uint8_t sub)
 #define PB0_PWM_BASE_HZ     (20000U)
 
 /* ADC channel map (PA0/PA1 removed) */
-#define AC_VOL_SAMPLE      ADC_CHANNEL_1   /* PA1 AC 电压采样*/
-#define FAN_CS      			 ADC_CHANNEL_2   //风扇电流/状态采样
+#define AC_VOL_SAMPLE      ADC_CHANNEL_1   /* PA1 AC ��ѹ����*/
+#define FAN_CS      			 ADC_CHANNEL_2   //���ȵ���/״̬����
 
-#define BUS_VOL_SAMPLE     ADC_CHANNEL_3   //母线电压保护通道（用于 OVP/OCP 计算）
+#define BUS_VOL_SAMPLE     ADC_CHANNEL_3   //ĸ�ߵ�ѹ����ͨ�������� OVP/OCP ���㣩
 
 #define VOUT_SENSE_CH      ADC_CHANNEL_5   /* PA5 */
 #define ADC_ISENSE_CH      ADC_CHANNEL_6   /* PA6 */
-//#define T_SENSE_PFC_MOS    ADC_CHANNEL_7   /* PA7 PFC MOS 管温度 NTC 采样*/
-#define AD_3V3_CH          ADC_CHANNEL_14  /* PC4 3.3V 模拟电源监测（AD_3V3）*/ 
-#define VBT_SENSE_CH       ADC_CHANNEL_15  /* PC5 电池端电压采样*/
-//#define T_SENSE_LLCMOS_CH  ADC_CHANNEL_9   /* PB1 LLC MOS 管温度 NTC 采样*/
+//#define T_SENSE_PFC_MOS    ADC_CHANNEL_7   /* PA7 PFC MOS ���¶� NTC ����*/
+#define AD_3V3_CH          ADC_CHANNEL_14  /* PC4 3.3V ģ���Դ��⣨AD_3V3��*/ 
+#define VBT_SENSE_CH       ADC_CHANNEL_15  /* PC5 ��ض˵�ѹ����*/
+//#define T_SENSE_LLCMOS_CH  ADC_CHANNEL_9   /* PB1 LLC MOS ���¶� NTC ����*/
 
 
-#define OUT_RELAY     GPIOB  //直流输出继电器控制
+#define OUT_RELAY     GPIOB  //ֱ������̵�������
 #define OUT_RELAY_PIN     	GPIO_PIN_14 
 #define OUT_RELAY_RCU			RCU_GPIOB
 
-#define PFC_MAIN_RELAY_PORT     GPIOC  //PFC 预充/继电器使能控制
+#define PFC_MAIN_RELAY_PORT     GPIOC  //PFC Ԥ��/�̵���ʹ�ܿ���
 #define PFC_MAIN_RELAY_PIN     	GPIO_PIN_10  
 #define PFC_MAIN_RELAY_RCU			RCU_GPIOC
 
@@ -244,10 +220,10 @@ static inline uint8_t irq_priority_encode(uint8_t preempt, uint8_t sub)
 
 
 #ifndef PFC_VBUS_DROPOUT_MS_NEW
-#define PFC_VBUS_DROPOUT_MS_NEW        (200U)                     /* 退出延时加长 */
+#define PFC_VBUS_DROPOUT_MS_NEW        (200U)                     /* �˳���ʱ�ӳ� */
 #endif
 
-/* LLC 启动前，PFC READY 需稳定一小段时间，避免竞态 */
+/* LLC ����ǰ��PFC READY ���ȶ�һС��ʱ�䣬���⾺̬ */
 #ifndef PFC_READY_STABLE_BEFORE_LLC_MS
 #define PFC_READY_STABLE_BEFORE_LLC_MS (50U)
 #endif
@@ -255,7 +231,7 @@ static inline uint8_t irq_priority_encode(uint8_t preempt, uint8_t sub)
 
 
 /*********************************************************************************************************
-*                                              枚举结构体
+*                                              ö�ٽṹ��
 *********************************************************************************************************/
 extern volatile uint32_t g_ms;
 
@@ -275,7 +251,7 @@ static inline bool elapsed_reached(uint32_t start_ms, uint32_t duration_ms)
 	return elapsed_since(start_ms) >= duration_ms;
 }
 /*********************************************************************************************************
-*                                              API函数声明
+*                                              API��������
 *********************************************************************************************************/
 
 static inline float f_clampf(float x,float lo,float hi)

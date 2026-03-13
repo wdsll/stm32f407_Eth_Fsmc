@@ -18,9 +18,9 @@ static inline uint32_t tim_apb1_clk_hz(void){
     return (RCU_CFG0 & RCU_CFG0_APB1PSC) ? (pclk1 * 2U) : pclk1;
 }
 
-static inline uint32_t timer_clk_hz( )
-{
-	return tim_apb1_clk_hz();
+static inline uint32_t timer_clk_hz( ){
+
+        return tim_apb1_clk_hz();
 }
 
 void pb0_pwm_init(uint32_t pwm_hz)
