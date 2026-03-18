@@ -25,19 +25,27 @@ typedef struct
 //新增电流环pi参数
 typedef struct {
 	float vref, vmeas;
+	
+	/* 电压环 PI 参数 */
 	float kp, ki, integ;
+	float kp_raw, ki_raw;  // 备用RAW_PI
+	/* 电流环（先保留） */
 	float iref, imeas;
 	float ikp, iki, i_integ;
+	
+	 /* 频率边界 */
 	float f_min, f_max, f_cmd, f_slew;
 	float f_cmd_v, f_cmd_i;
+	
 } llc_t;
-
 static llc_t s_llc;
+
 /*********************************************************************************************************
 *                                              API函数声明
 *********************************************************************************************************/
 void llc_app_init(void);
 void llc_app_tick_1khz(void);
+void llc_app_tick_100us(void);
 void llc_app_tick_1khz_withoutVbus(void);
 llc_state_t llc_app_state(void);
 

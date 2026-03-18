@@ -29,7 +29,10 @@ static uint32_t s_fault_latched_ms = 0U;
 *********************************************************************************************************/
 volatile uint32_t g_ms=0;
 static volatile uint32_t s_control_tick_pending = 0U;
+static volatile uint32_t s_adc_fast_tick_pending = 0U;
+
 static volatile uint32_t s_tick_drop_count = 0U; /* 被丢弃的 tick 计数 */
+static volatile uint32_t s_adc_fast_tick_drop_count = 0U; /*  tick  */
 void delay_ms(uint32_t duration_ms)
 {
     if (duration_ms == 0U) {
@@ -125,7 +128,15 @@ void TIMER3_IRQHandler(void)
 {
     if (timer_interrupt_flag_get(TIMER3, TIMER_INT_FLAG_UP) == SET) {
         timer_interrupt_flag_clear(TIMER3, TIMER_INT_FLAG_UP);
-        adc_fast_task_100us(); // 直接触发ADC0软件采集
+        //adc_fast_task_100us(); // 直接触发ADC0软件采集
+			  s_adc_fast_tick_pending++;
+			#if 0
+			  if (s_adc_fast_tick_pending < 1000U) {
+            s_adc_fast_tick_pending++;
+        } else {
+            s_adc_fast_tick_drop_count++;
+        }
+			#endif
     }
 }
 
@@ -157,16 +168,15 @@ static bool adc_startup_check(void)
     }
 
     if (valid == 0U) {
-        debug_printf("[STARTUP] ADC1 3V3 sample failed\n");
+
         return false;
     }
 
      float avg_raw = (float)sum / (float)valid;
      float v3v3 = conv_adc_to_v_test((uint16_t)(avg_raw + 0.5f), V3V3_RTOP_OHM, V3V3_RBOT_OHM);
-    debug_printf("[STARTUP] ADC1 3V3 raw=%.1f -> %.3f V\n", avg_raw, v3v3);
+
     if ((v3v3 < ADC_STARTUP_V3V3_MIN_V) || (v3v3 > ADC_STARTUP_V3V3_MAX_V)) {
-        debug_printf("[STARTUP] 3V3 out of range (%.2f..%.2f V)\n",
-                     ADC_STARTUP_V3V3_MIN_V, ADC_STARTUP_V3V3_MAX_V);
+ 
         return false;
     }
 
@@ -177,8 +187,7 @@ static bool adc_startup_check(void)
     }
 
     if ((g_adc_multi.vout_raw == 0xFFFFU) || (g_adc_multi.isense_raw == 0xFFFFU)) {
-        debug_printf("[STARTUP] ADC0 DMA sample invalid (vout=%u, isense=%u)\n",
-                     g_adc_multi.vout_raw, g_adc_multi.isense_raw);
+
         return false;
     }
 
@@ -188,32 +197,22 @@ static bool adc_startup_check(void)
 static bool protect_startup_check(void)
 {
     if (protect_fault_active_hw()) {
-        debug_printf("[STARTUP] Hardware fault active (BKIN asserted)\n");
+
         return false;
     }
 
     if (protect_fault_latched()) {
-        debug_printf("[STARTUP] Clearing stale fault latch\n");
+
         protect_clear_fault();
     }
 
     return !protect_fault_active_hw();
 }
 
-//去偏置
-//float v_net = v_adc - v_zero;               // 去偏置
-//return v_net / (ISHUNT_OHM * IAMP_GAIN);    // 单位：安培
-//v_zero≈0.17V
-//static inline float conv_adc_to_i(uint16_t raw){
-//    float v = (raw * VREF_ADC) / 4095.0f;
-//		float v1 = v - 0.17;              // 去偏置
-//    return v1 / (ISHUNT_OHM * IAMP_GAIN);
-//}
-
 static void control_loop_tick_1khz(void){
     /* 1 kHz control */ 
 		adc_multi_sample_aux_1khz();
-		adc_multi_copy(); 
+		
     pfc_tick_1khz();
     llc_app_tick_1khz();
 		//llc_app_tick_adc_test();
@@ -231,7 +230,7 @@ int main(void){
 		nvic_priority_group_set(NVIC_PRIGROUP_PRE2_SUB2);
 
 	  debug_printf_init(DEBUG_PRINTF_DEFAULT_BAUDRATE);
-	  debug_printf("Debug console initialized @%lu baud\n", (unsigned long)DEBUG_PRINTF_DEFAULT_BAUDRATE);
+
 	
 		systick_1ms_init();
     /* LLC complementary PWM 配置LLC的PWM频率 、死区时间和占空比，并初始化PWM模块*/
@@ -248,6 +247,7 @@ int main(void){
     /* ADC multi (PA3/PA1 removed) triggered by TIMER3 interrupt @100us (software trigger) */
     adc_multi_init_dma(ADC0_1_2_EXTTRIG_REGULAR_NONE); 
     adc_multi_start();
+		adc_multi_trigger_fast();
     adc_fast_timer_init_100us(); // 启动100us定时器中断用于ADC0触发
 		adc1_aux_init();
     /* Protection EXTI PC11 */
@@ -276,13 +276,33 @@ int main(void){
 		
     while(1){
 			uint32_t pending_ticks = 0U;
+			uint32_t pending_adc_fast_ticks = 0U;
 			__disable_irq();
 			if(s_control_tick_pending > 0U)
 			{
 					pending_ticks = s_control_tick_pending; //pending_ticks ：用于逐个处理待执行的控制任务。
 					s_control_tick_pending = 0U;  //记录待处理的控制周期任务数量。
 			}
+			
+			if (s_adc_fast_tick_pending > 0U)
+			{
+				pending_adc_fast_ticks = s_adc_fast_tick_pending;
+				s_adc_fast_tick_pending = 0U;
+			}
 			__enable_irq();
+			
+			while (pending_adc_fast_ticks-- > 0U)
+			{
+				
+				adc_multi_copy(); 
+				llc_app_tick_100us();
+				adc_multi_trigger_fast();
+				if (pending_adc_fast_ticks > FAST_ADC_MAX_TICKS_PER_LOOP)
+				{
+					s_adc_fast_tick_drop_count += (pending_adc_fast_ticks - FAST_ADC_MAX_TICKS_PER_LOOP);
+					pending_adc_fast_ticks = FAST_ADC_MAX_TICKS_PER_LOOP;
+				}
+			}
 			while(pending_ticks-- > 0U)
 			{
 				 control_loop_tick_1khz();

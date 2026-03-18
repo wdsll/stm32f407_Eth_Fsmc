@@ -106,20 +106,20 @@
 
 /* ==== LLC RUN entry hold ==== */
 #define LLC_RUN_ENTRY_HOLD_MS          (20U)
-#define LLC_RUN_ENTRY_STABLE_TICKS     (5U)
-#define LLC_RUN_ENTRY_STABLE_WINDOW_V  (2.0f)
-#define LLC_RUN_ENTRY_TIMEOUT_MS       (200U)
+#define LLC_RUN_ENTRY_STABLE_TICKS     (2U)
+#define LLC_RUN_ENTRY_STABLE_WINDOW_V  (5.0f)
+#define LLC_RUN_ENTRY_TIMEOUT_MS       (400U)
 
 /* ==== LLC frequency window ==== */
 #define LLC_F_MIN_HZ        (75000.0f)
 #define LLC_F_MAX_HZ        (200000.0f)
-#define LLC_F_INIT_HZ       (91000.0f)
-#define LLC_F_SLEW_HZ       (500.0f)
+#define LLC_F_INIT_HZ       (100000.0f)
+#define LLC_F_SLEW_HZ       (1000.0f)
 #define LLC_F_DEBUG_HZ      (130000.0f)
 
 /* ==== LLC open-loop safe bands ==== */
 #define LLC_VBUS_MIN_START_V         (360.0f)
-#define LLC_VOUT_TARGET_V            (55.0f)
+#define LLC_VOUT_TARGET_V            (46.0f)
 #define LLC_VOUT_HYST_V              (15.0f)
 #define LLC_VOUT_OVP_V               (58.0f)
 #define LLC_IOUT_OCP_A               (15.0f)

@@ -237,6 +237,8 @@ void llc_pwm_outputs_enable(bool en)
     llc_pwm_force_start(1);
 		//恢复正常pwm波形
 		llc_pwm_restore_pwm();
+		// 显式使能MOE，确保PWM输出真正开启
+		//timer_primary_output_config(TIMER0, ENABLE);
 
 	} else {
 		timer_primary_output_config(TIMER0, DISABLE);   // 关闭TIMER0的主输出使能（MOE=0），立即停止PWM输出到引脚
