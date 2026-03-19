@@ -34,7 +34,7 @@ typedef struct {
 	float ikp, iki, i_integ;
 	
 	 /* ÆµÂÊ±ß½ç */
-	float f_min, f_max, f_cmd, f_slew;
+	float f_min, f_max, f_cmd,f_nom, f_slew;
 	float f_cmd_v, f_cmd_i;
 	
 } llc_t;

@@ -29,6 +29,38 @@
 #ifndef LLC_RAW_PI_USE_FILT
 #define LLC_RAW_PI_USE_FILT          (1)     /* RAW PI模式下是否也做一阶滤波 */
 #endif
+
+#ifndef LLC_F_NOM_USE_STAGE_CMD
+#define LLC_F_NOM_USE_STAGE_CMD      (1)
+#endif
+
+#ifndef LLC_F_NOM_HZ
+#define LLC_F_NOM_HZ                 (LLC_F_INIT_HZ)
+#endif
+
+#ifndef LLC_LOOP_DEBUG_PRINT_EVERY_N
+#define LLC_LOOP_DEBUG_PRINT_EVERY_N (1U)
+#endif
+
+#ifndef LLC_TRACE_ENABLE
+#define LLC_TRACE_ENABLE            (1)
+#endif
+
+#ifndef LLC_TRACE_MAX_SAMPLES
+#define LLC_TRACE_MAX_SAMPLES       (500U)
+#endif
+
+#ifndef LLC_TRACE_AUTO_ARM_ON_RUN
+#define LLC_TRACE_AUTO_ARM_ON_RUN   (1)
+#endif
+
+#ifndef LLC_TRACE_AUTO_ARM_SAMPLES
+#define LLC_TRACE_AUTO_ARM_SAMPLES  (500U)
+#endif
+
+#ifndef LLC_TRACE_DUMP_LINES_PER_1MS
+#define LLC_TRACE_DUMP_LINES_PER_1MS (2U)
+#endif
 /*********************************************************************************************************
 *                                              内部变量定义
 *********************************************************************************************************/
@@ -48,11 +80,34 @@ typedef struct {
     uint32_t run_entry_stable_ticks;
 }llc_runtime_ctx_t;
 
+typedef struct
+{
+    uint16_t vout_raw;
+    int32_t  vout_mv;
+    int32_t  err_mv;
+    uint32_t f_cmd_hz;
+} llc_trace_sample_t;
+
+typedef struct
+{
+    uint8_t  armed;
+    uint8_t  triggered;
+    uint8_t  done;
+    uint8_t  dumping;
+    uint16_t wr;
+    uint16_t count;
+    uint16_t max_samples;
+    uint16_t dump_idx;
+} llc_trace_ctrl_t;
 static llc_runtime_ctx_t s_llc_rt;
 
 static llc_app_ctx_t s_llc_app;
 
 
+#if LLC_TRACE_ENABLE
+static llc_trace_sample_t s_llc_trace[LLC_TRACE_MAX_SAMPLES];
+static llc_trace_ctrl_t   s_llc_trace_ctrl;
+#endif
 
 enum{
 	LLC_START_DELAY_MS = 10000
@@ -71,6 +126,12 @@ static bool llc_pfc_ready_stable(bool enable_llc);
 static bool llc_faults_present(void);
 static void llc_enter_fault(void);
 static float llc_ctrl_step(float e);
+#if LLC_TRACE_ENABLE
+static void llc_trace_init(void);
+void llc_trace_arm(uint16_t samples);
+static inline void llc_trace_push_sample(uint16_t vout_raw, float vout_v, float err_v, float f_cmd);
+static void llc_trace_dump_task(void);
+#endif
 /*********************************************************************************************************
 *                                              静态工具
 *********************************************************************************************************/
@@ -84,6 +145,22 @@ static inline float conv_adc_to_i(uint16_t raw)
     float v = (raw * VREF_ADC) / 4095.0f;
     float v_net = v - 0.17f;
     return v_net / (ISHUNT_OHM * IAMP_GAIN);
+}
+
+static inline float llc_get_f_nom(float f_min, float f_max, float f_stage_cmd)
+{
+#if LLC_F_NOM_USE_STAGE_CMD
+    if (f_stage_cmd >= f_min && f_stage_cmd <= f_max) {
+        return f_stage_cmd;
+    }
+#endif
+	{
+    float f_nom = LLC_F_NOM_HZ;
+    if (f_nom < f_min || f_nom > f_max) {
+        f_nom = 0.5f * (f_min + f_max);
+    }
+    return f_nom;
+	}
 }
 
 static void llc_driver_en_set(bool on)
@@ -112,36 +189,6 @@ static void llc_driver_en_set(bool on)
 	}
 }
 
-static inline float llc_freq_to_period(float hz)
-{
-    if (hz < s_llc.f_min) {
-        hz = s_llc.f_min;
-    }
-    if (hz > s_llc.f_max) {
-        hz = s_llc.f_max;
-    }
-
-    /* 用归一化“等效周期量”：
-     * 直接取 1/f 不方便数值调参，所以放大成 k/f
-     * 这里用 1e9 只是为了让数值落在比较好看的范围
-     */
-    return 1.0e9f / hz;
-}
-
-static inline float llc_period_to_freq(float period)
-{
-    float pmin = 1.0e9f / s_llc.f_max;   /* 高频 -> 小周期 */
-    float pmax = 1.0e9f / s_llc.f_min;   /* 低频 -> 大周期 */
-
-    if (period < pmin) {
-        period = pmin;
-    }
-    if (period > pmax) {
-        period = pmax;
-    }
-
-    return 1.0e9f / period;
-}
 
 static void llc_set_freq(float hz)
 {
@@ -149,18 +196,162 @@ static void llc_set_freq(float hz)
     s_llc.f_cmd = f;
     llc_pwm_set_freq((uint32_t)f);
 }
+#if LLC_TRACE_ENABLE
+static void llc_trace_init(void)
+{
+    s_llc_trace_ctrl.armed      = 0U;
+    s_llc_trace_ctrl.triggered  = 0U;
+    s_llc_trace_ctrl.done       = 0U;
+    s_llc_trace_ctrl.dumping    = 0U;
+    s_llc_trace_ctrl.wr         = 0U;
+    s_llc_trace_ctrl.count      = 0U;
+    s_llc_trace_ctrl.max_samples= LLC_TRACE_MAX_SAMPLES;
+    s_llc_trace_ctrl.dump_idx   = 0U;
+}
 
+void llc_trace_arm(uint16_t samples)
+{
+    if (samples == 0U) {
+        samples = 200U;
+    }
+    if (samples > LLC_TRACE_MAX_SAMPLES) {
+        samples = LLC_TRACE_MAX_SAMPLES;
+    }
+
+    s_llc_trace_ctrl.armed       = 1U;
+    s_llc_trace_ctrl.triggered   = 0U;
+    s_llc_trace_ctrl.done        = 0U;
+    s_llc_trace_ctrl.dumping     = 0U;
+    s_llc_trace_ctrl.wr          = 0U;
+    s_llc_trace_ctrl.count       = 0U;
+    s_llc_trace_ctrl.max_samples = samples;
+    s_llc_trace_ctrl.dump_idx    = 0U;
+}
+
+/**
+ * @brief 向追踪缓冲区推入一个采样数据
+ * 
+ * 该函数用于在触发状态下记录运行时数据，包括输出电压原始值、
+ * 输出电压值、电压误差和频率命令。当缓冲区填满时自动停止记录。
+ * 
+ * @param vout_raw 输出电压ADC原始值
+ * @param vout_v   输出电压值（单位：伏特）
+ * @param err_v    电压误差值（单位：伏特）
+ * 
+ * @note 函数内部将浮点电压值转换为毫伏整数存储
+ * @note 仅在 armed 置位时触发一次记录
+ * @note 缓冲区满后设置 done 标志，停止接收新数据
+ */
+static inline void llc_trace_push_sample(uint16_t vout_raw, float vout_v, float err_v, float f_cmd)
+{
+    uint16_t i;
+
+    if (s_llc_trace_ctrl.armed) {
+        s_llc_trace_ctrl.armed = 0U;
+        s_llc_trace_ctrl.triggered = 1U;
+    }
+
+    if (!s_llc_trace_ctrl.triggered || s_llc_trace_ctrl.done) {
+        return;
+    }
+
+    i = s_llc_trace_ctrl.wr;
+    if (i >= s_llc_trace_ctrl.max_samples) {
+        s_llc_trace_ctrl.triggered = 0U;
+        s_llc_trace_ctrl.done = 1U;
+        s_llc_trace_ctrl.count = s_llc_trace_ctrl.max_samples;
+        return;
+    }
+
+    s_llc_trace[i].vout_raw = vout_raw;
+    s_llc_trace[i].vout_mv  = (int32_t)(vout_v * 1000.0f);
+    s_llc_trace[i].err_mv   = (int32_t)(err_v * 1000.0f);
+    s_llc_trace[i].f_cmd_hz = (uint32_t)(f_cmd);
+
+    s_llc_trace_ctrl.wr++;
+
+    if (s_llc_trace_ctrl.wr >= s_llc_trace_ctrl.max_samples) {
+        s_llc_trace_ctrl.triggered = 0U;
+        s_llc_trace_ctrl.done = 1U;
+        s_llc_trace_ctrl.count = s_llc_trace_ctrl.max_samples;
+    }
+}
+
+/**
+ * @brief LLC 追踪数据转储任务
+ * 
+ * 该函数在 1ms 周期任务中调用，负责将缓存的 LLC 追踪数据通过 UART 输出。
+ * 每次调用最多输出 LLC_TRACE_DUMP_LINES_PER_1MS 行数据，避免阻塞 1ms 任务。
+ * 输出格式为 CSV，包含索引、输出电压原始值、输出电压(mV)、误差(mV)和命令频率(Hz)。
+ * 
+ * @note 该函数为内部实现细节，仅供 LLC 控制模块内部使用
+ * @note 转储过程中 s_llc_trace_ctrl.dumping 标志位置 1，转储完成后自动清零
+ * @note 转储完成后会重写追踪缓冲区控制结构，准备下一次追踪
+ * 
+ * @param  无
+ * @return 无
+ */
+static void llc_trace_dump_task(void)
+{
+    uint16_t n = 0U;
+
+    if (s_llc_trace_ctrl.done && !s_llc_trace_ctrl.dumping) {
+        s_llc_trace_ctrl.dumping  = 1U;
+        s_llc_trace_ctrl.dump_idx = 0U;
+        debug_printf("\r\n[LLC_TRACE_BEGIN] count=%u Ts=100us\n", s_llc_trace_ctrl.count);
+        debug_printf("idx,vout_raw,vout_mv,err_mv,f_cmd_hz\n");
+    }
+
+    if (!s_llc_trace_ctrl.dumping) {
+        return;
+    }
+
+    while ((s_llc_trace_ctrl.dump_idx < s_llc_trace_ctrl.count) &&
+           (n < LLC_TRACE_DUMP_LINES_PER_1MS)) {
+        uint16_t i = s_llc_trace_ctrl.dump_idx;
+
+   debug_printf("%u,%u,%ld,%ld,%lu\n",
+             i,
+             s_llc_trace[i].vout_raw,
+             (long)s_llc_trace[i].vout_mv,
+             (long)s_llc_trace[i].err_mv,
+             (unsigned long)s_llc_trace[i].f_cmd_hz);
+
+        s_llc_trace_ctrl.dump_idx++;
+        n++;
+    }
+
+    if (s_llc_trace_ctrl.dump_idx >= s_llc_trace_ctrl.count) {
+        debug_printf("[LLC_TRACE_END]\n");
+
+        s_llc_trace_ctrl.dumping  = 0U;
+        s_llc_trace_ctrl.done     = 0U;
+        s_llc_trace_ctrl.count    = 0U;
+        s_llc_trace_ctrl.wr       = 0U;
+        s_llc_trace_ctrl.dump_idx = 0U;
+    }
+}
+#endif
 #if 1
 //频率PI
+/**
+ * @brief LLC PI控制器单步计算
+ * 
+ * 根据误差信号计算并更新LLC开关频率，实现电压闭环控制。包含参数有效性检查、
+ * 抗积分饱和处理和频率斜率限制。
+ * 
+ * @param e 控制误差，正值表示Vref > Vout（需要增加功率，降低频率）
+ * @return 计算后的LLC开关频率（Hz），已应用斜率限制和边界约束
+ * 
+ * @note 控制逻辑：e > 0 时频率下降以增加输出功率
+ * @note 当参数无效时使用默认值：f_min=75kHz, f_max=150kHz, f_slew=1kHz/s, kp=10
+ * @note 使用抗积分饱和（anti-windup）机制防止积分器在饱和时持续累积
+ * @note 频率变化受斜率限制，防止输出突变
+ */
 static float llc_ctrl_step(float e)
 {
-	#if LLC_USE_RAW_PI
-	  kp = s_llc.kp_raw;
-    ki = s_llc.ki_raw;
-	#else
 	  float kp = s_llc.kp;
     float ki = s_llc.ki;
-  #endif
     float f_min = s_llc.f_min;
     float f_max = s_llc.f_max;
     float f_slew = s_llc.f_slew;
@@ -179,7 +370,12 @@ static float llc_ctrl_step(float e)
         ki = 0.0f;
     }
 		
-		float f_nom = 0.5f * (f_min + f_max);
+		//float f_nom = 0.5f * (f_min + f_max);
+		//float f_nom = llc_get_f_nom(f_min,f_max,s_llc.f_cmd);
+		float f_nom = s_llc.f_nom;
+		if (f_nom < f_min || f_nom > f_max) {
+			f_nom = f_clampf(s_llc.f_cmd, f_min, f_max);
+		}
     float f_prev = s_llc.f_cmd;
     if (f_prev < f_min || f_prev > f_max) {
         f_prev = f_nom;
@@ -363,17 +559,28 @@ static void llc_enter_fault(void)
 *                                              状态机核心
 *********************************************************************************************************/
 //频率版的在切入闭环瞬间做“无扰切换（bumpless transfer）”
-#if 1
+
+/**
+ * @brief 无扰动切换初始化
+ * @details 计算PI控制器的积分项初始值，使得在给定参考电压和当前测量电压下，
+ *          控制器输出的初始频率等于当前工作频率，从而实现模式切换时的无扰动过渡。
+ * @param vref 参考电压（V）
+ * @param vmeas 当前测量电压（V）
+ * @param f_now 当前工作频率（Hz）
+ * @note 积分项会被限制在 [f_max - f_min, -(f_max - f_min)] 范围内
+ */
+//static void llc_ctrl_bumpless_init(float vref, float vmeas, float f_now)
 static void llc_ctrl_bumpless_init(float vref, float vmeas, float f_now)
 {
-		#if LLC_USE_RAW_PI
-				float kp = s_llc.kp_raw;
-		#else
-			 float kp = s_llc.kp;
-		#endif
+		float kp = s_llc.kp;
     float f_min = s_llc.f_min;
     float f_max = s_llc.f_max;
-    float f_nom = 0.5f * (f_min + f_max);
+    //float f_nom = 0.5f * (f_min + f_max);
+	  //float f_nom = llc_get_f_nom(f_min,f_max,s_llc.f_cmd);
+		float f_nom = s_llc.f_nom;
+		if (f_nom < f_min || f_nom > f_max) {
+			f_nom = f_clampf(f_now, f_min, f_max);
+		}
     float e = vref - vmeas;
     float integ = (f_nom - f_now) - kp * e;
     float i_lim = f_max - f_min;
@@ -387,31 +594,33 @@ static void llc_ctrl_bumpless_init(float vref, float vmeas, float f_now)
     s_llc.integ = integ;
     s_llc.f_cmd = f_clampf(f_now, f_min, f_max);
 }
-#else
-//周期版的
-static void llc_ctrl_bumpless_init(float vref, float vmeas, float f_now)
-{
-    float kp = s_llc.kp;
-    float e = vref - vmeas;
 
-    float p_now = llc_freq_to_period(f_now);
-    float p_min = s_llc.period_min;
-    float p_max = s_llc.period_max;
-
-    /* 周期PI：period = kp*e + integ */
-    float integ = p_now - kp * e;
-
-    if (integ < p_min) {
-        integ = p_min;
-    } else if (integ > p_max) {
-        integ = p_max;
-    }
-
-    s_llc.period_integ = integ;
-    s_llc.period_cmd = p_now;
-    s_llc.f_cmd = f_clampf(f_now, s_llc.f_min, s_llc.f_max);
-}
-#endif
+/**
+ * @brief LLC 状态机状态切换函数
+ * 
+ * 执行从当前状态到目标状态的切换，包括状态更新、时间戳记录和各状态的初始化操作。
+ * 如果目标状态与当前状态相同，则直接返回不执行任何操作。
+ * 
+ * @param next 目标状态，取值为 llc_state_t 枚举类型：
+ *             - ST_IDLE: 空闲状态，关闭所有输出，重置时间戳
+ *             - ST_PRECHECK: 预检查状态，使能驱动但保持PWM关闭
+ *             - ST_SOFTSTART: 软启动状态，开始频率斜坡上升
+ *             - ST_RUN_ENTRY_HOLD: 运行进入保持状态，等待稳定
+ *             - ST_LLC_RUN: 正常运行状态，启动闭环控制
+ *             - ST_STOPPING: 停机状态，频率回到最大值
+ *             - ST_FAULT: 故障状态，关闭所有输出
+ * 
+ * @note 各状态切换时会执行相应的初始化操作：
+ *       - ST_IDLE: 关闭PWM输出，禁用驱动，频率设为最大值，重置所有时间戳
+ *       - ST_PRECHECK: 使能驱动，关闭PWM，频率设为最大值
+ *       - ST_SOFTSTART: 记录启动时间，使能驱动和PWM，开始软启动斜坡
+ *       - ST_RUN_ENTRY_HOLD: 记录保持时间，初始化频率为软启动结束频率
+ *       - ST_LLC_RUN: 初始化无扰动控制，可选自动触发波形跟踪
+ *       - ST_STOPPING: 记录停机时间，频率回到最大值
+ *       - ST_FAULT: 关闭所有输出，频率设为最大值
+ * 
+ * @warning 函数内部会直接修改全局运行时状态 s_llc_rt.app.state
+ */
 static void llc_state_enter(llc_state_t next)
 {
 	// 更新 LLC 状态和进入时间
@@ -463,10 +672,15 @@ static void llc_state_enter(llc_state_t next)
 	 case ST_LLC_RUN:
 			llc_driver_en_set(true);
       s_llc_rt.hold_last_adjust_ms = g_ms;
+	    s_llc.f_nom = f_clampf(s_llc.f_cmd, s_llc.f_min, s_llc.f_max);
+
 #if LLC_USE_RAW_PI
     llc_ctrl_bumpless_init(LLC_RAW_PI_TARGET_CODE, (float)g_adc_multi.vout_raw, s_llc.f_cmd);
 #else
     llc_ctrl_bumpless_init(LLC_VOUT_TARGET_V, s_llc_rt.meas.vout_v, s_llc.f_cmd);
+#endif
+#if LLC_TRACE_ENABLE && LLC_TRACE_AUTO_ARM_ON_RUN
+      llc_trace_arm(LLC_TRACE_AUTO_ARM_SAMPLES);
 #endif
 			//s_llc.integ = 0.0f;
 			break;
@@ -521,14 +735,16 @@ void llc_app_init()
 void llc_app_init(void)
 {
     llc_softstart_init();
-
+#if LLC_TRACE_ENABLE
+    llc_trace_init();
+#endif
     s_llc = (llc_t){
         .vref    = LLC_VOUT_TARGET_V,
         .vmeas   = 0.0f,
 
         /* 正常电压PI参数 */
-        .kp      = 1400.0f,
-        .ki      = 10.0f,
+        .kp      = 1900.0f,
+        .ki      = 18.0f,
 
         /* RAW PI参数 */
         .kp_raw  = 3.0f,
@@ -546,7 +762,7 @@ void llc_app_init(void)
         .f_max   = LLC_F_MAX_HZ,
         .f_cmd   = LLC_F_INIT_HZ,
         .f_slew  = LLC_F_SLEW_HZ,
-
+        .f_nom  = LLC_F_INIT_HZ,
         .f_cmd_v = 0.0f,
         .f_cmd_i = 0.0f
     };
@@ -580,42 +796,16 @@ void llc_app_tick_100us(void)
     static float vout_filt_raw = 0.0f;   /* RAW PI用滤波状态 */
     float err;
     float f_cmd;
-
+	
+	
     if (s_llc_rt.app.state != ST_LLC_RUN) {
         return;
-    }
-#if LLC_USE_RAW_PI
-		
-    /* =========================
-     * RAW PI模式
-     * 直接使用ADC原始码值做控制
-     * err = target_code - raw_code
-     * ========================= */
-		float vout_raw_now = (float)g_adc_multi.vout_raw;
-		float vout_raw_used;
-		#if LLC_RAW_PI_USE_FILT
-        if (vout_filt_raw < 0.5f) {
-            vout_filt_raw = vout_raw_now;
-        }
-        vout_filt_raw += LLC_VOUT_FILT_ALPHA * (vout_raw_now - vout_filt_raw);
-        vout_raw_used = vout_filt_raw;
-    #else
-        vout_raw_used = vout_raw_now;
-    #endif
-		    /* 注意：
-         * s_llc.vmeas 在RAW模式下保存的是“raw码值对应的float”
-         * 仅供控制和调试使用，不再代表真实电压值
-         */
-        s_llc.vmeas = vout_raw_used;
-        err = LLC_RAW_PI_TARGET_CODE - s_llc.vmeas;
-			}
-#else		
+    }	
 		 /* =========================
      * 正常电压PI模式
      * raw -> 电压 -> 滤波 -> PI
      * err = vref - vmeas
      * ========================= */
-		{
     float vout_now = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
 
 	  if (vout_filt_v < 0.001f) {
@@ -626,11 +816,14 @@ void llc_app_tick_100us(void)
 
     s_llc.vmeas = vout_filt_v;
     err = s_llc.vref - s_llc.vmeas;
-		/* 周期控制PI，返回的是换算后的频率命令 */
-#endif
+
     f_cmd = llc_ctrl_step(err);
     llc_set_freq(f_cmd);
-	}
+			
+#if LLC_TRACE_ENABLE
+    llc_trace_push_sample(g_adc_multi.vout_raw, s_llc.vmeas, err, s_llc.f_cmd);
+#endif
+
 }
 
 void llc_app_tick_1khz(void)
@@ -745,6 +938,9 @@ void llc_app_tick_1khz(void)
 		default:
 			break;
 	}
+#if LLC_TRACE_ENABLE
+    llc_trace_dump_task();
+#endif
 }
 
 
