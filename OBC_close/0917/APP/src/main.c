@@ -215,7 +215,6 @@ static void control_loop_tick_1khz(void){
 		
     pfc_tick_1khz();
     llc_app_tick_1khz();
-		//llc_app_tick_adc_test();
 
 }
 

@@ -114,7 +114,7 @@
 #define LLC_F_MIN_HZ        (75000.0f)
 #define LLC_F_MAX_HZ        (200000.0f)
 #define LLC_F_INIT_HZ       (100000.0f)
-#define LLC_F_SLEW_HZ       (1000.0f)
+#define LLC_F_SLEW_HZ       (100.0f)
 #define LLC_F_DEBUG_HZ      (130000.0f)
 
 /* ==== LLC open-loop safe bands ==== */
@@ -137,7 +137,8 @@
 #define LLC_HOLD_RESCAN_DELTA_V      (5.0f)
 
 #define LLC_STOPPING_FREQ_HOLD_MS    (40U)
-
+#define LLC_SOFTOFF_ENABLE           (1)
+#define LLC_SOFTOFF_DURATION_MS      (120U)
 
 #define DEBUG_PRINTF_LLCSOFTSTART 0
 #define DEBUG_PRINTF_LLC_OPENLOOP 0

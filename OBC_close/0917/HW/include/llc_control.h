@@ -11,6 +11,7 @@ typedef enum
 	ST_RUN_ENTRY_HOLD,
 	ST_LLC_RUN,
 	ST_STOPPING,
+	ST_HICCUP_WAIT,
 	ST_FAULT,
 } llc_state_t;
 
@@ -38,6 +39,19 @@ typedef struct {
 	float f_cmd_v, f_cmd_i;
 	
 } llc_t;
+
+typedef enum {
+    LLC_STOP_REASON_NONE = 0,
+    LLC_STOP_REASON_NORMAL,
+    LLC_STOP_REASON_PFC_LOST,
+    LLC_STOP_REASON_PRECHECK_FAIL,
+    LLC_STOP_REASON_RUN_ENTRY_FAIL,
+    LLC_STOP_REASON_VOUT_OVP,
+    LLC_STOP_REASON_IOUT_OCP,
+    LLC_STOP_REASON_VBUS_UVP,
+    LLC_STOP_REASON_EXT_FAULT
+} llc_stop_reason_t;
+
 static llc_t s_llc;
 
 /*********************************************************************************************************
