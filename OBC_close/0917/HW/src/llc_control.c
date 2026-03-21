@@ -4,13 +4,45 @@
 /*********************************************************************************************************
 *                                              宏定义
 *********************************************************************************************************/
+//burst
+#ifndef LLC_BURST_ENABLE
+#define LLC_BURST_ENABLE                 (0)
+#endif
+
+#ifndef LLC_BURST_ENTER_IOUT_A
+#define LLC_BURST_ENTER_IOUT_A           (1.5f)   /* 进入burst的轻载阈值 */
+#endif
+
+#ifndef LLC_BURST_EXIT_IOUT_A
+#define LLC_BURST_EXIT_IOUT_A            (2.5f)   /* 退出burst的负载阈值，做滞回 */
+#endif
+
+#ifndef LLC_BURST_ENTRY_FCMD_MARGIN_HZ
+#define LLC_BURST_ENTRY_FCMD_MARGIN_HZ   (2000.0f) /* 接近f_max才允许进burst */
+#endif
+
+#ifndef LLC_BURST_VUPPER_V
+#define LLC_BURST_VUPPER_V               (0.30f)  /* 高于目标多少进入停振等待 */
+#endif
+
+#ifndef LLC_BURST_VLOWER_V
+#define LLC_BURST_VLOWER_V               (0.60f)  /* 低于目标多少重新打能量 */
+#endif
+
+#ifndef LLC_BURST_FIRE_MIN_MS
+#define LLC_BURST_FIRE_MIN_MS            (8U)     /* 最短送能时间，避免过碎 */
+#endif
+
+#ifndef LLC_BURST_WAIT_MIN_MS
+#define LLC_BURST_WAIT_MIN_MS            (4U)     /* 最短停振时间，避免抖动 */
+#endif
+
+#ifndef LLC_BURST_EXIT_HOLD_MS
+#define LLC_BURST_EXIT_HOLD_MS           (20U)    /* 退出burst前保持时间 */
+#endif
 
 #ifndef LLC_VOUT_FILT_ALPHA
 #define LLC_VOUT_FILT_ALPHA          (0.08f) /* 100us快环滤波系数 */
-#endif
-
-#ifndef LLC_RAW_PI_TARGET_CODE
-#define LLC_RAW_PI_TARGET_CODE       (2836.0f) /* 48V对应ADC码值，需按实测校准 */
 #endif
 
 #ifndef LLC_F_NOM_USE_STAGE_CMD
@@ -54,11 +86,11 @@
 #endif
 
 #ifndef LLC_STOPPING_PWM_OFF_DELAY_MS
-#define LLC_STOPPING_PWM_OFF_DELAY_MS    (8U)
+#define LLC_STOPPING_PWM_OFF_DELAY_MS    (20U)
 #endif
 
 #ifndef LLC_HICCUP_ENABLE
-#define LLC_HICCUP_ENABLE                (1)
+#define LLC_HICCUP_ENABLE                (0)
 #endif
 
 #ifndef LLC_HICCUP_WAIT_MS
@@ -90,8 +122,12 @@ typedef struct {
     uint32_t hold_last_adjust_ms;
 	  uint32_t run_entry_hold_begin_ms;
     uint32_t run_entry_stable_ticks;
-	
-		/* 新增 */
+	  /*轻载打嗝*/
+		uint32_t burst_begin_ms;
+		uint32_t burst_fire_begin_ms;
+		uint32_t burst_wait_begin_ms;
+		uint8_t  burst_active;
+		/* 新增 故障打嗝*/
     uint32_t hiccup_begin_ms;
     uint16_t hiccup_retry_cnt;
     uint8_t  stop_reason;
@@ -145,11 +181,13 @@ static bool llc_pfc_ready_stable(bool enable_llc);
 static bool llc_faults_present(void);
 static void llc_enter_fault(void);
 static float llc_ctrl_step(float e);
-
+//故障打嗝
 static void llc_request_stop(llc_stop_reason_t reason);
 static llc_stop_reason_t llc_check_stop_reason(void);
 static bool llc_stop_reason_need_latch(llc_stop_reason_t reason);
-
+//轻载打嗝
+static bool llc_burst_enter_allowed(void);
+static bool llc_burst_exit_needed(void);
 #if LLC_TRACE_ENABLE
 static void llc_trace_init(void);
 void llc_trace_arm(uint16_t samples);
@@ -267,6 +305,49 @@ static void llc_set_freq(float hz)
     float f = f_clampf(hz, s_llc.f_min, s_llc.f_max);
     s_llc.f_cmd = f;
     llc_pwm_set_freq((uint32_t)f);
+}
+//实现 burst 判定函数
+static bool llc_burst_enter_allowed(void)
+{
+#if !LLC_BURST_ENABLE
+    return false;
+#else
+    float f_enter_th = s_llc.f_max - LLC_BURST_ENTRY_FCMD_MARGIN_HZ;
+
+    if (s_llc_rt.meas.iout_a > LLC_BURST_ENTER_IOUT_A) {
+        return false;
+    }
+
+    if (s_llc.f_cmd < f_enter_th) {
+        return false;
+    }
+
+    if (s_llc.vmeas < (s_llc.vref + LLC_BURST_VUPPER_V)) {
+        return false;
+    }
+
+    return true;
+#endif
+}
+static bool llc_burst_exit_needed(void)
+{
+#if !LLC_BURST_ENABLE
+    return true;
+#else
+    if (s_llc_rt.meas.iout_a >= LLC_BURST_EXIT_IOUT_A) {
+        return true;
+    }
+
+    if (!pfc_is_ready()) {
+        return true;
+    }
+
+    if (!llc_precheck_ok()) {
+        return true;
+    }
+
+    return false;
+#endif
 }
 #if LLC_TRACE_ENABLE
 static void llc_trace_init(void)
@@ -634,6 +715,13 @@ static void llc_state_enter(llc_state_t next)
 		  s_llc_rt.hiccup_begin_ms = 0U;
       s_llc_rt.stop_reason = LLC_STOP_REASON_NONE;
       s_llc_rt.fault_latched = 0U;
+			
+			//轻载打嗝
+			s_llc_rt.burst_begin_ms = 0U;
+			s_llc_rt.burst_fire_begin_ms = 0U;
+			s_llc_rt.burst_wait_begin_ms = 0U;
+			s_llc_rt.burst_active = 0U;
+			
 		  break;
 	 case ST_PRECHECK:  
 	  	llc_driver_en_set(true);
@@ -660,8 +748,9 @@ static void llc_state_enter(llc_state_t next)
 			llc_driver_en_set(true);
       s_llc_rt.hold_last_adjust_ms = g_ms;
 	    s_llc.f_nom = llc_get_f_nom(s_llc.f_min, s_llc.f_max, s_llc.f_cmd);
-      llc_ctrl_bumpless_init(LLC_VOUT_TARGET_V, s_llc_rt.meas.vout_v, s_llc.f_cmd);
-
+	    s_llc.vmeas = s_llc_rt.meas.vout_v;   /* 先用1ms实测值给bumpless兜底 */
+      llc_ctrl_bumpless_init(LLC_VOUT_TARGET_V, s_llc.vmeas, s_llc.f_cmd);
+			s_llc_rt.burst_active = 0U;
 #if LLC_TRACE_ENABLE && LLC_TRACE_AUTO_ARM_ON_RUN
       llc_trace_arm(LLC_TRACE_AUTO_ARM_SAMPLES);
 #endif
@@ -676,6 +765,31 @@ static void llc_state_enter(llc_state_t next)
 	    llc_set_freq(s_llc_rt.softoff_start_hz);
 	
       break;
+	 case ST_BURST_WAIT:
+	    s_llc_rt.burst_wait_begin_ms = g_ms;
+			s_llc_rt.burst_active = 1U;
+
+			/* 停振等待：关PWM，驱动可关 */
+			llc_pwm_outputs_enable(0);
+			llc_driver_en_set(false);
+
+			/* 命令频率拉到高频端，避免恢复时残余 */
+			llc_set_freq(s_llc.f_max);
+			break;
+	 case ST_BURST_FIRE:
+			s_llc_rt.burst_fire_begin_ms = g_ms;
+			s_llc_rt.burst_active = 1U;
+
+			llc_driver_en_set(true);
+			llc_pwm_outputs_enable(1);
+
+			/* 重新开火时先从高频端/当前高频附近接入，减小冲击 */
+			s_llc.f_cmd = f_clampf(s_llc.f_max, s_llc.f_min, s_llc.f_max);
+			llc_set_freq(s_llc.f_cmd);
+
+			s_llc.f_nom = llc_get_f_nom(s_llc.f_min, s_llc.f_max, s_llc.f_cmd);
+			llc_ctrl_bumpless_init(LLC_VOUT_TARGET_V, s_llc.vmeas, s_llc.f_cmd);
+			break;
 	 case ST_HICCUP_WAIT:
 		  s_llc_rt.hiccup_begin_ms = g_ms;  //打嗝开始时间
 			llc_pwm_outputs_enable(0);
@@ -743,12 +857,13 @@ void llc_app_tick_adc_test(void)
 void llc_app_tick_100us(void)
 {
 	  static float vout_filt_v   = 0.0f;   /* 电压PI用滤波状态 */
-    static float vout_filt_raw = 0.0f;   /* RAW PI用滤波状态 */
     float err;
     float f_cmd;
 	
 	
-    if (s_llc_rt.app.state != ST_LLC_RUN) {
+    if ((s_llc_rt.app.state != ST_LLC_RUN)&&(s_llc_rt.app.state != ST_BURST_FIRE)) 
+		{
+				vout_filt_v = 0.0f;
         return;
     }	
 		 /* =========================
@@ -779,15 +894,19 @@ void llc_app_tick_1khz(void)
 	
 	    if ((s_llc_rt.app.state != ST_IDLE) &&
         (s_llc_rt.app.state != ST_FAULT) &&
-        (s_llc_rt.app.state != ST_HICCUP_WAIT)) {
+        (s_llc_rt.app.state != ST_HICCUP_WAIT) &&
+			  (s_llc_rt.app.state != ST_BURST_WAIT))
+			{
         llc_stop_reason_t reason = llc_check_stop_reason();
-        if (reason != LLC_STOP_REASON_NONE) {
+        if (reason != LLC_STOP_REASON_NONE) 
+				{
             llc_request_stop(reason);
 #if LLC_TRACE_ENABLE
     llc_trace_dump_task();
-#endif
+#endif			
+					  return;
         }
-    }
+      }
 	bool enable_llc = pfc_is_ready();
 	bool pfc_ready_stable = llc_pfc_ready_stable(enable_llc);
 #if 0
@@ -867,7 +986,7 @@ void llc_app_tick_1khz(void)
 			}
 
 			if (elapsed_reached(s_llc_rt.run_entry_hold_begin_ms, LLC_RUN_ENTRY_TIMEOUT_MS)) {
-				llc_state_enter(ST_STOPPING);
+				llc_request_stop(LLC_STOP_REASON_RUN_ENTRY_FAIL);
 				break;
 			}
 				break;		
@@ -876,6 +995,7 @@ void llc_app_tick_1khz(void)
 		{
 			float err;
 			float f_cmd;
+
 			if (!enable_llc) {
 					llc_request_stop(LLC_STOP_REASON_PFC_LOST);
 					break;
@@ -885,6 +1005,17 @@ void llc_app_tick_1khz(void)
 					llc_request_stop(LLC_STOP_REASON_VBUS_UVP);
 					break;
 			}
+			if (elapsed_reached(s_llc_rt.app.entry_ms, 3000U)) {
+					s_llc_rt.stop_reason = LLC_STOP_REASON_NORMAL;
+					llc_state_enter(ST_STOPPING);
+					break;
+			}
+#if LLC_BURST_ENABLE
+    if (llc_burst_enter_allowed()) {
+        llc_state_enter(ST_BURST_WAIT);
+        break;
+    }
+#endif
 			/* 1ms 电压环 */
 			err = s_llc.vref - s_llc.vmeas;
 			f_cmd = llc_ctrl_step(err);
@@ -895,6 +1026,80 @@ void llc_app_tick_1khz(void)
 			}
 				break;
 	 }
+		
+	  case ST_BURST_WAIT:
+	  {
+			if (!enable_llc) {
+					llc_request_stop(LLC_STOP_REASON_PFC_LOST);
+					break;
+			}
+
+			if (!llc_precheck_ok()) {
+					llc_request_stop(LLC_STOP_REASON_VBUS_UVP);
+					break;
+			}
+
+			if (llc_burst_exit_needed()) {
+					llc_state_enter(ST_LLC_RUN);
+					break;
+			}
+
+			if (!elapsed_reached(s_llc_rt.burst_wait_begin_ms, LLC_BURST_WAIT_MIN_MS)) {
+					break;
+			}
+
+			/* 电压掉到下阈值，重新打一段能量 */
+			if (s_llc.vmeas <= (s_llc.vref - LLC_BURST_VLOWER_V)) {
+					llc_state_enter(ST_BURST_FIRE);
+					break;
+			}
+
+			break;
+		}
+		
+		case ST_BURST_FIRE:
+		{
+				float err;
+				float f_cmd;
+
+				if (!enable_llc) {
+						llc_request_stop(LLC_STOP_REASON_PFC_LOST);
+						break;
+				}
+
+				if (!llc_precheck_ok()) {
+						llc_request_stop(LLC_STOP_REASON_VBUS_UVP);
+						break;
+				}
+
+				if (llc_burst_exit_needed()) {
+						llc_state_enter(ST_LLC_RUN);
+						break;
+				}
+
+				/* 在burst_fire里仍然跑1ms电压环，但只打一小段 */
+				err = s_llc.vref - s_llc.vmeas;
+				f_cmd = llc_ctrl_step(err);
+				llc_set_freq(f_cmd);
+
+				if (!elapsed_reached(s_llc_rt.burst_fire_begin_ms, LLC_BURST_FIRE_MIN_MS)) {
+						break;
+				}
+
+				/* 电压回到上阈值以上，再停振等待 */
+				if (s_llc.vmeas >= (s_llc.vref + LLC_BURST_VUPPER_V)) {
+						llc_state_enter(ST_BURST_WAIT);
+						break;
+				}
+
+				/* 如果频率已经不再逼近f_max，说明负载上来了，退回连续模式 */
+				if (s_llc.f_cmd < (s_llc.f_max - LLC_BURST_ENTRY_FCMD_MARGIN_HZ)) {
+						llc_state_enter(ST_LLC_RUN);
+						break;
+				}
+
+				break;
+		}
 		case ST_STOPPING:
 		{
 		  uint32_t elapsed_ms = elapsed_since(s_llc_rt.stopping_begin_ms);
@@ -911,20 +1116,13 @@ void llc_app_tick_1khz(void)
 				}
 		#endif
 				
-				
-			uint32_t stop_wait_ms = LLC_STOPPING_FREQ_HOLD_MS;
-		#if LLC_SOFTOFF_ENABLE
-			if (LLC_SOFTOFF_DURATION_MS > stop_wait_ms) {
-				stop_wait_ms = LLC_SOFTOFF_DURATION_MS;
-			}
-		#endif
-			if(elapsed_reached(s_llc_rt.stopping_begin_ms, stop_wait_ms))
+			if (elapsed_ms >= total_ms)
 			{
 				llc_pwm_outputs_enable(0);
 				llc_driver_en_set(false);
 				if(s_llc_rt.fault_latched)
 				{
-					llc_state_enter(ST_IDLE);
+					llc_state_enter(ST_FAULT);
 				}
 				else if((s_llc_rt.stop_reason != LLC_STOP_REASON_NONE) && (s_llc_rt.stop_reason != LLC_STOP_REASON_NORMAL)) 
 				{
