@@ -47,7 +47,7 @@
 #endif
 
 #ifndef DEBUG_USART_DMA_IRQn
-#define DEBUG_USART_DMA_IRQn      DMA0_Channel3_IRQn
+#define DEBUG_USART_DMA_IRQn      DMA0_Channel1_IRQn
 #endif
 
 /* 声明外部变量 */

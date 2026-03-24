@@ -651,7 +651,7 @@ static bool llc_faults_present(void)
    //     return true;
    // }
 
-    if (s_llc_rt.meas.vout_v > LLC_VOUT_OVP_V) {  //56
+    if (s_llc_rt.meas.vout_v > LLC_VOUT_OVP_V) {  //58
         return true;
     }
 
@@ -1174,7 +1174,7 @@ void llc_app_tick_1khz(void)
 {
 	llc_update_measurements();
 
-#if 0	
+#if 0
 	if (llc_faults_present()) {
       llc_enter_fault();
   		return;
@@ -1182,7 +1182,7 @@ void llc_app_tick_1khz(void)
 #endif
 	bool enable_llc = pfc_is_ready();
 	bool pfc_ready_stable = llc_pfc_ready_stable(enable_llc);
-#if 0
+#if 1
 	if (s_llc_rt.app.state != ST_IDLE && s_llc_rt.app.state != ST_FAULT) {
 		if (llc_faults_present()) {
 			llc_enter_fault();
@@ -1290,6 +1290,7 @@ void llc_app_tick_1khz(void)
 				llc_state_enter(ST_BURST_MODE);
 				break;
 			}
+		}
 		else
 		{
 			s_llc_rt.burst_enter_delay_ms = 0; /* 电流回升，重置计时 */
