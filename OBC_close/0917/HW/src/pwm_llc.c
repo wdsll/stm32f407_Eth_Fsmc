@@ -250,7 +250,16 @@ void llc_pwm_outputs_enable(bool en)
 void llc_pwm_break(bool en){
     timer_primary_output_config(TIMER0, en ? DISABLE : ENABLE);  // en=1 相当于“刹停”
 }
-void llc_pwm_set_freq(uint32_t f_hz)
+/**
+ * @brief 设置LLC PWM频率
+ * @param f_hz 目标频率(Hz)
+ * @param force_update 是否强制立即更新影子寄存器
+ *                     true:  立即触发UEV，ARR/CCR立即生效（用于Burst开关/软启等关键切换）
+ *                     false: 等待自然更新边界，不破坏当前PWM周期（用于闭环微调）
+ * @note 关键切换场景必须用force_update=true，确保切换时刻可控
+ *       正常运行PI调节用force_update=false，保持自然更新节奏
+ */
+void llc_pwm_set_freq(uint32_t f_hz, bool force_update)
 { 
 	if (f_hz == 0U) {
 		return;
@@ -269,17 +278,18 @@ void llc_pwm_set_freq(uint32_t f_hz)
 	s_period = ticks - 1U;
 	s_cfg.pwm_hz = tclk / ticks;
 
-    /* 1. 更新 ARR（CAR），利用影子寄存器在下一个更新事件生效 */
-	// 读取定时器TIMER0的死区时间配置寄存器（TIMER_CCHP）
-	// 清除原有的死区时间配置位
-	// 设置新的死区时间配置位
-	// 将更新后的配置写回死区时间寄存器
+    /* 更新 ARR（CAR），写入影子寄存器 */
     TIMER_CAR(TIMER0) = s_period;	
-	// 根据占空比（s_cfg.duty）计算PWM的比较寄存器值（pwm_ccr）
+	
+	/* 根据占空比计算CCR并更新 */
 	uint16_t pwm_ccr = duty_to_ccr(s_cfg.duty);
-	// // 配置定时器TIMER0的通道（LLC_PWM_CH）的输出脉冲值
 	timer_channel_output_pulse_value_config(TIMER0, LLC_PWM_CH, pwm_ccr);	
-	//timer_event_software_generate(TIMER0, TIMER_EVENT_SRC_UPG);
+	
+	/* 根据场景决定是否强制立即更新 */
+	if (force_update) {
+		timer_event_software_generate(TIMER0, TIMER_EVENT_SRC_UPG);
+	}
+	/* force_update=false时：不触发UEV，等待自然更新边界（当前周期结束） */
 }
 //周期(ns) = 1e9 × (ARR + 1) / tclk
 uint32_t llc_pwm_get_period_ns(void)

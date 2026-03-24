@@ -215,6 +215,7 @@ static void control_loop_tick_1khz(void){
 		
     pfc_tick_1khz();
     llc_app_tick_1khz();
+		//llc_app_tick_adc_test();
 
 }
 
@@ -230,7 +231,7 @@ int main(void){
 
 	  debug_printf_init(DEBUG_PRINTF_DEFAULT_BAUDRATE);
 
-	
+	  //debug_printf("uart ok");
 		systick_1ms_init();
     /* LLC complementary PWM 配置LLC的PWM频率 、死区时间和占空比，并初始化PWM模块*/
     llc_pwm_cfg_t lcfg = { .pwm_hz=LLC_PWM_BASE_HZ, .deadtime_ns=LLC_PWM_DEAD_NS, .duty=LLC_PWM_DUTY };//130
@@ -313,6 +314,9 @@ int main(void){
 						pending_ticks = MAX_TICKS_PER_LOOP;
 					}
 			}
+			
+			/* 非阻塞串口发送任务 */
+			debug_tx_task();
     }
 }
 

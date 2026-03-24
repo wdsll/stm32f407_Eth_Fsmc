@@ -10,12 +10,20 @@ typedef enum
 	ST_SOFTSTART,
 	ST_RUN_ENTRY_HOLD,
 	ST_LLC_RUN,
-	ST_BURST_WAIT,
-	ST_BURST_FIRE,
+	ST_BURST_MODE,      /* 轻载打嗝模式 */
 	ST_STOPPING,
-	ST_HICCUP_WAIT,
+	ST_CYCLE_STOPPING,  /* 周期性软关断状态 */
 	ST_FAULT,
 } llc_state_t;
+
+/* Burst Mode 子状态 */
+typedef enum
+{
+	BURST_STATE_ENTRY_PREPARE  = 0,
+	BURST_STATE_OFF ,           /* Burst关闭，PWM关 */
+	BURST_STATE_ON,                /* Burst开启，PWM开，固定高频 */
+	BURST_STATE_ON_PREPARE,        /* 准备关闭：先升频到最高再关PWM */
+} burst_state_t;
 
 typedef struct
 {
@@ -41,19 +49,6 @@ typedef struct {
 	float f_cmd_v, f_cmd_i;
 	
 } llc_t;
-
-typedef enum {
-    LLC_STOP_REASON_NONE = 0,
-    LLC_STOP_REASON_NORMAL,
-    LLC_STOP_REASON_PFC_LOST,
-    LLC_STOP_REASON_PRECHECK_FAIL,
-    LLC_STOP_REASON_RUN_ENTRY_FAIL,
-    LLC_STOP_REASON_VOUT_OVP,
-    LLC_STOP_REASON_IOUT_OCP,
-    LLC_STOP_REASON_VBUS_UVP,
-    LLC_STOP_REASON_EXT_FAULT
-} llc_stop_reason_t;
-
 static llc_t s_llc;
 
 /*********************************************************************************************************

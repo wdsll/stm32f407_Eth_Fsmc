@@ -6,10 +6,12 @@
  *  LLC frequency soft-start context
  * ===================================================================*/
 static llc_softstart_ctx_t s_llc_softstart;
+static llc_softstop_ctx_t s_llc_softstop;
 
 static void llc_softstart_reset(void);
 static void llc_softstart_begin(float target_hz);
 static void llc_softstart_tick(void);
+static void llc_softstop_tick(void);
 
 /* 余弦 S 曲线：0→1 */
 static inline float ease_cos(float t)
@@ -36,7 +38,7 @@ static void ss_apply(float freq_hz)
 {
     float f = f_clampf(freq_hz, LLC_F_MIN_HZ, LLC_F_MAX_HZ);
     s_llc_softstart.last_hz = f;
-    llc_pwm_set_freq((uint32_t)f);
+    llc_pwm_set_freq((uint32_t)f, false);
 	  llc_pwm_set_duty(LLC_PWM_DUTY);
 }
 
@@ -248,6 +250,137 @@ void llc_softstart_tick_1khz(void)
 
     llc_softstart_tick();
 }
+
+/* =====================================================================
+ *  LLC frequency soft-stop implementation
+ * ===================================================================*/
+
+void llc_softstop_init(void)
+{
+    if (!s_llc_softstop.initialized) {
+        s_llc_softstop.active = false;
+        s_llc_softstop.pause = false;
+        s_llc_softstop.paused_elapsed_ms = 0U;
+        s_llc_softstop.start_ms = 0U;
+        s_llc_softstop.duration_ms = LLC_SOFTSTOP_DURATION_MS;
+        s_llc_softstop.start_hz = LLC_F_MAX_HZ;
+        s_llc_softstop.target_hz = LLC_F_MAX_HZ;
+        s_llc_softstop.last_hz = LLC_F_MAX_HZ;
+        s_llc_softstop.done = false;
+        s_llc_softstop.initialized = true;
+    }
+}
+
+void llc_softstop_start(float start_freq_hz)
+{
+    if (!s_llc_softstop.initialized) {
+        llc_softstop_init();
+    }
+
+    /* 如果已经在软关断中，不重复启动 */
+    if (s_llc_softstop.active) {
+        return;
+    }
+
+    s_llc_softstop.duration_ms = LLC_SOFTSTOP_DURATION_MS;
+    float start_hz = f_clampf(start_freq_hz, LLC_F_MIN_HZ, LLC_F_MAX_HZ);
+    float final_hz = f_clampf(LLC_F_MAX_HZ, LLC_F_MIN_HZ, LLC_F_MAX_HZ);
+
+    s_llc_softstop.pause = false;
+    s_llc_softstop.paused_elapsed_ms = 0U;
+    s_llc_softstop.start_hz = start_hz;
+    s_llc_softstop.target_hz = final_hz;
+    s_llc_softstop.done = false;
+
+    if ((s_llc_softstop.duration_ms == 0U) || (start_hz >= final_hz)) {
+        /* 不需要软关断，直接完成 */
+        s_llc_softstop.active = false;
+        s_llc_softstop.done = true;
+        s_llc_softstop.last_hz = final_hz;
+        ss_apply(final_hz);
+    } else {
+        s_llc_softstop.active = true;
+        s_llc_softstop.start_ms = g_ms;
+        ss_apply(start_hz);
+    }
+}
+
+static void llc_softstop_tick(void)
+{
+    if (!s_llc_softstop.active) {
+        return;
+    }
+
+    if (s_llc_softstop.pause) {
+        ss_apply(s_llc_softstop.last_hz);
+        return;
+    }
+
+    uint32_t elapsed = (uint32_t)(g_ms - s_llc_softstop.start_ms);
+
+    if (elapsed >= s_llc_softstop.duration_ms) {
+        s_llc_softstop.active = false;
+        s_llc_softstop.done = true;
+        ss_apply(s_llc_softstop.target_hz);
+        return;
+    }
+
+    float progress = (s_llc_softstop.duration_ms > 0U) ? ((float)elapsed / (float)s_llc_softstop.duration_ms) : 1.0f;
+
+    /* 软关断也使用余弦S曲线，与软启一致 */
+    #if defined(LLC_SOFTSTART_USE_COSINE_EASE) && (LLC_SOFTSTART_USE_COSINE_EASE)
+        float k = ease_cos(progress);
+    #else
+        float k = ease_exp(progress, LLC_SOFTSTART_EXP_K);
+    #endif
+
+    /* 软关断：从低到高频率 */
+    float hz = s_llc_softstop.start_hz + (s_llc_softstop.target_hz - s_llc_softstop.start_hz) * k;
+    ss_apply(hz);
+}
+
+void llc_softstop_tick_1khz(void)
+{
+    if (!s_llc_softstop.initialized) {
+        llc_softstop_init();
+    }
+
+    llc_softstop_tick();
+}
+
+bool llc_softstop_is_active(void)
+{
+    if (!s_llc_softstop.initialized) {
+        return false;
+    }
+    return s_llc_softstop.active;
+}
+
+bool llc_softstop_is_done(void)
+{
+    if (!s_llc_softstop.initialized) {
+        return true;
+    }
+    return s_llc_softstop.done;
+}
+
+void llc_softstop_reset(void)
+{
+    s_llc_softstop.active = false;
+    s_llc_softstop.pause = false;
+    s_llc_softstop.paused_elapsed_ms = 0U;
+    s_llc_softstop.start_ms = 0U;
+    s_llc_softstop.done = false;
+    s_llc_softstop.last_hz = LLC_F_MAX_HZ;
+}
+
+float llc_softstop_current_hz(void)
+{
+    if (!s_llc_softstop.initialized) {
+        return LLC_F_MAX_HZ;
+    }
+    return s_llc_softstop.last_hz;
+}
 #else
 
 static void llc_softstart_reset(void)
@@ -269,5 +402,32 @@ void llc_softstart_stop(void)
 float llc_softstart_last_hz(void)
 {
     return LLC_F_INIT_HZ;
+}
+
+/* 软关断空实现 */
+void llc_softstop_init(void)
+{
+}
+void llc_softstop_start(float start_freq_hz)
+{
+    (void)start_freq_hz;
+}
+void llc_softstop_tick_1khz(void)
+{
+}
+bool llc_softstop_is_active(void)
+{
+    return false;
+}
+bool llc_softstop_is_done(void)
+{
+    return true;
+}
+void llc_softstop_reset(void)
+{
+}
+float llc_softstop_current_hz(void)
+{
+    return LLC_F_MAX_HZ;
 }
 #endif /* LLC_SOFTSTART_ENABLE */
