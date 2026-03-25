@@ -23,7 +23,7 @@
 #endif
 
 #ifndef LLC_CR_RESP_LOG_PERIOD_MS
-#define LLC_CR_RESP_LOG_PERIOD_MS     (100U)
+#define LLC_CR_RESP_LOG_PERIOD_MS     (1000U)
 #endif
 
 #ifndef LLC_CR_RESP_STEP_IOUT_A
@@ -624,6 +624,129 @@ static void llc_cr_resp_log_dump(void)
     }
 #endif
 }
+static inline int16_t q10_from_float(float x)
+{
+    if (x >= 3276.7f)  return 32767;
+    if (x <= -3276.8f) return -32768;
+    return (int16_t)(x * 10.0f);
+}
+
+static inline uint16_t u16_sat_from_u32(uint32_t x)
+{
+    return (x > 65535UL) ? 65535U : (uint16_t)x;
+}
+
+static inline void put_u16_le(uint8_t *p, uint16_t v)
+{
+    p[0] = (uint8_t)(v & 0xFFU);
+    p[1] = (uint8_t)((v >> 8) & 0xFFU);
+}
+
+
+static inline void put_i16_le(uint8_t *p, int16_t v)
+{
+    put_u16_le(p, (uint16_t)v);
+}
+
+static void debug_putc_blocking(uint8_t ch)
+{
+    while (RESET == usart_flag_get(USART2, USART_FLAG_TBE)) {
+    }
+    usart_data_transmit(USART2, ch);
+}
+static void debug_write_binary(const uint8_t *buf, uint16_t len)
+{
+    uint16_t i;
+
+    if ((buf == NULL) || (len == 0U)) {
+        return;
+    }
+
+    for (i = 0U; i < len; i++) {
+        debug_putc_blocking(buf[i]);
+    }
+}
+
+static uint8_t s_cr_uart_seq = 0U;
+
+static void llc_cr_resp_send_bin_frame(uint8_t type, const uint8_t *payload, uint8_t len)
+{
+    uint8_t frame[40];
+    uint8_t i;
+    uint8_t chk = 0U;
+    uint8_t idx = 0U;
+
+    if ((payload == NULL) && (len > 0U)) {
+        return;
+    }
+
+    frame[idx++] = 0xA5U;
+    frame[idx++] = type;
+    frame[idx++] = len;
+    frame[idx++] = s_cr_uart_seq++;
+
+    for (i = 0U; i < len; i++) {
+        frame[idx++] = payload[i];
+    }
+
+    for (i = 0U; i < idx; i++) {
+        chk ^= frame[i];
+    }
+
+    frame[idx++] = chk;
+    frame[idx++] = 0x5AU;
+
+    debug_write_binary(frame, idx);
+}
+
+static void llc_cr_resp_log_emit_bin(const llc_cr_log_item_t *item)
+{
+    uint8_t payload[20];
+    uint8_t len = 0U;
+
+    if (item == NULL) {
+        return;
+    }
+
+    switch (item->type) {
+    case CR_LOG_MON:
+        put_u16_le(&payload[0], u16_sat_from_u32(item->t_ms));
+        put_i16_le(&payload[2], q10_from_float(item->vout_v));
+        put_i16_le(&payload[4], q10_from_float(item->iout_a));
+        put_i16_le(&payload[6], q10_from_float(item->err_v));
+        put_u16_le(&payload[8], u16_sat_from_u32((uint32_t)(item->f_cmd_hz / 10.0f)));
+        len = 10U;
+        llc_cr_resp_send_bin_frame(0x01U, payload, len);
+        break;
+
+    case CR_LOG_EVT_BEGIN:
+        put_u16_le(&payload[0], u16_sat_from_u32(item->id));
+        put_i16_le(&payload[2], q10_from_float(item->iout_from_a));
+        put_i16_le(&payload[4], q10_from_float(item->iout_to_a));
+        put_i16_le(&payload[6], q10_from_float(item->vout_pre_v));
+        len = 8U;
+        llc_cr_resp_send_bin_frame(0x02U, payload, len);
+        break;
+
+    case CR_LOG_EVT_END:
+        put_u16_le(&payload[0], u16_sat_from_u32(item->id));
+        payload[2] = item->pass;
+        payload[3] = 0U;
+        put_u16_le(&payload[4], u16_sat_from_u32(item->dt_ms));
+        put_u16_le(&payload[6], u16_sat_from_u32(item->settle_ms));
+        put_i16_le(&payload[8],  q10_from_float(item->vmin_v));
+        put_i16_le(&payload[10], q10_from_float(item->vmax_v));
+        put_i16_le(&payload[12], q10_from_float(item->maxerr_v));
+        len = 14U;
+        llc_cr_resp_send_bin_frame(0x03U, payload, len);
+        break;
+
+    default:
+        break;
+    }
+}
+
+
 /**
  * @brief LLC电流响应(CR)测试周期处理函数
  * 
@@ -873,6 +996,9 @@ static void llc_cr_resp_tick_test(void)
     s_cr_resp.iout_prev_a = iout; // 为下一次阶跃检测准备
 #endif
 }
+
+
+
 
 /*********************************************************************************************************
 *                                              状态机核心
@@ -1375,11 +1501,14 @@ static void llc_cr_resp_log_dump_limited(uint8_t max_items)
 #if LLC_CR_RESP_LOG_ENABLE
     uint8_t dumped = 0U;
 
+    if (max_items == 0U) {
+        return;
+    }
+
     while (dumped < max_items) {
         llc_cr_log_item_t item;
         uint32_t primask;
 
-        /* 只在出队时进入临界区，避免共享变量竞争 */
         primask = __get_PRIMASK();
         __disable_irq();
 
@@ -1392,47 +1521,12 @@ static void llc_cr_resp_log_dump_limited(uint8_t max_items)
         item = s_cr_log_buf[s_cr_log_r];
         s_cr_log_r = (uint16_t)((s_cr_log_r + 1U) % LLC_CR_RESP_LOG_CACHE_MAX);
         s_cr_log_cnt--;
-
-        /* 队列是否还有剩余数据 */
         s_cr_log_pending_dump = (s_cr_log_cnt > 0U) ? 1U : 0U;
 
         __set_PRIMASK(primask);
 
-        /* 临界区外做慢操作：串口打印 */
-        switch (item.type) {
-        case CR_LOG_MON:
-            debug_printf("[CR_MON] t=%lu vo=%.1fV io=%.1fA e=%.1fV f=%.0fHz\r\n",
-                         (unsigned long)item.t_ms,
-                         item.vout_v,
-                         item.iout_a,
-                         item.err_v,
-                         item.f_cmd_hz);
-            break;
-
-        case CR_LOG_EVT_BEGIN:
-            debug_printf("[CR_EVT_BEGIN] id=%lu io=%.1f->%.1fA vo=%.1fV\r\n",
-                         (unsigned long)item.id,
-                         item.iout_from_a,
-                         item.iout_to_a,
-                         item.vout_pre_v);
-            break;
-
-        case CR_LOG_EVT_END:
-            debug_printf("[CR_EVT_END] id=%lu pass=%u dt=%lums st=%lums "
-                         "vmin=%.1fV vmax=%.1fV me=%.1fV\r\n",
-                         (unsigned long)item.id,
-                         (unsigned)item.pass,
-                         (unsigned long)item.dt_ms,
-                         (unsigned long)item.settle_ms,
-                         item.vmin_v,
-                         item.vmax_v,
-                         item.maxerr_v);
-            break;
-
-        default:
-            debug_printf("[CR_LOG] unknown type=%u\r\n", (unsigned)item.type);
-            break;
-        }
+        /* 改成二进制串口帧输出 */
+        llc_cr_resp_log_emit_bin(&item);
 
         dumped++;
     }
@@ -1444,18 +1538,15 @@ void llc_app_tick_1khz(void)
   llc_cr_resp_tick();
 	
 	static uint32_t s_cr_dump_last_ms = 0U;
-/*
+
 	if (s_cr_log_pending_dump &&
 			power_stage_all_idle() &&
 			elapsed_reached(s_cr_dump_last_ms, 5U)) {
-			s_cr_dump_last_ms = g_ms;
-			llc_cr_resp_log_dump_limited(4U);
+				uint8_t dump_n = (s_cr_log_cnt > (LLC_CR_RESP_LOG_CACHE_MAX / 2U)) ? 8U : 4U;
+				s_cr_dump_last_ms = g_ms;
+				llc_cr_resp_log_dump_limited(dump_n);
 	}
-	*/
-	if(s_cr_log_pending_dump)
-	{
-		llc_cr_resp_log_dump();
-	}
+
 	bool enable_llc = pfc_is_ready();
 
 	bool pfc_ready_stable = llc_pfc_ready_stable(enable_llc);
