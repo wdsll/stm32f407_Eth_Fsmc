@@ -9,7 +9,9 @@
 extern "C" {
 #endif
 
-
+/*********************************************************************************************************
+*                                              宏定义
+*********************************************************************************************************/
 #ifndef DEBUG_PRINTF_ENABLE
 #define DEBUG_PRINTF_ENABLE 1
 #endif
@@ -32,26 +34,33 @@ extern "C" {
 #endif
 
 #if DEBUG_PRINTF_ENABLE
+/*********************************************************************************************************
+*                                              函数声明
+*********************************************************************************************************/
 void debug_printf_init(uint32_t baudrate);
 void debug_printf_deinit(void);
 void debug_putchar(char ch);
 void debug_write(const uint8_t *data, size_t len);
 int debug_vprintf(const char *fmt, va_list args);
 
-	#if defined(__GNUC__)
-	int debug_printf(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
-	#else
-	int debug_printf(const char *fmt, ...);
-	#endif
+#if defined(__GNUC__)
+int debug_printf(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+#else
+int debug_printf(const char *fmt, ...);
+#endif
+
 void debug_hexdump(const void *data, size_t len);
 
 /* 非阻塞模式接口 */
 void debug_tx_task(void);                    /* 需要在主循环中调用的发送任务 */
 int debug_tx_busy(void);                     /* 检查发送是否繁忙 */
-void debug_tx_flush(void);                    /* 强制刷新发送缓冲区 */
-int debug_tx_available(void);                 /* 获取发送缓冲区剩余空间 */
+void debug_tx_flush(void);                   /* 强制刷新发送缓冲区 */
+int debug_tx_available(void);                /* 获取发送缓冲区剩余空间 */
 
 #else /* DEBUG_PRINTF_ENABLE */
+/*********************************************************************************************************
+*                                              空实现
+*********************************************************************************************************/
 static inline void debug_printf_init(uint32_t baudrate) {(void)baudrate;}
 static inline void debug_printf_deinit(void) {}
 static inline void debug_putchar(char ch) {(void)ch;}

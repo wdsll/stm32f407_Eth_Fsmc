@@ -114,7 +114,7 @@
 #define LLC_CYCLE_STOP_RESTART_MS     500U      // 软关断后重新启动前等待时间
 
 /* ==== LLC_BURST_MODE 轻载突发模式 ==== */
-#define LLC_BURST_MODE_ENABLE         1         // 1: 使能Burst模式
+#define LLC_BURST_MODE_ENABLE         0         // 1: 使能Burst模式
 
 /* Burst进入/退出 - 第一档轻载：1.5A进入，2.5A退出 */
 #define LLC_BURST_IOUT_ENTER_A        (1.5f)    // 进入阈值 <1.5A (轻载)
@@ -130,7 +130,7 @@
 
 /* Burst电压控制 */
 #define LLC_BURST_VOUT_HYST_V         (1.0f)    // 电压滞环1V
-#define LLC_BURST_VOUT_TARGET_V       (46.0f)   // 目标电压46V
+#define LLC_BURST_VOUT_TARGET_V       (44.0f)   // 目标电压44V
 
 /* Burst频率 - 高频准备 */
 #define LLC_BURST_F_HZ                (180000.0f) // Burst用高频180kHz
@@ -140,7 +140,7 @@
 /* ==== LLC RUN entry hold ==== */
 #define LLC_RUN_ENTRY_HOLD_MS          (20U)
 #define LLC_RUN_ENTRY_STABLE_TICKS     (2U)
-#define LLC_RUN_ENTRY_STABLE_WINDOW_V  (5.0f)
+#define LLC_RUN_ENTRY_STABLE_WINDOW_V  (6.0f)
 #define LLC_RUN_ENTRY_TIMEOUT_MS       (400U)
 
 /* ==== LLC frequency window ==== */
@@ -152,10 +152,10 @@
 
 /* ==== LLC open-loop safe bands ==== */
 #define LLC_VBUS_MIN_START_V         (360.0f)
-#define LLC_VOUT_TARGET_V            (46.0f)
+#define LLC_VOUT_TARGET_V            (44.0f)
 #define LLC_VOUT_HYST_V              (15.0f)
 #define LLC_VOUT_OVP_V               (58.0f)
-#define LLC_IOUT_OCP_A               (15.0f)
+#define LLC_IOUT_OCP_A               (41.0f)
 
 #define LLC_SWEEP_START_HZ           (100000.0f)
 #define LLC_SWEEP_STOP_HZ            (80000.0f)
@@ -175,6 +175,7 @@
 #define DEBUG_PRINTF_LLCSOFTSTART 0
 #define DEBUG_PRINTF_LLC_OPENLOOP 0
 #define DEBUG_PRINTF_PFC_STATE 0
+#define DEBUG_PRINTF_BURST_MODE   0    /* Burst模式调试打印 */
 
 /* ==== Interrupt priority scheme (NVIC_PRIGROUP_PRE2_SUB2) ==== */
 #define IRQ_PRIO_FAULT_PREEMPT        (0U)

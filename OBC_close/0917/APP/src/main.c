@@ -14,6 +14,7 @@
 #define MAX_TICKS_PER_LOOP         (5U)
 #define FAST_ADC_MAX_TICKS_PER_LOOP (20U)
 #define FAULT_RECOVER_DELAY_MS     (200U)
+/* 串口任务调用频率控制（每10次主循环调用1次） */
 /*********************************************************************************************************
 *                                              枚举结构体
 *********************************************************************************************************/
@@ -231,14 +232,14 @@ int main(void){
 
 	  debug_printf_init(DEBUG_PRINTF_DEFAULT_BAUDRATE);
 
-	  //debug_printf("uart ok");
+			//debug_printf("System Clock: %lu Hz\n", SystemCoreClock);
 		systick_1ms_init();
     /* LLC complementary PWM 配置LLC的PWM频率 、死区时间和占空比，并初始化PWM模块*/
     llc_pwm_cfg_t lcfg = { .pwm_hz=LLC_PWM_BASE_HZ, .deadtime_ns=LLC_PWM_DEAD_NS, .duty=LLC_PWM_DUTY };//130
     llc_pwm_init(&lcfg);
 
 
-		#if Bus_Adj
+		#if Bus_Adj                                                                                                                
 		bus_vol_adj_init();
 		#else
 		pb0_pwm_set_duty(0.5f);
@@ -315,8 +316,18 @@ int main(void){
 					}
 			}
 			
-			/* 非阻塞串口发送任务 */
-			debug_tx_task();
+			static uint32_t last_ms = 0;
+if ((g_ms - last_ms) >= 1000U) {
+    last_ms = g_ms;
+    debug_printf("[MAIN] g_ms=%lu\r\n", (unsigned long)g_ms);
+}
+			
+			/* 非阻塞串口发送任务 - 频率控制 */
+	
+				if ((debug_buffer_used() > 0U)) {
+					debug_tx_task();
+				}
+			
     }
 }
 

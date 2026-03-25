@@ -4,30 +4,8 @@
 /*********************************************************************************************************
 *                                              宏定义
 *********************************************************************************************************/
-#ifndef LLC_IOUT_TARGET_A
-#define LLC_IOUT_TARGET_A (12.0f)
-#endif
-#ifndef LLC_I_LOOP_KP
-#define LLC_I_LOOP_KP (0.02f)
-#endif
-#ifndef LLC_I_LOOP_KI
-#define LLC_I_LOOP_KI (0.0010f)
-#endif
-
-#ifndef LLC_USE_RAW_PI
-#define LLC_USE_RAW_PI               (0)     /* 0: 电压PI  1: RAW PI */
-#endif
-
 #ifndef LLC_VOUT_FILT_ALPHA
 #define LLC_VOUT_FILT_ALPHA          (0.08f) /* 100us快环滤波系数 */
-#endif
-
-#ifndef LLC_RAW_PI_TARGET_CODE
-#define LLC_RAW_PI_TARGET_CODE       (2836.0f) /* 48V对应ADC码值，需按实测校准 */
-#endif
-
-#ifndef LLC_RAW_PI_USE_FILT
-#define LLC_RAW_PI_USE_FILT          (1)     /* RAW PI模式下是否也做一阶滤波 */
 #endif
 
 #ifndef LLC_F_NOM_USE_STAGE_CMD
@@ -37,38 +15,41 @@
 #ifndef LLC_F_NOM_HZ
 #define LLC_F_NOM_HZ                 (LLC_F_INIT_HZ)
 #endif
-
-#ifndef LLC_LOOP_DEBUG_PRINT_EVERY_N
-#define LLC_LOOP_DEBUG_PRINT_EVERY_N (1U)
+/*********************************************************************************************************
+*                                             CR模式负载动态响应测试
+*********************************************************************************************************/
+#ifndef LLC_CR_RESP_LOG_ENABLE
+#define LLC_CR_RESP_LOG_ENABLE        (1U)
 #endif
 
-#ifndef LLC_TRACE_ENABLE
-#define LLC_TRACE_ENABLE            (1)
+#ifndef LLC_CR_RESP_LOG_PERIOD_MS
+#define LLC_CR_RESP_LOG_PERIOD_MS     (100U)
 #endif
 
-#ifndef LLC_BURST_TRACE_ENABLE
-#define LLC_BURST_TRACE_ENABLE      (1)  /* Burst Mode专用trace开关，按需开启 */
+#ifndef LLC_CR_RESP_STEP_IOUT_A
+#define LLC_CR_RESP_STEP_IOUT_A       (1.5f)
 #endif
 
-#ifndef LLC_TRACE_MAX_SAMPLES
-#define LLC_TRACE_MAX_SAMPLES       (100U)  /* 减少到100个样本，聚焦关键窗口 */
+#ifndef LLC_CR_RESP_STABLE_WIN_V
+#define LLC_CR_RESP_STABLE_WIN_V      (1.0f)
 #endif
 
-#ifndef LLC_TRACE_AUTO_ARM_ON_RUN
-#define LLC_TRACE_AUTO_ARM_ON_RUN   (0)     /* 关闭自动触发，改为事件触发 */
+#ifndef LLC_CR_RESP_STABLE_TICKS
+#define LLC_CR_RESP_STABLE_TICKS      (5U)
 #endif
 
-#ifndef LLC_TRACE_AUTO_ARM_SAMPLES
-#define LLC_TRACE_AUTO_ARM_SAMPLES  (100U)  /* 与缓冲区大小匹配 */
+#ifndef LLC_CR_RESP_TIMEOUT_MS
+#define LLC_CR_RESP_TIMEOUT_MS        (300U)
 #endif
 
-#ifndef LLC_TRACE_DUMP_INTERVAL_MS
-#define LLC_TRACE_DUMP_INTERVAL_MS   (5U)   /* 加快转储节奏：每5ms转储一次 */
+#ifndef LLC_CR_RESP_LOG_CACHE_MAX
+#define LLC_CR_RESP_LOG_CACHE_MAX      (64U)
 #endif
 
-#ifndef LLC_TRACE_DUMP_LINES_PER_TICK
-#define LLC_TRACE_DUMP_LINES_PER_TICK (10U) /* 每次转储10行数据，加快输出 */
+#ifndef CRITICAL_LOG_ONLY
+#define CRITICAL_LOG_ONLY               (0U)  /* 1:仅关键日志, 0:详细日志 */
 #endif
+
 /*********************************************************************************************************
 *                                              内部变量定义
 *********************************************************************************************************/
@@ -86,11 +67,10 @@ typedef struct {
     uint32_t hold_last_adjust_ms;
 	  uint32_t run_entry_hold_begin_ms;
     uint32_t run_entry_stable_ticks;
-	uint32_t cycle_stop_begin_ms;      /* 周期性软关断开始时间 */
+	  uint32_t cycle_stop_begin_ms;      /* 周期性软关断开始时间 */
     bool     cycle_stop_enable;        /* 周期性软关断使能 */
     /* Burst Mode 变量 */
     burst_state_t burst_state;         /* Burst 子状态 */
-    burst_state_t burst_state_prev;    /* Burst 前一状态，用于trace */
     uint32_t burst_begin_ms;           /* Burst 阶段开始时间 */
     float vout_burst_target;           /* Burst 模式目标电压 */
     uint32_t burst_enter_delay_ms;     /* Burst进入延迟计时 */
@@ -98,44 +78,65 @@ typedef struct {
     float f_pre_burst_hz;              /* 进入Burst前的频率，用于退出时bumpless */
     uint8_t burst_first_entry;         /* 首次进入Burst标志 */
 }llc_runtime_ctx_t;
-
-typedef struct
-{
-    uint16_t vout_raw;
-    int32_t  vout_mv;
-    int32_t  err_mv;
-    uint32_t f_cmd_hz;
-    /* Burst Mode 专用字段 */
-    int16_t  iout_ma;          /* 输出电流 (mA) */
-    uint8_t  burst_state;      /* Burst子状态 */
-    uint8_t  app_state;        /* 主状态机状态 */
-    uint16_t burst_timer_ms;   /* Burst阶段计时器 */
-} llc_trace_sample_t;
-
-typedef struct
-{
-    uint8_t  armed;
-    uint8_t  triggered;
-    uint8_t  done;
-    uint8_t  dumping;
-    uint16_t wr;
-    uint16_t count;
-    uint16_t max_samples;
-    uint16_t dump_idx;
-} llc_trace_ctrl_t;
 static llc_runtime_ctx_t s_llc_rt;
 
 static llc_app_ctx_t s_llc_app;
 
-
-#if LLC_TRACE_ENABLE
-static llc_trace_sample_t s_llc_trace[LLC_TRACE_MAX_SAMPLES];
-static llc_trace_ctrl_t   s_llc_trace_ctrl;
-#endif
-
 enum{
 	LLC_START_DELAY_MS = 10000
 };
+
+typedef struct
+{
+    uint8_t  active;
+    uint32_t seq;
+    uint32_t start_ms;
+    uint32_t settled_ms;
+    float    iout_prev_a;
+    float    iout_from_a;
+    float    iout_to_a;
+    float    vout_pre_v;
+    float    vout_min_v;
+    float    vout_max_v;
+    float    max_abs_err_v;
+    uint16_t stable_ticks;
+    uint32_t next_period_log_ms;
+} llc_cr_resp_ctx_t;
+
+static llc_cr_resp_ctx_t s_cr_resp;
+
+typedef enum
+{
+    CR_LOG_MON = 0,
+    CR_LOG_EVT_BEGIN,
+    CR_LOG_EVT_END
+} cr_log_type_t;
+
+typedef struct
+{
+    cr_log_type_t type;
+    uint32_t t_ms;
+    uint32_t id;
+    uint8_t  pass;
+    uint32_t dt_ms;
+    uint32_t settle_ms;
+    float    vout_v;
+    float    iout_a;
+    float    err_v;
+    float    f_cmd_hz;
+    float    iout_from_a;
+    float    iout_to_a;
+    float    vout_pre_v;
+    float    vmin_v;
+    float    vmax_v;
+    float    maxerr_v;
+} llc_cr_log_item_t;
+
+static llc_cr_log_item_t s_cr_log_buf[LLC_CR_RESP_LOG_CACHE_MAX];
+static uint16_t s_cr_log_w = 0U;
+static uint16_t s_cr_log_r = 0U;
+static uint16_t s_cr_log_cnt = 0U;
+static uint8_t  s_cr_log_pending_dump = 0U;
 
 /*********************************************************************************************************
 *                                              内部函数声明
@@ -150,16 +151,11 @@ static bool llc_pfc_ready_stable(bool enable_llc);
 static bool llc_faults_present(void);
 static void llc_enter_fault(void);
 static float llc_ctrl_step(float e);
-#if LLC_TRACE_ENABLE
-static void llc_trace_init(void);
-void llc_trace_arm(uint16_t samples);
-static inline void llc_trace_push_sample(uint16_t vout_raw, float vout_v, float err_v, float f_cmd);
-static void llc_trace_dump_task(void);
-/* Burst Mode 专用trace函数 */
-void llc_trace_arm_burst_enter(void);
-void llc_trace_arm_burst_exit(void);
-void llc_trace_arm_burst_state_change(void);
-#endif
+static void llc_cr_resp_tick(void);
+
+static void llc_cr_resp_log_push(const llc_cr_log_item_t *item);
+static void llc_cr_resp_log_dump(void);
+static void llc_cr_resp_log_dump_all(void);  /* STOP模式批量输出 */
 /*********************************************************************************************************
 *                                              静态工具
 *********************************************************************************************************/
@@ -229,209 +225,7 @@ static void llc_set_freq(float hz, bool force_update)
     s_llc.f_cmd = f;
     llc_pwm_set_freq((uint32_t)f, force_update);
 }
-#if LLC_TRACE_ENABLE
-static void llc_trace_init(void)
-{
-    s_llc_trace_ctrl.armed      = 0U;
-    s_llc_trace_ctrl.triggered  = 0U;
-    s_llc_trace_ctrl.done       = 0U;
-    s_llc_trace_ctrl.dumping    = 0U;
-    s_llc_trace_ctrl.wr         = 0U;
-    s_llc_trace_ctrl.count      = 0U;
-    s_llc_trace_ctrl.max_samples= LLC_TRACE_MAX_SAMPLES;
-    s_llc_trace_ctrl.dump_idx   = 0U;
-}
-/**
- * @brief 启动LLC数据跟踪采集
- * @param samples 要采集的样本数量，如果为0则使用默认值200，最大值限制为LLC_TRACE_MAX_SAMPLES
- * @note 此函数会重置跟踪控制器的所有状态标志，准备开始新的数据采集
- */
-void llc_trace_arm(uint16_t samples)
-{
-    if (samples == 0U) {
-        samples = 200U;
-    }
-    if (samples > LLC_TRACE_MAX_SAMPLES) {
-        samples = LLC_TRACE_MAX_SAMPLES;
-    }
 
-    s_llc_trace_ctrl.armed       = 1U;
-    s_llc_trace_ctrl.triggered   = 0U;
-    s_llc_trace_ctrl.done        = 0U;
-    s_llc_trace_ctrl.dumping     = 0U;
-    s_llc_trace_ctrl.wr          = 0U;
-    s_llc_trace_ctrl.count       = 0U;
-    s_llc_trace_ctrl.max_samples = samples;
-    s_llc_trace_ctrl.dump_idx    = 0U;
-}
-
-/**
- * @brief 向追踪缓冲区推入一个采样数据
- * 
- * 该函数用于在触发状态下记录运行时数据，包括输出电压原始值、
- * 输出电压值、电压误差和频率命令。当缓冲区填满时自动停止记录。
- * 
- * @param vout_raw 输出电压ADC原始值
- * @param vout_v   输出电压值（单位：伏特）
- * @param err_v    电压误差值（单位：伏特）
- * 
- * @note 函数内部将浮点电压值转换为毫伏整数存储
- * @note 仅在 armed 置位时触发一次记录
- * @note 缓冲区满后设置 done 标志，停止接收新数据
- */
-static inline void llc_trace_push_sample(uint16_t vout_raw, float vout_v, float err_v, float f_cmd)
-{
-    uint16_t i;
-    
-    if (s_llc_trace_ctrl.armed) {
-        s_llc_trace_ctrl.armed = 0U;
-        s_llc_trace_ctrl.triggered = 1U;
-    }
-    
-    if (!s_llc_trace_ctrl.triggered || s_llc_trace_ctrl.done) {
-        return;
-    }
-    
-    i = s_llc_trace_ctrl.wr;
-    if (i >= s_llc_trace_ctrl.max_samples) {
-        s_llc_trace_ctrl.triggered = 0U;
-        s_llc_trace_ctrl.done = 1U;
-        s_llc_trace_ctrl.count = s_llc_trace_ctrl.max_samples;
-        return;
-    }
-    
-    s_llc_trace[i].vout_raw = vout_raw;
-    s_llc_trace[i].vout_mv  = (int32_t)(vout_v * 1000.0f);
-    s_llc_trace[i].err_mv   = (int32_t)(err_v * 1000.0f);
-    s_llc_trace[i].f_cmd_hz = (uint32_t)(f_cmd);
-    /* Burst Mode 专用字段更新 */
-    s_llc_trace[i].iout_ma = (int16_t)(s_llc_rt.meas.iout_a * 1000.0f);
-    s_llc_trace[i].burst_state = (uint8_t)s_llc_rt.burst_state;
-    s_llc_trace[i].app_state = (uint8_t)s_llc_rt.app.state;
-    s_llc_trace[i].burst_timer_ms = (uint16_t)(g_ms - s_llc_rt.burst_begin_ms);
-    
-    s_llc_trace_ctrl.wr++;
-    
-    if (s_llc_trace_ctrl.wr >= s_llc_trace_ctrl.max_samples) {
-        s_llc_trace_ctrl.triggered = 0U;
-        s_llc_trace_ctrl.done = 1U;
-        s_llc_trace_ctrl.count = s_llc_trace_ctrl.max_samples;
-    }
-}
-
-/* Burst Mode 专用trace函数实现 - 事件触发、精简窗口 */
-void llc_trace_arm_burst_enter(void)
-{
-#if LLC_TRACE_ENABLE && LLC_BURST_TRACE_ENABLE
-    debug_printf("[BURST_ENTER] iout=%.2fA, state=%d\n", 
-                 s_llc_rt.meas.iout_a, s_llc_rt.app.state);
-    llc_trace_arm(50U);  /* 触发50个样本的窗口（25ms） */
-#endif
-}
-
-void llc_trace_arm_burst_exit(void)
-{
-#if LLC_TRACE_ENABLE && LLC_BURST_TRACE_ENABLE
-    debug_printf("[BURST_EXIT] iout=%.2fA, state=%d\n", 
-                 s_llc_rt.meas.iout_a, s_llc_rt.app.state);
-    llc_trace_arm(30U);  /* 触发30个样本的窗口（15ms） */
-#endif
-}
-
-void llc_trace_arm_burst_state_change(void)
-{
-#if LLC_TRACE_ENABLE && LLC_BURST_TRACE_ENABLE
-    debug_printf("[BURST_STATE] %d->%d, timer=%ums\n", 
-                 s_llc_rt.burst_state_prev, 
-                 s_llc_rt.burst_state, 
-                 g_ms - s_llc_rt.burst_begin_ms);
-    llc_trace_arm(20U);  /* 触发20个样本的窗口（10ms） */
-#endif
-}
-
-/**
- * @brief LLC 追踪数据转储任务（非阻塞优化版）
- * 
- * 该函数充分利用非阻塞串口功能，实现真正的无阻塞trace转储。
- * 关键优化：
- * 1. 基于串口缓冲区状态动态调整转储量
- * 2. 无需严格时间控制，因为底层串口是非阻塞的
- * 3. 智能缓冲区管理，避免缓冲区溢出
- * 
- * @param  无
- * @return 无
- */
-static void llc_trace_dump_task(void)
-{
-    static uint32_t last_dump_time = 0;
-    static uint32_t dump_start_time = 0;
-    
-    /* 非阻塞控制：每10ms执行一次转储检查（可更频繁） */
-    if (g_ms - last_dump_time < 10U) {
-        return;
-    }
-    last_dump_time = g_ms;
-
-    /* 开始转储 */
-    if (s_llc_trace_ctrl.done && !s_llc_trace_ctrl.dumping) {
-        /* 检查串口缓冲区是否有足够空间 */
-        if (debug_tx_available() > 100) {
-            s_llc_trace_ctrl.dumping  = 1U;
-            s_llc_trace_ctrl.dump_idx = 0U;
-            dump_start_time = g_ms;
-            debug_printf("\r\n[LLC_TRACE_BEGIN] count=%u Ts=500us\n", s_llc_trace_ctrl.count);
-            debug_printf("idx,vout_raw,vout_mv,err_mv,f_cmd_hz,iout_ma,burst_state,app_state,burst_timer\n");
-        }
-    }
-
-    if (!s_llc_trace_ctrl.dumping) {
-        return;
-    }
-
-    /* 基于串口缓冲区状态的智能转储 */
-    uint16_t max_lines = debug_tx_available() / 50;  /* 估算每行约50字节 */
-    if (max_lines > 10) {
-        max_lines = 10;  /* 每次最多转储10行，避免一次性占用过多缓冲区 */
-    }
-    
-    if (max_lines < 1) {
-        return;  /* 缓冲区空间不足，等待下次机会 */
-    }
-
-    /* 批量转储数据，充分利用非阻塞串口 */
-    uint16_t n = 0U;
-    while ((s_llc_trace_ctrl.dump_idx < s_llc_trace_ctrl.count) &&
-           (n < max_lines)) {
-        uint16_t i = s_llc_trace_ctrl.dump_idx;
-
-        /* 快速格式化并发送单行数据 */
-        debug_printf("%u,%u,%ld,%ld,%lu,%d,%u,%u,%u\n",
-             i,
-             s_llc_trace[i].vout_raw,
-             (long)s_llc_trace[i].vout_mv,
-             (long)s_llc_trace[i].err_mv,
-             (unsigned long)s_llc_trace[i].f_cmd_hz,
-             (int)s_llc_trace[i].iout_ma,
-             (unsigned)s_llc_trace[i].burst_state,
-             (unsigned)s_llc_trace[i].app_state,
-             (unsigned)s_llc_trace[i].burst_timer_ms);
-
-        s_llc_trace_ctrl.dump_idx++;
-        n++;
-    }
-
-    /* 转储完成 */
-    if (s_llc_trace_ctrl.dump_idx >= s_llc_trace_ctrl.count) {
-        debug_printf("[LLC_TRACE_END]\n");
-
-        s_llc_trace_ctrl.dumping  = 0U;
-        s_llc_trace_ctrl.done     = 0U;
-        s_llc_trace_ctrl.count    = 0U;
-        s_llc_trace_ctrl.wr       = 0U;
-        s_llc_trace_ctrl.dump_idx = 0U;
-    }
-}
-#endif
 #if 1
 //频率PI
 /**
@@ -669,6 +463,417 @@ static void llc_enter_fault(void)
 {
     llc_state_enter(ST_FAULT);
 }
+
+/**
+ * @brief 将CR响应测试日志项推入环形缓冲区
+ * 
+ * 该函数将单个日志项写入CR测试日志缓存，采用环形缓冲区管理策略。
+ * 当缓冲区未满时直接写入；当缓冲区已满时，覆盖最旧的日志项。
+ * 
+ * @param item 指向待写入的日志项的指针，若为NULL则直接返回
+ * 
+ * @note 仅在LLC_CR_RESP_LOG_ENABLE宏定义时生效
+ * @note 写入操作会自动设置待转储标志，触发后续的日志转储流程
+ * @note 缓冲区大小由LLC_CR_RESP_LOG_CACHE_MAX宏定义
+ */
+static void llc_cr_resp_log_push(const llc_cr_log_item_t *item)
+{
+#if LLC_CR_RESP_LOG_ENABLE
+    uint16_t idx;
+    uint32_t primask;
+	
+		//检查空指针，防止无效数据写入
+    if (item == NULL) {
+        return;
+    }
+	
+    // 进入临界区 - 禁用中断
+    primask = __get_PRIMASK();
+    __disable_irq();
+	
+		//使用模运算实现环形缓冲区 LLC_CR_RESP_LOG_CACHE_MAX 定义为32，提供32个日志项的缓存空间
+    idx = s_cr_log_w;
+    s_cr_log_buf[idx] = *item;
+    s_cr_log_w = (uint16_t)((s_cr_log_w + 1U) % LLC_CR_RESP_LOG_CACHE_MAX);
+
+    if (s_cr_log_cnt < LLC_CR_RESP_LOG_CACHE_MAX) {
+        s_cr_log_cnt++; //当缓冲区未满时，只增加计数
+    } else {
+			  //当缓冲区已满时，移动读指针，实现先进先出的覆盖策略
+        s_cr_log_r = (uint16_t)((s_cr_log_r + 1U) % LLC_CR_RESP_LOG_CACHE_MAX); 
+    }
+    //设置待处理标志，通知其他任务进行异步日志输出
+    s_cr_log_pending_dump = 1U;
+	
+    // 退出临界区 - 恢复中断状态
+    __set_PRIMASK(primask);
+#endif
+}
+/**
+ * @brief 转储CR响应日志缓冲区中的所有日志项
+ * 
+ * 该函数遍历环形缓冲区，将所有待处理的CR测试日志项通过调试接口输出。
+ * 支持三种类型的日志格式：
+ * - CR_LOG_MON: 周期性监控日志，包含时间戳、输出电压、输出电流、误差和频率
+ * - CR_LOG_EVT_BEGIN: 测试开始事件，包含测试ID、负载电流变化和初始电压
+ * - CR_LOG_EVT_END: 测试结束事件，包含测试结果、持续时间、稳定时间、电压范围和最大误差
+ * 
+ * @note 该函数仅在 LLC_CR_RESP_LOG_ENABLE 宏定义时编译
+ * @note 函数执行后会清除 s_cr_log_pending_dump 标志
+ * @note 调用该函数会清空缓冲区中的所有日志项
+ */
+static void llc_cr_resp_log_dump_test(void)
+{
+#if LLC_CR_RESP_LOG_ENABLE
+  
+    while (s_cr_log_cnt > 0U) {
+        llc_cr_log_item_t item = s_cr_log_buf[s_cr_log_r];
+        s_cr_log_r = (uint16_t)((s_cr_log_r + 1U) % LLC_CR_RESP_LOG_CACHE_MAX);
+        s_cr_log_cnt--;
+				//监控数据输出 输出电压、输出电流、误差、频率
+        if (item.type == CR_LOG_MON) {
+            debug_printf("[CR_MON] t=%lu vout=%.1fV iout=%.1fA err=%.1fV f=%.0fHz\n",
+                         (unsigned long)item.t_ms,
+                         item.vout_v,
+                         item.iout_a,
+                         item.err_v,
+                         item.f_cmd_hz);
+        }
+				//测试开始事件 记录测试开始前的输出电压,还有电流的变化范围
+				else if (item.type == CR_LOG_EVT_BEGIN) {
+            debug_printf("[CR_EVT_BEGIN] id=%lu iout=%.1f->%.1fA vout=%.1fV\n",
+                         (unsigned long)item.id,
+                         item.iout_from_a,
+                         item.iout_to_a,
+                         item.vout_pre_v);
+        } 
+				//测试结束事件  pass=%u 显示测试是否通过 响应时间、稳定时间 电压波动范围、最大误差
+				else 
+				{
+            debug_printf("[CR_EVT_END] id=%lu pass=%u dt=%lums settle=%lums "
+                         "vmin=%.1fV vmax=%.1fV maxerr=%.1fV\n",
+                         (unsigned long)item.id,
+                         (unsigned)item.pass,
+                         (unsigned long)item.dt_ms,
+                         (unsigned long)item.settle_ms,
+                         item.vmin_v,
+                         item.vmax_v,
+                         item.maxerr_v);
+        }
+    }
+    s_cr_log_pending_dump = 0U;
+    
+#endif
+}
+
+static void llc_cr_resp_log_dump(void)
+{
+#if LLC_CR_RESP_LOG_ENABLE
+    while (1) {
+        llc_cr_log_item_t item;
+        uint32_t primask;
+
+        primask = __get_PRIMASK();
+        __disable_irq();
+
+        if (s_cr_log_cnt == 0U) {
+            s_cr_log_pending_dump = 0U;
+            __set_PRIMASK(primask);
+            break;
+        }
+
+        item = s_cr_log_buf[s_cr_log_r];
+        s_cr_log_r = (uint16_t)((s_cr_log_r + 1U) % LLC_CR_RESP_LOG_CACHE_MAX);
+        s_cr_log_cnt--;
+        s_cr_log_pending_dump = (s_cr_log_cnt > 0U) ? 1U : 0U;
+
+        __set_PRIMASK(primask);
+
+        switch (item.type) {
+        case CR_LOG_MON:
+            debug_printf("[M] %lu %.1f %.1f %.1f %.0f\r\n",
+                         (unsigned long)item.t_ms,
+                         item.vout_v,
+                         item.iout_a,
+                         item.err_v,
+                         item.f_cmd_hz);
+            break;
+
+        case CR_LOG_EVT_BEGIN:
+            debug_printf("[B] %lu %.1f %.1f %.1f\r\n",
+                         (unsigned long)item.id,
+                         item.iout_from_a,
+                         item.iout_to_a,
+                         item.vout_pre_v);
+            break;
+
+        case CR_LOG_EVT_END:
+            debug_printf("[E] %lu %u %lu %lu %.1f %.1f %.1f\r\n",
+                         (unsigned long)item.id,
+                         (unsigned)item.pass,
+                         (unsigned long)item.dt_ms,
+                         (unsigned long)item.settle_ms,
+                         item.vmin_v,
+                         item.vmax_v,
+                         item.maxerr_v);
+            break;
+
+        default:
+            break;
+        }
+    }
+#endif
+}
+/**
+ * @brief LLC电流响应(CR)测试周期处理函数
+ * 
+ * 该函数在系统运行时定期调用，负责：
+ * 1. 周期性记录系统运行状态（输出电压、电流、误差、频率）
+ * 2. 检测负载阶跃事件（输出电流变化超过阈值）
+ * 3. 执行CR动态响应测试，记录瞬态性能指标
+ * 4. 判断系统是否达到稳定状态，计算稳定时间
+ * 
+ * 测试触发条件：输出电流变化 ≥ LLC_CR_RESP_STEP_IOUT_A
+ * 稳定判断条件：误差在 LLC_CR_RESP_STABLE_WIN_V 范围内持续 LLC_CR_RESP_STABLE_TICKS 个周期
+ * 超时保护：测试时长超过 LLC_CR_RESP_TIMEOUT_MS 自动结束
+ * 
+ * @note 仅在 LLC_CR_RESP_LOG_ENABLE 宏定义时编译
+ * @note 非ST_LLC_RUN状态下不执行测试，仅更新状态变量
+ * @note 所有测试数据通过 llc_cr_resp_log_push() 异步推送到日志缓冲区
+ */
+static void llc_cr_resp_tick(void)
+{
+#if LLC_CR_RESP_LOG_ENABLE
+    float iout = s_llc_rt.meas.iout_a;
+    float vout = s_llc_rt.meas.vout_v;
+    float err = s_llc.vref - vout;
+    float i_step = fabsf(iout - s_cr_resp.iout_prev_a);
+
+    if (s_llc_rt.app.state != ST_LLC_RUN) {
+        s_cr_resp.iout_prev_a = iout;
+        s_cr_resp.next_period_log_ms = g_ms + LLC_CR_RESP_LOG_PERIOD_MS;
+        return;
+    }
+#if !CRITICAL_LOG_ONLY
+    if (g_ms >= s_cr_resp.next_period_log_ms) {
+        llc_cr_log_item_t item;
+        item.type = CR_LOG_MON;
+        item.t_ms = g_ms;
+        item.vout_v = vout;
+        item.iout_a = iout;
+        item.err_v = err;
+        item.f_cmd_hz = s_llc.f_cmd;
+        llc_cr_resp_log_push(&item);
+        s_cr_resp.next_period_log_ms = g_ms + LLC_CR_RESP_LOG_PERIOD_MS;
+    }
+#endif
+    if (!s_cr_resp.active && (i_step >= LLC_CR_RESP_STEP_IOUT_A)) {
+        s_cr_resp.active = 1U;
+        s_cr_resp.seq++;
+        s_cr_resp.start_ms = g_ms;
+        s_cr_resp.settled_ms = 0U;
+        s_cr_resp.iout_from_a = s_cr_resp.iout_prev_a;
+        s_cr_resp.iout_to_a = iout;
+        s_cr_resp.vout_pre_v = vout;
+        s_cr_resp.vout_min_v = vout;
+        s_cr_resp.vout_max_v = vout;
+        s_cr_resp.max_abs_err_v = fabsf(err);
+        s_cr_resp.stable_ticks = 0U;
+        {
+            llc_cr_log_item_t item;
+            item.type = CR_LOG_EVT_BEGIN;
+            item.id = s_cr_resp.seq;
+            item.iout_from_a = s_cr_resp.iout_from_a;
+            item.iout_to_a = s_cr_resp.iout_to_a;
+            item.vout_pre_v = s_cr_resp.vout_pre_v;
+            llc_cr_resp_log_push(&item);
+        }
+    }
+
+    if (s_cr_resp.active) {
+        if (vout < s_cr_resp.vout_min_v) {
+            s_cr_resp.vout_min_v = vout;
+        }
+        if (vout > s_cr_resp.vout_max_v) {
+            s_cr_resp.vout_max_v = vout;
+        }
+
+        if (fabsf(err) > s_cr_resp.max_abs_err_v) {
+            s_cr_resp.max_abs_err_v = fabsf(err);
+        }
+
+        if (fabsf(err) <= LLC_CR_RESP_STABLE_WIN_V) {
+            if (s_cr_resp.stable_ticks < LLC_CR_RESP_STABLE_TICKS) {
+                s_cr_resp.stable_ticks++;
+            }
+            if ((s_cr_resp.stable_ticks >= LLC_CR_RESP_STABLE_TICKS) && (s_cr_resp.settled_ms == 0U)) {
+                s_cr_resp.settled_ms = g_ms - s_cr_resp.start_ms;
+            }
+        } else {
+            s_cr_resp.stable_ticks = 0U;
+        }
+
+        if ((s_cr_resp.settled_ms > 0U) ||
+            elapsed_reached(s_cr_resp.start_ms, LLC_CR_RESP_TIMEOUT_MS)) {
+            uint32_t event_ms = g_ms - s_cr_resp.start_ms;
+            uint8_t pass = (s_cr_resp.settled_ms > 0U) ? 1U : 0U;
+            {
+                llc_cr_log_item_t item;
+                item.type = CR_LOG_EVT_END;
+                item.id = s_cr_resp.seq;
+                item.pass = pass;
+                item.dt_ms = event_ms;
+                item.settle_ms = s_cr_resp.settled_ms;
+                item.vmin_v = s_cr_resp.vout_min_v;
+                item.vmax_v = s_cr_resp.vout_max_v;
+                item.maxerr_v = s_cr_resp.max_abs_err_v;
+                llc_cr_resp_log_push(&item);
+            }
+            s_cr_resp.active = 0U;
+            s_cr_resp.stable_ticks = 0U;
+            s_cr_resp.settled_ms = 0U;
+        }
+    }
+
+    s_cr_resp.iout_prev_a = iout;
+#endif
+}
+/**
+ * @file llc_cr_resp_tick_test
+ * @brief LLC CR（电流阶跃）动态响应监控处理函数
+ * 
+ * 本函数在LLC控制周期中被调用，用于实时监测和记录负载电流阶跃变化时的
+ * 输出电压动态响应特性。通过检测输出电流的阶跃变化，自动触发响应测试，
+ * 并记录关键性能指标包括响应时间、超调量、稳定时间等。
+ * 
+ * @note 仅当LLC_CR_RESP_LOG_ENABLE宏定义时生效
+ * 
+ * 功能说明：
+ * - 周期性记录运行状态（电压、电流、误差、频率）
+ * - 检测输出电流阶跃变化（阈值：LLC_CR_RESP_STEP_IOUT_A）
+ * - 自动触发响应测试并记录初始状态
+ * - 实时跟踪输出电压极值（最小值、最大值）
+ * - 监测电压误差并判断是否进入稳定窗口
+ * - 计算稳定时间（误差在稳定窗口内持续LLC_CR_RESP_STABLE_TICKS个周期）
+ * - 测试超时保护（LLC_CR_RESP_TIMEOUT_MS）
+ * - 输出测试结果报告（通过/失败、响应时间、稳定时间、电压极值、最大误差）
+ * 
+ * 测试触发条件：
+ * - 当前未处于测试状态（s_cr_resp.active == 0）
+ * - 输出电流变化幅度达到或超过设定阈值（|iout - iout_prev| >= LLC_CR_RESP_STEP_IOUT_A）
+ * - LLC处于运行状态（s_llc_rt.app.state == ST_LLC_RUN）
+ * 
+ * 测试完成条件：
+ * - 误差进入稳定窗口并持续LLC_CR_RESP_STABLE_TICKS个周期（测试通过）
+ * - 或达到超时时间LLC_CR_RESP_TIMEOUT_MS（测试失败）
+ * 
+ * @param void 无参数
+ * @return void 无返回值
+ * 
+ * @see LLC_CR_RESP_LOG_ENABLE - CR响应日志使能宏
+ * @see LLC_CR_RESP_LOG_PERIOD_MS - 周期性日志记录间隔（毫秒）
+ * @see LLC_CR_RESP_STEP_IOUT_A - 触发CR测试的电流阶跃阈值（安培）
+ * @see LLC_CR_RESP_STABLE_WIN_V - 稳定判断的误差窗口（伏特）
+ * @see LLC_CR_RESP_STABLE_TICKS - 稳定判断需要的持续周期数
+ * @see LLC_CR_RESP_TIMEOUT_MS - 测试超时时间（毫秒）
+ * 
+ * @note 本函数为内部静态函数，仅在llc_control.c文件内可见
+ * @note 使用全局变量g_ms获取系统时间
+ * @note 使用全局结构体s_llc_rt、s_llc、s_cr_resp存储状态和参数
+ */
+static void llc_cr_resp_tick_test(void)
+{
+#if LLC_CR_RESP_LOG_ENABLE
+    float iout = s_llc_rt.meas.iout_a;
+    float vout = s_llc_rt.meas.vout_v;
+    float err = s_llc.vref - vout;
+    float i_step = fabsf(iout - s_cr_resp.iout_prev_a);
+    //确保只有在LLC正常运行时才记录CR响应数据
+    if (s_llc_rt.app.state != ST_LLC_RUN) {
+        s_cr_resp.iout_prev_a = iout; //将当前输出电流值保存为"前一次"电流值",为下一次CR响应计算提供基准点
+        s_cr_resp.next_period_log_ms = g_ms + LLC_CR_RESP_LOG_PERIOD_MS; //设置下一次CR响应数据记录的时间点
+        return;
+    }
+    //基于当前时间触发，而非计数器
+    if (g_ms >= s_cr_resp.next_period_log_ms) {
+        debug_printf("[CR_MON] t=%lu vout=%.2fV iout=%.2fA err=%.2fV f=%luHz\n",
+                     (unsigned long)g_ms,
+                     vout,
+                     iout,
+                     err,
+                     (unsigned long)s_llc.f_cmd);
+				//更新下次进入时间
+        s_cr_resp.next_period_log_ms = g_ms + LLC_CR_RESP_LOG_PERIOD_MS;
+    }
+    //智能事件检测器，当检测到输出电流发生显著变化时，自动启动CR动态响应测试，并记录完整的测试上下文信息。
+    if (!s_cr_resp.active && (i_step >= LLC_CR_RESP_STEP_IOUT_A)) {
+        s_cr_resp.active = 1U;   // 激活测试标志
+        s_cr_resp.seq++; // 测试序列号递增
+        s_cr_resp.start_ms = g_ms;  // 记录测试开始时间
+        s_cr_resp.settled_ms = 0U;  // 清零稳定时间计数器
+			// 电流变化轨迹
+        s_cr_resp.iout_from_a = s_cr_resp.iout_prev_a;  // 变化前电流
+        s_cr_resp.iout_to_a = iout;  // 变化后的电流
+			// 电压基准和极值跟踪
+        s_cr_resp.vout_pre_v = vout; // 变化前电压
+        s_cr_resp.vout_min_v = vout; // 初始化最小电压
+        s_cr_resp.vout_max_v = vout; // 初始化最大电压
+			// 控制性能指标
+        s_cr_resp.max_abs_err_v = fabsf(err); // 最大误差绝对值
+        s_cr_resp.stable_ticks = 0U;// 稳定计数器清零
+        debug_printf("[CR_EVT_BEGIN] id=%lu iout=%.2f->%.2fA vout=%.2fV\n",
+                     (unsigned long)s_cr_resp.seq,
+                     s_cr_resp.iout_from_a,
+                     s_cr_resp.iout_to_a,
+                     s_cr_resp.vout_pre_v);
+    }
+		//确保只在活跃测试期间执行监控逻辑，避免不必要的计算开销
+    if (s_cr_resp.active) {
+        if (vout < s_cr_resp.vout_min_v) {
+            s_cr_resp.vout_min_v = vout; // 更新最小电压
+        }
+        if (vout > s_cr_resp.vout_max_v) {
+            s_cr_resp.vout_max_v = vout; // 更新最大电压
+        }
+				//控制性能指标：反映PI控制器在瞬态过程中的最大偏差。
+        if (fabsf(err) > s_cr_resp.max_abs_err_v) {
+            s_cr_resp.max_abs_err_v = fabsf(err); // 更新最大绝对误差
+        }
+
+        if (fabsf(err) <= LLC_CR_RESP_STABLE_WIN_V) {  // 误差在稳定窗口内
+            if (s_cr_resp.stable_ticks < LLC_CR_RESP_STABLE_TICKS) {
+                s_cr_resp.stable_ticks++; // 稳定计数器递增
+            }
+            if ((s_cr_resp.stable_ticks >= LLC_CR_RESP_STABLE_TICKS) && (s_cr_resp.settled_ms == 0U)) {
+                s_cr_resp.settled_ms = g_ms - s_cr_resp.start_ms;  // 记录稳定时间
+            }
+        } else {
+            s_cr_resp.stable_ticks = 0U; // 误差超出窗口，重置计数器
+        }
+
+        if ((s_cr_resp.settled_ms > 0U) || // 条件1：已达到稳定
+            elapsed_reached(s_cr_resp.start_ms, LLC_CR_RESP_TIMEOUT_MS)) {  // 条件2：超时
+            uint32_t event_ms = g_ms - s_cr_resp.start_ms;
+            uint8_t pass = (s_cr_resp.settled_ms > 0U) ? 1U : 0U;
+            debug_printf("[CR_EVT_END] id=%lu pass=%u dt=%lums settle=%lums "
+                         "vmin=%.2fV vmax=%.2fV maxerr=%.2fV\n",
+                         (unsigned long)s_cr_resp.seq,
+                         (unsigned)pass,  //pass：测试是否通过（1=通过，0=超时）
+                         (unsigned long)event_ms,
+                         (unsigned long)s_cr_resp.settled_ms, //稳定时间（核心指标）
+                         s_cr_resp.vout_min_v,
+                         s_cr_resp.vout_max_v,
+                         s_cr_resp.max_abs_err_v); //最大控制误差
+            s_cr_resp.active = 0U;
+            s_cr_resp.stable_ticks = 0U;
+            s_cr_resp.settled_ms = 0U;
+        }
+    }
+
+    s_cr_resp.iout_prev_a = iout; // 为下一次阶跃检测准备
+#endif
+}
+
 /*********************************************************************************************************
 *                                              状态机核心
 *********************************************************************************************************/
@@ -797,9 +1002,6 @@ static void llc_state_enter(llc_state_t next)
       s_llc_rt.burst_exit_delay_ms = 0U;
 
       llc_ctrl_bumpless_init(LLC_VOUT_TARGET_V, s_llc_rt.meas.vout_v, s_llc.f_cmd);
-#if LLC_TRACE_ENABLE && LLC_TRACE_AUTO_ARM_ON_RUN
-      llc_trace_arm(LLC_TRACE_AUTO_ARM_SAMPLES);  //启动LLC数据跟踪采集
-#endif
 			break;
 	 case ST_STOPPING:
       s_llc_rt.stopping_begin_ms = g_ms;
@@ -817,14 +1019,19 @@ static void llc_state_enter(llc_state_t next)
 			llc_driver_en_set(true);
 			s_llc_rt.vout_burst_target = LLC_VOUT_TARGET_V;
 			/* 记录进入Burst前的频率，用于退出时bumpless */
-			//s_llc_rt.f_pre_burst_hz = f_clampf(s_llc.f_cmd, s_llc.f_min, s_llc.f_max);
+			s_llc_rt.f_pre_burst_hz = f_clampf(s_llc.f_cmd, s_llc.f_min, s_llc.f_max);
 			
-		/* 每次进入Burst都走ENTRY_PREPARE，确保软进入 */
-		s_llc_rt.burst_state = BURST_STATE_ENTRY_PREPARE;
-		s_llc_rt.burst_first_entry = 0;
-		llc_pwm_outputs_enable(1);  /* 进入准备阶段保持PWM开启 */
-		llc_set_freq(LLC_F_MAX_HZ, true); /* 强制更新：进入Burst升频准备 */
+			/* 每次进入Burst都走ENTRY_PREPARE，确保软进入 */
+			s_llc_rt.burst_state = BURST_STATE_ENTRY_PREPARE;
+			s_llc_rt.burst_first_entry = 0;
+			llc_pwm_outputs_enable(1);  /* 进入准备阶段保持PWM开启 */
+			llc_set_freq(LLC_F_MAX_HZ, true); /* 强制更新：进入Burst升频准备 */
 			s_llc_rt.burst_begin_ms = g_ms;
+			
+#if DEBUG_PRINTF_BURST_MODE
+			debug_printf("[BURST] ENTER: iout=%.2fA, f_pre=%.0fHz, state=%d\n", 
+			             s_llc_rt.meas.iout_a, s_llc_rt.f_pre_burst_hz, s_llc_rt.burst_state);
+#endif
 			break;
 	 case ST_FAULT:
 	 		llc_softstart_on_fault();
@@ -872,9 +1079,6 @@ void llc_app_init()
 void llc_app_init(void)
 {
     llc_softstart_init();
-#if LLC_TRACE_ENABLE
-    llc_trace_init();
-#endif
     s_llc = (llc_t){
         .vref    = LLC_VOUT_TARGET_V,
         .vmeas   = 0.0f,
@@ -890,10 +1094,6 @@ void llc_app_init(void)
         .integ   = 0.0f,
         .iref    = 0.0f,
         .imeas   = 0.0f,
-
-        .ikp     = LLC_I_LOOP_KP,
-        .iki     = LLC_I_LOOP_KI,
-        .i_integ = 0.0f,
 
         .f_min   = LLC_F_MIN_HZ,
         .f_max   = LLC_F_MAX_HZ,
@@ -922,21 +1122,6 @@ void llc_app_tick_adc_test(void)
 {
 	llc_update_measurements();
 }
-#if 0
-void llc_app_tick_100us(void)
-{
-    if (s_llc_rt.app.state != ST_LLC_RUN) {
-        return;
-    }
-
-    //s_llc.vmeas = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
-    s_llc.vmeas = g_adc_multi.vout_raw;
-    //float err = s_llc.vref - s_llc.vmeas;
-		float err = 2836 - s_llc.vmeas;  // 2836  48V==>vtarget
-    float f_cmd = llc_ctrl_step(err);
-    llc_set_freq(f_cmd, false);  /* 自然更新：闭环微调不破坏PWM周期 */
-}
-#endif
 
 static uint8_t vloop_div = 0;
 static uint8_t vout_filt_inited = 0U;
@@ -949,10 +1134,10 @@ void llc_app_tick_100us(void)
     float f_cmd;
 	
 	
-    if (s_llc_rt.app.state != ST_LLC_RUN) {
+    if (s_llc_rt.app.state != ST_LLC_RUN && s_llc_rt.app.state != ST_BURST_MODE) {
 			vloop_div = 0;
 			vout_filt_inited = 0U;
-        return;
+      return;
     }	
 
 		 /* =========================
@@ -970,24 +1155,19 @@ void llc_app_tick_100us(void)
 					vout_filt_v = vout_now;
 			}
     /* 100us快环滤波，alpha可后续再调 */
-     vout_filt_v += LLC_VOUT_FILT_ALPHA * (vout_now - vout_filt_v);
-
+    vout_filt_v += LLC_VOUT_FILT_ALPHA * (vout_now - vout_filt_v);
     s_llc.vmeas = vout_filt_v;
+		/* Burst模式：只保留滤波，不跑PI */
+    if (s_llc_rt.app.state == ST_BURST_MODE) {
+        vloop_div = 0U;
+        return;
+    }
     err = s_llc.vref - s_llc.vmeas;
 		if (++vloop_div >= 5U) {   // 500us
 			vloop_div = 0;
 			f_cmd = llc_ctrl_step(err);
 			llc_set_freq(f_cmd, false);  /* 自然更新：闭环微调 */
 		}
-#if LLC_TRACE_ENABLE
-    /* 降低采样率：每500us记录一次（每5次调用记录1次） */
-    static uint8_t trace_div = 0;
-    if (++trace_div >= 5) {
-        trace_div = 0;
-        llc_trace_push_sample(g_adc_multi.vout_raw, s_llc.vmeas, err, s_llc.f_cmd);
-    }
-#endif
-
 }
 #endif 
 #if 0
@@ -1155,14 +1335,7 @@ void llc_app_tick_100us(void)
         f_cmd = llc_ctrl_step(err);
         llc_set_freq(f_cmd, false);  /* 自然更新：闭环微调 */
 
-#if LLC_TRACE_ENABLE
-        /* 降低采样率：每500us记录一次（与控制动作对齐） */
-        static uint8_t trace_div2 = 0;
-        if (++trace_div2 >= 5) {
-            trace_div2 = 0;
-            llc_trace_push_sample(g_adc_multi.vout_raw, s_llc.vmeas, err, s_llc.f_cmd);
-        }
-#endif
+
     }
 }
 #endif
@@ -1170,35 +1343,143 @@ void llc_app_tick_100us(void)
 
 
 
+
+static bool llc_is_active_state(llc_state_t st)
+{
+    return (st == ST_PRECHECK) ||
+           (st == ST_SOFTSTART) ||
+           (st == ST_RUN_ENTRY_HOLD) ||
+           (st == ST_LLC_RUN) ||
+           (st == ST_BURST_MODE) ||
+           (st == ST_CYCLE_STOPPING) ||
+           (st == ST_STOPPING);
+}
+
+
+static bool power_stage_all_idle(void)
+{
+    /* PFC 还ready，说明前级仍处于工作/可工作态，不允许刷日志 */
+    if (pfc_is_ready()) {
+        return false;
+    }
+
+    /* LLC 仍在活动态，也不允许刷日志 */
+    if (llc_is_active_state(s_llc_rt.app.state)) {
+        return false;
+    }
+		return true;
+}
+
+static void llc_cr_resp_log_dump_limited(uint8_t max_items)
+{
+#if LLC_CR_RESP_LOG_ENABLE
+    uint8_t dumped = 0U;
+
+    while (dumped < max_items) {
+        llc_cr_log_item_t item;
+        uint32_t primask;
+
+        /* 只在出队时进入临界区，避免共享变量竞争 */
+        primask = __get_PRIMASK();
+        __disable_irq();
+
+        if (s_cr_log_cnt == 0U) {
+            s_cr_log_pending_dump = 0U;
+            __set_PRIMASK(primask);
+            break;
+        }
+
+        item = s_cr_log_buf[s_cr_log_r];
+        s_cr_log_r = (uint16_t)((s_cr_log_r + 1U) % LLC_CR_RESP_LOG_CACHE_MAX);
+        s_cr_log_cnt--;
+
+        /* 队列是否还有剩余数据 */
+        s_cr_log_pending_dump = (s_cr_log_cnt > 0U) ? 1U : 0U;
+
+        __set_PRIMASK(primask);
+
+        /* 临界区外做慢操作：串口打印 */
+        switch (item.type) {
+        case CR_LOG_MON:
+            debug_printf("[CR_MON] t=%lu vo=%.1fV io=%.1fA e=%.1fV f=%.0fHz\r\n",
+                         (unsigned long)item.t_ms,
+                         item.vout_v,
+                         item.iout_a,
+                         item.err_v,
+                         item.f_cmd_hz);
+            break;
+
+        case CR_LOG_EVT_BEGIN:
+            debug_printf("[CR_EVT_BEGIN] id=%lu io=%.1f->%.1fA vo=%.1fV\r\n",
+                         (unsigned long)item.id,
+                         item.iout_from_a,
+                         item.iout_to_a,
+                         item.vout_pre_v);
+            break;
+
+        case CR_LOG_EVT_END:
+            debug_printf("[CR_EVT_END] id=%lu pass=%u dt=%lums st=%lums "
+                         "vmin=%.1fV vmax=%.1fV me=%.1fV\r\n",
+                         (unsigned long)item.id,
+                         (unsigned)item.pass,
+                         (unsigned long)item.dt_ms,
+                         (unsigned long)item.settle_ms,
+                         item.vmin_v,
+                         item.vmax_v,
+                         item.maxerr_v);
+            break;
+
+        default:
+            debug_printf("[CR_LOG] unknown type=%u\r\n", (unsigned)item.type);
+            break;
+        }
+
+        dumped++;
+    }
+#endif
+}
 void llc_app_tick_1khz(void)
 {
 	llc_update_measurements();
-
-#if 0
-	if (llc_faults_present()) {
-      llc_enter_fault();
-  		return;
-  }
-#endif
+  llc_cr_resp_tick();
+	
+	static uint32_t s_cr_dump_last_ms = 0U;
+/*
+	if (s_cr_log_pending_dump &&
+			power_stage_all_idle() &&
+			elapsed_reached(s_cr_dump_last_ms, 5U)) {
+			s_cr_dump_last_ms = g_ms;
+			llc_cr_resp_log_dump_limited(4U);
+	}
+	*/
+	if(s_cr_log_pending_dump)
+	{
+		llc_cr_resp_log_dump();
+	}
 	bool enable_llc = pfc_is_ready();
+
 	bool pfc_ready_stable = llc_pfc_ready_stable(enable_llc);
-#if 1
+
 	if (s_llc_rt.app.state != ST_IDLE && s_llc_rt.app.state != ST_FAULT) {
 		if (llc_faults_present()) {
 			llc_enter_fault();
 			return;
 		}
-#endif
-	
+	}
 	switch(s_llc_rt.app.state)
 	{
 		case ST_IDLE:
+		{
 			if(pfc_ready_stable &&llc_precheck_ok())
 			{
-				  llc_state_enter(ST_PRECHECK);
+				llc_state_enter(ST_PRECHECK);
+				//debug_printf("0");
+				//debug_putc_blocking('0');
 			}
 			break;
+	}
 		case ST_PRECHECK:
+		{
         if (!enable_llc) {
           llc_state_enter(ST_STOPPING);
 					break;
@@ -1211,8 +1492,11 @@ void llc_app_tick_1khz(void)
 					break;
 				}
 				llc_state_enter(ST_SOFTSTART);
+			
         break;
+			}
 		case ST_SOFTSTART:
+		{
 			llc_softstart_tick_1khz();
 			if(!enable_llc|| !llc_precheck_ok())
 			{
@@ -1225,11 +1509,14 @@ void llc_app_tick_1khz(void)
 				float ae = fabsf(e);
 				(void)ae;
 				llc_softstart_stop();
+				//debug_printf("sf ok");
 				s_llc.f_cmd = llc_softstart_last_hz();
 				llc_state_enter(ST_RUN_ENTRY_HOLD);
 				break;
 			}
+		
 			break;
+		}
     case ST_RUN_ENTRY_HOLD:
 		{
 			float hold_err;
@@ -1250,6 +1537,7 @@ void llc_app_tick_1khz(void)
 			}
 			if (elapsed_reached(s_llc_rt.run_entry_hold_begin_ms, LLC_RUN_ENTRY_HOLD_MS) && s_llc_rt.run_entry_stable_ticks >= LLC_RUN_ENTRY_STABLE_TICKS)
 			{
+				//debug_printf("run ok");
 				llc_state_enter(ST_LLC_RUN);
 				break;
 			}
@@ -1261,19 +1549,13 @@ void llc_app_tick_1khz(void)
 				break;		
 		}
 		case ST_LLC_RUN:
+		{
 			if(!enable_llc||(s_llc_rt.meas.vbus_v<(LLC_VBUS_MIN_START_V-LLC_VOUT_HYST_V)))
 			{
 				llc_state_enter(ST_STOPPING);
 				break;
 			}
-#if LLC_CYCLE_STOP_ENABLE
-			/* 周期性软关断：每3秒执行一次 */
-			if (s_llc_rt.cycle_stop_enable && elapsed_reached(s_llc_rt.app.entry_ms, LLC_CYCLE_STOP_INTERVAL_MS))
-			{
-				llc_state_enter(ST_CYCLE_STOPPING);
-				break;
-			}
-#endif
+
 #if LLC_BURST_MODE_ENABLE
 		/* Burst进入检测 - 慢进入，需持续轻载超过延迟时间 */
 		if(s_llc_rt.meas.iout_a < LLC_BURST_IOUT_ENTER_A)
@@ -1286,7 +1568,6 @@ void llc_app_tick_1khz(void)
 			{
 				/* 持续轻载超过1秒，进入Burst */
 				s_llc_rt.burst_enter_delay_ms = 0;
-				llc_trace_arm_burst_enter();  /* 触发Burst进入trace */
 				llc_state_enter(ST_BURST_MODE);
 				break;
 			}
@@ -1297,6 +1578,7 @@ void llc_app_tick_1khz(void)
 		}
 #endif
 			break;
+	 }
 		case ST_BURST_MODE:
 		{
 			float vout = s_llc_rt.meas.vout_v;
@@ -1308,12 +1590,15 @@ void llc_app_tick_1khz(void)
 				if(elapsed_reached(s_llc_rt.burst_begin_ms, LLC_BURST_ENTRY_RAMP_MS))
 				{
 				/* 升频完成，进入OFF状态 */
-				s_llc_rt.burst_state_prev = s_llc_rt.burst_state;
 				s_llc_rt.burst_state = BURST_STATE_OFF;
 				s_llc_rt.burst_begin_ms = g_ms;
-				llc_trace_arm_burst_state_change();  /* 触发状态变化trace */
 				llc_pwm_outputs_enable(0);
 				llc_set_freq(LLC_BURST_F_HZ, true);  /* 强制更新：状态切换 */
+				
+#if DEBUG_PRINTF_BURST_MODE
+				debug_printf("[BURST] ENTRY_PREPARE->OFF: vout=%.2fV, iout=%.2fA\n", 
+				             s_llc_rt.meas.vout_v, s_llc_rt.meas.iout_a);
+#endif
 				}
 			}
 			else if(s_llc_rt.burst_state == BURST_STATE_OFF)
@@ -1328,8 +1613,14 @@ void llc_app_tick_1khz(void)
 						/* 先设置频率，再使能输出 */
 						llc_set_freq(LLC_BURST_F_HZ, true); /* 强制更新：OFF->ON切换 */
 						llc_pwm_outputs_enable(1);
+						
+#if DEBUG_PRINTF_BURST_MODE
+						debug_printf("[BURST] OFF->ON (voltage): vout=%.2fV, iout=%.2fA, off_time=%dms\n", 
+						             vout, s_llc_rt.meas.iout_a, elapsed_since(s_llc_rt.burst_begin_ms));
+#endif
 					}
 				}
+			
 				else if(elapsed_reached(s_llc_rt.burst_begin_ms, LLC_BURST_OFF_MAX_MS))
 				{
 				/* 强制打开，防止电压过低 */
@@ -1338,9 +1629,14 @@ void llc_app_tick_1khz(void)
 				/* 先设置频率，再使能输出 */
 				llc_set_freq(LLC_BURST_F_HZ, true); /* 强制更新：OFF->ON切换 */
 				llc_pwm_outputs_enable(1);
+				
+#if DEBUG_PRINTF_BURST_MODE
+				debug_printf("[BURST] OFF->ON (timeout): vout=%.2fV, iout=%.2fA, off_time=%dms\n", 
+				             vout, s_llc_rt.meas.iout_a, elapsed_since(s_llc_rt.burst_begin_ms));
+#endif
 				}
 			}
-			else if(s_llc_rt.burst_state == BURST_STATE_ON_PREPARE)
+		else if(s_llc_rt.burst_state == BURST_STATE_ON_PREPARE)
 			{
 				/* 高频准备阶段：先将频率提升到最高，再关PWM (1ms准备时间) */
 				if(elapsed_reached(s_llc_rt.burst_begin_ms, LLC_BURST_F_PREPARE_MS))
@@ -1348,6 +1644,11 @@ void llc_app_tick_1khz(void)
 					s_llc_rt.burst_state = BURST_STATE_OFF;
 					s_llc_rt.burst_begin_ms = g_ms;
 					llc_pwm_outputs_enable(0); /* 高频准备完成，关PWM */
+					
+#if DEBUG_PRINTF_BURST_MODE
+					debug_printf("[BURST] ON_PREPARE->OFF: vout=%.2fV, iout=%.2fA\n", 
+					             vout, s_llc_rt.meas.iout_a);
+#endif
 				}
 			}
 			else /* BURST_STATE_ON */
@@ -1361,6 +1662,11 @@ void llc_app_tick_1khz(void)
 						s_llc_rt.burst_state = BURST_STATE_ON_PREPARE;
 						s_llc_rt.burst_begin_ms = g_ms;
 						llc_set_freq(LLC_F_MAX_HZ, true); /* 强制更新：ON->ON_PREPARE切换 */
+						
+#if DEBUG_PRINTF_BURST_MODE
+						debug_printf("[BURST] ON->ON_PREPARE (voltage): vout=%.2fV, iout=%.2fA, on_time=%dms\n", 
+						             vout, s_llc_rt.meas.iout_a, elapsed_since(s_llc_rt.burst_begin_ms));
+#endif
 					}
 				}
 				else if(elapsed_reached(s_llc_rt.burst_begin_ms, LLC_BURST_ON_MAX_MS))
@@ -1369,6 +1675,11 @@ void llc_app_tick_1khz(void)
 					s_llc_rt.burst_state = BURST_STATE_ON_PREPARE;
 					s_llc_rt.burst_begin_ms = g_ms;
 					llc_set_freq(LLC_F_MAX_HZ, true);  /* 强制更新 */
+					
+#if DEBUG_PRINTF_BURST_MODE
+					debug_printf("[BURST] ON->ON_PREPARE (timeout): vout=%.2fV, iout=%.2fA, on_time=%dms\n", 
+					             vout, s_llc_rt.meas.iout_a, elapsed_since(s_llc_rt.burst_begin_ms));
+#endif
 				}
 			}
 			
@@ -1381,29 +1692,34 @@ void llc_app_tick_1khz(void)
 				}
 				else if(elapsed_reached(s_llc_rt.burst_exit_delay_ms, LLC_BURST_EXIT_DELAY_MS))
 				{
-			/* 电流持续超过阈值，快速退出Burst */
-			s_llc_rt.burst_exit_delay_ms = 0;
-			llc_trace_arm_burst_exit();  /* 触发Burst退出trace */
-			llc_pwm_outputs_enable(1);
-		/* 退出Burst时使用s_llc.f_cmd做bumpless，保持控制连续性 */
-		  llc_ctrl_bumpless_init(LLC_VOUT_TARGET_V, vout, s_llc.f_cmd);
-			//llc_set_freq(s_llc.f_cmd, true);  /* 强制更新：Burst退出关键切换 */
-			llc_state_enter(ST_LLC_RUN);
+					 float f_resume;
+					 s_llc_rt.burst_exit_delay_ms = 0U;
+					 /* 用进入Burst前保存的频率恢复闭环接管点 */
+					 f_resume = f_clampf(s_llc_rt.f_pre_burst_hz, s_llc.f_min, s_llc.f_max);
+					 /* 先恢复PWM，再恢复接管频率 */
+           llc_pwm_outputs_enable(1);
+           llc_set_freq(f_resume, true);
+					 /* 以恢复频率作为当前工作点做bumpless */
+           llc_ctrl_bumpless_init(LLC_VOUT_TARGET_V, vout, f_resume);
+					 /* 同步命令频率，避免ST_LLC_RUN入口再次改写时出现跳变 */
+					 s_llc.f_cmd = f_resume;
+
+#if DEBUG_PRINTF_BURST_MODE
+					 debug_printf("[BURST] EXIT: iout=%.2fA, f_resume=%.0fHz, vout=%.2fV, state=%d\n", 
+					              s_llc_rt.meas.iout_a, f_resume, vout, s_llc_rt.burst_state);
+#endif
+					 llc_state_enter(ST_LLC_RUN);
 				}
 			}
 			else
 			{
 				s_llc_rt.burst_exit_delay_ms = 0; /* 电流回落，重置退出计时 */
 			}
-			
-			/* 故障检查 */
-			if(!enable_llc || llc_faults_present())
-			{
-				llc_state_enter(ST_STOPPING);
-			}
+
 			break;
 		}
 		case ST_CYCLE_STOPPING:
+		{
 			/* 执行软关断tick */
 			llc_softstop_tick_1khz();
 			
@@ -1420,7 +1736,9 @@ void llc_app_tick_1khz(void)
 				}
 			}
 			break;
+		}
 		case ST_STOPPING:
+		{
 			/* 执行软关断tick */
 			llc_softstop_tick_1khz();
 			
@@ -1429,27 +1747,28 @@ void llc_app_tick_1khz(void)
 			{
 				llc_pwm_outputs_enable(0);
 				llc_driver_en_set(false);
+
 				llc_softstop_reset();  /* 重置软关断状态 */
 				llc_state_enter(ST_IDLE);
 			}
 			break;
+		}
 		case ST_FAULT:
 
 			break;
 			
 		default:
 			break;
-	}
-#if LLC_TRACE_ENABLE
-    llc_trace_dump_task();
-#endif
-	}
+	 }
+	
 }
 
 llc_state_t llc_app_state(void)
 {
 	return s_llc_rt.app.state;
 }
+
+
 
 
 
