@@ -1,6 +1,6 @@
 #include "llc_control.h"
 #include "float.h"
-
+#include "llc_cr_proto.h"
 /*********************************************************************************************************
 *                                              宏定义
 *********************************************************************************************************/
@@ -105,32 +105,7 @@ typedef struct
 
 static llc_cr_resp_ctx_t s_cr_resp;
 
-typedef enum
-{
-    CR_LOG_MON = 0,
-    CR_LOG_EVT_BEGIN,
-    CR_LOG_EVT_END
-} cr_log_type_t;
 
-typedef struct
-{
-    cr_log_type_t type;
-    uint32_t t_ms;
-    uint32_t id;
-    uint8_t  pass;
-    uint32_t dt_ms;
-    uint32_t settle_ms;
-    float    vout_v;
-    float    iout_a;
-    float    err_v;
-    float    f_cmd_hz;
-    float    iout_from_a;
-    float    iout_to_a;
-    float    vout_pre_v;
-    float    vmin_v;
-    float    vmax_v;
-    float    maxerr_v;
-} llc_cr_log_item_t;
 
 static llc_cr_log_item_t s_cr_log_buf[LLC_CR_RESP_LOG_CACHE_MAX];
 static uint16_t s_cr_log_w = 0U;
@@ -226,7 +201,6 @@ static void llc_set_freq(float hz, bool force_update)
     llc_pwm_set_freq((uint32_t)f, force_update);
 }
 
-#if 1
 //频率PI
 /**
  * @brief LLC PI控制器单步计算
@@ -302,97 +276,6 @@ static float llc_ctrl_step(float e)
 		s_llc.f_cmd = f_clampf(s_llc.f_cmd, f_min, f_max);
 	  return s_llc.f_cmd;
 }
-#else
-static float llc_ctrl_step(float e)
-{
-		float kp = s_llc.kp;
-    float ki = s_llc.ki;
-    float f_min = s_llc.f_min;
-    float f_max = s_llc.f_max;
-    float f_slew = s_llc.f_slew;
-
-    float p_min, p_max;
-    float p_prev;
-    float p_candidate;
-    float p_sat;
-    float f_req;
-    float f_prev;
-    float df;
-#if LLC_USE_RAW_PI
-	  kp = s_llc.kp_raw;
-    ki = s_llc.ki_raw;
-	#else
-	  kp = s_llc.kp;
-    ki = s_llc.ki;
-#endif
-	  if (f_min <= 0.0f || f_min >= f_max) {
-        f_min = 75000.0f;
-        f_max = 150000.0f;
-    }
-
-    if (f_slew <= 0.0f) {
-        f_slew = 1000.0f;
-    }
-
-    if (kp <= 0.0f) {
-        kp = 10.0f;
-    }
-
-    if (ki < 0.0f) {
-        ki = 0.0f;
-    }
-		
-		p_prev = s_llc.period_cmd;
-		
-		p_min = s_llc.period_min;   /* 高频对应小周期 */
-    p_max = s_llc.period_max;   /* 低频对应大周期 */
-    if (p_prev < p_min || p_prev > p_max) {
-        p_prev = llc_freq_to_period(s_llc.f_cmd);
-    }
-    if (p_prev < p_min || p_prev > p_max) {
-        p_prev = 0.5f * (p_min + p_max);
-    }
-
-		
-		/* 周期控制：
-     * e > 0 (Vref > Vout) => period 增大 => frequency 降低
-     */
-    p_candidate = s_llc.period_integ + ki * e;
-    p_sat = kp * e + p_candidate;
-
-    /* 周期限幅 */
-    p_sat = f_clampf(p_sat, p_min, p_max);
-
-    /* 抗积分饱和 */
-    if (fabsf((kp * e + p_candidate) - p_sat) > 1e-6f) {
-        s_llc.period_integ = p_sat - kp * e;
-    } else {
-        s_llc.period_integ = p_candidate;
-    }
-		s_llc.period_cmd = p_sat;
-    /* 再换算成频率命令 */
-    f_req = llc_period_to_freq(p_sat);
-		
-		/* 保留你原来的频率slew限制 */
-    f_prev = s_llc.f_cmd;
-    if (f_prev < f_min || f_prev > f_max) {
-        f_prev = f_req;
-    }
-
-		df = f_req - f_prev;
-    if (df > f_slew) {
-        s_llc.f_cmd = f_prev + f_slew;
-    } else if (df < -f_slew) {
-        s_llc.f_cmd = f_prev - f_slew;
-    } else {
-        s_llc.f_cmd = f_req;
-    }
-    
-	  s_llc.f_cmd = f_clampf(s_llc.f_cmd, f_min, f_max);
-    return s_llc.f_cmd;
-}
-
-#endif
 /**
  * @brief 更新LLC测量值
  * 
@@ -624,128 +507,6 @@ static void llc_cr_resp_log_dump(void)
     }
 #endif
 }
-static inline int16_t q10_from_float(float x)
-{
-    if (x >= 3276.7f)  return 32767;
-    if (x <= -3276.8f) return -32768;
-    return (int16_t)(x * 10.0f);
-}
-
-static inline uint16_t u16_sat_from_u32(uint32_t x)
-{
-    return (x > 65535UL) ? 65535U : (uint16_t)x;
-}
-
-static inline void put_u16_le(uint8_t *p, uint16_t v)
-{
-    p[0] = (uint8_t)(v & 0xFFU);
-    p[1] = (uint8_t)((v >> 8) & 0xFFU);
-}
-
-
-static inline void put_i16_le(uint8_t *p, int16_t v)
-{
-    put_u16_le(p, (uint16_t)v);
-}
-
-static void debug_putc_blocking(uint8_t ch)
-{
-    while (RESET == usart_flag_get(USART2, USART_FLAG_TBE)) {
-    }
-    usart_data_transmit(USART2, ch);
-}
-static void debug_write_binary(const uint8_t *buf, uint16_t len)
-{
-    uint16_t i;
-
-    if ((buf == NULL) || (len == 0U)) {
-        return;
-    }
-
-    for (i = 0U; i < len; i++) {
-        debug_putc_blocking(buf[i]);
-    }
-}
-
-static uint8_t s_cr_uart_seq = 0U;
-
-static void llc_cr_resp_send_bin_frame(uint8_t type, const uint8_t *payload, uint8_t len)
-{
-    uint8_t frame[40];
-    uint8_t i;
-    uint8_t chk = 0U;
-    uint8_t idx = 0U;
-
-    if ((payload == NULL) && (len > 0U)) {
-        return;
-    }
-
-    frame[idx++] = 0xA5U;
-    frame[idx++] = type;
-    frame[idx++] = len;
-    frame[idx++] = s_cr_uart_seq++;
-
-    for (i = 0U; i < len; i++) {
-        frame[idx++] = payload[i];
-    }
-
-    for (i = 0U; i < idx; i++) {
-        chk ^= frame[i];
-    }
-
-    frame[idx++] = chk;
-    frame[idx++] = 0x5AU;
-
-    debug_write_binary(frame, idx);
-}
-
-static void llc_cr_resp_log_emit_bin(const llc_cr_log_item_t *item)
-{
-    uint8_t payload[20];
-    uint8_t len = 0U;
-
-    if (item == NULL) {
-        return;
-    }
-
-    switch (item->type) {
-    case CR_LOG_MON:
-        put_u16_le(&payload[0], u16_sat_from_u32(item->t_ms));
-        put_i16_le(&payload[2], q10_from_float(item->vout_v));
-        put_i16_le(&payload[4], q10_from_float(item->iout_a));
-        put_i16_le(&payload[6], q10_from_float(item->err_v));
-        put_u16_le(&payload[8], u16_sat_from_u32((uint32_t)(item->f_cmd_hz / 10.0f)));
-        len = 10U;
-        llc_cr_resp_send_bin_frame(0x01U, payload, len);
-        break;
-
-    case CR_LOG_EVT_BEGIN:
-        put_u16_le(&payload[0], u16_sat_from_u32(item->id));
-        put_i16_le(&payload[2], q10_from_float(item->iout_from_a));
-        put_i16_le(&payload[4], q10_from_float(item->iout_to_a));
-        put_i16_le(&payload[6], q10_from_float(item->vout_pre_v));
-        len = 8U;
-        llc_cr_resp_send_bin_frame(0x02U, payload, len);
-        break;
-
-    case CR_LOG_EVT_END:
-        put_u16_le(&payload[0], u16_sat_from_u32(item->id));
-        payload[2] = item->pass;
-        payload[3] = 0U;
-        put_u16_le(&payload[4], u16_sat_from_u32(item->dt_ms));
-        put_u16_le(&payload[6], u16_sat_from_u32(item->settle_ms));
-        put_i16_le(&payload[8],  q10_from_float(item->vmin_v));
-        put_i16_le(&payload[10], q10_from_float(item->vmax_v));
-        put_i16_le(&payload[12], q10_from_float(item->maxerr_v));
-        len = 14U;
-        llc_cr_resp_send_bin_frame(0x03U, payload, len);
-        break;
-
-    default:
-        break;
-    }
-}
-
 
 /**
  * @brief LLC电流响应(CR)测试周期处理函数
@@ -1182,26 +943,6 @@ static void llc_state_enter(llc_state_t next)
 /*********************************************************************************************************
 *                                              公共接口
 *********************************************************************************************************/
-#if 0
-void llc_app_init()
-{
-	llc_softstart_init();
-	s_llc = (llc_t){
-				.vref=LLC_VOUT_TARGET_V, .vmeas=0.0f, .kp=900.0f, .ki=20.0f, 
-		    .kp_raw = 3.0f, .kp_raw = 0.050f,
-		    .integ = 0.0f, .iref = 0.0f, .imeas = 0.0f,
-				.ikp = LLC_I_LOOP_KP,.iki = LLC_I_LOOP_KI,.i_integ = 0.0f,
-				.f_min=LLC_F_MIN_HZ, .f_max=LLC_F_MAX_HZ, .f_cmd=LLC_F_INIT_HZ, .f_slew=LLC_F_SLEW_HZ,
-        .f_cmd_v = 0.0f, .f_cmd_i = 0.0f, .period_cmd = 0.0f,.period_min = 0.0f,.period_max = 0.0f,.period_integ = 0.0f
-	};
-	s_llc.period_min = llc_freq_to_period(s_llc.f_max);  /* 高频 -> 小周期 */
-	s_llc.period_max = llc_freq_to_period(s_llc.f_min);  /* 低频 -> 大周期 */
-	
-	s_llc.period_cmd = llc_freq_to_period(s_llc.f_cmd);
-  s_llc.period_integ = s_llc.period_cmd;
-	llc_state_enter(ST_IDLE);
-}
-#else
 void llc_app_init(void)
 {
     llc_softstart_init();
@@ -1243,11 +984,7 @@ void llc_app_init(void)
 
     llc_state_enter(ST_IDLE);
 }
-#endif
-void llc_app_tick_adc_test(void)
-{
-	llc_update_measurements();
-}
+
 
 static uint8_t vloop_div = 0;
 static uint8_t vout_filt_inited = 0U;
@@ -1255,7 +992,6 @@ static uint8_t vout_filt_inited = 0U;
 void llc_app_tick_100us(void)
 {
 	  static float vout_filt_v   = 0.0f;   /* 电压PI用滤波状态 */
-    static float vout_filt_raw = 0.0f;   /* RAW PI用滤波状态 */
     float err;
     float f_cmd;
 	
@@ -1296,180 +1032,6 @@ void llc_app_tick_100us(void)
 		}
 }
 #endif 
-#if 0
-void llc_app_tick_100us(void)
-{
-    static float vout_samples[5] = {0.0f};
-    static uint8_t sample_idx = 0U;
-    float vout_now;
-    if (s_llc_rt.app.state != ST_LLC_RUN) {
-        uint8_t i;
-        vloop_div = 0U;
-        sample_idx = 0U;
-        for (i = 0U; i < 5U; i++) {
-            vout_samples[i] = 0.0f;
-        }
-        return;
-    }
-    vout_now = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
-    vout_samples[sample_idx] = vout_now;
-    sample_idx++;
-    if (sample_idx >= 5U) {
-        sample_idx = 0U;
-    }
-    if (++vloop_div >= 5U) {
-        float vmax, vmin, vsum;
-        float vmeas_500us;
-        float err;
-        uint8_t i;
-        vloop_div = 0U;
-        vmax = vout_samples[0];
-        vmin = vout_samples[0];
-        vsum = 0.0f;
-        for (i = 0U; i < 5U; i++) {
-            float v = vout_samples[i];
-            if (v > vmax) {
-                vmax = v;
-            }
-            if (v < vmin) {
-                vmin = v;
-            }
-            vsum += v;
-        }
-        vmeas_500us = (vsum - vmax - vmin) / 3.0f;
-        s_llc.vmeas = vmeas_500us;
-				
-        err = s_llc.vref - s_llc.vmeas;
-        llc_set_freq(llc_ctrl_step(err), false);  /* 自然更新：闭环微调 */
-    }
-}
-#endif
-#if 0
-#ifndef LLC_VLOOP_DECIMATE_N
-#define LLC_VLOOP_DECIMATE_N          (5U)      /* 100us * 5 = 500us 执行一次电压环 */
-#endif
-
-#ifndef LLC_VOUT_USE_POST_IIR
-#define LLC_VOUT_USE_POST_IIR         (1)       /* 0: 不做后级IIR  1: 做轻IIR */
-#endif
-
-#ifndef LLC_VOUT_POST_IIR_ALPHA
-#define LLC_VOUT_POST_IIR_ALPHA       (0.25f)   /* 500us节拍上的轻IIR系数 */
-#endif
-
-static uint8_t vout_buf_inited  = 0U;
-void llc_app_tick_100us(void)
-{
-    static float vout_samples[LLC_VLOOP_DECIMATE_N] = {0.0f};
-    static uint8_t sample_idx = 0U;
-
-#if LLC_VOUT_USE_POST_IIR
-    static float vmeas_post_filt = 0.0f;
-    static uint8_t vmeas_post_filt_inited = 0U;
-#endif
-
-    float vout_now;
-
-    if (s_llc_rt.app.state != ST_LLC_RUN) {
-        uint8_t i;
-
-        vloop_div = 0U;
-        sample_idx = 0U;
-        vout_buf_inited = 0U;
-
-        for (i = 0U; i < LLC_VLOOP_DECIMATE_N; i++) {
-            vout_samples[i] = 0.0f;
-        }
-
-#if LLC_VOUT_USE_POST_IIR
-        vmeas_post_filt = 0.0f;
-        vmeas_post_filt_inited = 0U;
-#endif
-        return;
-    }
-
-    /* 当前100us采样点：ADC raw -> 实际输出电压 */
-    vout_now = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
-
-    /* 首次进入RUN：用当前值灌满整个窗口，避免前5点被0污染 */
-    if (!vout_buf_inited) {
-        uint8_t i;
-        for (i = 0U; i < LLC_VLOOP_DECIMATE_N; i++) {
-            vout_samples[i] = vout_now;
-        }
-        sample_idx = 0U;
-        vout_buf_inited = 1U;
-
-#if LLC_VOUT_USE_POST_IIR
-        vmeas_post_filt = vout_now;
-        vmeas_post_filt_inited = 1U;
-#endif
-    }
-
-    /* 更新滑窗 */
-    vout_samples[sample_idx] = vout_now;
-    sample_idx++;
-    if (sample_idx >= LLC_VLOOP_DECIMATE_N) {
-        sample_idx = 0U;
-    }
-
-    /* 500us执行一次电压环 */
-    if (++vloop_div >= LLC_VLOOP_DECIMATE_N) {
-        float vmax, vmin, vsum;
-        float vmeas_raw;
-        float vmeas_used;
-        float err;
-        float f_cmd;
-        uint8_t i;
-
-        vloop_div = 0U;
-
-        /* 5点去极值平均 */
-        vmax = vout_samples[0];
-        vmin = vout_samples[0];
-        vsum = 0.0f;
-
-        for (i = 0U; i < LLC_VLOOP_DECIMATE_N; i++) {
-            float v = vout_samples[i];
-            if (v > vmax) {
-                vmax = v;
-            }
-            if (v < vmin) {
-                vmin = v;
-            }
-            vsum += v;
-        }
-
-        /* 对5点窗：去掉最大最小后，剩余3点平均 */
-        vmeas_raw = (vsum - vmax - vmin) / (float)(LLC_VLOOP_DECIMATE_N - 2U);
-
-#if LLC_VOUT_USE_POST_IIR
-        if (!vmeas_post_filt_inited) {
-            vmeas_post_filt = vmeas_raw;
-            vmeas_post_filt_inited = 1U;
-        }
-
-        vmeas_post_filt += LLC_VOUT_POST_IIR_ALPHA * (vmeas_raw - vmeas_post_filt);
-        vmeas_used = vmeas_post_filt;
-#else
-        vmeas_used = vmeas_raw;
-#endif
-
-        s_llc.vmeas = vmeas_used;
-        err = s_llc.vref - s_llc.vmeas;
-
-        f_cmd = llc_ctrl_step(err);
-        llc_set_freq(f_cmd, false);  /* 自然更新：闭环微调 */
-
-
-    }
-}
-#endif
-
-
-
-
-
 static bool llc_is_active_state(llc_state_t st)
 {
     return (st == ST_PRECHECK) ||
@@ -1526,7 +1088,7 @@ static void llc_cr_resp_log_dump_limited(uint8_t max_items)
         __set_PRIMASK(primask);
 
         /* 改成二进制串口帧输出 */
-        llc_cr_resp_log_emit_bin(&item);
+        llc_cr_proto_log_emit_bin(&item);
 
         dumped++;
     }
@@ -1564,8 +1126,6 @@ void llc_app_tick_1khz(void)
 			if(pfc_ready_stable &&llc_precheck_ok())
 			{
 				llc_state_enter(ST_PRECHECK);
-				//debug_printf("0");
-				//debug_putc_blocking('0');
 			}
 			break;
 	}
@@ -1600,7 +1160,6 @@ void llc_app_tick_1khz(void)
 				float ae = fabsf(e);
 				(void)ae;
 				llc_softstart_stop();
-				//debug_printf("sf ok");
 				s_llc.f_cmd = llc_softstart_last_hz();
 				llc_state_enter(ST_RUN_ENTRY_HOLD);
 				break;
@@ -1628,7 +1187,6 @@ void llc_app_tick_1khz(void)
 			}
 			if (elapsed_reached(s_llc_rt.run_entry_hold_begin_ms, LLC_RUN_ENTRY_HOLD_MS) && s_llc_rt.run_entry_stable_ticks >= LLC_RUN_ENTRY_STABLE_TICKS)
 			{
-				//debug_printf("run ok");
 				llc_state_enter(ST_LLC_RUN);
 				break;
 			}

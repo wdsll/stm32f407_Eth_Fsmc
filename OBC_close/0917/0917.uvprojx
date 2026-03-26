@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define>USE_STDPERIPH_DRIVER,GD32F30X_HD,__FPU_PRESENT</Define>
               <Undefine></Undefine>
-              <IncludePath>.\APP\include;.\ARM\include;.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include;.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include;.\HW\include;.\GD32_SYSTEM\Firmware\CMSIS;.\Simulink</IncludePath>
+              <IncludePath>.\APP\include;.\ARM\include;.\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include;.\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include;.\HW\include;.\GD32_SYSTEM\Firmware\CMSIS;.\Simulink;.\Proto</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -701,6 +701,21 @@
               <FileName>rtwtypes.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Simulink\rtwtypes.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Proto</GroupName>
+          <Files>
+            <File>
+              <FileName>llc_cr_proto.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Proto\llc_cr_proto.h</FilePath>
+            </File>
+            <File>
+              <FileName>llc_cr_proto.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Proto\llc_cr_proto.c</FilePath>
             </File>
           </Files>
         </Group>
