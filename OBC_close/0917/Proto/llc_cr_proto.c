@@ -56,6 +56,16 @@ static inline void put_i16_le(uint8_t *p, int16_t v)
 {
     put_u16_le(p, (uint16_t)v);
 }
+
+/**
+ * @brief 写入二进制数据到调试串口
+ * @note 复用 debug 非阻塞环形队列，避免 CR 发送阻塞串口
+ * 
+ * @param buf 待写入的数据缓冲区指针
+ * @param len 待写入的数据长度
+ * 
+ * @return 无
+ */
 static void llc_cr_proto_write_binary(const uint8_t *buf, uint16_t len)
 {
     if ((buf == NULL) || (len == 0U)) {
@@ -63,11 +73,21 @@ static void llc_cr_proto_write_binary(const uint8_t *buf, uint16_t len)
     }
 
     /* 复用 debug 非阻塞环形队列，避免 CR 发送阻塞串口。 */
-    debug_write(buf, (size_t)len);
+    debug_write_raw(buf, (size_t)len);
 }
 
 static uint8_t s_cr_uart_seq = 0U;
-
+/**
+ * @brief 发送LLC电流响应(CR)协议二进制帧
+ * @details 构造包含帧头、类型、长度、序列号、有效载荷和校验和的完整二进制帧，
+ *          并通过UART发送。帧格式为：[0xA5][类型][长度][序列号][有效载荷][校验和][0x5A]
+ * @param type 帧类型标识符
+ * @param payload 有效载荷数据指针，可为NULL（当len=0时）
+ * @param len 有效载荷数据长度（字节）
+ * @note 校验和采用XOR异或算法计算，覆盖从帧头到有效载荷的所有字节
+ * @note 序列号s_cr_uart_seq在每次发送后自增
+	 [0xA5][类型][长度][序列号][有效载荷][校验和][0x5A]
+ */
 static void llc_cr_proto_send_bin_frame(uint8_t type, const uint8_t *payload, uint8_t len)
 {
     uint8_t frame[40];
@@ -82,14 +102,14 @@ static void llc_cr_proto_send_bin_frame(uint8_t type, const uint8_t *payload, ui
     frame[idx++] = 0xA5U;
     frame[idx++] = type;
     frame[idx++] = len;
-    frame[idx++] = s_cr_uart_seq++;
+    frame[idx++] = s_cr_uart_seq++; // 自动递增序列号
 
     for (i = 0U; i < len; i++) {
         frame[idx++] = payload[i];
     }
 
     for (i = 0U; i < idx; i++) {
-        chk ^= frame[i];
+        chk ^= frame[i];  // XOR校验
     }
 
     frame[idx++] = chk;
@@ -97,7 +117,21 @@ static void llc_cr_proto_send_bin_frame(uint8_t type, const uint8_t *payload, ui
 
     llc_cr_proto_write_binary(frame, idx);
 }
-
+/**
+ * @brief 发送LLC电流响应日志项的二进制帧
+ * 
+ * 根据日志项的类型（监控数据、事件开始、事件结束）将数据打包成二进制格式，
+ * 并通过LLC电流响应协议发送。支持三种日志类型的编码和传输：
+ * - CR_LOG_MON: 监控数据（时间戳、输出电压、输出电流、误差、频率）
+ * - CR_LOG_EVT_BEGIN: 事件开始（事件ID、电流跳变范围、预置电压）
+ * - CR_LOG_EVT_END: 事件结束（事件ID、测试结果、耗时、稳定时间、电压统计）
+ * 
+ * @param item 指向要发送的日志项结构体指针，若为NULL则直接返回
+ * 
+ * @note 函数内部使用20字节固定缓冲区进行数据打包
+ * @note 数据采用小端序编码，浮点数转换为Q10定点数格式
+ * @note 时间戳等32位数据会进行饱和截断到16位范围
+ */
 void llc_cr_proto_log_emit_bin(const llc_cr_log_item_t *item)
 {
     uint8_t payload[20];

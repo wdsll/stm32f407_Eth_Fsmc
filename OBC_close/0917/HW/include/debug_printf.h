@@ -41,6 +41,7 @@ void debug_printf_init(uint32_t baudrate);
 void debug_printf_deinit(void);
 void debug_putchar(char ch);
 void debug_write(const uint8_t *data, size_t len);
+void debug_write_raw(const uint8_t *data, size_t len);
 int debug_vprintf(const char *fmt, va_list args);
 
 #if defined(__GNUC__)
@@ -65,6 +66,7 @@ static inline void debug_printf_init(uint32_t baudrate) {(void)baudrate;}
 static inline void debug_printf_deinit(void) {}
 static inline void debug_putchar(char ch) {(void)ch;}
 static inline void debug_write(const uint8_t *data, size_t len) {(void)data; (void)len;}
+static inline void debug_write_raw(const uint8_t *data, size_t len) {(void)data; (void)len;}
 static inline int debug_vprintf(const char *fmt, va_list args) {(void)fmt; (void)args; return 0;}
 static inline int debug_printf(const char *fmt, ...) {(void)fmt; return 0;}
 static inline void debug_hexdump(const void *data, size_t len) {(void)data; (void)len;}

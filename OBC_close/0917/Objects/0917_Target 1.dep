@@ -41,7 +41,7 @@ I (C:\Keil_v5\ARM\ARMCLANG\include\math.h)(0x5AA6413A)
 I (HW\include\add_dma.h)(0x694C839D)
 I (HW\include\pwm_llc.h)(0x69C0E5FB)
 I (HW\include\RCU.h)(0x68BFF376)
-I (HW\include\debug_printf.h)(0x69C3BB32)
+I (HW\include\debug_printf.h)(0x69C4A70C)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stddef.h)(0x5AA6413A)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdarg.h)(0x5AA6413A)
 I (HW\include\pwm.h)(0x68E70BC2)
@@ -93,7 +93,7 @@ I (C:\Keil_v5\ARM\ARMCLANG\include\math.h)(0x5AA6413A)
 I (HW\include\add_dma.h)(0x694C839D)
 I (HW\include\pwm_llc.h)(0x69C0E5FB)
 I (HW\include\RCU.h)(0x68BFF376)
-I (HW\include\debug_printf.h)(0x69C3BB32)
+I (HW\include\debug_printf.h)(0x69C4A70C)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stddef.h)(0x5AA6413A)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdarg.h)(0x5AA6413A)
 I (HW\include\pwm.h)(0x68E70BC2)
@@ -1055,7 +1055,7 @@ I (C:\Keil_v5\ARM\ARMCLANG\include\stdbool.h)(0x5AA6413A)
 I (C:\Keil_v5\ARM\ARMCLANG\include\math.h)(0x5AA6413A)
 I (HW\include\pwm_llc.h)(0x69C0E5FB)
 I (HW\include\RCU.h)(0x68BFF376)
-I (HW\include\debug_printf.h)(0x69C3BB32)
+I (HW\include\debug_printf.h)(0x69C4A70C)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stddef.h)(0x5AA6413A)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdarg.h)(0x5AA6413A)
 I (HW\include\pwm.h)(0x68E70BC2)
@@ -1106,7 +1106,7 @@ I (C:\Keil_v5\ARM\ARMCLANG\include\stdbool.h)(0x5AA6413A)
 I (C:\Keil_v5\ARM\ARMCLANG\include\math.h)(0x5AA6413A)
 I (HW\include\add_dma.h)(0x694C839D)
 I (HW\include\RCU.h)(0x68BFF376)
-I (HW\include\debug_printf.h)(0x69C3BB32)
+I (HW\include\debug_printf.h)(0x69C4A70C)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stddef.h)(0x5AA6413A)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdarg.h)(0x5AA6413A)
 I (HW\include\pwm.h)(0x68E70BC2)
@@ -1157,7 +1157,7 @@ I (C:\Keil_v5\ARM\ARMCLANG\include\math.h)(0x5AA6413A)
 I (HW\include\add_dma.h)(0x694C839D)
 I (HW\include\pwm_llc.h)(0x69C0E5FB)
 I (HW\include\RCU.h)(0x68BFF376)
-I (HW\include\debug_printf.h)(0x69C3BB32)
+I (HW\include\debug_printf.h)(0x69C4A70C)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stddef.h)(0x5AA6413A)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdarg.h)(0x5AA6413A)
 I (HW\include\protect_exti.h)(0x6948E5CC)
@@ -1209,7 +1209,7 @@ I (C:\Keil_v5\ARM\ARMCLANG\include\math.h)(0x5AA6413A)
 I (HW\include\add_dma.h)(0x694C839D)
 I (HW\include\pwm_llc.h)(0x69C0E5FB)
 I (HW\include\RCU.h)(0x68BFF376)
-I (HW\include\debug_printf.h)(0x69C3BB32)
+I (HW\include\debug_printf.h)(0x69C4A70C)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stddef.h)(0x5AA6413A)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdarg.h)(0x5AA6413A)
 I (HW\include\pwm.h)(0x68E70BC2)
@@ -1218,8 +1218,8 @@ I (HW\include\llc_control.h)(0x69C0DDFE)
 I (APP\include\llc_soft_start.h)(0x69C0B482)
 F (.\HW\include\protect_exti.h)(0x6948E5CC)()
 F (.\HW\include\pfc_control.h)(0x6966FEC2)()
-F (.\HW\src\Debug_printf.c)(0x69C390DC)(-xc -std=c11 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-3 -O0 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -I ./APP/include -I ./ARM/include -I ./GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include -I ./GD32_SYSTEM/Firmware/CMSIS/GD/GD32F30x/Include -I ./HW/include -I ./GD32_SYSTEM/Firmware/CMSIS -I ./Simulink -I ./Proto-I./RTE/_Target_1-IC:/Users/huyan/AppData/Local/Arm/Packs/ARM/CMSIS/5.9.0/CMSIS/Core/Include-IC:/Users/huyan/AppData/Local/Arm/Packs/GigaDevice/GD32F30x_DFP/2.2.1/Device/Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o ./objects/debug_printf.o -MD)
-I (HW\include\debug_printf.h)(0x69C3BB32)
+F (.\HW\src\Debug_printf.c)(0x69C4A721)(-xc -std=c11 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-3 -O0 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -I ./APP/include -I ./ARM/include -I ./GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include -I ./GD32_SYSTEM/Firmware/CMSIS/GD/GD32F30x/Include -I ./HW/include -I ./GD32_SYSTEM/Firmware/CMSIS -I ./Simulink -I ./Proto-I./RTE/_Target_1-IC:/Users/huyan/AppData/Local/Arm/Packs/ARM/CMSIS/5.9.0/CMSIS/Core/Include-IC:/Users/huyan/AppData/Local/Arm/Packs/GigaDevice/GD32F30x_DFP/2.2.1/Device/Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o ./objects/debug_printf.o -MD)
+I (HW\include\debug_printf.h)(0x69C4A70C)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stddef.h)(0x5AA6413A)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdint.h)(0x5AA6413A)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdarg.h)(0x5AA6413A)
@@ -1259,7 +1259,7 @@ I (GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_enet.h)(0x
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdlib.h)(0x5AA6413A)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdio.h)(0x5AA6413A)
 I (C:\Keil_v5\ARM\ARMCLANG\include\string.h)(0x5AA6413A)
-F (.\HW\include\debug_printf.h)(0x69C3BB32)()
+F (.\HW\include\debug_printf.h)(0x69C4A70C)()
 F (.\HW\src\pfc_control.c)(0x695E1B7F)(-xc -std=c11 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-3 -O0 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -I ./APP/include -I ./ARM/include -I ./GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include -I ./GD32_SYSTEM/Firmware/CMSIS/GD/GD32F30x/Include -I ./HW/include -I ./GD32_SYSTEM/Firmware/CMSIS -I ./Simulink -I ./Proto-I./RTE/_Target_1-IC:/Users/huyan/AppData/Local/Arm/Packs/ARM/CMSIS/5.9.0/CMSIS/Core/Include-IC:/Users/huyan/AppData/Local/Arm/Packs/GigaDevice/GD32F30x_DFP/2.2.1/Device/Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o ./objects/pfc_control.o -MD)
 I (HW\include\pfc_control.h)(0x6966FEC2)
 I (APP\include\main.h)(0x69C35A1C)
@@ -1303,14 +1303,14 @@ I (C:\Keil_v5\ARM\ARMCLANG\include\math.h)(0x5AA6413A)
 I (HW\include\add_dma.h)(0x694C839D)
 I (HW\include\pwm_llc.h)(0x69C0E5FB)
 I (HW\include\RCU.h)(0x68BFF376)
-I (HW\include\debug_printf.h)(0x69C3BB32)
+I (HW\include\debug_printf.h)(0x69C4A70C)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stddef.h)(0x5AA6413A)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdarg.h)(0x5AA6413A)
 I (HW\include\pwm.h)(0x68E70BC2)
 I (HW\include\protect_exti.h)(0x6948E5CC)
 I (HW\include\llc_control.h)(0x69C0DDFE)
 I (APP\include\llc_soft_start.h)(0x69C0B482)
-F (.\HW\src\llc_control.c)(0x69C49E16)(-xc -std=c11 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-3 -O0 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -I ./APP/include -I ./ARM/include -I ./GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include -I ./GD32_SYSTEM/Firmware/CMSIS/GD/GD32F30x/Include -I ./HW/include -I ./GD32_SYSTEM/Firmware/CMSIS -I ./Simulink -I ./Proto-I./RTE/_Target_1-IC:/Users/huyan/AppData/Local/Arm/Packs/ARM/CMSIS/5.9.0/CMSIS/Core/Include-IC:/Users/huyan/AppData/Local/Arm/Packs/GigaDevice/GD32F30x_DFP/2.2.1/Device/Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o ./objects/llc_control.o -MD)
+F (.\HW\src\llc_control.c)(0x69C4CAA4)(-xc -std=c11 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-3 -O0 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -I ./APP/include -I ./ARM/include -I ./GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include -I ./GD32_SYSTEM/Firmware/CMSIS/GD/GD32F30x/Include -I ./HW/include -I ./GD32_SYSTEM/Firmware/CMSIS -I ./Simulink -I ./Proto-I./RTE/_Target_1-IC:/Users/huyan/AppData/Local/Arm/Packs/ARM/CMSIS/5.9.0/CMSIS/Core/Include-IC:/Users/huyan/AppData/Local/Arm/Packs/GigaDevice/GD32F30x_DFP/2.2.1/Device/Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o ./objects/llc_control.o -MD)
 I (HW\include\llc_control.h)(0x69C0DDFE)
 I (APP\include\main.h)(0x69C35A1C)
 I (ARM\include\gd32f30x_conf.h)(0x691D9C10)
@@ -1353,7 +1353,7 @@ I (C:\Keil_v5\ARM\ARMCLANG\include\math.h)(0x5AA6413A)
 I (HW\include\add_dma.h)(0x694C839D)
 I (HW\include\pwm_llc.h)(0x69C0E5FB)
 I (HW\include\RCU.h)(0x68BFF376)
-I (HW\include\debug_printf.h)(0x69C3BB32)
+I (HW\include\debug_printf.h)(0x69C4A70C)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stddef.h)(0x5AA6413A)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdarg.h)(0x5AA6413A)
 I (HW\include\pwm.h)(0x68E70BC2)
@@ -1445,7 +1445,7 @@ F (.\Simulink\MCU_Control_private.h)(0x693A7740)()
 F (.\Simulink\MCU_Control_types.h)(0x693A7751)()
 F (.\Simulink\rtwtypes.h)(0x693A7769)()
 F (.\Proto\llc_cr_proto.h)(0x69C49388)()
-F (.\Proto\llc_cr_proto.c)(0x69C49E8C)(-xc -std=c11 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-3 -O0 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -I ./APP/include -I ./ARM/include -I ./GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include -I ./GD32_SYSTEM/Firmware/CMSIS/GD/GD32F30x/Include -I ./HW/include -I ./GD32_SYSTEM/Firmware/CMSIS -I ./Simulink -I ./Proto-I./RTE/_Target_1-IC:/Users/huyan/AppData/Local/Arm/Packs/ARM/CMSIS/5.9.0/CMSIS/Core/Include-IC:/Users/huyan/AppData/Local/Arm/Packs/GigaDevice/GD32F30x_DFP/2.2.1/Device/Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o ./objects/llc_cr_proto.o -MD)
+F (.\Proto\llc_cr_proto.c)(0x69C4A75D)(-xc -std=c11 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-3 -O0 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -I ./APP/include -I ./ARM/include -I ./GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include -I ./GD32_SYSTEM/Firmware/CMSIS/GD/GD32F30x/Include -I ./HW/include -I ./GD32_SYSTEM/Firmware/CMSIS -I ./Simulink -I ./Proto-I./RTE/_Target_1-IC:/Users/huyan/AppData/Local/Arm/Packs/ARM/CMSIS/5.9.0/CMSIS/Core/Include-IC:/Users/huyan/AppData/Local/Arm/Packs/GigaDevice/GD32F30x_DFP/2.2.1/Device/Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o ./objects/llc_cr_proto.o -MD)
 I (APP\include\main.h)(0x69C35A1C)
 I (ARM\include\gd32f30x_conf.h)(0x691D9C10)
 I (GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include\gd32f30x_adc.h)(0x68BFF378)
@@ -1487,7 +1487,7 @@ I (C:\Keil_v5\ARM\ARMCLANG\include\math.h)(0x5AA6413A)
 I (HW\include\add_dma.h)(0x694C839D)
 I (HW\include\pwm_llc.h)(0x69C0E5FB)
 I (HW\include\RCU.h)(0x68BFF376)
-I (HW\include\debug_printf.h)(0x69C3BB32)
+I (HW\include\debug_printf.h)(0x69C4A70C)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stddef.h)(0x5AA6413A)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdarg.h)(0x5AA6413A)
 I (HW\include\pwm.h)(0x68E70BC2)

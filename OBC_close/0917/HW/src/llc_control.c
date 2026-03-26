@@ -1065,7 +1065,21 @@ static bool power_stage_all_idle(void)
     }
 		return true;
 }
-
+/**
+ * @brief 限制性地导出LLC电流响应日志数据
+ * 
+ * 该函数从环形日志缓冲区中读取指定数量的日志项，并通过二进制协议发送。
+ * 支持溢出状态报告和监控数据过滤功能。
+ * 
+ * @param max_items 本次导出的最大日志项数量，为0时直接返回
+ * @param allow_mon 是否允许导出监控类型日志(CR_LOG_MON)，0表示跳过监控数据
+ * 
+ * @note 该函数使用临界区保护环形缓冲区的读取操作
+ * @note 溢出状态变化时会自动报告溢出统计信息
+ * @note 日志导出后自动更新待导出标志(s_cr_log_pending_dump)
+ * 
+ * @attention 仅在LLC_CR_RESP_LOG_ENABLE宏定义时有效
+ */
 static void llc_cr_resp_log_dump_limited(uint8_t max_items, uint8_t allow_mon)
 {
 #if LLC_CR_RESP_LOG_ENABLE
@@ -1074,6 +1088,7 @@ static void llc_cr_resp_log_dump_limited(uint8_t max_items, uint8_t allow_mon)
     if (max_items == 0U) {
         return;
     }
+		//优雅的溢出报告机制,只有溢出的时候才会打印
     if (s_cr_log_overflow_reported != s_cr_log_overflow_cnt) {
         debug_printf("[CR_OVF] total=%lu pending=%u\r\n",
                      (unsigned long)s_cr_log_overflow_cnt,
@@ -1092,7 +1107,7 @@ static void llc_cr_resp_log_dump_limited(uint8_t max_items, uint8_t allow_mon)
             __set_PRIMASK(primask);
             break;
         }
-
+				//环形缓冲区策略管理
         item = s_cr_log_buf[s_cr_log_r];
         s_cr_log_r = (uint16_t)((s_cr_log_r + 1U) % LLC_CR_RESP_LOG_CACHE_MAX);
         s_cr_log_cnt--;
@@ -1115,7 +1130,7 @@ void llc_app_tick_1khz(void)
 	static uint32_t s_cr_dump_last_ms = 0U;
 	static uint32_t s_cr_mon_last_ms = 0U;
   bool run_state = (s_llc_rt.app.state == ST_LLC_RUN);
-
+//自适应日志转储调度器
 	if (s_cr_log_pending_dump && elapsed_reached(s_cr_dump_last_ms, run_state ? 2U : 5U)) {
 			uint8_t allow_mon = 1U;
 			uint8_t dump_n = 4U;
@@ -1127,6 +1142,7 @@ void llc_app_tick_1khz(void)
 					}
 					dump_n = (s_cr_log_cnt > (LLC_CR_RESP_LOG_CACHE_MAX / 2U)) ? 12U : 6U;
 			} else if (power_stage_all_idle()) {
+				//负载自适应的转储量控制
 					dump_n = (s_cr_log_cnt > (LLC_CR_RESP_LOG_CACHE_MAX / 2U)) ? 10U : 5U;
 			}
 
