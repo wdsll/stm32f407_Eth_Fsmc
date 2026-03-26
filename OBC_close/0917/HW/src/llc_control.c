@@ -43,7 +43,7 @@
 #endif
 
 #ifndef LLC_CR_RESP_LOG_CACHE_MAX
-#define LLC_CR_RESP_LOG_CACHE_MAX      (64U)
+#define LLC_CR_RESP_LOG_CACHE_MAX      (256U)
 #endif
 
 #ifndef CRITICAL_LOG_ONLY
@@ -112,7 +112,8 @@ static uint16_t s_cr_log_w = 0U;
 static uint16_t s_cr_log_r = 0U;
 static uint16_t s_cr_log_cnt = 0U;
 static uint8_t  s_cr_log_pending_dump = 0U;
-
+static uint32_t s_cr_log_overflow_cnt = 0U;
+static uint32_t s_cr_log_overflow_reported = 0U;
 /*********************************************************************************************************
 *                                              内部函数声明
 *********************************************************************************************************/
@@ -384,6 +385,7 @@ static void llc_cr_resp_log_push(const llc_cr_log_item_t *item)
     } else {
 			  //当缓冲区已满时，移动读指针，实现先进先出的覆盖策略
         s_cr_log_r = (uint16_t)((s_cr_log_r + 1U) % LLC_CR_RESP_LOG_CACHE_MAX); 
+			  s_cr_log_overflow_cnt++;
     }
     //设置待处理标志，通知其他任务进行异步日志输出
     s_cr_log_pending_dump = 1U;
@@ -536,6 +538,9 @@ static void llc_cr_resp_tick(void)
     if (s_llc_rt.app.state != ST_LLC_RUN) {
         s_cr_resp.iout_prev_a = iout;
         s_cr_resp.next_period_log_ms = g_ms + LLC_CR_RESP_LOG_PERIOD_MS;
+			  s_cr_resp.active = 0U;
+        s_cr_resp.stable_ticks = 0U;
+        s_cr_resp.settled_ms = 0U;
         return;
     }
 #if !CRITICAL_LOG_ONLY
@@ -999,6 +1004,7 @@ void llc_app_tick_100us(void)
     if (s_llc_rt.app.state != ST_LLC_RUN && s_llc_rt.app.state != ST_BURST_MODE) {
 			vloop_div = 0;
 			vout_filt_inited = 0U;
+			llc_cr_resp_tick();
       return;
     }	
 
@@ -1022,6 +1028,7 @@ void llc_app_tick_100us(void)
 		/* Burst模式：只保留滤波，不跑PI */
     if (s_llc_rt.app.state == ST_BURST_MODE) {
         vloop_div = 0U;
+			  llc_cr_resp_tick();
         return;
     }
     err = s_llc.vref - s_llc.vmeas;
@@ -1030,6 +1037,7 @@ void llc_app_tick_100us(void)
 			f_cmd = llc_ctrl_step(err);
 			llc_set_freq(f_cmd, false);  /* 自然更新：闭环微调 */
 		}
+		llc_cr_resp_tick();
 }
 #endif 
 static bool llc_is_active_state(llc_state_t st)
@@ -1058,7 +1066,7 @@ static bool power_stage_all_idle(void)
 		return true;
 }
 
-static void llc_cr_resp_log_dump_limited(uint8_t max_items)
+static void llc_cr_resp_log_dump_limited(uint8_t max_items, uint8_t allow_mon)
 {
 #if LLC_CR_RESP_LOG_ENABLE
     uint8_t dumped = 0U;
@@ -1066,7 +1074,12 @@ static void llc_cr_resp_log_dump_limited(uint8_t max_items)
     if (max_items == 0U) {
         return;
     }
-
+    if (s_cr_log_overflow_reported != s_cr_log_overflow_cnt) {
+        debug_printf("[CR_OVF] total=%lu pending=%u\r\n",
+                     (unsigned long)s_cr_log_overflow_cnt,
+                     (unsigned)s_cr_log_cnt);
+        s_cr_log_overflow_reported = s_cr_log_overflow_cnt;
+    }
     while (dumped < max_items) {
         llc_cr_log_item_t item;
         uint32_t primask;
@@ -1088,7 +1101,9 @@ static void llc_cr_resp_log_dump_limited(uint8_t max_items)
         __set_PRIMASK(primask);
 
         /* 改成二进制串口帧输出 */
-        llc_cr_proto_log_emit_bin(&item);
+        if ((item.type != CR_LOG_MON) || allow_mon) {
+            llc_cr_proto_log_emit_bin(&item);
+        }
 
         dumped++;
     }
@@ -1097,22 +1112,29 @@ static void llc_cr_resp_log_dump_limited(uint8_t max_items)
 void llc_app_tick_1khz(void)
 {
 	llc_update_measurements();
-  llc_cr_resp_tick();
-	
 	static uint32_t s_cr_dump_last_ms = 0U;
+	static uint32_t s_cr_mon_last_ms = 0U;
+  bool run_state = (s_llc_rt.app.state == ST_LLC_RUN);
 
-	if (s_cr_log_pending_dump &&
-			power_stage_all_idle() &&
-			elapsed_reached(s_cr_dump_last_ms, 5U)) {
-				uint8_t dump_n = (s_cr_log_cnt > (LLC_CR_RESP_LOG_CACHE_MAX / 2U)) ? 8U : 4U;
-				s_cr_dump_last_ms = g_ms;
-				llc_cr_resp_log_dump_limited(dump_n);
+	if (s_cr_log_pending_dump && elapsed_reached(s_cr_dump_last_ms, run_state ? 2U : 5U)) {
+			uint8_t allow_mon = 1U;
+			uint8_t dump_n = 4U;
+
+			if (run_state) {
+					allow_mon = elapsed_reached(s_cr_mon_last_ms, 100U) ? 1U : 0U;
+					if (allow_mon) {
+							s_cr_mon_last_ms = g_ms;
+					}
+					dump_n = (s_cr_log_cnt > (LLC_CR_RESP_LOG_CACHE_MAX / 2U)) ? 12U : 6U;
+			} else if (power_stage_all_idle()) {
+					dump_n = (s_cr_log_cnt > (LLC_CR_RESP_LOG_CACHE_MAX / 2U)) ? 10U : 5U;
+			}
+
+			s_cr_dump_last_ms = g_ms;
+			llc_cr_resp_log_dump_limited(dump_n, allow_mon);
 	}
-
 	bool enable_llc = pfc_is_ready();
-
 	bool pfc_ready_stable = llc_pfc_ready_stable(enable_llc);
-
 	if (s_llc_rt.app.state != ST_IDLE && s_llc_rt.app.state != ST_FAULT) {
 		if (llc_faults_present()) {
 			llc_enter_fault();

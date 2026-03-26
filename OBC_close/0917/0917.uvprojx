@@ -427,6 +427,11 @@
               <FileType>5</FileType>
               <FilePath>.\APP\llc_voltage_loop_design.txt</FilePath>
             </File>
+            <File>
+              <FileName>协议输出详细报告（CR Binary Protocol）.txt</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\APP\协议输出详细报告（CR Binary Protocol）.txt</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
