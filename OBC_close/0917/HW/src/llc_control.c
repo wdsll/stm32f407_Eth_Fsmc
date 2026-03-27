@@ -122,6 +122,7 @@ typedef struct
     uint8_t active;
     uint8_t post_left;
     uint32_t last_trigger_ms;
+	  uint8_t trigger_inhibit;
     float last_vout_v;
 } llc_collapse_trace_ctx_t;
 
@@ -1112,6 +1113,7 @@ void llc_app_init(void)
     s_collapse_trace.size = 0U;
     s_collapse_trace.active = 0U;
     s_collapse_trace.post_left = 0U;
+		s_collapse_trace.trigger_inhibit = 0U;
     s_collapse_trace.last_trigger_ms = 0U;
     s_collapse_trace.last_vout_v = 0.0f;
 		
@@ -1544,8 +1546,16 @@ static void llc_collapse_trace_tick(void)
     float vout = s_llc_rt.meas.vout_v;
     uint32_t f_act = llc_pwm_get_freq_hz();
 
-    llc_collapse_trace_push(f_act);
+	  uint8_t in_arm_state = ((s_llc_rt.app.state == ST_LLC_RUN) ||(s_llc_rt.app.state == ST_BURST_MODE)) ? 1U : 0U;
+    if (!in_arm_state) {
+        s_collapse_trace.active = 0U;
+        s_collapse_trace.post_left = 0U;
+        s_collapse_trace.trigger_inhibit = 0U;
+        s_collapse_trace.last_vout_v = vout;
+        return;
+    }
 
+    llc_collapse_trace_push(f_act);
     if (s_collapse_trace.active) {
         if (s_collapse_trace.post_left > 0U) {
             s_collapse_trace.post_left--;
@@ -1553,9 +1563,10 @@ static void llc_collapse_trace_tick(void)
         if (s_collapse_trace.post_left == 0U) {
             llc_collapse_trace_dump((uint8_t)s_llc_rt.app.state);
             s_collapse_trace.active = 0U;
+					  s_collapse_trace.trigger_inhibit = 1U;
             s_collapse_trace.last_trigger_ms = g_ms;
         }
-    } else {
+    } else  if (s_collapse_trace.trigger_inhibit == 0U) {
         float dv = s_collapse_trace.last_vout_v - vout;
         uint8_t abs_hit = (vout <= LLC_COLLAPSE_VOUT_ABS_MIN_V) ? 1U : 0U;
         uint8_t drop_hit = (dv >= LLC_COLLAPSE_VOUT_DROP_V) ? 1U : 0U;

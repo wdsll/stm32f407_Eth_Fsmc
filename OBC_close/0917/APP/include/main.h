@@ -155,7 +155,7 @@
 #define LLC_VOUT_TARGET_V            (37.0f)
 #define LLC_VOUT_HYST_V              (15.0f)
 #define LLC_VOUT_OVP_V               (58.0f)
-#define LLC_IOUT_OCP_A               (41.0f)
+#define LLC_IOUT_OCP_A               (50.0f)
 
 #define LLC_SWEEP_START_HZ           (100000.0f)
 #define LLC_SWEEP_STOP_HZ            (80000.0f)
