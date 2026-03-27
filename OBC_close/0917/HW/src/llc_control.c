@@ -105,8 +105,43 @@ typedef struct
 
 static llc_cr_resp_ctx_t s_cr_resp;
 
+typedef struct
+{
+    uint32_t t_ms;
+    uint8_t state;
+    float f_cmd_hz;
+    uint32_t f_act_hz;
+    float vout_v;
+} llc_collapse_snap_t;
 
+typedef struct
+{
+    llc_collapse_snap_t buf[LLC_COLLAPSE_TRACE_PRE_MS + LLC_COLLAPSE_TRACE_POST_MS + 2U];
+    uint16_t wr;
+    uint16_t size;
+    uint8_t active;
+    uint8_t post_left;
+    uint32_t last_trigger_ms;
+    float last_vout_v;
+} llc_collapse_trace_ctx_t;
 
+static llc_collapse_trace_ctx_t s_collapse_trace;
+
+typedef struct
+{
+    uint8_t pending;
+    uint8_t emit_idx;
+    llc_collapse_snap_t pre;
+    llc_collapse_snap_t trig;
+    llc_collapse_snap_t post;
+    uint8_t verdict;
+    uint8_t reason_state;
+    float dv_v;
+    float df_cmd_hz;
+    float df_act_hz;
+} llc_collapse_emit_ctx_t;
+
+static llc_collapse_emit_ctx_t s_collapse_emit;
 static llc_cr_log_item_t s_cr_log_buf[LLC_CR_RESP_LOG_CACHE_MAX];
 static uint16_t s_cr_log_w = 0U;
 static uint16_t s_cr_log_r = 0U;
@@ -132,6 +167,11 @@ static void llc_cr_resp_tick(void);
 static void llc_cr_resp_log_push(const llc_cr_log_item_t *item);
 static void llc_cr_resp_log_dump(void);
 static void llc_cr_resp_log_dump_all(void);  /* STOP模式批量输出 */
+
+static void llc_collapse_trace_tick(void);
+static void llc_collapse_trace_push(uint32_t f_act_hz);
+static void llc_collapse_trace_dump(uint8_t reason_state);
+static void llc_collapse_trace_drain_budget(uint8_t budget);
 /*********************************************************************************************************
 *                                              静态工具
 *********************************************************************************************************/
@@ -1067,7 +1107,17 @@ void llc_app_init(void)
     s_llc_rt.burst_exit_delay_ms = 0U;
     s_llc_rt.f_pre_burst_hz = LLC_F_NOM_HZ;  /* 默认用标称频率 */
     s_llc_rt.burst_first_entry = 1;          /* 标记首次进入 */
-
+#if LLC_COLLAPSE_TRACE_ENABLE
+    s_collapse_trace.wr = 0U;
+    s_collapse_trace.size = 0U;
+    s_collapse_trace.active = 0U;
+    s_collapse_trace.post_left = 0U;
+    s_collapse_trace.last_trigger_ms = 0U;
+    s_collapse_trace.last_vout_v = 0.0f;
+		
+		s_collapse_emit.pending = 0U;
+    s_collapse_emit.emit_idx = 0U;
+#endif
     llc_state_enter(ST_IDLE);
 }
 
@@ -1112,6 +1162,12 @@ void llc_app_tick_100us(void)
 			  llc_cr_resp_tick();
         return;
     }
+#if LLC_FIXED_FREQ_LOAD_TEST_ENABLE
+    vloop_div = 0U;
+    llc_set_freq(LLC_FIXED_FREQ_LOAD_TEST_HZ, false);
+    llc_cr_resp_tick();
+    return;
+#endif
     err = s_llc.vref - s_llc.vmeas;
 		if (++vloop_div >= 5U) {   // 500us
 			vloop_div = 0;
@@ -1349,9 +1405,177 @@ static void llc_cr_resp_log_dump_limited(uint8_t max_items, uint8_t allow_mon)
 #endif
 }
 
+static void llc_collapse_trace_push(uint32_t f_act_hz)
+{
+#if LLC_COLLAPSE_TRACE_ENABLE
+    uint16_t cap = (uint16_t)(sizeof(s_collapse_trace.buf) / sizeof(s_collapse_trace.buf[0]));
+    llc_collapse_snap_t *snap = &s_collapse_trace.buf[s_collapse_trace.wr];
+
+    snap->t_ms = g_ms;
+    snap->state = (uint8_t)s_llc_rt.app.state;
+    snap->f_cmd_hz = s_llc.f_cmd;
+    snap->f_act_hz = f_act_hz;
+    snap->vout_v = s_llc_rt.meas.vout_v;
+
+    s_collapse_trace.wr = (uint16_t)((s_collapse_trace.wr + 1U) % cap);
+    if (s_collapse_trace.size < cap) {
+        s_collapse_trace.size++;
+    }
+#else
+    (void)f_act_hz;
+#endif
+}
+
+static void llc_collapse_trace_dump(uint8_t reason_state)
+{
+#if LLC_COLLAPSE_TRACE_ENABLE
+    uint16_t cap = (uint16_t)(sizeof(s_collapse_trace.buf) / sizeof(s_collapse_trace.buf[0]));
+    uint16_t cnt = s_collapse_trace.size;
+	
+    uint16_t start_idx;
+    uint16_t trig_off;
+    uint16_t idx_pre;
+    uint16_t idx_trig;
+    uint16_t idx_post;
+    const llc_collapse_snap_t *pre;
+    const llc_collapse_snap_t *trig;
+    const llc_collapse_snap_t *post;
+    float dv_v;
+    float df_cmd_hz;
+    float df_act_hz;
+    uint8_t verdict = 0U;
+    if (cnt == 0U) {
+        return;
+    }
+
+		    start_idx = (uint16_t)((s_collapse_trace.wr + cap - cnt) % cap);
+    trig_off = (cnt > (LLC_COLLAPSE_TRACE_POST_MS + 1U)) ?
+               (uint16_t)(cnt - LLC_COLLAPSE_TRACE_POST_MS - 1U) : 0U;
+
+    idx_pre = start_idx;
+    idx_trig = (uint16_t)((start_idx + trig_off) % cap);
+    idx_post = (uint16_t)((start_idx + cnt - 1U) % cap);
+
+    pre = &s_collapse_trace.buf[idx_pre];
+    trig = &s_collapse_trace.buf[idx_trig];
+    post = &s_collapse_trace.buf[idx_post];
+
+    dv_v = trig->vout_v - pre->vout_v;
+    df_cmd_hz = trig->f_cmd_hz - pre->f_cmd_hz;
+    df_act_hz = (float)trig->f_act_hz - (float)pre->f_act_hz;
+
+    if ((pre->state != trig->state) || (fabsf(df_cmd_hz) > 3000.0f)) {
+        verdict = 1U; /* software_suspect */
+    } else if (fabsf(trig->f_cmd_hz - (float)trig->f_act_hz) < 2500.0f) {
+        verdict = 2U; /* hardware_suspect */
+    }
+
+		    s_collapse_emit.pre = *pre;
+    s_collapse_emit.trig = *trig;
+    s_collapse_emit.post = *post;
+    s_collapse_emit.verdict = verdict;
+    s_collapse_emit.reason_state = reason_state;
+    s_collapse_emit.dv_v = dv_v;
+    s_collapse_emit.df_cmd_hz = df_cmd_hz;
+    s_collapse_emit.df_act_hz = df_act_hz;
+    s_collapse_emit.emit_idx = 0U;
+    s_collapse_emit.pending = 1U;
+#endif
+}
+
+static void llc_collapse_trace_drain_budget(uint8_t budget)
+{
+#if LLC_COLLAPSE_TRACE_ENABLE
+    while ((budget > 0U) && s_collapse_emit.pending) {
+			  /* keep CR logs higher priority to avoid UART bandwidth contention */
+        if (s_cr_log_pending_dump || (s_cr_log_cnt > 0U)) {
+            break;
+        }
+        if (s_collapse_emit.emit_idx <= 2U) {
+            if (debug_tx_available() < 18) {
+                break;
+            }
+
+            if (s_collapse_emit.emit_idx == 0U) {
+                llc_cr_proto_collapse_emit_bin(0U,
+                                               s_collapse_emit.pre.t_ms,
+                                               s_collapse_emit.pre.state,
+                                               s_collapse_emit.pre.vout_v,
+                                               s_collapse_emit.pre.f_cmd_hz,
+                                               s_collapse_emit.pre.f_act_hz);
+            } else if (s_collapse_emit.emit_idx == 1U) {
+                llc_cr_proto_collapse_emit_bin(1U,
+                                               s_collapse_emit.trig.t_ms,
+                                               s_collapse_emit.trig.state,
+                                               s_collapse_emit.trig.vout_v,
+                                               s_collapse_emit.trig.f_cmd_hz,
+                                               s_collapse_emit.trig.f_act_hz);
+            } else {
+                llc_cr_proto_collapse_emit_bin(2U,
+                                               s_collapse_emit.post.t_ms,
+                                               s_collapse_emit.post.state,
+                                               s_collapse_emit.post.vout_v,
+                                               s_collapse_emit.post.f_cmd_hz,
+                                               s_collapse_emit.post.f_act_hz);
+            }
+            s_collapse_emit.emit_idx++;
+        } else {
+            if (debug_tx_available() < 14) {
+                break;
+            }
+            llc_cr_proto_collapse_diag_emit_bin(s_collapse_emit.verdict,
+                                                s_collapse_emit.reason_state,
+                                                s_collapse_emit.dv_v,
+                                                s_collapse_emit.df_cmd_hz,
+                                                s_collapse_emit.df_act_hz);
+            s_collapse_emit.pending = 0U;
+            s_collapse_emit.emit_idx = 0U;
+        }
+        budget--;
+    }
+#else
+    (void)budget;
+#endif
+}
+
+static void llc_collapse_trace_tick(void)
+{
+#if LLC_COLLAPSE_TRACE_ENABLE
+    float vout = s_llc_rt.meas.vout_v;
+    uint32_t f_act = llc_pwm_get_freq_hz();
+
+    llc_collapse_trace_push(f_act);
+
+    if (s_collapse_trace.active) {
+        if (s_collapse_trace.post_left > 0U) {
+            s_collapse_trace.post_left--;
+        }
+        if (s_collapse_trace.post_left == 0U) {
+            llc_collapse_trace_dump((uint8_t)s_llc_rt.app.state);
+            s_collapse_trace.active = 0U;
+            s_collapse_trace.last_trigger_ms = g_ms;
+        }
+    } else {
+        float dv = s_collapse_trace.last_vout_v - vout;
+        uint8_t abs_hit = (vout <= LLC_COLLAPSE_VOUT_ABS_MIN_V) ? 1U : 0U;
+        uint8_t drop_hit = (dv >= LLC_COLLAPSE_VOUT_DROP_V) ? 1U : 0U;
+        uint8_t rearmed = (s_collapse_trace.last_trigger_ms == 0U) ||
+                          elapsed_reached(s_collapse_trace.last_trigger_ms, LLC_COLLAPSE_TRACE_REARM_MS);
+
+        if (rearmed && (abs_hit || drop_hit)) {
+            s_collapse_trace.active = 1U;
+            s_collapse_trace.post_left = (uint8_t)LLC_COLLAPSE_TRACE_POST_MS;
+        }
+    }
+
+    s_collapse_trace.last_vout_v = vout;
+#endif
+}
+
 void llc_app_tick_1khz(void)
 {
 	llc_update_measurements();
+	llc_collapse_trace_tick();
 	static uint32_t s_cr_dump_last_ms = 0U;
 	static uint32_t s_cr_mon_last_ms = 0U;
   bool run_state = (s_llc_rt.app.state == ST_LLC_RUN);
@@ -1376,6 +1600,8 @@ void llc_app_tick_1khz(void)
 			s_cr_dump_last_ms = g_ms;
 			llc_cr_resp_log_dump_limited(dump_n, allow_mon);
 	}
+		
+	llc_collapse_trace_drain_budget(1U);
 	bool enable_llc = pfc_is_ready();
 	bool pfc_ready_stable = llc_pfc_ready_stable(enable_llc);
 	if (s_llc_rt.app.state != ST_IDLE && s_llc_rt.app.state != ST_FAULT) {
@@ -1471,6 +1697,7 @@ void llc_app_tick_1khz(void)
 			}
 
 #if LLC_BURST_MODE_ENABLE
+#if !LLC_FIXED_FREQ_LOAD_TEST_ENABLE
 		/* Burst进入检测 - 慢进入，需持续轻载超过延迟时间 */
 		if(s_llc_rt.meas.iout_a < LLC_BURST_IOUT_ENTER_A)
 		{
@@ -1490,6 +1717,7 @@ void llc_app_tick_1khz(void)
 		{
 			s_llc_rt.burst_enter_delay_ms = 0; /* 电流回升，重置计时 */
 		}
+#endif
 #endif
 			break;
 	 }

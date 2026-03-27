@@ -181,3 +181,34 @@ void llc_cr_proto_log_emit_bin(const llc_cr_log_item_t *item)
         break;
     }
 }
+
+void llc_cr_proto_collapse_emit_bin(uint8_t tag, uint32_t t_ms, uint8_t state, float vout_v, float f_cmd_hz, uint32_t f_act_hz)
+{
+    uint8_t payload[12] = {0};
+
+    payload[0] = tag;
+    payload[1] = state;
+    put_u16_le(&payload[2], u16_sat_from_u32(t_ms));
+    put_i16_le(&payload[4], q10_from_float(vout_v));
+    put_u16_le(&payload[6], u16_sat_from_u32((uint32_t)(f_cmd_hz / 10.0f)));
+    put_u16_le(&payload[8], u16_sat_from_u32(f_act_hz / 10U));
+    payload[10] = 0U;
+    payload[11] = 0U;
+
+    llc_cr_proto_send_bin_frame(0x04U, payload, 12U);
+}
+
+void llc_cr_proto_collapse_diag_emit_bin(uint8_t verdict, uint8_t reason_state, float dv_v, float df_cmd_hz, float df_act_hz)
+{
+    uint8_t payload[8] = {0};
+
+    payload[0] = verdict;
+    payload[1] = reason_state;
+    put_i16_le(&payload[2], q10_from_float(dv_v));
+    put_i16_le(&payload[4], q10_from_float(df_cmd_hz / 10.0f));
+    put_i16_le(&payload[6], q10_from_float(df_act_hz / 10.0f));
+
+    llc_cr_proto_send_bin_frame(0x05U, payload, 8U);
+}
+
+

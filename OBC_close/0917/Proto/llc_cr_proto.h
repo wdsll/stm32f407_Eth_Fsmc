@@ -32,5 +32,6 @@ typedef struct
 } llc_cr_log_item_t;
 
 void llc_cr_proto_log_emit_bin(const llc_cr_log_item_t *item);
-
+void llc_cr_proto_collapse_emit_bin(uint8_t tag, uint32_t t_ms, uint8_t state, float vout_v, float f_cmd_hz, uint32_t f_act_hz);
+void llc_cr_proto_collapse_diag_emit_bin(uint8_t verdict, uint8_t reason_state, float dv_v, float df_cmd_hz, float df_act_hz);
 #endif /* LLC_CR_PROTO_H */

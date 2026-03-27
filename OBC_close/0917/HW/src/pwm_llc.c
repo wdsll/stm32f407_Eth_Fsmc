@@ -291,6 +291,17 @@ void llc_pwm_set_freq(uint32_t f_hz, bool force_update)
 	}
 	/* force_update=false时：不触发UEV，等待自然更新边界（当前周期结束） */
 }
+
+uint32_t llc_pwm_get_freq_hz(void)
+{
+    uint32_t tclk = timer0_clk_hz();
+    uint32_t arr = TIMER_CAR(TIMER0);
+    uint32_t ticks = arr + 1U;
+    if ((tclk == 0U) || (ticks == 0U)) {
+        return 0U;
+    }
+    return (tclk / ticks);
+}
 //周期(ns) = 1e9 × (ARR + 1) / tclk
 uint32_t llc_pwm_get_period_ns(void)
 {

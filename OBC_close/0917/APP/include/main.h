@@ -177,6 +177,18 @@
 #define DEBUG_PRINTF_PFC_STATE 0
 #define DEBUG_PRINTF_BURST_MODE   0    /* Burst模式调试打印 */
 
+
+/* ---- LLC collapse trace / fixed-frequency load test ---- */
+#define LLC_COLLAPSE_TRACE_ENABLE           1U
+#define LLC_COLLAPSE_TRACE_PRE_MS           10U
+#define LLC_COLLAPSE_TRACE_POST_MS          10U
+#define LLC_COLLAPSE_VOUT_DROP_V            (5.0f)
+#define LLC_COLLAPSE_VOUT_ABS_MIN_V         (30.0f)
+#define LLC_COLLAPSE_TRACE_REARM_MS         200U
+
+#define LLC_FIXED_FREQ_LOAD_TEST_ENABLE     0U
+#define LLC_FIXED_FREQ_LOAD_TEST_HZ         (LLC_F_DEBUG_HZ)
+
 /* ==== Interrupt priority scheme (NVIC_PRIGROUP_PRE2_SUB2) ==== */
 #define IRQ_PRIO_FAULT_PREEMPT        (0U)
 #define IRQ_PRIO_FAULT_SUB            (0U)
