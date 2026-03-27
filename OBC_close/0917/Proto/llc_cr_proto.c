@@ -71,6 +71,9 @@ static void llc_cr_proto_write_binary(const uint8_t *buf, uint16_t len)
     if ((buf == NULL) || (len == 0U)) {
         return;
     }
+		if (debug_tx_available() < (int)len) {
+        return;
+    }
 
     /* 复用 debug 非阻塞环形队列，避免 CR 发送阻塞串口。 */
     debug_write_raw(buf, (size_t)len);
@@ -134,7 +137,7 @@ static void llc_cr_proto_send_bin_frame(uint8_t type, const uint8_t *payload, ui
  */
 void llc_cr_proto_log_emit_bin(const llc_cr_log_item_t *item)
 {
-    uint8_t payload[20];
+    uint8_t payload[20] = {0};
     uint8_t len = 0U;
 
     if (item == NULL) {
@@ -163,10 +166,10 @@ void llc_cr_proto_log_emit_bin(const llc_cr_log_item_t *item)
 
     case CR_LOG_EVT_END:
         put_u16_le(&payload[0], u16_sat_from_u32(item->id));
-        payload[2] = item->pass;
+        payload[2] = item->pass ? 1U : 0U;
         payload[3] = 0U;
-        put_u16_le(&payload[4], u16_sat_from_u32(item->dt_ms));
-        put_u16_le(&payload[6], u16_sat_from_u32(item->settle_ms));
+        put_u16_le(&payload[4], u16_sat_from_u32(item->dt_ms)); 
+        put_u16_le(&payload[6], u16_sat_from_u32(item->settle_ms)); 
         put_i16_le(&payload[8], q10_from_float(item->vmin_v));
         put_i16_le(&payload[10], q10_from_float(item->vmax_v));
         put_i16_le(&payload[12], q10_from_float(item->maxerr_v));

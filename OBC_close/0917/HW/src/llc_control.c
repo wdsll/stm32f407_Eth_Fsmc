@@ -143,7 +143,7 @@ static inline float conv_adc_to_v_div(uint16_t raw, float rtop, float rbot)
 static inline float conv_adc_to_i(uint16_t raw)
 {
     float v = (raw * VREF_ADC) / 4095.0f;
-    float v_net = v - 0.17f;
+    float v_net = v - 0.327f;
     return v_net / (ISHUNT_OHM * IAMP_GAIN);
 }
 
@@ -450,6 +450,34 @@ static void llc_cr_resp_log_dump_test(void)
     
 #endif
 }
+static uint16_t llc_cr_log_frame_bytes(const llc_cr_log_item_t *item)
+{
+    uint8_t payload_len = 0U;
+
+    if (item == NULL) {
+        return 0U;
+    }
+
+    switch (item->type) {
+    case CR_LOG_MON:
+        payload_len = 10U;
+        break;
+
+    case CR_LOG_EVT_BEGIN:
+        payload_len = 8U;
+        break;
+
+    case CR_LOG_EVT_END:
+        payload_len = 14U;
+        break;
+
+    default:
+        return 0U;
+    }
+
+    /* frame = A5 + type + len + seq + payload + chk + 5A = 6 + payload */
+    return (uint16_t)(6U + payload_len);
+}
 
 static void llc_cr_resp_log_dump(void)
 {
@@ -533,93 +561,146 @@ static void llc_cr_resp_tick(void)
     float iout = s_llc_rt.meas.iout_a;
     float vout = s_llc_rt.meas.vout_v;
     float err = s_llc.vref - vout;
+	/* 本次电流与上一次记录电流的差值绝对值，用于判断是否发生负载阶跃 */
     float i_step = fabsf(iout - s_cr_resp.iout_prev_a);
-
+  /* 只有 LLC 处于正常运行态才做动态响应监测 */
     if (s_llc_rt.app.state != ST_LLC_RUN) {
+			 /* 不在 RUN 状态时，更新上次电流值，避免重新进入 RUN 时误触发阶跃 */
         s_cr_resp.iout_prev_a = iout;
+			 /* 重置下一次周期监控日志的时间点 */
         s_cr_resp.next_period_log_ms = g_ms + LLC_CR_RESP_LOG_PERIOD_MS;
+		  	/* 退出当前动态响应事件 */
 			  s_cr_resp.active = 0U;
+			  /* 清零稳定计数 */
         s_cr_resp.stable_ticks = 0U;
+			  /* 清零稳定时间 */
         s_cr_resp.settled_ms = 0U;
         return;
     }
 #if !CRITICAL_LOG_ONLY
+		 /* 到达周期监控日志时间点时，输出一条 MON 监控日志 */
     if (g_ms >= s_cr_resp.next_period_log_ms) {
         llc_cr_log_item_t item;
+			/* 日志类型：周期监控 */
         item.type = CR_LOG_MON;
+			/* 当前时间戳 */
         item.t_ms = g_ms;
+			/* 当前输出电压 */
         item.vout_v = vout;
+			 /* 当前输出电流 */
         item.iout_a = iout;
+			  /* 当前电压误差 */
         item.err_v = err;
+			 /* 当前 LLC 频率指令 */
         item.f_cmd_hz = s_llc.f_cmd;
+			 /* 压入 CR 日志缓冲区，后续由 1kHz 慢任务统一导出 */
         llc_cr_resp_log_push(&item);
+			 /* 更新下一次周期监控日志时间 */
         s_cr_resp.next_period_log_ms = g_ms + LLC_CR_RESP_LOG_PERIOD_MS;
     }
 #endif
-    if (!s_cr_resp.active && (i_step >= LLC_CR_RESP_STEP_IOUT_A)) {
+     /* 如果当前没有响应事件在进行，并且检测到电流跳变量超过阈值，则认为发生了一次负载阶跃 */
+		if (!s_cr_resp.active && (i_step >= LLC_CR_RESP_STEP_IOUT_A)) {
+			/* 标记动态响应事件开始 */
         s_cr_resp.active = 1U;
+			 /* 事件序号自增，用于区分每一次响应事件 */
         s_cr_resp.seq++;
+			 /* 记录事件开始时间 */
         s_cr_resp.start_ms = g_ms;
+			 /* 清零稳定时间，后续满足稳定条件时再赋值 */
         s_cr_resp.settled_ms = 0U;
+			 /* 记录阶跃前电流值 */
         s_cr_resp.iout_from_a = s_cr_resp.iout_prev_a;
+			/* 记录阶跃后当前电流值 */
         s_cr_resp.iout_to_a = iout;
+			/* 记录事件开始瞬间的输出电压，作为阶跃前参考电压 */
         s_cr_resp.vout_pre_v = vout;
+			 /* 初始化事件期间最小输出电压 */
         s_cr_resp.vout_min_v = vout;
+			 /* 初始化事件期间最大输出电压 */
         s_cr_resp.vout_max_v = vout;
+			 /* 初始化事件期间最大绝对误差 */
         s_cr_resp.max_abs_err_v = fabsf(err);
+			  /* 清零稳定计数 */
         s_cr_resp.stable_ticks = 0U;
         {
+					 
             llc_cr_log_item_t item;
+					 /* 日志类型：事件开始 */
             item.type = CR_LOG_EVT_BEGIN;
+					/* 当前事件 ID */
             item.id = s_cr_resp.seq;
+					 /* 阶跃前电流 */
             item.iout_from_a = s_cr_resp.iout_from_a;
+					/* 阶跃后电流 */
             item.iout_to_a = s_cr_resp.iout_to_a;
+					 /* 阶跃前输出电压 */
             item.vout_pre_v = s_cr_resp.vout_pre_v;
+					 /* 压入事件开始日志 */
             llc_cr_resp_log_push(&item);
         }
     }
-
+/* 如果当前有动态响应事件正在进行，则持续跟踪其响应过程 */
     if (s_cr_resp.active) {
+			/* 更新事件期间的最小输出电压 */
         if (vout < s_cr_resp.vout_min_v) {
             s_cr_resp.vout_min_v = vout;
         }
+				 /* 更新事件期间的最大输出电压 */
         if (vout > s_cr_resp.vout_max_v) {
             s_cr_resp.vout_max_v = vout;
         }
-
+				/* 更新事件期间的最大绝对误差 */
         if (fabsf(err) > s_cr_resp.max_abs_err_v) {
             s_cr_resp.max_abs_err_v = fabsf(err);
         }
-
+				/* 如果当前误差已经进入稳定窗口，则累加稳定计数 */
         if (fabsf(err) <= LLC_CR_RESP_STABLE_WIN_V) {
+					 /* 稳定计数不超过设定上限 */
             if (s_cr_resp.stable_ticks < LLC_CR_RESP_STABLE_TICKS) {
                 s_cr_resp.stable_ticks++;
             }
+						 /* 当稳定计数首次达到要求时，记录稳定时间 */
             if ((s_cr_resp.stable_ticks >= LLC_CR_RESP_STABLE_TICKS) && (s_cr_resp.settled_ms == 0U)) {
                 s_cr_resp.settled_ms = g_ms - s_cr_resp.start_ms;
             }
         } else {
+					 /* 一旦误差超出稳定窗口，稳定计数清零，重新开始累计 */
             s_cr_resp.stable_ticks = 0U;
         }
-
+				 /* 如果已经稳定，或者已经超时，则结束本次事件 */
         if ((s_cr_resp.settled_ms > 0U) ||
             elapsed_reached(s_cr_resp.start_ms, LLC_CR_RESP_TIMEOUT_MS)) {
+						/* 当前事件总耗时 */
             uint32_t event_ms = g_ms - s_cr_resp.start_ms;
+						/* 是否判定通过：稳定时间有效则 pass=1，否则 pass=0 */
             uint8_t pass = (s_cr_resp.settled_ms > 0U) ? 1U : 0U;
             {
                 llc_cr_log_item_t item;
+							/* 日志类型：事件结束 */
                 item.type = CR_LOG_EVT_END;
+							 /* 当前事件 ID */
                 item.id = s_cr_resp.seq;
+							 /* 是否通过 */
                 item.pass = pass;
+							/* 事件总持续时间 */
                 item.dt_ms = event_ms;
+							  /* 实际稳定时间；若未稳定则一般为 0 */
                 item.settle_ms = s_cr_resp.settled_ms;
+							 /* 事件期间的最小输出电压 */
                 item.vmin_v = s_cr_resp.vout_min_v;
+							/* 事件期间的最大输出电压 */
                 item.vmax_v = s_cr_resp.vout_max_v;
+							 /* 事件期间最大绝对误差 */
                 item.maxerr_v = s_cr_resp.max_abs_err_v;
+							  /* 压入事件结束日志 */
                 llc_cr_resp_log_push(&item);
             }
+						 /* 清除活动标志，表示本次动态响应事件结束 */
             s_cr_resp.active = 0U;
+						 /* 清零稳定计数 */
             s_cr_resp.stable_ticks = 0U;
+						/* 清零稳定时间 */
             s_cr_resp.settled_ms = 0U;
         }
     }
@@ -1080,7 +1161,7 @@ static bool power_stage_all_idle(void)
  * 
  * @attention 仅在LLC_CR_RESP_LOG_ENABLE宏定义时有效
  */
-static void llc_cr_resp_log_dump_limited(uint8_t max_items, uint8_t allow_mon)
+static void llc_cr_resp_log_dump_limited_PRO(uint8_t max_items, uint8_t allow_mon)
 {
 #if LLC_CR_RESP_LOG_ENABLE
     uint8_t dumped = 0U;
@@ -1115,15 +1196,159 @@ static void llc_cr_resp_log_dump_limited(uint8_t max_items, uint8_t allow_mon)
 
         __set_PRIMASK(primask);
 
-        /* 改成二进制串口帧输出 */
+        /* 改成文本串口帧输出 */
         if ((item.type != CR_LOG_MON) || allow_mon) {
+					#if 1
             llc_cr_proto_log_emit_bin(&item);
+					#else
+					            switch (item.type) {
+            case CR_LOG_MON:
+                debug_printf("[M] %lu %.1f %.1f %.1f %.0f\r\n",
+                             (unsigned long)item.t_ms,
+                             item.vout_v,
+                             item.iout_a,
+                             item.err_v,
+                             item.f_cmd_hz);
+                break;
+
+            case CR_LOG_EVT_BEGIN:
+                debug_printf("[B] %lu %.1f %.1f %.1f\r\n",
+                             (unsigned long)item.id,
+                             item.iout_from_a,
+                             item.iout_to_a,
+                             item.vout_pre_v);
+                break;
+
+            case CR_LOG_EVT_END:
+                debug_printf("[E] %lu %u %lu %lu %.1f %.1f %.1f\r\n",
+                             (unsigned long)item.id,
+                             (unsigned)item.pass,
+                             (unsigned long)item.dt_ms,
+                             (unsigned long)item.settle_ms,
+                             item.vmin_v,
+                             item.vmax_v,
+                             item.maxerr_v);
+                break;
+
+            default:
+                break;
+            }
+						#endif
         }
 
         dumped++;
     }
 #endif
 }
+/*
+	把当前“先 pop 再决定发不发”的方式改成：
+
+	先偷看队首 item
+	判断类型
+	判断空间
+	满足条件再 pop
+*/
+static void llc_cr_resp_log_dump_limited(uint8_t max_items, uint8_t allow_mon)
+{
+#if LLC_CR_RESP_LOG_ENABLE
+    uint8_t dumped = 0U;
+
+    if (max_items == 0U) {
+        return;
+    }
+
+    while (dumped < max_items) {
+        llc_cr_log_item_t item;
+        uint32_t primask;
+        uint16_t frame_len;
+        uint8_t can_pop = 0U;
+
+        primask = __get_PRIMASK();
+        __disable_irq();
+
+        if (s_cr_log_cnt == 0U) {
+            s_cr_log_pending_dump = 0U;
+            __set_PRIMASK(primask);
+            break;
+        }
+
+        /* 先偷看队首，不立即 pop */
+        item = s_cr_log_buf[s_cr_log_r];
+        __set_PRIMASK(primask);
+
+        /* MON 且当前不允许输出，则直接丢弃这一条 */
+        if ((item.type == CR_LOG_MON) && (allow_mon == 0U)) {
+            primask = __get_PRIMASK();
+            __disable_irq();
+
+            if (s_cr_log_cnt > 0U) {
+                s_cr_log_r = (uint16_t)((s_cr_log_r + 1U) % LLC_CR_RESP_LOG_CACHE_MAX);
+                s_cr_log_cnt--;
+                s_cr_log_pending_dump = (s_cr_log_cnt > 0U) ? 1U : 0U;
+            } else {
+                s_cr_log_pending_dump = 0U;
+            }
+
+            __set_PRIMASK(primask);
+            dumped++;
+            continue;
+        }
+
+        frame_len = llc_cr_log_frame_bytes(&item);
+
+        /* BEGIN/END：空间不够则不要 pop，下次再试 */
+        if ((item.type == CR_LOG_EVT_BEGIN) || (item.type == CR_LOG_EVT_END)) {
+            if (debug_tx_available() < (int)frame_len) {
+                break;
+            }
+        }
+
+        /* MON：空间不够允许丢 */
+        if (item.type == CR_LOG_MON) {
+            if (debug_tx_available() < (int)frame_len) {
+                primask = __get_PRIMASK();
+                __disable_irq();
+
+                if (s_cr_log_cnt > 0U) {
+                    s_cr_log_r = (uint16_t)((s_cr_log_r + 1U) % LLC_CR_RESP_LOG_CACHE_MAX);
+                    s_cr_log_cnt--;
+                    s_cr_log_pending_dump = (s_cr_log_cnt > 0U) ? 1U : 0U;
+                } else {
+                    s_cr_log_pending_dump = 0U;
+                }
+
+                __set_PRIMASK(primask);
+                dumped++;
+                continue;
+            }
+        }
+
+        /* 到这里说明可以真正 pop */
+        primask = __get_PRIMASK();
+        __disable_irq();
+
+        if (s_cr_log_cnt > 0U) {
+            item = s_cr_log_buf[s_cr_log_r];
+            s_cr_log_r = (uint16_t)((s_cr_log_r + 1U) % LLC_CR_RESP_LOG_CACHE_MAX);
+            s_cr_log_cnt--;
+            s_cr_log_pending_dump = (s_cr_log_cnt > 0U) ? 1U : 0U;
+            can_pop = 1U;
+        } else {
+            s_cr_log_pending_dump = 0U;
+        }
+
+        __set_PRIMASK(primask);
+
+        if (can_pop) {
+            llc_cr_proto_log_emit_bin(&item);
+            dumped++;
+        } else {
+            break;
+        }
+    }
+#endif
+}
+
 void llc_app_tick_1khz(void)
 {
 	llc_update_measurements();
@@ -1131,12 +1356,14 @@ void llc_app_tick_1khz(void)
 	static uint32_t s_cr_mon_last_ms = 0U;
   bool run_state = (s_llc_rt.app.state == ST_LLC_RUN);
 //自适应日志转储调度器
-	if (s_cr_log_pending_dump && elapsed_reached(s_cr_dump_last_ms, run_state ? 2U : 5U)) {
+	//if (s_cr_log_pending_dump && elapsed_reached(s_cr_dump_last_ms, run_state ? 2U : 5U)) 
+		if (s_cr_log_pending_dump &&(s_cr_dump_last_ms == 0U || elapsed_reached(s_cr_dump_last_ms, run_state ? 2U : 5U))){
 			uint8_t allow_mon = 1U;
 			uint8_t dump_n = 4U;
 
 			if (run_state) {
-					allow_mon = elapsed_reached(s_cr_mon_last_ms, 100U) ? 1U : 0U;
+					//allow_mon = elapsed_reached(s_cr_mon_last_ms, 100U) ? 1U : 0U;
+				  allow_mon = (s_cr_mon_last_ms == 0U || elapsed_reached(s_cr_mon_last_ms, 100U)) ? 1U : 0U;
 					if (allow_mon) {
 							s_cr_mon_last_ms = g_ms;
 					}
@@ -1456,7 +1683,18 @@ llc_state_t llc_app_state(void)
 }
 
 
-
+/*
+700ma ~19A
+A5 01 0A 00 6B 0F 76 01 24 00 FC FF 20 4E FA EB A5 01 0A 81 53 13 76 01 24 00 FC FF 20 4E D1 5A A5 02 08 02
+01 00 94 53 00 72 01 A4 5A A5 03 0E 03 01 00 01 00 01 00 01 00 6D 01 72 01 04 00 B0 5A A5 02 08 04 02 00 71 
+00 84 00 66 01 3B 5A A5 03 0E 05 02 00 01 00 C7 00 C7 00 35 01 68 01 3C 00 CF 5A A5 42 00 06 03 00 B7 00 A6 
+\00 71 01 4B 5A A5 03 0E 07 03 00 01 00 01 00 01 00 71 01 BA 40 20 AA 5A 25 01 0A 08 3B 17 70 01 B6 00 41 00
+E5 33 9A 5A A5 02 08 09 04 00 B7 00 A8 00 70 01 CC 5A A5 03 0E 0A 04 04 01 00 01 00 01 00 70 01 74 01 02 00 
+A1 5A A5 01 0A 0B 23 1B 70 01 B6 00 01 01 F7 33 9F 5A A5 02 08 0C 15 00 B6 00 A6 00 76 01 C5 5A A5 03 0A 0D 
+05 00 01 00 01 00 01 00 71 01 72 01 00 00 A2 5A A5 02 08 0E 06 00 B7 00 9F 00 73 09 FD 5A A5 03 0E 0F 06 00 
+01 00 01 00 01 00 72 01 73 01 01 00 A0 5A A5 02 08 14 07 00 B7 00 A4 00 71 01 DB 5A 
+A5 03 0E 11 07 00 01 00 01 00 01 00 71 01 71 01 00 00 BF 5A A5 01 0A 1A 0B 1F EF 01 B4 00 02 00 07 34 43 5A 
+*/
 
 
 

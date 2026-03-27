@@ -315,13 +315,13 @@ int main(void){
 						pending_ticks = MAX_TICKS_PER_LOOP;
 					}
 			}
-			
+#if 0
 			static uint32_t last_ms = 0;
 if ((g_ms - last_ms) >= 1000U) {
     last_ms = g_ms;
     debug_printf("[MAIN] g_ms=%lu\r\n", (unsigned long)g_ms);
 }
-			
+#endif	
 			/* 非阻塞串口发送任务 - 频率控制 */
 	
 				if ((debug_buffer_used() > 0U)) {

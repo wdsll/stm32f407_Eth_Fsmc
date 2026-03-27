@@ -73,8 +73,8 @@
 
 
 /* ==== Current sense ==== */
-#define ISHUNT_OHM          (0.005f)   /* 5 mΩ */
-#define IAMP_GAIN           (19.6f)   /* INA gain */
+#define ISHUNT_OHM          (0.00333f)   /* 5 mΩ */
+#define IAMP_GAIN           (19.8198f)  /* INA gain */
 
 /* ==== Control targets/thresholds ==== */
 #define VBUS_TARGET_V       (400.0f)
@@ -96,7 +96,7 @@
 #define LLC_SOFTSTART_STABILIZE_MS     50U      // 软启动后稳定等待时间
 #define LLC_SOFTSTART_MIN_DURATION_MS 20U  
 #define LLC_SOFTSTART_START_HZ     (LLC_F_MAX_HZ)
-#define LLC_SOFTSTART_TARGET_HZ    (100000.0f)
+#define LLC_SOFTSTART_TARGET_HZ    (120000.0f)
 #define LLC_SOFTSTART_FAILSAFE_HZ  (LLC_F_MAX_HZ)
 
 #define LLC_SOFTSTART_USE_COSINE_EASE 1        // 1: 余弦S曲线；0: 指数曲线
@@ -130,7 +130,7 @@
 
 /* Burst电压控制 */
 #define LLC_BURST_VOUT_HYST_V         (1.0f)    // 电压滞环1V
-#define LLC_BURST_VOUT_TARGET_V       (44.0f)   // 目标电压44V
+#define LLC_BURST_VOUT_TARGET_V       (37.0f)   // 目标电压44V
 
 /* Burst频率 - 高频准备 */
 #define LLC_BURST_F_HZ                (180000.0f) // Burst用高频180kHz
@@ -145,14 +145,14 @@
 
 /* ==== LLC frequency window ==== */
 #define LLC_F_MIN_HZ        (75000.0f)
-#define LLC_F_MAX_HZ        (200000.0f)
+#define LLC_F_MAX_HZ        (250000.0f)
 #define LLC_F_INIT_HZ       (100000.0f)
 #define LLC_F_SLEW_HZ       (3000.0f)
 #define LLC_F_DEBUG_HZ      (130000.0f)
 
 /* ==== LLC open-loop safe bands ==== */
 #define LLC_VBUS_MIN_START_V         (360.0f)
-#define LLC_VOUT_TARGET_V            (44.0f)
+#define LLC_VOUT_TARGET_V            (37.0f)
 #define LLC_VOUT_HYST_V              (15.0f)
 #define LLC_VOUT_OVP_V               (58.0f)
 #define LLC_IOUT_OCP_A               (41.0f)

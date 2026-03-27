@@ -56,10 +56,11 @@ static void debug_dma_init(void);
 static void debug_dma_send(uint8_t *p_buff, uint16_t data_len);
 static void debug_dma_irq_handler(void);
 static uint16_t debug_buffer_available(void);
+static uint16_t debug_buffer_available_unsafe(uint16_t head, uint16_t tail);
+static size_t debug_encoded_len(const uint8_t *data, size_t len, int with_newline_expand);
 
-static int debug_buffer_put(uint8_t data);
 static int debug_buffer_get(uint8_t *data);
-
+static int debug_buffer_put_packet(const uint8_t *data, size_t len, int with_newline_expand);
 /*********************************************************************************************************
 *                                              内部函数实现
 *********************************************************************************************************/
@@ -153,11 +154,46 @@ static uint16_t debug_buffer_available(void)
 	uint16_t tail = g_debug_DataInfo.tail;
 	__enable_irq();
 	
+	return debug_buffer_available_unsafe(head, tail);
+}
+
+/*********************************************************************************************************
+* 函数名称：debug_buffer_available_unsafe
+* 函数功能：在已知head/tail时计算环形缓冲区可用空间（调用方保证并发安全）
+* 输入参数：head - 写指针，tail - 读指针
+* 输出参数：void
+* 返 回 值：可用空间字节数
+* 创建日期：2026年03月27日
+* 注    意：
+*********************************************************************************************************/
+static uint16_t debug_buffer_available_unsafe(uint16_t head, uint16_t tail)
+{
 	if (head >= tail) {
-		return DEBUG_TX_BUFFER_SIZE - (head - tail) - 1;
-	} else {
-		return tail - head - 1;
+		return DEBUG_TX_BUFFER_SIZE - (head - tail) - 1U;
 	}
+	return tail - head - 1U;
+}
+/*********************************************************************************************************
+* 函数名称：debug_encoded_len
+* 函数功能：计算写入长度（可选换行展开）
+* 输入参数：data - 数据指针，len - 原始长度，with_newline_expand - 是否将\n扩展为\r\n
+* 输出参数：void
+* 返 回 值：编码后长度
+* 创建日期：2026年03月27日
+* 注    意：
+*********************************************************************************************************/
+static size_t debug_encoded_len(const uint8_t *data, size_t len, int with_newline_expand)
+{
+	size_t encoded_len = len;
+
+	if((with_newline_expand != 0) && (data != NULL)) {
+		for(size_t i = 0U; i < len; ++i) {
+			if(data[i] == (uint8_t)'\n') {
+				encoded_len += 1U;
+			}
+		}
+	}
+	return encoded_len;
 }
 
 /*********************************************************************************************************
@@ -182,31 +218,48 @@ static uint16_t debug_buffer_available(void)
 		return DEBUG_TX_BUFFER_SIZE - (tail - head);
 	}
 }
-
 /*********************************************************************************************************
-* 函数名称：debug_buffer_put
-* 函数功能：向环形缓冲区写入数据
-* 输入参数：data - 要写入的数据
+* 函数名称：debug_buffer_put_packet
+* 函数功能：按“整帧”写入环形缓冲区，空间不足时整帧丢弃
+* 输入参数：data - 数据指针，len - 数据长度，with_newline_expand - 是否将\n扩展为\r\n
 * 输出参数：void
-* 返 回 值：成功返回1，失败返回0        
-* 创建日期：2024年09月17日
+* 返 回 值：成功返回1，失败返回0
+* 创建日期：2026年03月27日
 * 注    意：
 *********************************************************************************************************/
-static int debug_buffer_put(uint8_t data)
+static int debug_buffer_put_packet(const uint8_t *data, size_t len, int with_newline_expand)
 {
-	__disable_irq();
-	uint16_t next_head = (g_debug_DataInfo.head + 1) % DEBUG_TX_BUFFER_SIZE;
-	
-	if (next_head == g_debug_DataInfo.tail) {
-		__enable_irq();
-		return 0; /* 缓冲区满 */
+	if((len > 0U) && (data == NULL)) {
+		return 0;
 	}
-	
-	g_debug_DataInfo.ring_buffer[g_debug_DataInfo.head] = data;
-	g_debug_DataInfo.head = next_head;
+
+	size_t encoded_len = debug_encoded_len(data, len, with_newline_expand);
+	if((encoded_len == 0U) || (encoded_len >= DEBUG_TX_BUFFER_SIZE)) {
+		return 0;
+	}
+
+	__disable_irq();
+	uint16_t head = g_debug_DataInfo.head;
+	uint16_t tail = g_debug_DataInfo.tail;
+	uint16_t available = debug_buffer_available_unsafe(head, tail);
+	if(encoded_len > (size_t)available) {
+		__enable_irq();
+		return 0;
+	}
+
+	for(size_t i = 0U; i < len; ++i) {
+		if((with_newline_expand != 0) && (data[i] == (uint8_t)'\n')) {
+			g_debug_DataInfo.ring_buffer[head] = (uint8_t)'\r';
+			head = (uint16_t)((head + 1U) % DEBUG_TX_BUFFER_SIZE);
+		}
+		g_debug_DataInfo.ring_buffer[head] = data[i];
+		head = (uint16_t)((head + 1U) % DEBUG_TX_BUFFER_SIZE);
+	}
+	g_debug_DataInfo.head = head;
 	__enable_irq();
 	return 1;
 }
+
 
 /*********************************************************************************************************
 * 函数名称：debug_buffer_get
@@ -337,10 +390,7 @@ void debug_printf_deinit(void)
 *********************************************************************************************************/
 void debug_putchar(char ch)
 {
-	if('\n' == ch) {
-		debug_buffer_put('\r');
-	}
-	debug_buffer_put((uint8_t)ch);
+(void)debug_buffer_put_packet((const uint8_t *)&ch, 1U, 1);
 }
 /*********************************************************************************************************
 * 函数名称：debug_write_raw
@@ -353,9 +403,7 @@ void debug_putchar(char ch)
 *********************************************************************************************************/
 void debug_write_raw(const uint8_t *data, size_t len)
 {
-	for(size_t i = 0U; i < len; ++i) {
-		debug_buffer_put(data[i]);
-	}
+	(void)debug_buffer_put_packet(data, len, 0);
 }
 
 /*********************************************************************************************************
@@ -369,9 +417,7 @@ void debug_write_raw(const uint8_t *data, size_t len)
 *********************************************************************************************************/
 void debug_write(const uint8_t *data, size_t len)
 {
-	for(size_t i = 0U; i < len; ++i) {
-		debug_putchar((char)data[i]);
-	}
+(void)debug_buffer_put_packet(data, len, 1);
 }
 
 /*********************************************************************************************************
@@ -478,10 +524,10 @@ void debug_hexdump(const void *data, size_t len)
 * 输入参数：void
 * 输出参数：void
 * 返 回 值：void        
-* 创建日期：2024年09月17日
+* 创建日期：2026年03月27日
 * 注    意：
 *********************************************************************************************************/
-void debug_tx_task(void)
+void debug_tx_task1(void)
 {
 	uint16_t used = debug_buffer_used();
 	if(used > 0 && g_debug_DataInfo.dma_tx_state == DEBUG_DMA_STATE_IDLE) {
@@ -500,7 +546,30 @@ void debug_tx_task(void)
 		debug_dma_send(temp_buffer, transfer_len);
 	}
 }
+void debug_tx_task(void)
+{
+	uint16_t used = debug_buffer_used();
+	if ((used > 0U) && (g_debug_DataInfo.dma_tx_state == DEBUG_DMA_STATE_IDLE)) {
+		uint16_t transfer_len = (used > DEBUG_DMA_BUFFER_SIZE) ? DEBUG_DMA_BUFFER_SIZE : used;
+		uint8_t temp_buffer[DEBUG_DMA_BUFFER_SIZE];
+		uint16_t copied = 0U;
 
+		/* 从环形缓冲区读取数据到临时缓冲区 */
+		for (uint16_t i = 0U; i < transfer_len; i++) {
+			uint8_t data;
+			if (debug_buffer_get(&data)) {
+				temp_buffer[copied++] = data;
+			} else {
+				break;
+			}
+		}
+
+		/* 启动DMA发送（只发送成功取出的数据，避免发出脏数据） */
+		if (copied > 0U) {
+			debug_dma_send(temp_buffer, copied);
+		}
+	}
+}
 /*********************************************************************************************************
 * 函数名称：debug_tx_busy
 * 函数功能：检查发送是否繁忙
