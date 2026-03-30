@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include "gd32f30x.h"
-
+#include <stdbool.h>
 typedef struct
 {
         float target_v;
@@ -23,6 +23,8 @@ void bus_vol_adj_init(void);
 void bus_vol_adj_reset(void);
 void bus_vol_adj_tick(float vbus, bool enabled);
 
-
+void bus_vol_adj_set_target_vbus(float target_vbus);
+float bus_vol_adj_target_from_vout(float vout_ref);
+void bus_vol_adj_follow_vout(float vout_ref, float vout_meas, float vbus_meas, bool enabled);
 #endif
 

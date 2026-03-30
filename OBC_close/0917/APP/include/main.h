@@ -130,7 +130,7 @@
 
 /* Burst电压控制 */
 #define LLC_BURST_VOUT_HYST_V         (1.0f)    // 电压滞环1V
-#define LLC_BURST_VOUT_TARGET_V       (37.0f)   // 目标电压44V
+#define LLC_BURST_VOUT_TARGET_V       (38.0f)   // 目标电压44V
 
 /* Burst频率 - 高频准备 */
 #define LLC_BURST_F_HZ                (180000.0f) // Burst用高频180kHz
@@ -152,7 +152,7 @@
 
 /* ==== LLC open-loop safe bands ==== */
 #define LLC_VBUS_MIN_START_V         (360.0f)
-#define LLC_VOUT_TARGET_V            (37.0f)
+#define LLC_VOUT_TARGET_V            (38.0f)
 #define LLC_VOUT_HYST_V              (15.0f)
 #define LLC_VOUT_OVP_V               (58.0f)
 #define LLC_IOUT_OCP_A               (50.0f)
@@ -177,9 +177,18 @@
 #define DEBUG_PRINTF_PFC_STATE 0
 #define DEBUG_PRINTF_BURST_MODE   0    /* Burst模式调试打印 */
 
+#define LLC_DIAG_PRINT_DISABLE_ALL   1U
+#if LLC_DIAG_PRINT_DISABLE_ALL
+#define LLC_CR_RESP_LOG_ENABLE       0U
+#define LLC_COLLAPSE_TRACE_ENABLE    0U
+#endif
 
 /* ---- LLC collapse trace / fixed-frequency load test ---- */
+#ifndef LLC_COLLAPSE_TRACE_ENABLE
 #define LLC_COLLAPSE_TRACE_ENABLE           1U
+#endif
+
+/* ---- LLC collapse trace / fixed-frequency load test ---- */
 #define LLC_COLLAPSE_TRACE_PRE_MS           10U
 #define LLC_COLLAPSE_TRACE_POST_MS          10U
 #define LLC_COLLAPSE_VOUT_DROP_V            (5.0f)

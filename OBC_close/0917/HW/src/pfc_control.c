@@ -332,7 +332,7 @@ void pfc_init(void)
     
 	/* PB0 PWM 仍初始化，但三态机阶段保持 0 */
     pb0_pwm_init(PB0_PWM_BASE_HZ);
-    pb0_pwm_set_duty(0.0f);
+    bus_vol_adj_init();
 		
     adc1_aux_init();
 	  s_pfc.state = PFC_ST_IDLE;

@@ -237,13 +237,6 @@ int main(void){
     /* LLC complementary PWM 配置LLC的PWM频率 、死区时间和占空比，并初始化PWM模块*/
     llc_pwm_cfg_t lcfg = { .pwm_hz=LLC_PWM_BASE_HZ, .deadtime_ns=LLC_PWM_DEAD_NS, .duty=LLC_PWM_DUTY };//130
     llc_pwm_init(&lcfg);
-
-
-		#if Bus_Adj                                                                                                                
-		bus_vol_adj_init();
-		#else
-		pb0_pwm_set_duty(0.5f);
-		#endif
 		
     /* ADC multi (PA3/PA1 removed) triggered by TIMER3 interrupt @100us (software trigger) */
     adc_multi_init_dma(ADC0_1_2_EXTTRIG_REGULAR_NONE); 

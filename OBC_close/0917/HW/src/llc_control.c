@@ -5,7 +5,7 @@
 *                                              宏定义
 *********************************************************************************************************/
 #ifndef LLC_VOUT_FILT_ALPHA
-#define LLC_VOUT_FILT_ALPHA          (0.08f) /* 100us快环滤波系数 */
+#define LLC_VOUT_FILT_ALPHA          (0.20f) /* 100us快环滤波系数 */
 #endif
 
 #ifndef LLC_F_NOM_USE_STAGE_CMD
@@ -1586,6 +1586,8 @@ static void llc_collapse_trace_tick(void)
 void llc_app_tick_1khz(void)
 {
 	llc_update_measurements();
+	bus_vol_adj_follow_vout(s_llc.vref, s_llc_rt.meas.vout_v, s_llc_rt.meas.vbus_v,
+	                      (pfc_is_ready() && (s_llc_rt.app.state != ST_IDLE) && (s_llc_rt.app.state != ST_FAULT)));
 	llc_collapse_trace_tick();
 	static uint32_t s_cr_dump_last_ms = 0U;
 	static uint32_t s_cr_mon_last_ms = 0U;
@@ -1612,15 +1614,15 @@ void llc_app_tick_1khz(void)
 			llc_cr_resp_log_dump_limited(dump_n, allow_mon);
 	}
 		
-	llc_collapse_trace_drain_budget(1U);
-	bool enable_llc = pfc_is_ready();
-	bool pfc_ready_stable = llc_pfc_ready_stable(enable_llc);
-	if (s_llc_rt.app.state != ST_IDLE && s_llc_rt.app.state != ST_FAULT) {
-		if (llc_faults_present()) {
-			llc_enter_fault();
-			return;
+		llc_collapse_trace_drain_budget(1U);
+		bool enable_llc = pfc_is_ready();
+		bool pfc_ready_stable = llc_pfc_ready_stable(enable_llc);
+		if (s_llc_rt.app.state != ST_IDLE && s_llc_rt.app.state != ST_FAULT) {
+			if (llc_faults_present()) {
+				llc_enter_fault();
+				return;
+			}
 		}
-	}
 	switch(s_llc_rt.app.state)
 	{
 		case ST_IDLE:

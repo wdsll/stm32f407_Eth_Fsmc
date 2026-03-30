@@ -1,17 +1,33 @@
 #include "pwm.h"
 #include "main.h"
 
+/*********************************************************************************************************
+*                                              内部变量声明
+*********************************************************************************************************/
 //BUS_VOL_ADJ 是 MCU 通过光耦去“修正/压低 PFC 的电压目标”的隔离调节口；MCU 输出 PWM → 
 //光耦 LED 电流 → 一次侧通过 Q5 注入 PFC_FB → 目标电压被调小（大概率）。用它可以做轻载降压、软启动辅助、打嗝恢复限幅等功能。
 static uint32_t s_period=0;
 static bus_vol_adj_ctrl_t s_bus_adj;
-static inline float clampf
-(float x,float a,float b){ return x<a?a:(x>b?b:x); }
 
+
+
+/*********************************************************************************************************
+*                                             宏定义
+*********************************************************************************************************/
+#define BUS_DUTY_TO_VBUS_K            (23.33f)
+#define BUS_DUTY_TO_VBUS_B            (366.67f)
+#define BUS_VBUS_TARGET_MIN_V         (368.0f)
+#define BUS_VBUS_TARGET_MAX_V         (390.0f)
+#define BUS_DUTY_SLEW_STEP            (0.015f)
+#define BUS_VOUT_FALLBACK_BOOST_V     (8.0f)
+#define BUS_VOUT_LOW_MARGIN_V         (0.6f)
+
+/*********************************************************************************************************
+*                                              内部函数实现
+*********************************************************************************************************/
+static inline float clampf(float x,float a,float b){ return x<a?a:(x>b?b:x); }
 
 //APB1 是微控制器中用于低速外设的总线，而定时器的时钟频率可能受到总线预分频器的影响。
-
-
 static inline uint32_t tim_apb1_clk_hz(void){ 
     uint32_t pclk1 = rcu_clock_freq_get(CK_APB1);
     /* APB1 预分频≠1 时，定时器时钟翻倍 */
@@ -76,46 +92,78 @@ void bus_vol_adj_reset(void)
 void bus_vol_adj_init(void)
 {
 		s_bus_adj.target_v = VBUS_TARGET_V;
-		s_bus_adj.kp = 0.0025f;
-		s_bus_adj.ki = 0.0005f;
-		s_bus_adj.neutral_duty = 0.5f;
-		s_bus_adj.duty_min = 0.05f;
+		s_bus_adj.kp = 0.0f;
+		s_bus_adj.ki = 0.0f;
+		s_bus_adj.neutral_duty = 0.0f;
+		s_bus_adj.duty_min = 0.0f;
 		s_bus_adj.duty_max = 0.95f;
 		bus_vol_adj_reset();
 }
-//这段代码的主要目的是实现一个基于比例积分（PI）控制的电压调节器，用于动态调整 PWM（脉宽调制）的占空比，以维持目标总线电压（ target_v ）的稳定。
-//当总线电压（ vbus ）偏离目标值时，代码通过 PI 控制算法计算新的占空比，并通过 pb0_pwm_set_duty 函数设置 PWM 输出。
-/*
-void bus_vol_adj_tick(float vbus,bool enabled)
+
+void bus_vol_adj_set_target_vbus(float target_vbus)
 {
-	if(!enabled)
-	{
-		s_bus_adj.integ = 0.0f;
-		//neutral_duty ：中性占空比，即无误差时的默认值。
-		float duty = clampf(s_bus_adj.neutral_duty,s_bus_adj.duty_min,s_bus_adj.duty_max);
-		if(duty != s_bus_adj.duty_cmd)
-		{
-			s_bus_adj.duty_cmd = duty;
-			pb0_pwm_set_duty(s_bus_adj.duty_cmd);
-		}
-		return;	
-	}
-	float error = s_bus_adj.target_v-vbus;
-	float integ = s_bus_adj.integ + (s_bus_adj.ki*error);
-	float duty_unclamped = s_bus_adj.neutral_duty + (s_bus_adj.kp * error) + integ;
-  float duty = clampf(duty_unclamped, s_bus_adj.duty_min, s_bus_adj.duty_max);
-	if(duty != duty_unclamped)	
-	{
-		integ = duty - s_bus_adj.neutral_duty - (s_bus_adj.kp * error);
-	}
-	float integ_min = s_bus_adj.duty_min - s_bus_adj.neutral_duty;
-	float integ_max = s_bus_adj.duty_max - s_bus_adj.neutral_duty;
-	s_bus_adj.integ = clampf(integ, integ_min, integ_max);
-	
-	if(duty != s_bus_adj.duty_cmd)
-	{
-		s_bus_adj.duty_cmd = duty;
-		pb0_pwm_set_duty(s_bus_adj.duty_cmd);
-	}
+    s_bus_adj.target_v = clampf(target_vbus, BUS_VBUS_TARGET_MIN_V, BUS_VBUS_TARGET_MAX_V);
 }
-*/
+
+float bus_vol_adj_target_from_vout(float vout_ref)
+{
+    float v = vout_ref;
+    float base_target;
+
+    if (v < 37.0f) {
+        v = 37.0f;
+    }
+
+    if (v <= 41.0f) {
+        base_target = 41.0f * 9.0f;
+    } else if (v >= 44.0f) {
+        base_target = 390.0f;
+    } else {
+        float t = (v - 41.0f) / 3.0f;
+        base_target = 369.0f + t * (390.0f - 369.0f);
+    }
+
+    return clampf(base_target, BUS_VBUS_TARGET_MIN_V, BUS_VBUS_TARGET_MAX_V);
+}
+
+
+void bus_vol_adj_tick(float vbus, bool enabled)
+{
+    (void)vbus;
+
+    if (!enabled) {
+        float duty = clampf(s_bus_adj.neutral_duty, s_bus_adj.duty_min, s_bus_adj.duty_max);
+        if (duty != s_bus_adj.duty_cmd) {
+            s_bus_adj.duty_cmd = duty;
+            pb0_pwm_set_duty(s_bus_adj.duty_cmd);
+        }
+        return;
+    }
+
+    {
+        float duty_ff = (s_bus_adj.target_v - BUS_DUTY_TO_VBUS_B) / BUS_DUTY_TO_VBUS_K;
+        float duty = clampf(duty_ff, s_bus_adj.duty_min, s_bus_adj.duty_max);
+
+        if (duty > (s_bus_adj.duty_cmd + BUS_DUTY_SLEW_STEP)) {
+            duty = s_bus_adj.duty_cmd + BUS_DUTY_SLEW_STEP;
+        } else if (duty < (s_bus_adj.duty_cmd - BUS_DUTY_SLEW_STEP)) {
+            duty = s_bus_adj.duty_cmd - BUS_DUTY_SLEW_STEP;
+        }
+
+        if (duty != s_bus_adj.duty_cmd) {
+            s_bus_adj.duty_cmd = duty;
+            pb0_pwm_set_duty(s_bus_adj.duty_cmd);
+        }
+    }
+}
+void bus_vol_adj_follow_vout(float vout_ref, float vout_meas, float vbus_meas, bool enabled)
+{
+    float target_vbus = bus_vol_adj_target_from_vout(vout_ref);
+
+    if ((vout_ref <= 37.5f) && (vout_meas < (vout_ref - BUS_VOUT_LOW_MARGIN_V))) {
+        target_vbus += BUS_VOUT_FALLBACK_BOOST_V;
+    }
+
+    bus_vol_adj_set_target_vbus(target_vbus);
+    bus_vol_adj_tick(vbus_meas, enabled);
+}

@@ -31,10 +31,10 @@
   GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_wwdgt.h \
   GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_misc.h \
   GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_exmc.h \
-  APP/include\main.h ARM/include\gd32f30x_conf.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdbool.h APP/include\main.h \
+  ARM/include\gd32f30x_conf.h \
   GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_enet.h \
   C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdlib.h \
-  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdbool.h \
   C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\math.h HW/include\add_dma.h \
   HW/include\pwm_llc.h HW/include\RCU.h HW/include\debug_printf.h \
   C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stddef.h \

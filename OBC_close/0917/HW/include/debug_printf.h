@@ -17,7 +17,7 @@ extern "C" {
 #endif
 
 #ifndef DEBUG_PRINTF_DEFAULT_BAUDRATE
-#define DEBUG_PRINTF_DEFAULT_BAUDRATE 460800U
+#define DEBUG_PRINTF_DEFAULT_BAUDRATE 230400U
 #endif
 
 /* 非阻塞串口配置 */
