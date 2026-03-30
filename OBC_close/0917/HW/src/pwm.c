@@ -117,7 +117,7 @@ float bus_vol_adj_target_from_vout(float vout_ref)
     if (v <= 41.0f) {
         base_target = 41.0f * 9.0f;
     } else if (v >= 44.0f) {
-        base_target = 390.0f;
+        base_target = 400.0f;
     } else {
         float t = (v - 41.0f) / 3.0f;
         base_target = 369.0f + t * (390.0f - 369.0f);

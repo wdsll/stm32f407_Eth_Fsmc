@@ -151,8 +151,8 @@
 #define LLC_F_DEBUG_HZ      (130000.0f)
 
 /* ==== LLC open-loop safe bands ==== */
-#define LLC_VBUS_MIN_START_V         (360.0f)
-#define LLC_VOUT_TARGET_V            (38.0f)
+#define LLC_VBUS_MIN_START_V         (340.0f)
+#define LLC_VOUT_TARGET_V            (37.0f)
 #define LLC_VOUT_HYST_V              (15.0f)
 #define LLC_VOUT_OVP_V               (58.0f)
 #define LLC_IOUT_OCP_A               (50.0f)
