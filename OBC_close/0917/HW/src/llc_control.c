@@ -1,19 +1,20 @@
 #include "llc_control.h"
 #include "float.h"
 #include "llc_cr_proto.h"
+#include "temp_control.h"
 /*********************************************************************************************************
 *                                              宏定义
 *********************************************************************************************************/
 #ifndef LLC_VOUT_FILT_ALPHA
-#define LLC_VOUT_FILT_ALPHA          (0.20f) /* 100us快环滤波系数 */
+#define LLC_VOUT_FILT_ALPHA          (0.08f) /* 100us快环滤波系数 */
 #endif
 
 #ifndef LLC_F_NOM_USE_STAGE_CMD
-#define LLC_F_NOM_USE_STAGE_CMD      (1)
+#define LLC_F_NOM_USE_STAGE_CMD      (LLC_F_NOM_FOLLOW_SOFTSTART_END)
 #endif
 
 #ifndef LLC_F_NOM_HZ
-#define LLC_F_NOM_HZ                 (LLC_F_INIT_HZ)
+#define LLC_F_NOM_HZ                 (95000.0f)  
 #endif
 /*********************************************************************************************************
 *                                             CR模式负载动态响应测试
@@ -57,6 +58,8 @@ typedef struct {
     float vbus_v;
     float vout_v;
     float iout_a;
+		float llc_temp_c;
+		bool llc_temp_valid;
 } llc_meas_t;
 typedef struct {
     llc_app_ctx_t app;
@@ -82,6 +85,27 @@ static llc_runtime_ctx_t s_llc_rt;
 
 static llc_app_ctx_t s_llc_app;
 
+typedef struct {
+    float iref; 	//参考电流
+		float iref_cmd;
+    float imeas;  	//测量电流
+	  float i_err_sat; //误差限幅
+    float kp;   	//比例系数
+    float ki;  	    //积分系数 
+    float integ;    //积分值
+    float f_min; 	//最小频率
+    float f_max; 	//最大频率
+		float df_max;   //频率增量上限
+    float df_slew;  //频率 slew
+	  float df_prev;  //上一拍 df
+    float i_on;     //激活电流
+    float i_off;    //退出电流
+	  uint32_t derate_step_ms;
+	  uint32_t derate_recover_ms;
+    bool limit_active; //限流激活标志
+} llc_curr_t;
+
+static llc_curr_t s_llc_curr;
 enum{
 	LLC_START_DELAY_MS = 10000
 };
@@ -173,6 +197,12 @@ static void llc_collapse_trace_tick(void);
 static void llc_collapse_trace_push(uint32_t f_act_hz);
 static void llc_collapse_trace_dump(uint8_t reason_state);
 static void llc_collapse_trace_drain_budget(uint8_t budget);
+
+static void llc_current_thresholds_update(void);
+static void llc_derate_reset(void);
+static void llc_derate_update(float i_meas, bool enable);
+static bool llc_temp_derate_active(void);
+static bool llc_overtemp_shutdown(void);
 /*********************************************************************************************************
 *                                              静态工具
 *********************************************************************************************************/
@@ -190,7 +220,7 @@ static inline float conv_adc_to_i(uint16_t raw)
 
 static inline float llc_get_f_nom(float f_min, float f_max, float f_stage_cmd)
 {
-#if LLC_F_NOM_USE_STAGE_CMD
+#if  (LLC_F_NOM_FOLLOW_MODE == LLC_F_NOM_FOLLOW_TARGET_FREQ)
     if (f_stage_cmd >= f_min && f_stage_cmd <= f_max) {
         return f_stage_cmd;
     }
@@ -283,6 +313,10 @@ static float llc_ctrl_step(float e)
 		//float f_nom = 0.5f * (f_min + f_max);
 		//float f_nom = llc_get_f_nom(f_min,f_max,s_llc.f_cmd);
 		float f_nom = s_llc.f_nom;
+#if (LLC_F_NOM_FOLLOW_MODE == LLC_F_NOM_FOLLOW_TARGET_FREQ)
+		f_nom = llc_get_f_nom(f_min, f_max, s_llc.f_cmd);
+		s_llc.f_nom = f_nom;
+#endif
 		if (f_nom < f_min || f_nom > f_max) {
 			f_nom = f_clampf(s_llc.f_cmd, f_min, f_max);
 		}
@@ -318,17 +352,109 @@ static float llc_ctrl_step(float e)
 		s_llc.f_cmd = f_clampf(s_llc.f_cmd, f_min, f_max);
 	  return s_llc.f_cmd;
 }
-/**
- * @brief 更新LLC测量值
- * 
- * 从ADC采集原始数据并转换为物理量，包括输出电压、输出电流和母线电压。
- * 更新后的测量值存储在运行时上下文和全局LLC结构中。
- * 
- * @note 该函数为静态内部函数，仅供模块内部调用
- */
+
+
+
+
+/*********************************************************************************************************
+* 函数名称：llc_current_thresholds_update
+* 函数功能：
+* 输入参数：void
+* 输出参数：void
+* 返 回 值：void
+* 创建日期：2026年02月10日
+* 注    意：
+*********************************************************************************************************/
+static void llc_current_thresholds_update(void)
+{
+    float i_on  = s_llc_curr.iref_cmd + LLC_IOUT_ON_DELTA_A;
+    float i_off = s_llc_curr.iref_cmd - LLC_IOUT_OFF_DELTA_A;
+
+    if (i_on  < 0.0f) i_on  = 0.0f;
+    if (i_off < 0.0f) i_off = 0.0f;
+ 
+    if (i_off >= i_on) {
+        i_off = i_on - 0.1f;          // 给个最小滞回（0.1A 可按需调整）
+        if (i_off < 0.0f) i_off = 0.0f;
+    }
+ 
+    s_llc_curr.i_on  = i_on;
+    s_llc_curr.i_off = i_off;
+}
+/*********************************************************************************************************
+* 函数名称：llc_derate_reset
+* 函数功能：此函数是 LLC（谐振变换器）电流控制模块 的一部分，专用于管理 降额（Derating）状态 的复位操作
+* 输入参数：void
+* 输出参数：void
+* 返 回 值：void
+* 创建日期：2026年02月10日
+* 注    意：“降额”指在检测到过流、过热等异常工况时，主动降低电流参考值以保护功率器件。该函数作为一个状态重置枢纽，确保系统能从降额模式安全、一致地恢复到正常工作点
+*********************************************************************************************************/
+static void llc_derate_reset(void)
+{
+    s_llc_curr.iref_cmd = s_llc_curr.iref;  // (1) 复位命令电流
+    s_llc_curr.derate_step_ms = 0U;   // (2) 清除降额步进计时：记录上一次降额步进（减少电流）的时间戳
+    s_llc_curr.derate_recover_ms = 0U; // (3) 清除降额恢复计时：记录上一次降额恢复（增加电流）的时间戳
+    llc_current_thresholds_update();  // (4) 更新电流阈值
+}
+
+/*********************************************************************************************************
+* 函数名称：llc_derate_update
+* 函数功能：实现了 自适应降额（Adaptive Derating） 机制
+* 输入参数：i_meas    enable
+* 输出参数：void
+* 返 回 值：void
+* 创建日期：2026年02月10日
+* 注    意：当检测到持续过流或过热等异常工况时，系统不能立即关断（可能引起负载突变），而应逐步降低电流设定值，直至异常消除。该函数通过 迟滞比较 + 时间窗口 
+的双重条件，实现了平滑、抗扰的降额控制。
+*********************************************************************************************************/
+static void llc_derate_update(float i_meas, bool enable)
+{
+	//提供外部开关，允许上层逻辑动态启用/禁用降额功能。
+    if (!enable) {
+			//一旦禁用，立即调用 llc_derate_reset() 确保所有状态变量归零，电流参考值恢复原始设定点。
+        llc_derate_reset(); 
+        return;
+    }
+  //惰性初始化（Lazy Initialization）：仅在第一次进入启用状态时，将计时器设置为当前系统时间 g_ms。
+    if (s_llc_curr.derate_step_ms == 0U) {
+        s_llc_curr.derate_step_ms = g_ms;
+    }
+
+    if (s_llc_curr.derate_recover_ms == 0U) {
+        s_llc_curr.derate_recover_ms = g_ms;
+    }
+    bool updated = false;
+    if ((i_meas >= s_llc_curr.i_on) && elapsed_reached(s_llc_curr.derate_step_ms, LLC_DERATE_STEP_PERIOD_MS)) {
+        s_llc_curr.iref_cmd -= LLC_DERATE_STEP_A; // 过流：逐步降低电流
+        s_llc_curr.derate_step_ms = g_ms;  // 重置步进计时器
+        updated = true;
+    }
+    if ((i_meas <= s_llc_curr.i_off) && elapsed_reached(s_llc_curr.derate_recover_ms, LLC_DERATE_RECOVER_PERIOD_MS)) {
+        s_llc_curr.iref_cmd += LLC_DERATE_RECOVER_STEP_A; // 恢复正常：逐步提高电流
+        s_llc_curr.derate_recover_ms = g_ms;   // 重置恢复计时器
+        updated = true;
+    }
+    if (updated) {
+        s_llc_curr.iref_cmd = f_clampf(s_llc_curr.iref_cmd, LLC_DERATE_MIN_A, s_llc_curr.iref);
+        llc_current_thresholds_update();
+    }
+}
+static bool llc_temp_derate_active(void)
+{
+    return s_llc_rt.meas.llc_temp_valid && (s_llc_rt.meas.llc_temp_c >= LLC_TEMP_DERATE_START_C);
+}
+static bool llc_overtemp_shutdown(void)
+{
+    return s_llc_rt.meas.llc_temp_valid && (s_llc_rt.meas.llc_temp_c >= LLC_TEMP_SHUTDOWN_C);
+}
 static void llc_update_measurements(void)
 {
     //adc_multi_copy();
+	  temp_sensor_data_t llc_temp = {0};  //(1)温度数据容器初始化
+    temp_control_get_llc(&llc_temp);  //(2)获取温度传感器数据
+    s_llc_rt.meas.llc_temp_valid = llc_temp.valid; //(3)同步温度有效性标志
+    s_llc_rt.meas.llc_temp_c = llc_temp.temperature_c; //(4)同步温度值
     s_llc_rt.meas.vout_v = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
     s_llc_rt.meas.iout_a = conv_adc_to_i(g_adc_multi.isense_raw);
     s_llc_rt.meas.vbus_v = pfc_bus_voltage();
@@ -379,6 +505,9 @@ static bool llc_faults_present(void)
     }
 
     if (s_llc_rt.meas.vbus_v < (LLC_VBUS_MIN_START_V - LLC_VOUT_HYST_V)) {
+        return true;
+    }
+		if (llc_overtemp_shutdown()) {
         return true;
     }
 
@@ -1010,7 +1139,11 @@ static void llc_state_enter(llc_state_t next)
 	 case ST_LLC_RUN:
 			llc_driver_en_set(true);
       s_llc_rt.hold_last_adjust_ms = g_ms;
+	 #if (LLC_F_NOM_FOLLOW_MODE == LLC_F_NOM_FOLLOW_SOFTSTART_END)
 	    s_llc.f_nom = f_clampf(s_llc.f_cmd, s_llc.f_min, s_llc.f_max);
+	 #else
+	 	    s_llc.f_nom = llc_get_f_nom(s_llc.f_min, s_llc.f_max, s_llc.f_cmd);
+#endif
       /* 重置Burst延迟计时器 */
       s_llc_rt.burst_enter_delay_ms = 0U;
       s_llc_rt.burst_exit_delay_ms = 0U;
@@ -1175,9 +1308,10 @@ void llc_app_tick_100us(void)
 			vloop_div = 0;
 			f_cmd = llc_ctrl_step(err);
 			llc_set_freq(f_cmd, false);  /* 自然更新：闭环微调 */
+			llc_cr_resp_tick();
+			}
 		}
-		llc_cr_resp_tick();
-}
+		
 #endif 
 static bool llc_is_active_state(llc_state_t st)
 {
@@ -1615,7 +1749,8 @@ void llc_app_tick_1khz(void)
 	}
 		
 		llc_collapse_trace_drain_budget(1U);
-		bool enable_llc = pfc_is_ready();
+	  //bool enable_llc = (LLC_ENABLE != 0) && pfc_is_ready();
+		 bool enable_llc = pfc_is_ready();
 		bool pfc_ready_stable = llc_pfc_ready_stable(enable_llc);
 		if (s_llc_rt.app.state != ST_IDLE && s_llc_rt.app.state != ST_FAULT) {
 			if (llc_faults_present()) {
@@ -1923,19 +2058,6 @@ llc_state_t llc_app_state(void)
 	return s_llc_rt.app.state;
 }
 
-
-/*
-700ma ~19A
-A5 01 0A 00 6B 0F 76 01 24 00 FC FF 20 4E FA EB A5 01 0A 81 53 13 76 01 24 00 FC FF 20 4E D1 5A A5 02 08 02
-01 00 94 53 00 72 01 A4 5A A5 03 0E 03 01 00 01 00 01 00 01 00 6D 01 72 01 04 00 B0 5A A5 02 08 04 02 00 71 
-00 84 00 66 01 3B 5A A5 03 0E 05 02 00 01 00 C7 00 C7 00 35 01 68 01 3C 00 CF 5A A5 42 00 06 03 00 B7 00 A6 
-\00 71 01 4B 5A A5 03 0E 07 03 00 01 00 01 00 01 00 71 01 BA 40 20 AA 5A 25 01 0A 08 3B 17 70 01 B6 00 41 00
-E5 33 9A 5A A5 02 08 09 04 00 B7 00 A8 00 70 01 CC 5A A5 03 0E 0A 04 04 01 00 01 00 01 00 70 01 74 01 02 00 
-A1 5A A5 01 0A 0B 23 1B 70 01 B6 00 01 01 F7 33 9F 5A A5 02 08 0C 15 00 B6 00 A6 00 76 01 C5 5A A5 03 0A 0D 
-05 00 01 00 01 00 01 00 71 01 72 01 00 00 A2 5A A5 02 08 0E 06 00 B7 00 9F 00 73 09 FD 5A A5 03 0E 0F 06 00 
-01 00 01 00 01 00 72 01 73 01 01 00 A0 5A A5 02 08 14 07 00 B7 00 A4 00 71 01 DB 5A 
-A5 03 0E 11 07 00 01 00 01 00 01 00 71 01 71 01 00 00 BF 5A A5 01 0A 1A 0B 1F EF 01 B4 00 02 00 07 34 43 5A 
-*/
 
 
 

@@ -1,4 +1,5 @@
-./objects/main.o: APP/src/main.c APP/include\main.h \
+./objects/temp_control.o: APP/src/temp_control.c \
+  APP/include\temp_control.h APP/include/main.h \
   ARM/include\gd32f30x_conf.h \
   GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_adc.h \
   GD32_SYSTEM/Firmware/CMSIS/GD/GD32F30x/Include\gd32f30x.h \
@@ -36,9 +37,9 @@
   C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdlib.h \
   C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdbool.h \
   C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\math.h HW/include\add_dma.h \
-  HW/include\pwm_llc.h HW/include\RCU.h HW/include\debug_printf.h \
+  HW/include\pwm_llc.h APP/include\main.h HW/include\RCU.h \
+  HW/include\debug_printf.h \
   C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stddef.h \
   C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdarg.h HW/include\pwm.h \
   HW/include\protect_exti.h HW/include\pfc_control.h \
-  HW/include\llc_control.h APP/include/llc_soft_start.h \
-  APP/include/main.h APP/include\temp_control.h
+  HW/include\llc_control.h APP/include/llc_soft_start.h

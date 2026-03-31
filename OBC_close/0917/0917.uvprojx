@@ -432,6 +432,16 @@
               <FileType>5</FileType>
               <FilePath>.\APP\协议输出详细报告（CR Binary Protocol）.txt</FilePath>
             </File>
+            <File>
+              <FileName>temp_control.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\APP\src\temp_control.c</FilePath>
+            </File>
+            <File>
+              <FileName>temp_control.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\APP\include\temp_control.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

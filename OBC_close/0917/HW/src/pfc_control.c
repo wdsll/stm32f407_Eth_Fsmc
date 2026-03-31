@@ -8,8 +8,8 @@
 /* VBUS有效性检查范围 */
 #define PFC_VBUS_RATIO_IDLE_MIN     (1.3f)    /* 未使能时：VBUS/VAC 最小倍数 */
 #define PFC_VBUS_RATIO_IDLE_MAX     (1.5f)    /* 未使能时：VBUS/VAC 最大倍数 */
-#define PFC_VBUS_ENABLED_MIN_V      (359.0f)  /* 使能后：VBUS 最小电压 */
-#define PFC_VBUS_ENABLED_MAX_V      (379.0f)  /* 使能后：VBUS 最大电压 */
+#define PFC_VBUS_ENABLED_MIN_V      (380.0f)  /* 使能后：VBUS 最小电压 */
+#define PFC_VBUS_ENABLED_MAX_V      (410.0f)  /* 使能后：VBUS 最大电压 */
 
 
 /*********************************************************************************************************

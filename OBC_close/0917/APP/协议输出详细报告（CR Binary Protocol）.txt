@@ -120,3 +120,28 @@ ByteN-1 : EOF = 0x5A
 
 上文第 5 节已给出当前协议结构、字段定义、风险点与 V2 升级建议，可直接作为联调/上位机解析基线。
 
+
+
+
+
+软启 95k  
+    Vout target 37V
+    Vout 40V 
+	PFC RAMP  319~370  
+	谐振电流 14A
+	
+软启 95k  
+    Vout target 38V
+    Vout 40V 
+	PFC RAMP  319~370  
+	谐振电流 15A
+	
+谐振点41
+
+
+软启 95k  
+    Vout target 43V
+    Vout 40V 
+	PFC RAMP  319~370  
+	谐振电流 17A
+

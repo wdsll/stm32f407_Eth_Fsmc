@@ -21,7 +21,9 @@ static bus_vol_adj_ctrl_t s_bus_adj;
 #define BUS_DUTY_SLEW_STEP            (0.015f)
 #define BUS_VOUT_FALLBACK_BOOST_V     (8.0f)
 #define BUS_VOUT_LOW_MARGIN_V         (0.6f)
-
+#define BUS_VOUT_FORCE_LOW_DUTY_MIN_V (44.0f)
+#define BUS_VOUT_FORCE_LOW_DUTY_MAX_V (54.0f)
+#define BUS_PB0_FORCE_HIGH_DUTY       (0.99f)
 /*********************************************************************************************************
 *                                              内部函数实现
 *********************************************************************************************************/
@@ -96,7 +98,7 @@ void bus_vol_adj_init(void)
 		s_bus_adj.ki = 0.0f;
 		s_bus_adj.neutral_duty = 0.0f;
 		s_bus_adj.duty_min = 0.0f;
-		s_bus_adj.duty_max = 0.95f;
+		s_bus_adj.duty_max = 0.99f;
 		bus_vol_adj_reset();
 }
 
@@ -117,7 +119,7 @@ float bus_vol_adj_target_from_vout(float vout_ref)
     if (v <= 41.0f) {
         base_target = 41.0f * 9.0f;
     } else if (v >= 44.0f) {
-        base_target = 400.0f;
+        base_target = 390.0f;
     } else {
         float t = (v - 41.0f) / 3.0f;
         base_target = 369.0f + t * (390.0f - 369.0f);
@@ -158,6 +160,14 @@ void bus_vol_adj_tick(float vbus, bool enabled)
 }
 void bus_vol_adj_follow_vout(float vout_ref, float vout_meas, float vbus_meas, bool enabled)
 {
+	  if ((vout_ref >= BUS_VOUT_FORCE_LOW_DUTY_MIN_V) && (vout_ref <= BUS_VOUT_FORCE_LOW_DUTY_MAX_V)) {
+			if(s_bus_adj.duty_cmd != BUS_PB0_FORCE_HIGH_DUTY)
+			{
+					s_bus_adj.duty_cmd = BUS_PB0_FORCE_HIGH_DUTY;
+					pb0_pwm_set_duty(s_bus_adj.duty_cmd);
+			}
+			return;
+    }
     float target_vbus = bus_vol_adj_target_from_vout(vout_ref);
 
     if ((vout_ref <= 37.5f) && (vout_meas < (vout_ref - BUS_VOUT_LOW_MARGIN_V))) {
