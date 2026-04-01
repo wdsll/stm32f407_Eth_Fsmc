@@ -331,7 +331,7 @@ void pfc_init(void)
     s_pfc = (pfc_ctx_t){0};
     
 	/* PB0 PWM 仍初始化，但三态机阶段保持 0 */
-    pb0_pwm_init(PB0_PWM_BASE_HZ);
+
     bus_vol_adj_init();
 		
     adc1_aux_init();

@@ -14,7 +14,7 @@
 #endif
 
 #ifndef LLC_F_NOM_HZ
-#define LLC_F_NOM_HZ                 (95000.0f)  
+#define LLC_F_NOM_HZ                 (75000.0f)  
 #endif
 /*********************************************************************************************************
 *                                             CR模式负载动态响应测试
@@ -187,8 +187,8 @@ static bool llc_pfc_ready_stable(bool enable_llc);
 static bool llc_faults_present(void);
 static void llc_enter_fault(void);
 static float llc_ctrl_step(float e);
+static void llc_fan_tick(void); //风扇的task
 static void llc_cr_resp_tick(void);
-
 static void llc_cr_resp_log_push(const llc_cr_log_item_t *item);
 static void llc_cr_resp_log_dump(void);
 static void llc_cr_resp_log_dump_all(void);  /* STOP模式批量输出 */
@@ -260,7 +260,91 @@ static void llc_driver_en_set(bool on)
 	}
 }
 
+/**
+ * @brief 控制风扇开关
+ * 
+ * 该函数用于控制冷却风扇的开启和关闭，采用静态变量实现初始化和状态缓存，
+ * 避免重复的GPIO配置和无效的GPIO操作。
+ * 
+ * @param on true表示开启风扇，false表示关闭风扇
+ * 
+ * @note 首次调用时会自动初始化GPIO外设时钟和引脚配置
+ * @note 风扇默认状态为关闭
+ * @note 使用状态缓存机制，只有状态变化时才执行GPIO操作
+ * 
+ * @static 该函数为静态函数，仅在当前文件内可见
+ */
+static void llc_fan_set(bool on)
+{
+    static bool initialized = false;
+    static bool last = false;
 
+    if (!initialized) {
+        rcu_periph_clock_enable(RCU_GPIOC);
+        gpio_init(FAN_CTL_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, FAN_CTL_PIN);
+        gpio_bit_reset(FAN_CTL_PORT, FAN_CTL_PIN);   /* 默认关风扇 */
+        initialized = true;
+    }
+
+    if (last == on) {
+        return;
+    }
+    last = on;
+
+    if (on) {
+        gpio_bit_set(FAN_CTL_PORT, FAN_CTL_PIN);
+    } else {
+        gpio_bit_reset(FAN_CTL_PORT, FAN_CTL_PIN);
+    }
+}
+/**
+ * @brief LLC风扇控制周期任务
+ * 
+ * 根据LLC工作状态和输出电流自动控制风扇的启停，实现迟滞控制逻辑。
+ * 
+ * 控制策略：
+ * - LLC非工作状态（软启动、运行、突发模式以外）：立即关闭风扇
+ * - 输出电流 >= FAN_ON_IOUT_A：立即开启风扇
+ * - 输出电流 <= FAN_OFF_IOUT_A：延时FAN_OFF_DELAY_MS后关闭风扇
+ * - 电流介于两者之间：保持风扇开启状态，重置关闭延时
+ * 
+ * @note 该函数应在主循环中周期性调用
+ * @note 使用静态变量fan_off_delay_ms记录风扇关闭延时时间戳
+ * @note 迟滞控制避免风扇在阈值附近频繁启停
+ */
+static void llc_fan_tick(void)
+{
+    static uint32_t fan_off_delay_ms = 0U;
+    float iout = s_llc_rt.meas.iout_a;
+    bool llc_active;
+
+    llc_active = (s_llc_rt.app.state == ST_SOFTSTART) ||
+                 (s_llc_rt.app.state == ST_RUN_ENTRY_HOLD) ||
+                 (s_llc_rt.app.state == ST_LLC_RUN) ||
+                 (s_llc_rt.app.state == ST_BURST_MODE);
+
+    if (!llc_active) {
+        fan_off_delay_ms = 0U;
+        llc_fan_set(false);
+        return;
+    }
+
+    if (iout >= FAN_ON_IOUT_A) {
+        fan_off_delay_ms = 0U;
+        llc_fan_set(true);
+        return;
+    }
+
+    if (iout <= FAN_OFF_IOUT_A) {
+        if (fan_off_delay_ms == 0U) {
+            fan_off_delay_ms = g_ms;
+        } else if (elapsed_reached(fan_off_delay_ms, FAN_OFF_DELAY_MS)) {
+            llc_fan_set(false);
+        }
+    } else {
+        fan_off_delay_ms = 0U;
+    }
+}
 /**
  * @brief 设置LLC开关频率
  * @param hz 目标频率
@@ -440,6 +524,17 @@ static void llc_derate_update(float i_meas, bool enable)
         llc_current_thresholds_update();
     }
 }
+/*********************************************************************************************************
+* 函数名称：llc_temp_derate_active
+* 函数功能：检测LLC温度降额条件是否激活
+* 输入参数：无
+* 输出参数：无
+* 返 回 值：bool true-温度降额条件已激活，false-温度降额条件未激活
+* 创建日期：2026年04月01日
+* 注    意：当LLC温度测量有效且温度值达到或超过降额启动阈值（LLC_TEMP_DERATE_START_C）时，
+*          返回true，表示系统需要进行温度降额控制。该函数用于实时监测温度状态，
+*          为温度保护策略提供判断依据。
+*********************************************************************************************************/
 static bool llc_temp_derate_active(void)
 {
     return s_llc_rt.meas.llc_temp_valid && (s_llc_rt.meas.llc_temp_c >= LLC_TEMP_DERATE_START_C);
@@ -448,6 +543,15 @@ static bool llc_overtemp_shutdown(void)
 {
     return s_llc_rt.meas.llc_temp_valid && (s_llc_rt.meas.llc_temp_c >= LLC_TEMP_SHUTDOWN_C);
 }
+/*********************************************************************************************************
+* 函数名称：llc_update_measurements
+* 函数功能：实现了LLC变换器测量数据的更新与同步，包括温度、电压、电流等关键参数的采集和转换
+* 输入参数：void
+* 输出参数：void
+* 返 回 值：void
+* 创建日期：2026年04月01日
+* 注    意：该函数通过温度控制模块获取LLC温度数据，并同步温度有效性标志；将ADC原始数据转换为实际物理量（输出电压、输出电流），同时获取PFC总线电压。所有测量数据统一存储在运行时数据结构中，供控制算法使用。
+*********************************************************************************************************/
 static void llc_update_measurements(void)
 {
     //adc_multi_copy();
@@ -455,6 +559,8 @@ static void llc_update_measurements(void)
     temp_control_get_llc(&llc_temp);  //(2)获取温度传感器数据
     s_llc_rt.meas.llc_temp_valid = llc_temp.valid; //(3)同步温度有效性标志
     s_llc_rt.meas.llc_temp_c = llc_temp.temperature_c; //(4)同步温度值
+		
+		
     s_llc_rt.meas.vout_v = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
     s_llc_rt.meas.iout_a = conv_adc_to_i(g_adc_multi.isense_raw);
     s_llc_rt.meas.vbus_v = pfc_bus_voltage();
@@ -465,13 +571,16 @@ static bool llc_precheck_ok(void)
 {
     return (s_llc_rt.meas.vbus_v >= LLC_VBUS_MIN_START_V);
 }
-/**
- * @brief 检查PFC就绪信号是否稳定
- * @param enable_llc 是否启用LLC控制
- * @return true PFC就绪信号已稳定达到设定时长
- * @return false PFC就绪信号未稳定或LLC未启用
- * @note 当enable_llc为false时重置计时器，为true时开始计时
- */
+/*********************************************************************************************************
+* 函数名称：llc_pfc_ready_stable
+* 函数功能：检测PFC（功率因数校正）就绪状态是否稳定，通过时间窗口判断PFC是否已准备好启动LLC
+* 输入参数：enable_llc  LLC使能标志，false时重置计时器并返回false
+* 输出参数：void
+* 返 回 值：bool  true表示PFC就绪状态已稳定，false表示未稳定或被禁用
+* 创建日期：2026年04月01日
+* 注    意：采用时间窗口机制，从首次使能LLC开始计时，经过PFC_READY_STABLE_BEFORE_LLC_MS时间
+*          后才认为PFC就绪状态稳定，避免因瞬时波动导致误判。禁用时自动重置计时器。
+*********************************************************************************************************/
 static bool llc_pfc_ready_stable(bool enable_llc)
 {
     if (!enable_llc) {
@@ -485,7 +594,21 @@ static bool llc_pfc_ready_stable(bool enable_llc)
 
     return elapsed_reached(s_llc_rt.pfc_ready_begin_ms, PFC_READY_STABLE_BEFORE_LLC_MS);
 }
-
+/*********************************************************************************************************
+* 函数名称：llc_faults_present
+* 函数功能：检测LLC变换器是否存在故障状态
+* 输入参数：void
+* 输出参数：void
+* 返 回 值：bool true-存在故障，false-无故障
+* 创建日期：2026年04月01日
+* 注    意：该函数综合检测以下故障条件：
+*           1. 输出过压（VOUT_OVP_V）：输出电压超过58V保护阈值
+*           2. 输出过流（IOUT_OCP_A）：输出电流超过41A保护阈值
+*           3. 母线欠压（VBUS_MIN_START_V - VOUT_HYST_V）：母线电压低于启动最小值减去迟滞电压
+*           4. 过温保护：通过llc_overtemp_shutdown()检测温度故障
+*           该函数为LLC控制系统的核心故障检测入口，用于实时监控变换器运行状态，
+*           一旦检测到任一故障条件立即返回true，触发相应的保护动作。
+*********************************************************************************************************/
 static bool llc_faults_present(void)
 {
    // if (protect_fault_active_hw() || protect_fault_latched()) {
@@ -513,6 +636,15 @@ static bool llc_faults_present(void)
 
     return false;
 }
+/*********************************************************************************************************
+* 函数名称：llc_enter_fault
+* 函数功能：进入LLC故障状态，将状态机切换到故障状态
+* 输入参数：void
+* 输出参数：void
+* 返 回 值：void
+* 创建日期：2026年04月01日
+* 注    意：该函数为静态函数，仅在模块内部使用。当检测到严重故障时调用，触发状态机进入故障处理流程
+*********************************************************************************************************/
 static void llc_enter_fault(void)
 {
     llc_state_enter(ST_FAULT);
@@ -620,6 +752,16 @@ static void llc_cr_resp_log_dump_test(void)
     
 #endif
 }
+/*********************************************************************************************************
+* 函数名称：llc_cr_log_frame_bytes
+* 函数功能：计算LLC控制日志数据帧的字节长度
+* 输入参数：item  指向LLC控制日志项的指针
+* 输出参数：void
+* 返 回 值：uint16_t  返回日志数据帧的总字节数，若输入无效或类型未知则返回0
+* 创建日期：2026年04月01日
+* 注    意：根据日志项类型（监控、事件开始、事件结束）确定payload长度，并计算完整帧长度。
+*          帧结构 = 帧头(0xA5) + 类型 + 长度 + 序号 + payload + 校验和 + 帧尾(0x5A) = 6 + payload
+*********************************************************************************************************/
 static uint16_t llc_cr_log_frame_bytes(const llc_cr_log_item_t *item)
 {
     uint8_t payload_len = 0U;
@@ -1091,9 +1233,6 @@ static void llc_state_enter(llc_state_t next)
 	s_llc_rt.app.state = next;
   s_llc_rt.app.entry_ms = g_ms;
 	//s_llc_app.entry_ms = g_ms;
-	#if Bus_Adj
-	//bus_vol_adj_reset();   //重置总线电压调整逻辑 百分之五十的占空比
-	#endif
 	// 根据目标状态执行相应的初始化或清理操作
 	switch(next)
 	{
@@ -1213,10 +1352,6 @@ void llc_app_init(void)
         /* 正常电压PI参数 */
         .kp      = 1900.0f,
         .ki      = 18.0f,
-
-        /* RAW PI参数 */
-        .kp_raw  = 3.0f,
-        .ki_raw  = 0.050f,
 
         .integ   = 0.0f,
         .iref    = 0.0f,
@@ -1720,6 +1855,7 @@ static void llc_collapse_trace_tick(void)
 void llc_app_tick_1khz(void)
 {
 	llc_update_measurements();
+	llc_fan_tick();
 	bus_vol_adj_follow_vout(s_llc.vref, s_llc_rt.meas.vout_v, s_llc_rt.meas.vbus_v,
 	                      (pfc_is_ready() && (s_llc_rt.app.state != ST_IDLE) && (s_llc_rt.app.state != ST_FAULT)));
 	llc_collapse_trace_tick();
@@ -1749,8 +1885,8 @@ void llc_app_tick_1khz(void)
 	}
 		
 		llc_collapse_trace_drain_budget(1U);
-	  //bool enable_llc = (LLC_ENABLE != 0) && pfc_is_ready();
-		 bool enable_llc = pfc_is_ready();
+	  bool enable_llc = (LLC_ENABLE != 0) && pfc_is_ready();
+		//bool enable_llc = pfc_is_ready();
 		bool pfc_ready_stable = llc_pfc_ready_stable(enable_llc);
 		if (s_llc_rt.app.state != ST_IDLE && s_llc_rt.app.state != ST_FAULT) {
 			if (llc_faults_present()) {
