@@ -1,7 +1,8 @@
 #include "llc_control.h"
 #include "float.h"
-#include "llc_cr_proto.h"
 #include "temp_control.h"
+#include "llc_trace.h"
+#include "llc_log_dump.h"
 /*********************************************************************************************************
 *                                              宏定义
 *********************************************************************************************************/
@@ -188,15 +189,6 @@ static bool llc_faults_present(void);
 static void llc_enter_fault(void);
 static float llc_ctrl_step(float e);
 static void llc_fan_tick(void); //风扇的task
-static void llc_cr_resp_tick(void);
-static void llc_cr_resp_log_push(const llc_cr_log_item_t *item);
-static void llc_cr_resp_log_dump(void);
-static void llc_cr_resp_log_dump_all(void);  /* STOP模式批量输出 */
-
-static void llc_collapse_trace_tick(void);
-static void llc_collapse_trace_push(uint32_t f_act_hz);
-static void llc_collapse_trace_dump(uint8_t reason_state);
-static void llc_collapse_trace_drain_budget(uint8_t budget);
 
 static void llc_current_thresholds_update(void);
 static void llc_derate_reset(void);
@@ -791,6 +783,16 @@ static uint16_t llc_cr_log_frame_bytes(const llc_cr_log_item_t *item)
     return (uint16_t)(6U + payload_len);
 }
 
+/*********************************************************************************************************
+* 函数名称：llc_cr_resp_log_dump
+* 函数功能：导出并打印LLC电流环响应日志缓存中的记录
+* 输入参数：void
+* 输出参数：void
+* 返 回 值：void
+* 创建日期：2026年04月01日
+* 注    意：通过中断保护机制安全访问环形缓冲区，依次读取并格式化输出监控数据、事件开始和事件结束三类日志记录，
+	直至缓冲区清空。输出格式包含时间戳、电压、电流、误差、频率等关键参数，用于调试分析和性能评估。
+*********************************************************************************************************/
 static void llc_cr_resp_log_dump(void)
 {
 #if LLC_CR_RESP_LOG_ENABLE
@@ -1395,6 +1397,23 @@ void llc_app_init(void)
 static uint8_t vloop_div = 0;
 static uint8_t vout_filt_inited = 0U;
 #if 1
+/*********************************************************************************************************
+* 函数名称：llc_app_tick_100us
+* 函数功能：实现了 LLC 变换器的 100μs 周期性控制任务，包括输出电压滤波、电压闭环控制及 Burst 模式管理
+* 输入参数：void
+* 输出参数：void
+* 返 回 值：void
+* 创建日期：2026年04月01日
+* 注    意：该函数在 100μs 定时器中断中调用，实现以下功能：
+*           1. 状态判断：仅在 ST_LLC_RUN 或 ST_BURST_MODE 状态下执行控制逻辑
+*           2. 电压滤波：采用一阶低通滤波器对输出电压 ADC 原始值进行滤波，滤波系数为 LLC_VOUT_FILT_ALPHA
+*           3. Burst 模式：在 Burst 模式下仅保留电压滤波，不执行电压 PI 控制
+*           4. 电压闭环：每 5 个 tick（500μs）执行一次电压 PI 控制，计算频率指令并更新开关频率
+*           5. 频率更新：通过 llc_set_freq 函数自然更新频率，实现闭环微调
+*           设计要点：电压滤波采用静态变量 vout_filt_v 保存滤波状态，确保滤波连续性；
+*                     vout_filt_inited 标志用于滤波器初始化，避免启动瞬态；
+*                     vloop_div 计数器实现 500μs 的慢环控制周期，降低计算负载
+*********************************************************************************************************/
 void llc_app_tick_100us(void)
 {
 	  static float vout_filt_v   = 0.0f;   /* 电压PI用滤波状态 */
