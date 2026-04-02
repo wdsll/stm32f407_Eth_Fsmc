@@ -2,8 +2,8 @@
 #define LLC_LOG_DUMP_H
 
 #include <stdint.h>
-#include <stdbool.h>
 
+#include "llc_cr_proto.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -13,6 +13,8 @@ extern "C" {
 *********************************************************************************************************/
 void llc_log_dump_init(void);
 void llc_log_dump_reset(void);
+void llc_log_dump_push(const llc_cr_log_item_t *item);
+uint16_t llc_log_dump_pending_count(void);
 
 /*********************************************************************************************************
 *                                              周期服务
@@ -20,7 +22,7 @@ void llc_log_dump_reset(void);
 /* run_state: 当前是否RUN态
  * power_stage_idle: 功率级是否完全空闲，可用于idle阶段加大flush
  */
-void llc_log_dump_service(bool run_state, bool power_stage_idle);
+void llc_log_dump_service(uint8_t  run_state, uint8_t  power_stage_idle);
 
 /*********************************************************************************************************
 *                                              强制导出
@@ -30,7 +32,7 @@ void llc_log_dump_flush_all(void);
 /*********************************************************************************************************
 *                                              状态查询
 *********************************************************************************************************/
-bool llc_log_dump_busy(void);
+uint8_t  llc_log_dump_busy(void);
 
 #ifdef __cplusplus
 }

@@ -2,7 +2,6 @@
 #define LLC_TRACE_H
 
 #include <stdint.h>
-#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -95,17 +94,17 @@ void llc_trace_on_state_change(uint8_t prev, uint8_t next, uint32_t t_ms);
 /*********************************************************************************************************
 *                                              CR记录队列接口
 *********************************************************************************************************/
-bool     llc_trace_cr_pending(void);
+uint8_t  llc_trace_cr_pending(void);
 uint16_t llc_trace_cr_pending_count(void);
-bool     llc_trace_cr_peek(llc_trace_cr_item_t *out);
-bool     llc_trace_cr_pop(llc_trace_cr_item_t *out);
+uint8_t  llc_trace_cr_peek(llc_trace_cr_item_t *out);
+uint8_t  llc_trace_cr_pop(llc_trace_cr_item_t *out);
 uint32_t llc_trace_cr_overflow_count(void);
 
 /*********************************************************************************************************
 *                                              Collapse待发送接口
 *********************************************************************************************************/
-bool llc_trace_tx_pending(void);
-bool llc_trace_tx_peek(llc_trace_tx_item_t *out);
+uint8_t llc_trace_tx_pending(void);
+uint8_t llc_trace_tx_peek(llc_trace_tx_item_t *out);
 void llc_trace_tx_consume(void);
 
 #ifdef __cplusplus

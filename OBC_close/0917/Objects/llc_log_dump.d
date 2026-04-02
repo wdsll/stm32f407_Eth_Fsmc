@@ -1,9 +1,9 @@
-./objects/llc_control.o: HW/src/llc_control.c HW/include\llc_control.h \
+./objects/llc_log_dump.o: Proto/llc_log_dump.c Proto/llc_log_dump.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdint.h Proto/llc_cr_proto.h \
   APP/include\main.h ARM/include\gd32f30x_conf.h \
   GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include\gd32f30x_adc.h \
   GD32_SYSTEM/Firmware/CMSIS/GD/GD32F30x/Include\gd32f30x.h \
   C:/Users/huyan/AppData/Local/Arm/Packs/ARM/CMSIS/5.9.0/CMSIS/Core/Include\core_cm4.h \
-  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdint.h \
   C:/Users/huyan/AppData/Local/Arm/Packs/ARM/CMSIS/5.9.0/CMSIS/Core/Include/cmsis_version.h \
   C:/Users/huyan/AppData/Local/Arm/Packs/ARM/CMSIS/5.9.0/CMSIS/Core/Include/cmsis_compiler.h \
   C:/Users/huyan/AppData/Local/Arm/Packs/ARM/CMSIS/5.9.0/CMSIS/Core/Include/cmsis_armclang_ltm.h \
@@ -40,7 +40,5 @@
   C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stddef.h \
   C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdarg.h HW/include\pwm.h \
   HW/include\protect_exti.h HW/include\pfc_control.h \
-  APP/include/llc_soft_start.h APP/include/main.h \
-  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\float.h \
-  APP/include\temp_control.h Proto\llc_trace.h Proto\llc_log_dump.h \
-  Proto/llc_cr_proto.h
+  HW/include\llc_control.h APP/include/llc_soft_start.h \
+  APP/include/main.h
