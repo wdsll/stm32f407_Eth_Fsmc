@@ -3,9 +3,9 @@
 <title>Static Call Graph - [.\Objects\0917.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Objects\0917.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6090000: Last Updated: Wed Apr  8 14:38:23 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6090000: Last Updated: Wed Apr  8 14:55:44 2026
 <BR><P>
-<H3>Maximum Stack Usage =        556 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
+<H3>Maximum Stack Usage =        524 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
 main &rArr; llc_app_init &rArr; llc_state_enter &rArr; llc_softstart_start &rArr; llc_softstart_begin &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
 <P>
@@ -1011,8 +1011,8 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[11f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_active_hw
 </UL>
 
-<P><STRONG><a name="[d8]"></a>llc_app_init</STRONG> (Thumb, 318 bytes, Stack size 192 bytes, llc_control.o(.text.llc_app_init))
-<BR><BR>[Stack]<UL><LI>Max Depth = 516<LI>Call Chain = llc_app_init &rArr; llc_state_enter &rArr; llc_softstart_start &rArr; llc_softstart_begin &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
+<P><STRONG><a name="[d8]"></a>llc_app_init</STRONG> (Thumb, 316 bytes, Stack size 176 bytes, llc_control.o(.text.llc_app_init))
+<BR><BR>[Stack]<UL><LI>Max Depth = 484<LI>Call Chain = llc_app_init &rArr; llc_state_enter &rArr; llc_softstart_start &rArr; llc_softstart_begin &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
 </UL>
 <BR>[Calls]<UL><LI><a href="#[d9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstart_init
 <LI><a href="#[dc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_state_enter
@@ -1022,7 +1022,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[47]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[dd]"></a>llc_app_tick_100us</STRONG> (Thumb, 528 bytes, Stack size 64 bytes, llc_control.o(.text.llc_app_tick_100us))
+<P><STRONG><a name="[dd]"></a>llc_app_tick_100us</STRONG> (Thumb, 472 bytes, Stack size 64 bytes, llc_control.o(.text.llc_app_tick_100us))
 <BR><BR>[Stack]<UL><LI>Max Depth = 296<LI>Call Chain = llc_app_tick_100us &rArr; llc_ctrl_step &rArr; llc_bumpless_integ &rArr; f_clampf
 </UL>
 <BR>[Calls]<UL><LI><a href="#[df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_temp_derate_active
@@ -1035,8 +1035,8 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[47]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[ae]"></a>llc_app_tick_1khz</STRONG> (Thumb, 828 bytes, Stack size 48 bytes, llc_control.o(.text.llc_app_tick_1khz))
-<BR><BR>[Stack]<UL><LI>Max Depth = 380<LI>Call Chain = llc_app_tick_1khz &rArr; llc_enter_fault &rArr; llc_state_enter &rArr; llc_softstart_start &rArr; llc_softstart_begin &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
+<P><STRONG><a name="[ae]"></a>llc_app_tick_1khz</STRONG> (Thumb, 824 bytes, Stack size 48 bytes, llc_control.o(.text.llc_app_tick_1khz))
+<BR><BR>[Stack]<UL><LI>Max Depth = 364<LI>Call Chain = llc_app_tick_1khz &rArr; llc_enter_fault &rArr; llc_state_enter &rArr; llc_softstart_start &rArr; llc_softstart_begin &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
 </UL>
 <BR>[Calls]<UL><LI><a href="#[ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstop_tick_1khz
 <LI><a href="#[f1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstop_reset
@@ -1211,7 +1211,7 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[47]"></a>main</STRONG> (Thumb, 418 bytes, Stack size 40 bytes, main.o(.text.main))
-<BR><BR>[Stack]<UL><LI>Max Depth = 556<LI>Call Chain = main &rArr; llc_app_init &rArr; llc_state_enter &rArr; llc_softstart_start &rArr; llc_softstart_begin &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
+<BR><BR>[Stack]<UL><LI>Max Depth = 524<LI>Call Chain = main &rArr; llc_app_init &rArr; llc_state_enter &rArr; llc_softstart_start &rArr; llc_softstart_begin &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
 </UL>
 <BR>[Calls]<UL><LI><a href="#[11d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;temp_control_init
 <LI><a href="#[11c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;systick_1ms_init
@@ -1828,7 +1828,7 @@ Local Symbols
 </UL>
 
 <P><STRONG><a name="[ac]"></a>control_loop_tick_1khz</STRONG> (Thumb, 16 bytes, Stack size 8 bytes, main.o(.text.control_loop_tick_1khz))
-<BR><BR>[Stack]<UL><LI>Max Depth = 388<LI>Call Chain = control_loop_tick_1khz &rArr; llc_app_tick_1khz &rArr; llc_enter_fault &rArr; llc_state_enter &rArr; llc_softstart_start &rArr; llc_softstart_begin &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
+<BR><BR>[Stack]<UL><LI>Max Depth = 372<LI>Call Chain = control_loop_tick_1khz &rArr; llc_app_tick_1khz &rArr; llc_enter_fault &rArr; llc_state_enter &rArr; llc_softstart_start &rArr; llc_softstart_begin &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
 </UL>
 <BR>[Calls]<UL><LI><a href="#[ad]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_tick_1khz
 <LI><a href="#[ae]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_app_tick_1khz
@@ -2383,7 +2383,7 @@ Local Symbols
 </UL>
 
 <P><STRONG><a name="[e9]"></a>llc_enter_fault</STRONG> (Thumb, 10 bytes, Stack size 8 bytes, llc_control.o(.text.llc_enter_fault))
-<BR><BR>[Stack]<UL><LI>Max Depth = 332<LI>Call Chain = llc_enter_fault &rArr; llc_state_enter &rArr; llc_softstart_start &rArr; llc_softstart_begin &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
+<BR><BR>[Stack]<UL><LI>Max Depth = 316<LI>Call Chain = llc_enter_fault &rArr; llc_state_enter &rArr; llc_softstart_start &rArr; llc_softstart_begin &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
 </UL>
 <BR>[Calls]<UL><LI><a href="#[dc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_state_enter
 </UL>
@@ -2426,8 +2426,8 @@ Local Symbols
 <LI><a href="#[dc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_state_enter
 </UL>
 
-<P><STRONG><a name="[dc]"></a>llc_state_enter</STRONG> (Thumb, 836 bytes, Stack size 88 bytes, llc_control.o(.text.llc_state_enter))
-<BR><BR>[Stack]<UL><LI>Max Depth = 324<LI>Call Chain = llc_state_enter &rArr; llc_softstart_start &rArr; llc_softstart_begin &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
+<P><STRONG><a name="[dc]"></a>llc_state_enter</STRONG> (Thumb, 680 bytes, Stack size 72 bytes, llc_control.o(.text.llc_state_enter))
+<BR><BR>[Stack]<UL><LI>Max Depth = 308<LI>Call Chain = llc_state_enter &rArr; llc_softstart_start &rArr; llc_softstart_begin &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
 </UL>
 <BR>[Calls]<UL><LI><a href="#[114]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstop_start
 <LI><a href="#[f1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_softstop_reset

@@ -10,20 +10,10 @@ typedef enum
 	ST_SOFTSTART,
 	ST_RUN_ENTRY_HOLD,
 	ST_LLC_RUN,
-	ST_BURST_MODE,      /* 轻载打嗝模式 */
 	ST_STOPPING,
 	ST_CYCLE_STOPPING,  /* 周期性软关断状态 */
 	ST_FAULT,
 } llc_state_t;
-
-/* Burst Mode 子状态 */
-typedef enum
-{
-	BURST_STATE_ENTRY_PREPARE  = 0,
-	BURST_STATE_OFF ,           /* Burst关闭，PWM关 */
-	BURST_STATE_ON,                /* Burst开启，PWM开，固定高频 */
-	BURST_STATE_ON_PREPARE,        /* 准备关闭：先升频到最高再关PWM */
-} burst_state_t;
 
 typedef struct
 {

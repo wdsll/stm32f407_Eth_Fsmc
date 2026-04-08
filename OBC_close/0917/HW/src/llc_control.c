@@ -73,14 +73,6 @@ typedef struct {
     uint32_t run_entry_stable_ticks;
 	  uint32_t cycle_stop_begin_ms;      /* 周期性软关断开始时间 */
     bool     cycle_stop_enable;        /* 周期性软关断使能 */
-    /* Burst Mode 变量 */
-    burst_state_t burst_state;         /* Burst 子状态 */
-    uint32_t burst_begin_ms;           /* Burst 阶段开始时间 */
-    float vout_burst_target;           /* Burst 模式目标电压 */
-    uint32_t burst_enter_delay_ms;     /* Burst进入延迟计时 */
-    uint32_t burst_exit_delay_ms;      /* Burst退出延迟计时 */
-    float f_pre_burst_hz;              /* 进入Burst前的频率，用于退出时bumpless */
-    uint8_t burst_first_entry;         /* 首次进入Burst标志 */
 }llc_runtime_ctx_t;
 static llc_runtime_ctx_t s_llc_rt;
 
@@ -251,8 +243,7 @@ static void llc_fan_tick(void)
 
     llc_active = (s_llc_rt.app.state == ST_SOFTSTART) ||
                  (s_llc_rt.app.state == ST_RUN_ENTRY_HOLD) ||
-                 (s_llc_rt.app.state == ST_LLC_RUN) ||
-                 (s_llc_rt.app.state == ST_BURST_MODE);
+                 (s_llc_rt.app.state == ST_LLC_RUN);
 
     if (!llc_active) {
         fan_off_delay_ms = 0U;
@@ -761,9 +752,6 @@ static void llc_state_enter(llc_state_t next)
 		  s_llc_rt.run_entry_hold_begin_ms = 0U;
 		  s_llc_rt.run_entry_stable_ticks = 0U;
 		  s_llc_rt.cycle_stop_begin_ms = 0U;  /* 重置周期性软关断计时 */
-		  s_llc_rt.burst_state = BURST_STATE_OFF;
-		  s_llc_rt.burst_begin_ms = 0U;
-		  s_llc_rt.burst_first_entry = 1;     /* 重置首次进入标志 */
 		  break;
 	 case ST_PRECHECK:  
 	  	llc_driver_en_set(true);
@@ -793,9 +781,6 @@ static void llc_state_enter(llc_state_t next)
 #else
 	 	    s_llc.f_nom = llc_get_f_nom(s_llc.f_min, s_llc.f_max, s_llc.f_cmd);
 #endif
-      /* 重置Burst延迟计时器 */
-      s_llc_rt.burst_enter_delay_ms = 0U;
-      s_llc_rt.burst_exit_delay_ms = 0U;
 	 		s_llc_curr.df_prev = 0.0f;
 			s_llc_curr.limit_active = false; // 重置限流器状态
 			break;
@@ -811,24 +796,6 @@ static void llc_state_enter(llc_state_t next)
       /* 启动软关断 */
       llc_softstop_start(s_llc.f_cmd);
       break;
-	 case ST_BURST_MODE:
-			llc_driver_en_set(true);
-			s_llc_rt.vout_burst_target = LLC_VOUT_TARGET_V;
-			/* 记录进入Burst前的频率，用于退出时bumpless */
-			s_llc_rt.f_pre_burst_hz = f_clampf(s_llc.f_cmd, s_llc.f_min, s_llc.f_max);
-			
-			/* 每次进入Burst都走ENTRY_PREPARE，确保软进入 */
-			s_llc_rt.burst_state = BURST_STATE_ENTRY_PREPARE;
-			s_llc_rt.burst_first_entry = 0;
-			llc_pwm_outputs_enable(1);  /* 进入准备阶段保持PWM开启 */
-			llc_set_freq(LLC_F_MAX_HZ, true); /* 强制更新：进入Burst升频准备 */
-			s_llc_rt.burst_begin_ms = g_ms;
-			
-#if DEBUG_PRINTF_BURST_MODE
-			debug_printf("[BURST] ENTER: iout=%.2fA, f_pre=%.0fHz, state=%d\n", 
-			             s_llc_rt.meas.iout_a, s_llc_rt.f_pre_burst_hz, s_llc_rt.burst_state);
-#endif
-			break;
 	 case ST_FAULT:
 	 		llc_softstart_on_fault();
 			llc_softstop_reset();  /* 故障时重置软关断状态 */
@@ -889,13 +856,6 @@ void llc_app_init(void)
     /* 初始化周期性软关断 */
     s_llc_rt.cycle_stop_enable = false;  /* 禁用周期性软关，使用Burst */
     s_llc_rt.cycle_stop_begin_ms = 0U;
-    s_llc_rt.burst_state = BURST_STATE_OFF;
-    s_llc_rt.burst_begin_ms = 0U;
-    s_llc_rt.vout_burst_target = LLC_VOUT_TARGET_V;
-    s_llc_rt.burst_enter_delay_ms = 0U;
-    s_llc_rt.burst_exit_delay_ms = 0U;
-    s_llc_rt.f_pre_burst_hz = LLC_F_NOM_HZ;  /* 默认用标称频率 */
-    s_llc_rt.burst_first_entry = 1;          /* 标记首次进入 */
 
     llc_state_enter(ST_IDLE);
 }
@@ -914,7 +874,7 @@ static uint8_t vout_filt_inited = 0U;
 * 注    意：该函数在 100μs 定时器中断中调用，实现以下功能：
 *           1. 状态判断：仅在 ST_LLC_RUN 或 ST_BURST_MODE 状态下执行控制逻辑
 *           2. 电压滤波：采用一阶低通滤波器对输出电压 ADC 原始值进行滤波，滤波系数为 LLC_VOUT_FILT_ALPHA
-*           3. Burst 模式：在 Burst 模式下仅保留电压滤波，不执行电压 PI 控制
+*           //3. Burst 模式：在 Burst 模式下仅保留电压滤波，不执行电压 PI 控制
 *           4. 电压闭环：每 5 个 tick（500μs）执行一次电压 PI 控制，计算频率指令并更新开关频率
 *           5. 频率更新：通过 llc_set_freq 函数自然更新频率，实现闭环微调
 *           设计要点：电压滤波采用静态变量 vout_filt_v 保存滤波状态，确保滤波连续性；
@@ -928,7 +888,7 @@ void llc_app_tick_100us(void)
     float f_cmd;
 	
 	
-    if (s_llc_rt.app.state != ST_LLC_RUN && s_llc_rt.app.state != ST_BURST_MODE) {
+    if (s_llc_rt.app.state != ST_LLC_RUN ) {
 			vloop_div = 0;
 			vout_filt_inited = 0U;
       return;
@@ -951,11 +911,7 @@ void llc_app_tick_100us(void)
     /* 100us快环滤波，alpha可后续再调 */
     vout_filt_v += LLC_VOUT_FILT_ALPHA * (vout_now - vout_filt_v);
     s_llc.vmeas = vout_filt_v;
-		/* Burst模式：只保留滤波，不跑PI */
-    if (s_llc_rt.app.state == ST_BURST_MODE) {
-        vloop_div = 0U;
-        return;
-    }
+
 #if LLC_FIXED_FREQ_LOAD_TEST_ENABLE
     vloop_div = 0U;
     llc_set_freq(LLC_FIXED_FREQ_LOAD_TEST_HZ, false);
@@ -989,7 +945,6 @@ static bool llc_is_active_state(llc_state_t st)
            (st == ST_SOFTSTART) ||
            (st == ST_RUN_ENTRY_HOLD) ||
            (st == ST_LLC_RUN) ||
-           (st == ST_BURST_MODE) ||
            (st == ST_CYCLE_STOPPING) ||
            (st == ST_STOPPING);
 }

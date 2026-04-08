@@ -113,30 +113,6 @@
 #define LLC_CYCLE_STOP_INTERVAL_MS    3000U     // 周期性软关断间隔（3秒）
 #define LLC_CYCLE_STOP_RESTART_MS     500U      // 软关断后重新启动前等待时间
 
-/* ==== LLC_BURST_MODE 轻载突发模式 ==== */
-#define LLC_BURST_MODE_ENABLE         0         // 1: 使能Burst模式
-
-/* Burst进入/退出 - 第一档轻载：1.5A进入，2.5A退出 */
-#define LLC_BURST_IOUT_ENTER_A        (1.5f)    // 进入阈值 <1.5A (轻载)
-#define LLC_BURST_IOUT_EXIT_A         (2.5f)    // 退出阈值 >2.5A (滞环1A)
-#define LLC_BURST_ENTER_DELAY_MS      (1000U)   // 进入延迟1秒(慢进入防抖动)
-#define LLC_BURST_EXIT_DELAY_MS       (50U)     // 退出延迟50ms(快退出)
-
-/* Burst时间窗口 */
-#define LLC_BURST_ON_MIN_MS           (2U)      // ON最短2ms
-#define LLC_BURST_ON_MAX_MS           (20U)     // ON最长20ms，超时强制关
-#define LLC_BURST_OFF_MIN_MS          (4U)      // OFF最短4ms
-#define LLC_BURST_OFF_MAX_MS          (50U)     // OFF最长50ms，超时强制开
-
-/* Burst电压控制 */
-#define LLC_BURST_VOUT_HYST_V         (1.0f)    // 电压滞环1V
-#define LLC_BURST_VOUT_TARGET_V       (39.0f)   // 目标电压44V
-
-/* Burst频率 - 高频准备 */
-#define LLC_BURST_F_HZ                (180000.0f) // Burst用高频180kHz
-#define LLC_BURST_F_PREPARE_MS        (1U)        // 高频准备1ms后关PWM (最小单位)
-#define LLC_BURST_ENTRY_RAMP_MS       (3U)        // 首次进入Burst升频时间3ms
-
 /* ==== LLC RUN entry hold ==== */
 #define LLC_RUN_ENTRY_HOLD_MS          (20U)
 #define LLC_RUN_ENTRY_STABLE_TICKS     (2U)
