@@ -150,6 +150,17 @@
 #define LLC_F_SLEW_HZ       (3000.0f)
 #define LLC_F_DEBUG_HZ      (130000.0f)
 
+
+#define LLC_CTRL_TS_S           (0.001f)
+#define LLC_VCTRL_KP            (1400.0f)
+#define LLC_VCTRL_KI            (100.0f)
+#define LLC_VCTRL_F_NOM_HZ       (100000.0f)
+#define LLC_VCTRL_E_DB_V         (0.15f)
+#define LLC_VCTRL_F_Q_STEP_HZ    (100.0f)
+#define LLC_IOUT_ERR_SAT_A       (5.0f)
+#define LLC_IOUT_DF_MAX_HZ       (75000.0f)
+#define LLC_IOUT_DF_SLEW_HZ_S    (1000000.0f)
+
 #define LLC_IOUT_ON_DELTA_A      (0.5f)
 #define LLC_IOUT_OFF_DELTA_A     (1.0f)
 /* ==== LLC f_nom follow mode ==== */
@@ -164,13 +175,9 @@
 #define LLC_VOUT_OVP_V               (58.0f)
 #define LLC_IOUT_OCP_A               (42.0f)
 
-#define LLC_SWEEP_START_HZ           (100000.0f)
-#define LLC_SWEEP_STOP_HZ            (80000.0f)
-#define LLC_SWEEP_STEP_HZ            (800.0f) 
-#define LLC_SWEEP_STEP_MS            (5U)
-#define LLC_SWEEP_TIMEOUT_MS         (1600U)
-#define LLC_SWEEP_STABLE_COUNT       (2U)
-#define LLC_SWEEP_TARGET_WINDOW_V    (2.0f)
+#define LLC_IOUT_TARGET_A            (20.0f)
+#define LLC_IOUT_CTRL_KP             (400.0f)
+#define LLC_IOUT_CTRL_KI             (1200.0f)
 
 #define LLC_DERATE_STEP_PERIOD_MS    (100U)
 #define LLC_DERATE_STEP_A            (0.5f)

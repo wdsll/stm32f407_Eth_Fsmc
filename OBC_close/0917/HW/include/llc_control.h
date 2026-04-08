@@ -46,10 +46,11 @@ typedef struct {
 	
 	 /* 频率边界 */
 	float f_min, f_max, f_cmd,f_nom, f_slew;
+	float e_db, f_q_step;
 	float f_cmd_v, f_cmd_i;
 	
 } llc_t;
-static llc_t s_llc;
+//static llc_t s_llc;
 
 /*********************************************************************************************************
 *                                              API函数声明
