@@ -1363,7 +1363,7 @@ I (HW\include\pwm.h)(0x69C9ECC6)
 I (HW\include\protect_exti.h)(0x6948E5CC)
 I (HW\include\llc_control.h)(0x69C0DDFE)
 I (APP\include\llc_soft_start.h)(0x69C0B482)
-F (.\HW\src\llc_control.c)(0x69CE251B)(-xc -std=c11 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-3 -O0 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -I ./APP/include -I ./ARM/include -I ./GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include -I ./GD32_SYSTEM/Firmware/CMSIS/GD/GD32F30x/Include -I ./HW/include -I ./GD32_SYSTEM/Firmware/CMSIS -I ./Simulink -I ./Proto-I./RTE/_Target_1-IC:/Users/huyan/AppData/Local/Arm/Packs/ARM/CMSIS/5.9.0/CMSIS/Core/Include-IC:/Users/huyan/AppData/Local/Arm/Packs/GigaDevice/GD32F30x_DFP/2.2.1/Device/Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o ./objects/llc_control.o -MD)
+F (.\HW\src\llc_control.c)(0x69D44BAA)(-xc -std=c11 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-3 -O0 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -I ./APP/include -I ./ARM/include -I ./GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include -I ./GD32_SYSTEM/Firmware/CMSIS/GD/GD32F30x/Include -I ./HW/include -I ./GD32_SYSTEM/Firmware/CMSIS -I ./Simulink -I ./Proto-I./RTE/_Target_1-IC:/Users/huyan/AppData/Local/Arm/Packs/ARM/CMSIS/5.9.0/CMSIS/Core/Include-IC:/Users/huyan/AppData/Local/Arm/Packs/GigaDevice/GD32F30x_DFP/2.2.1/Device/Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o ./objects/llc_control.o -MD)
 I (HW\include\llc_control.h)(0x69C0DDFE)
 I (APP\include\main.h)(0x69CE1855)
 I (ARM\include\gd32f30x_conf.h)(0x691D9C10)
@@ -1415,7 +1415,7 @@ I (HW\include\pfc_control.h)(0x69CB23CE)
 I (APP\include\llc_soft_start.h)(0x69C0B482)
 I (C:\Keil_v5\ARM\ARMCLANG\include\float.h)(0x5AA6413A)
 I (APP\include\temp_control.h)(0x69CB3184)
-I (Proto\llc_trace.h)(0x69CE284F)
+I (Proto\llc_trace.h)(0x69CE299D)
 I (Proto\llc_log_dump.h)(0x69CE27C3)
 I (Proto\llc_cr_proto.h)(0x69CE27B1)
 F (.\HW\include\llc_control.h)(0x69C0DDFE)()
@@ -1606,7 +1606,7 @@ I (HW\include\llc_control.h)(0x69C0DDFE)
 I (APP\include\llc_soft_start.h)(0x69C0B482)
 F (.\Proto\llc_log_dump.h)(0x69CE27C3)()
 F (.\Proto\llc_trace.c)(0x69CE2893)(-xc -std=c11 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-3 -O0 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -I ./APP/include -I ./ARM/include -I ./GD32_SYSTEM/Firmware/GD32F30x_standard_peripheral/Include -I ./GD32_SYSTEM/Firmware/CMSIS/GD/GD32F30x/Include -I ./HW/include -I ./GD32_SYSTEM/Firmware/CMSIS -I ./Simulink -I ./Proto-I./RTE/_Target_1-IC:/Users/huyan/AppData/Local/Arm/Packs/ARM/CMSIS/5.9.0/CMSIS/Core/Include-IC:/Users/huyan/AppData/Local/Arm/Packs/GigaDevice/GD32F30x_DFP/2.2.1/Device/Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o ./objects/llc_trace.o -MD)
-I (Proto\llc_trace.h)(0x69CE284F)
+I (Proto\llc_trace.h)(0x69CE299D)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdint.h)(0x5AA6413A)
 I (HW\include\llc_control.h)(0x69C0DDFE)
 I (APP\include\main.h)(0x69CE1855)
@@ -1658,4 +1658,4 @@ I (HW\include\pfc_control.h)(0x69CB23CE)
 I (APP\include\llc_soft_start.h)(0x69C0B482)
 I (Proto\llc_cr_proto.h)(0x69CE27B1)
 I (Proto\llc_log_dump.h)(0x69CE27C3)
-F (.\Proto\llc_trace.h)(0x69CE284F)()
+F (.\Proto\llc_trace.h)(0x69CE299D)()

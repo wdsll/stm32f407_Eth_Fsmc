@@ -1,0 +1,128 @@
+把现在送到功率级的频率命令 f_base（不管它来自电压环/软启/状态机的选择器）在进 LLC_PowerStage 之前插入：
+Iout_meas  -> (采样到1ms) -> Iout_k -> (LPF) -> Iout_f
+                                  |               |
+                                  |               +-> 电流环：Δf_i (>=0)
+                                  +-> 保护：Fault_ocp (Iout_k>41A 3ms) -> Fault
+
+f_base  +  Δf_i  -> Saturation[75k..130k] -> f_cmd_to_powerstage
+
+关键约定：
+
+电压环算出的 f_base：电压低会“降频”
+电流环只在超 40A 时输出 正的 Δf_i（升频限流）
+Step 1：把 Iout_meas 做成 1ms 可用信号（Iout_k、Iout_f）
+
+1.1 采样率切换（得到 Iout_k）
+
+在 MCU/控制子系统里，从 LLC_PowerStage 的 Iout_meas 拉一根线出来，串一个：
+Rate Transition（Simulink > Signal Attributes）
+Output port sample time：1e-3
+
+勾选：Ensure data integrity during data transfer（建议）
+
+其余默认即可
+Rate Transition 输出命名为：Iout_k（k = 控制周期采样）
+如果你更习惯用 ZOH：用 Zero-Order Hold 也行，Sample time=1e-3；但 Rate Transition 更通用。
+
+1.2 一阶低通（得到 Iout_f）
+
+用最朴素的一阶离散 LPF（你之前写的那种）用块搭：
+参数先给你一个稳的默认：
+
+alpha = 0.1 （约 10ms 时间常数，1ms 控制下很常用）
+搭法（全是基础块）：
+放一个 Unit Delay（Simulink > Discrete）
+Sample time：1e-3
+Initial condition：0
+放一个 Sum（两个输入：+ 和 -）做 x - y_prev x 接 Iout_k
+y_prev 接 Unit Delay 输出
+放一个 Gain（值填 alpha=0.1）
+再放一个 Sum（两个输入都 +）做 y_prev + alpha*(x-y_prev)
+一个输入接 Unit Delay 输出 y_prev
+另一个输入接 Gain 输出
+把这个 Sum 输出回接到 Unit Delay 输入（形成递推）
+这个 LPF 输出命名：Iout_f
+Step 2：电流环（只输出 Δf_i，正向升频限流）
+
+2.1 只在超 Iref 时产生误差（避免低于40A时干扰）
+
+用 Iout_f - Iref 并截断到 ≥0：
+Sum：Iout_f - Iref
+Iref 用 Constant：40
+Saturation（或 Max 块）
+下限：0
+上限：建议先填 10（意思是最大只按“超 10A”算，短路时不让误差爆炸）
+得到：Ierr_pos
+你也可以用 Max 块：max(Iout_f - 40, 0)，效果一样。
+
+2.2 PI 生成 Δf_i（单位：Hz）
+
+用 Discrete PID Controller（Simulink > Discrete），设置成 PI：
+Controller：PI
+Time domain：Discrete-time
+Sample time：1e-3
+Anti-windup：建议选 Back-calculation 或 Clamping（都行，先默认也能跑）
+Output saturation：打开并填：
+Lower：0
+Upper：55e3 （= 130k-75k，最大允许的“升频增量”）
+给你一组“保守能跑”的初值（后面再调）
+
+Kp_i = 800 (Hz/A)
+Ki_i = 3000 (Hz/(A*s))
+解释一下这个量级为什么合理：
+超 1A 时，P项先推 800Hz（0.8kHz）升频；
+I项每秒再累 3000Hz（每个 1ms 步进累 3Hz/A），比较温和，不容易发散。
+PI 输出命名：df_i_raw
+2.3 给 Δf_i 加斜率限制（防止抖/跳）
+
+放一个 Rate Limiter（Simulink > Discontinuities）在 df_i_raw 后面：
+Rising slew rate：5e6 (Hz/s) → 等价于 5kHz/ms
+Falling slew rate：5e6 (Hz/s)
+输出命名：df_i
+Step 3：与原来的频率命令“竞争合成”
+
+你现在已经有一个“选择器/开关”输出最终送功率级的频率（可能是软启频率 or 电压环频率），我把它统称为 f_base。
+3.1 断开原来 f_base -> LLC_PowerStage.f_cmd 的线
+在这根线上插入：
+Sum：f_base + df_i
+Saturation：
+Lower：75e3
+Upper：130e3
+
+Saturation 输出命名：f_cmd_to_powerstage
+然后把 f_cmd_to_powerstage 接回 LLC_PowerStage 的 f_cmd 输入。
+这一套接完后：
+电流没超 40A：df_i=0，完全不影响你原来的控制超 40A：df_i>0，强制升频把电流压回去
+
+Step 4：OCP保护（41A）也用 Iout，但走更“快”的 Iout_k
+保护建议用 Iout_k（只采样不重滤波），避免 LPF 延迟。
+4.1 过流判定 + 3ms 去抖
+Relational Operator：Iout_k > 41
+做 3ms 去抖（连续3个采样都为1才算真）：Unit Delay1（Ts=1e-3）Unit Delay2（Ts=1e-3）Logical AND：over & d1 & d2得到 ocp_3ms
+
+4.2 锁存（可选但推荐）
+用 SR Flip-Flop（Simulink > Logic and Bit Operations）：S = ocp_3ms
+R = Enable_LLC==0（或你定义的 reset 条件）输出命名：Fault_ocp 不锁存也能跑，但锁存更接近真实保护：触发一次就保持 Fault，直到关使能/复位。
+4.3 Fault 怎么接到你现有模型
+你现在 llc_softstart_step 有一个 fault 输入、LLC_SM 也有 Fault 输入（你之前问过 Fault 怎么接）。
+做法：用一个 Logical OR 把所有 fault 合起来（现在至少有 Fault_ocp，以后还会加 Vout_OVP 等）
+
+OR 输出接：
+llc_softstart_step.fault
+LLC_SM.Fault（如果你的状态机用 fault 直接转 FAULT/STOPPING）
+Step 5：建议你必看的3个Scope信号（调参会快10倍）
+
+放一个 Scope 或 Data Inspector，把这些都打出来：
+
+Iout_k、Iout_f
+
+f_base
+
+df_i
+
+f_cmd_to_powerstage
+
+Fault_ocp
+
+你一看就知道：
+到底是电压环在降频，还是电流环在升频顶住了。

@@ -1,0 +1,90 @@
+# LLC 电压环闭环控制软件设计
+
+## 1. 设计目标
+- **稳态精度**：输出电压在稳态时保持在 `LLC_VOUT_TARGET_V` 附近，并满足纹波与稳态误差指标。
+- **动态响应**：在负载突变/母线扰动下，电压环能够快速恢复并避免过冲。
+- **安全性**：在 OVP/OCP/母线欠压等异常时及时退出至安全状态。
+- **可维护性**：控制参数、限幅、调度和状态切换均可配置并可追踪。
+
+## 2. 软硬件接口与测量
+### 2.1 测量量
+- **Vout**：由 `g_adc_multi.vout_raw` 经分压换算得到 `s_llc_rt.meas.vout_v`。
+- **Vbus**：由 `pfc_bus_voltage()` 得到 `s_llc_rt.meas.vbus_v`。
+- **Iout**：由 `g_adc_multi.isense_raw` 经分流/放大换算得到 `s_llc_rt.meas.iout_a`。
+
+### 2.2 控制量
+- **LLC 频率指令** `s_llc.f_cmd`：由电压环 PI 控制器计算并经斜率限制。
+- **PWM 输出**：由 `llc_pwm_set_freq()` 和 `llc_pwm_outputs_enable()` 控制。
+
+## 3. 调度与任务划分
+- **1 kHz 任务**（`llc_app_tick_1khz`）：
+  - 更新测量值。
+  - 状态机推进与控制计算。
+  - 对 `s_llc.f_cmd` 做限幅与斜率限制。
+- **软启动任务**（`llc_softstart_tick_1khz`）：
+  - 在 `ST_SOFTSTART` 内逐步降低频率至目标。
+  
+  ## 4. 状态机与闭环控制的协作
+### 4.1 状态与功能
+- **ST_IDLE**：LLC 关闭，等待 PFC Ready 稳定与母线条件满足。
+- **ST_PRECHECK**：硬件使能并等待母线稳定后进入软启动。
+- **ST_SOFTSTART**：开环频率渐变至软启动目标，避免过流与过冲。
+- **ST_RUN_ENTRY_HOLD**：软启动结束后保持频率，确认输出电压稳定。
+- **ST_LLC_RUN**：闭环电压控制运行。
+- **ST_STOPPING**：保持高频降低功率并关闭输出。
+- **ST_FAULT**：故障态，关闭驱动与 PWM 输出。
+
+### 4.2 关键切换逻辑建议
+- **PFC Ready 稳定进入**：确保 PFC Ready 连续稳定到 `PFC_READY_STABLE_BEFORE_LLC_MS` 后才进入 `ST_PRECHECK`。
+- **RUN_ENTRY_HOLD 超时保护**：若在 `LLC_RUN_ENTRY_TIMEOUT_MS` 内无法稳定到目标，则转入 `ST_STOPPING`。
+- **故障优先级**：非 `ST_IDLE` 状态检测到故障应立即转入 `ST_FAULT`。
+
+## 5. 电压环闭环算法设计
+### 5.1 控制结构
+- **误差**：`e = vref - vmeas`。
+- **PI 控制**：`u = kp * e + integ`，`integ += ki * e`。
+- **频率映射**：以 `f_nom = (f_min + f_max)/2` 为中心，指令为 `f_cmd = f_nom - u`。
+- **限幅**：`f_cmd` 限制在 `[f_min, f_max]`。
+- **斜率限制**：`f_cmd` 相对上一次频率变化不超过 `f_slew`。
+
+### 5.2 抗积分饱和
+- 在 `f_cmd` 未饱和时更新积分项；
+- 在饱和时将积分限制到 `[f_min, f_max]` 允许范围，避免风up。
+
+### 5.3 参数整定流程
+1. **初始参数**：
+   - `kp` 选择为小信号增益的倒数，确保不振荡。
+   - `ki` 从 `kp / (10~20)` 起步。
+2. **闭环阶跃**：
+   - 在额定负载下做阶跃响应，调节 `kp` 以提升速度。
+   - 调整 `ki` 以减小稳态误差。
+3. **裕度验证**：
+   - 通过负载突变和母线扰动验证稳定性。
+   
+## 6. 保护与故障策略
+- **OVP**：`vout > LLC_VOUT_OVP_V` 立即进入 `ST_FAULT`。
+- **OCP**：`iout > LLC_IOUT_OCP_A` 立即进入 `ST_FAULT`。
+- **母线欠压**：`vbus < LLC_VBUS_MIN_START_V - LLC_VOUT_HYST_V` 进入 `ST_STOPPING`。
+
+## 7. 软启动与闭环切换策略
+- 软启动结束后进入 `ST_RUN_ENTRY_HOLD`，确认输出电压已接近目标。
+- 在稳定窗口内维持 `LLC_RUN_ENTRY_STABLE_TICKS` 后进入闭环。
+- 若超时仍未稳定，进入 `ST_STOPPING` 并等待重新条件满足。
+
+## 8. 参数与配置建议
+- **频率边界**：`LLC_F_MIN_HZ`、`LLC_F_MAX_HZ` 按谐振腔设计范围设置。
+- **斜率限制**：`LLC_F_SLEW_HZ` 用于限制控制带宽，抑制噪声放大。
+- **软启动参数**：`LLC_SOFTSTART_DURATION_MS` 与 `LLC_SOFTSTART_TARGET_HZ` 根据功率等级调整。
+
+## 9. 诊断与可观测性
+- 记录 `f_cmd`、`vout`、`iout`、`state`、`fault` 的时间序列。
+- 需要时在 `ST_LLC_RUN` 中加入额外的调试输出以评估控制性能。
+
+## 10. 关键数据流示意
+1. ADC 采样得到 `vout`/`iout`。
+2. `llc_app_tick_1khz` 更新测量与状态机。
+3. 在 `ST_LLC_RUN` 中执行 PI + 限幅 + 斜率限制。
+4. 更新 PWM 频率，驱动 LLC。
+
+
+

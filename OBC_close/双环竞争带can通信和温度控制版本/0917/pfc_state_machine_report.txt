@@ -1,0 +1,120 @@
+## 1. 状态机概览
+状态集合：  
+`PFC_ST_IDLE` → `PFC_ST_RAMP` → `PFC_ST_READY` → (故障检测) → `PFC_ST_FAULT`
+
+核心动作：  
+* **硬件主继电器**：`pfc_hw_set_main(true/false)`  
+* **BUS_ADJ PWM**：`pfc_pwm_set(0.0f)`（由 NCP1654 自闭环）  
+* **输出关断**：`pfc_outputs_off()`  
+
+## 2. 输入/输出信号
+### 2.1 关键输入
+
+| 输入源 | 符号/函数 | 说明 |
+| --- | --- | --- |
+| 交流电压 | `s_pfc.meas.vac_v` | 实时采样 VAC |
+| 母线电压 | `s_pfc.meas.vbus_v` | 实时采样 VBUS |
+| 硬件故障 | `protect_fault_active_hw()` | 立即进入 FAULT |
+| 软件故障 | `protect_fault_latched()` | 立即进入 FAULT |
+| 使能命令 | `s_pfc.enable_cmd` | 用户控制 |
+### 2.2 关键输出
+
+| 输出动作 | 函数 | 说明 |
+| --- | --- | --- |
+| 继电器 | `pfc_hw_set_main()` | 拉起/释放硬件使能 |
+| PWM | `pfc_pwm_set()` | BUS_ADJ 输出 |
+| 关断 | `pfc_outputs_off()` | PWM=0 + 继电器断开 |
+
+## 3. 计时器/阈值与去抖策略
+
+### 3.1 时间参数（常量）
+| 常量 | 说明 |
+| --- | --- |
+| `PFC_STARTUP_DELAY_MS` | IDLE→RAMP 的启动延时 |
+| `PFC_VBUS_RAMP_DELAY_MS` | 继电器拉起后，等待 VBUS 进入有效检测 |
+| `PFC_VBUS_RAMP_TIMEOUT_MS` | RAMP 阶段的超时上电失败判定 |
+| `PFC_READY_DELAY_MS` | VBUS稳定后进入 READY 的延时 |
+| `PFC_AC_OK_DEBOUNCE_MS` | AC 正常去抖 |
+| `PFC_AC_LOSS_DEBOUNCE_MS` | AC 掉电去抖 |
+| `PFC_VBUS_DROPOUT_MS` | READY 掉电去抖 |
+| `PFC_FAULT_RESTART_MS` | FAULT 冷却时间 |
+
+### 3.2 去抖封装
+
+* **AC OK 去抖**：`pfc_ac_ok_debounced()`  
+  * AC 连续正常超过 `PFC_AC_OK_DEBOUNCE_MS` 才认为有效。
+* **AC LOSS 去抖**：`pfc_ac_loss_debounced()`  
+  * AC 连续异常超过 `PFC_AC_LOSS_DEBOUNCE_MS` 才认为掉电。
+
+### 3.3 上电自检（VAC/VBUS 比例）
+
+* 目标：确保上电时 VBUS ≈ VAC × 1.414（整流有效值理论）。
+* 逻辑：`pfc_sample_inputs()` 内计算 `s_pfc.bus_matches_ac`，仅在硬件未使能前生效。
+* 比例稳定：`PFC_VBUS_VAC_RATIO_STABLE_MS`
+
+## 4. 状态详细设计
+
+### 4.1 `PFC_ST_IDLE`
+**进入条件**：初始化、FAULT退出、掉电、或用户撤销使能。  
+**退出条件**：使能命令成立 + AC 稳定 + 上电自检通过 + 启动延时达到。
+**动作流程**：
+1. 未使能 → 立即关断 + 重置启动计时器。
+2. AC 去抖未完成 → 关断 + 重置启动计时器。
+3. 上电自检失败 → 关断 + 重置启动计时器。
+4. 启动延时到 → 拉起继电器，进入 `PFC_ST_RAMP`。
+### 4.2 `PFC_ST_RAMP`
+
+**目标**：等待母线电压进入有效范围并稳定。  
+**关键动作**：
+* 确保继电器保持拉起。
+* 维持 PWM=0（NCP1654 自闭环）。
+
+**退出条件**：
+* 使能取消 / AC 掉电 → 回 `IDLE`。
+* VBUS 达到 `[PFC_VBUS_ENABLED_MIN_V, PFC_VBUS_ENABLED_MAX_V]` 且稳定 → `READY`。
+* VBUS 超时未达标 → `FAULT`。
+### 4.3 `PFC_ST_READY`
+
+**目标**：稳定运行状态。  
+**关键动作**：
+* 继电器必须保持拉起。
+* PWM 维持 0。
+* 监控 VBUS 掉电与 AC 掉电。
+
+**退出条件**：
+* 使能取消 / AC 掉电 → 回 `IDLE`。
+* VBUS 低于阈值并持续 `PFC_VBUS_DROPOUT_MS` → 回 `IDLE`。
+### 4.4 `PFC_ST_FAULT`
+
+**目标**：安全锁定 + 可恢复。  
+**动作**：
+1. 输出全关断。
+2. 若硬件故障仍在 → 持续停留。
+3. 若 enable 取消 → 回 `IDLE`。
+4. 若 enable 仍在且超过冷却时间 → 清锁存 → 回 `IDLE`。
+
+## 5. 状态迁移表（摘要）
+| 当前状态 | 条件 | 下一状态 | 动作 |
+| --- | --- | --- | --- |
+| IDLE | enable=0 | IDLE | 关断 + 计时清零 |
+| IDLE | AC未稳定 | IDLE | 关断 + 计时清零 |
+| IDLE | 通过自检 + 启动延时 | RAMP | 拉继电器 |
+| RAMP | enable=0 / AC掉电 | IDLE | 关断 |
+| RAMP | VBUS稳定 | READY | 进入稳态 |
+| RAMP | 超时 | FAULT | 故障 |
+| READY | enable=0 / AC掉电 / VBUS掉电 | IDLE | 关断 |
+| ANY | 过压/硬件故障 | FAULT | 关断 |
+| FAULT | 冷却完成 + 可清除 | IDLE | 清故障 |
+
+## 6. 优化点说明
+
+1. **去抖统一化**  
+   通过 `pfc_ac_ok_debounced()` 与 `pfc_ac_loss_debounced()` 统一 AC 去抖逻辑，减少重复判断和计时器管理。
+2. **启动计时器集中管理**  
+   `pfc_reset_startup_timers()` 在 IDLE 中统一清理启动相关计时，避免漏清/误清。
+3. **状态逻辑收敛**  
+   在 IDLE 中严格按 **“使能 → AC稳定 → 上电自检 → 延时 → 拉继电器”** 的顺序执行，减少隐式分支。
+
+
+
+
