@@ -4,7 +4,9 @@
 #define TEMP_PULLUP_OHM        (10000.0f)
 #define TEMP_ADC_MAX_COUNTS    (4095.0f)
 #define TEMP_OVERLIMIT_C       (90.0f)
-#define DEBUG_PRINTF_TEMP_CONTROL 1
+#ifndef DEBUG_PRINTF_TEMP_CONTROL
+#define DEBUG_PRINTF_TEMP_CONTROL 0
+#endif
 typedef struct {
     int8_t temp_c;
     float resistance_ohm;
@@ -264,9 +266,6 @@ static void temp_sensor_update(temp_sensor_data_t *sensor, uint16_t raw)
     sensor->raw = raw;
 	//函数返回 bool 表示计算是否成功（即原始值是否有效、电压是否在合理范围内）通过指针参数 &sensor->resistance_ohm 输出计算出的电阻值（单位：Ω）
     sensor->valid = ntc_resistance_from_adc(raw, &sensor->resistance_ohm);
-	  #if DEBUG_PRINTF_TEMP_CONTROL
-    debug_printf("RAW=%4u, Valid=%d, R=%.1f ohm", raw, sensor->valid, sensor->resistance_ohm);
-    #endif
     if (sensor->valid) {
 			  //ntc_temperature_from_resistance：调用查表插值函数，将电阻值转换为温度（℃）。
         sensor->temperature_c = ntc_temperature_from_resistance(sensor->resistance_ohm);
@@ -276,9 +275,6 @@ static void temp_sensor_update(temp_sensor_data_t *sensor, uint16_t raw)
         sensor->temperature_c = 0.0f;
         sensor->over_limit = false;
     }
-		#if DEBUG_PRINTF_TEMP_CONTROL
-				debug_printf(", T=%.1f C, Over=%d\n", sensor->temperature_c, sensor->over_limit);
-    #endif
 }
 
 void temp_control_init(void)
@@ -296,6 +292,19 @@ void temp_control_tick_1khz(void)
 {
     temp_sensor_update(&s_pfc_temp, g_adc_multi.tsense_pfc_raw);
     temp_sensor_update(&s_llc_temp, g_adc_multi.tsense_llc_raw);
+#if DEBUG_PRINTF_TEMP_CONTROL
+    static uint32_t s_last_print_ms = 0U;
+    if (elapsed_reached(s_last_print_ms, 200U)) {
+        s_last_print_ms = g_ms;
+        int32_t pfc_c10 = (int32_t)(s_pfc_temp.temperature_c * 10.0f);
+        int32_t llc_c10 = (int32_t)(s_llc_temp.temperature_c * 10.0f);
+        debug_printf("[TEMP] PFC=%ld.%ldC(%s) LLC=%ld.%ldC(%s)\n",
+            (long)(pfc_c10 / 10), (long)(pfc_c10 % 10 < 0 ? -(pfc_c10 % 10) : pfc_c10 % 10),
+            s_pfc_temp.over_limit ? "OVR" : "OK",
+            (long)(llc_c10 / 10), (long)(llc_c10 % 10 < 0 ? -(llc_c10 % 10) : llc_c10 % 10),
+            s_llc_temp.over_limit ? "OVR" : "OK");
+    }
+#endif
 }
 
 void temp_control_get_pfc(temp_sensor_data_t *out)

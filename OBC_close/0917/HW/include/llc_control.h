@@ -39,6 +39,7 @@ typedef struct {
 	float e_db, f_q_step;
 	float f_cmd_v, f_cmd_i;
 	
+	bool ctrl_en_z1;
 } llc_t;
 //static llc_t s_llc;
 

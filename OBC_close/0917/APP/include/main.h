@@ -127,9 +127,7 @@
 #define LLC_F_DEBUG_HZ      (130000.0f)
 
 
-#define LLC_CTRL_TS_S           (0.001f)
-#define LLC_VCTRL_KP            (1400.0f)
-#define LLC_VCTRL_KI            (100.0f)
+#define LLC_CTRL_TS_S           (0.0005f)
 #define LLC_VCTRL_F_NOM_HZ       (100000.0f)
 #define LLC_VCTRL_E_DB_V         (0.15f)
 #define LLC_VCTRL_F_Q_STEP_HZ    (100.0f)
@@ -300,10 +298,10 @@ static inline uint32_t elapsed_since(uint32_t start_ms)
 
 static inline bool elapsed_reached(uint32_t start_ms, uint32_t duration_ms)
 {
-	if (duration_ms == 0) {
+    if (duration_ms == 0U) {
 					return true;
 	}
-	if (start_ms == 0) {
+    if (start_ms == 0U) {
 					return false;
 	}
 	return elapsed_since(start_ms) >= duration_ms;

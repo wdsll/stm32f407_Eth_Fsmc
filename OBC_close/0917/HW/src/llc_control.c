@@ -112,6 +112,7 @@ static bool llc_precheck_ok(void);
 static bool llc_pfc_ready_stable(bool enable_llc);
 static bool llc_faults_present(void);
 static void llc_enter_fault(void);
+static bool llc_is_active_state(llc_state_t st);  /* 前向声明 */
 //单环版本的
 // static float llc_ctrl_step(float e);
 //双环竞争版本的
@@ -291,7 +292,7 @@ static void llc_set_freq(float hz, bool force_update)
 *********************************************************************************************************/
 static float llc_ctrl_step(float e, bool en, bool limit_active, float f_init, float f_track)
 {
-	  static bool en_z1 = false;  // 记录上一次的使能状态
+    /* 使能记忆使用结构体字段，而非函数内 static，便于状态机切换时统一重置 */
 	  float kp = s_llc.kp;
     float ki = s_llc.ki;
     float f_min = s_llc.f_min;
@@ -324,17 +325,19 @@ static float llc_ctrl_step(float e, bool en, bool limit_active, float f_init, fl
 		if (!en) {
 			s_llc.integ = 0.0f; // 重置积分器
 			s_llc.f_cmd = f_init; // 设置初始频率
-			en_z1 = false;  // 清除使能记忆
+        s_llc.ctrl_en_z1 = false;  /* 清除使能记忆，下次进入时重新做 bumpless 初始化 */
 			return s_llc.f_cmd;
 		}
+		if (e_db < 0.0f) 
+			e_db = 0.0f;
 		//死区处理避免控制器对微小误差的过度反应，应用场景：减少噪声引起的振荡，提高系统稳定性
 		float e_pi = (fabsf(e) < e_db) ? 0.0f : e;
-		if (!en_z1) {
+    if (!s_llc.ctrl_en_z1) {
 			s_llc.f_cmd = f_init;
 			//s_llc.integ = (f_nom - f_init) - kp * e;
 			//调用专用函数计算积分初始值，实现“无扰切换”（bumpless transfer）。
-			s_llc.integ = llc_bumpless_integ(f_init, e_pi, kp, f_nom, f_min, f_max);
-			en_z1 = true; // 记录上一次的使能状态为已经使能
+			s_llc.integ = llc_bumpless_integ(f_init, e_pi, kp, f_nom, f_min, f_max); //u0 = f_nom -  f_init
+        s_llc.ctrl_en_z1 = true;
     }
     float f_prev = s_llc.f_cmd; // 上一次的频率
 		float f_sat = f_prev; // 限幅后的频率
@@ -345,9 +348,8 @@ static float llc_ctrl_step(float e, bool en, bool limit_active, float f_init, fl
         s_llc.integ = (f_nom - f_t) - kp * e_pi; // 重置积分器以防积分风up
         f_sat = f_t; // 设置限幅后的频率为跟踪频率
         //f_prev = f_t; //	更新上一次的频率
-    } 
-		else
-		{
+    } else {
+        /* 电压 PI 控制：e>0(Vref>Vout) → 加功率 → 频率下降 */
 			//u 是 PI 控制器根据电压误差计算出的频率调整量，决定了当前周期应当向 f_nom 增加或减少多少频率，以维持输出电压稳定。它是电压环的核心输出，
 			//后续经过限幅、斜率限制等保护环节，最终生成安全的开关频率命令 f_cmd。
 			float x_candidate = s_llc.integ + ki * e_pi; 
@@ -843,13 +845,22 @@ void llc_app_init(void)
         .f_cmd_i = 0.0f
     };
 	s_llc_curr = (llc_curr_t){
-				.iref=LLC_IOUT_TARGET_A,.iref_cmd=LLC_IOUT_TARGET_A,.imeas=0.0f, .i_err_sat=LLC_IOUT_ERR_SAT_A,
-				.kp=LLC_IOUT_CTRL_KP, .ki=LLC_IOUT_CTRL_KI * LLC_CTRL_TS_S, .integ=0.0f,
-				.f_min=LLC_F_MIN_HZ, .f_max=LLC_F_MAX_HZ,
-				.df_max=LLC_IOUT_DF_MAX_HZ, .df_slew=LLC_IOUT_DF_SLEW_HZ_S * LLC_CTRL_TS_S, .df_prev=0.0f,
+				.iref=LLC_IOUT_TARGET_A, //原始目标电流
+				.iref_cmd=LLC_IOUT_TARGET_A, //当前实际生效的目标电流
+		    .imeas=0.0f,  //当前测量电流，初始化为 0
+				.i_err_sat=LLC_IOUT_ERR_SAT_A, //电流误差限幅，防止 ierr = i_meas - iref_cmd 太大时把 PI 一下冲飞
+				.kp=LLC_IOUT_CTRL_KP, 
+				.ki=LLC_IOUT_CTRL_KI * LLC_CTRL_TS_S, 
+				.integ=0.0f,
+				.f_min=LLC_F_MIN_HZ, 
+				.f_max=LLC_F_MAX_HZ,
+				.df_max=LLC_IOUT_DF_MAX_HZ,  //电流环最多能把频率从 f_min 往上抬多少
+				.df_slew=LLC_IOUT_DF_SLEW_HZ_S * LLC_CTRL_TS_S, 
+				.df_prev=0.0f, //上一拍电流环输出，供 slew 限制使用
 				.i_on=LLC_IOUT_TARGET_A + LLC_IOUT_ON_DELTA_A,
 				.i_off=LLC_IOUT_TARGET_A - LLC_IOUT_OFF_DELTA_A,
-		    .derate_step_ms=0U, .derate_recover_ms=0U,
+		    .derate_step_ms=0U, //多久允许再往下降一步
+				.derate_recover_ms=0U, //多久允许再恢复一步
 				.limit_active=false
 	};
 		llc_current_thresholds_update();
@@ -860,10 +871,6 @@ void llc_app_init(void)
     llc_state_enter(ST_IDLE);
 }
 
-
-static uint8_t vloop_div = 0;
-static uint8_t vout_filt_inited = 0U;
-#if 1
 /*********************************************************************************************************
 * 函数名称：llc_app_tick_100us
 * 函数功能：实现了 LLC 变换器的 100μs 周期性控制任务，包括输出电压滤波、电压闭环控制及 Burst 模式管理
@@ -883,31 +890,31 @@ static uint8_t vout_filt_inited = 0U;
 *********************************************************************************************************/
 void llc_app_tick_100us(void)
 {
+		static uint8_t vloop_div = 0;
+		
 	  static float vout_filt_v   = 0.0f;   /* 电压PI用滤波状态 */
-    float err;
-    float f_cmd;
-	
-	
+    static uint8_t vout_filt_inited = 0U; /* 滤波器初始化标志，局部即可 */
+
     if (s_llc_rt.app.state != ST_LLC_RUN ) {
 			vloop_div = 0;
 			vout_filt_inited = 0U;
       return;
     }	
-
 		 /* =========================
      * 正常电压PI模式
      * raw -> 电压 -> 滤波 -> PI
      * err = vref - vmeas
      * ========================= */
     float vout_now = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
-		
+		float iout_now = conv_adc_to_i(g_adc_multi.isense_raw);
 		if (!vout_filt_inited) {
 				vout_filt_v = vout_now;
 				vout_filt_inited = 1U;
 		}
-	  if (vout_filt_v < 0.001f) {
-					vout_filt_v = vout_now;
-			}
+	  if (vout_filt_v < 0.001f) 
+		{
+				vout_filt_v = vout_now;
+		}
     /* 100us快环滤波，alpha可后续再调 */
     vout_filt_v += LLC_VOUT_FILT_ALPHA * (vout_now - vout_filt_v);
     s_llc.vmeas = vout_filt_v;
@@ -918,16 +925,18 @@ void llc_app_tick_100us(void)
     return;
 #endif
 		// 1. 电压环计算
-    err = s_llc.vref - s_llc.vmeas;
+    float err = s_llc.vref - s_llc.vmeas;
 		float f_init  = s_llc.f_cmd;                           // 上一拍下发的频率（用于slew基准）
-		// 2. 降额保护更新
-		llc_derate_update(s_llc_rt.meas.iout_a, llc_temp_derate_active());
+	
 
 		
-		if (++vloop_div >= 5U) {   // 500us
+		if (++vloop_div >= 5U) 
+		{   // 500us
 			vloop_div = 0;
+			// 2. 降额保护更新
+			llc_derate_update(iout_now, llc_temp_derate_active());
 			// 3. 电流限制环
-			float df_i = llc_current_limit_step(s_llc_rt.meas.iout_a, true);
+			float df_i = llc_current_limit_step(iout_now, true);
 			float f_cmd_i = s_llc.f_min + df_i;
 			/* 关键：用 df_i 判断当前是否仍被电流环抬高（不要用 limit_active） */
 			// 4. 电压控制环（考虑电流限制）
@@ -935,10 +944,19 @@ void llc_app_tick_100us(void)
 			float f_cmd_v = llc_ctrl_step(err, true, lim_for_v, f_init, f_cmd_i); 
 			float f_cmd = (f_cmd_i > f_cmd_v) ? f_cmd_i : f_cmd_v; 
 			llc_set_freq(f_cmd, false);  /* 自然更新：闭环微调 */
-			}
 		}
-		
-#endif 
+}
+/*********************************************************************************************************
+* 函数名称：llc_is_active_state
+* 函数功能：判断指定的LLC状态是否为活跃工作状态
+* 输入参数：st - 待判断的LLC状态枚举值
+* 输出参数：无
+* 返 回 值：true-表示该状态为活跃状态；false-表示该状态为非活跃状态（IDLE或FAULT）
+* 创建日期：2026年04月08日
+* 注    意：活跃状态包括：PRECHECK、SOFTSTART、RUN_ENTRY_HOLD、LLC_RUN、CYCLE_STOPPING、STOPPING；
+*           非活跃状态包括：IDLE（空闲）和FAULT（故障）；
+*           该函数用于故障检测逻辑中，仅在活跃状态下才进行故障判断，避免待机时误报欠压故障
+*********************************************************************************************************/		
 static bool llc_is_active_state(llc_state_t st)
 {
     return (st == ST_PRECHECK) ||
@@ -948,47 +966,50 @@ static bool llc_is_active_state(llc_state_t st)
            (st == ST_CYCLE_STOPPING) ||
            (st == ST_STOPPING);
 }
-
-
-static bool power_stage_all_idle(void)
-{
-    /* PFC 还ready，说明前级仍处于工作/可工作态，不允许刷日志 */
-    if (pfc_is_ready()) {
-        return false;
-    }
-
-    /* LLC 仍在活动态，也不允许刷日志 */
-    if (llc_is_active_state(s_llc_rt.app.state)) {
-        return false;
-    }
-		return true;
-}
-
+/*********************************************************************************************************
+* 函数名称：llc_app_tick_1khz
+* 函数功能：实现 LLC 变换器的 1kHz 周期性主控制任务，包括状态机管理、测量更新、故障检测及模式切换
+* 输入参数：void
+* 输出参数：无
+* 返 回 值：void
+* 创建日期：2026年04月08日
+* 注    意：该函数在 1kHz 定时器中断中调用，是 LLC 控制的主状态机入口；
+*           1. 测量更新：调用 llc_update_measurements 更新电压、电流、温度等测量值；
+*           2. 故障检测：在非空闲和非故障状态下检测故障，触发 llc_enter_fault；
+*           3. 状态机切换：实现 9 个状态的转换逻辑；
+*              - ST_IDLE：PFC 就绪且预检通过时进入 ST_PRECHECK；
+*              - ST_PRECHECK：等待 100ms 稳定后进入 ST_SOFTSTART；
+*              - ST_SOFTSTART：执行软启动，时间到后进入 ST_RUN_ENTRY_HOLD；
+*              - ST_RUN_ENTRY_HOLD：等待输出电压稳定（误差窗口内持续一定周期）或超时；
+*              - ST_LLC_RUN：正常运行状态，母线电压过低时进入 ST_STOPPING；
+*              - ST_CYCLE_STOPPING：执行软关断，延时后重新启动；
+*              - ST_STOPPING：执行软关断，完成后回到 ST_IDLE；
+*              - ST_FAULT：故障状态，当前无恢复逻辑；
+*           4. 使能控制：LLC_ENABLE 宏与 PFC 就绪状态共同决定 enable_llc；
+*           5. 预检保护：各运行状态下持续检查 llc_precheck_ok，失败则进入 ST_STOPPING
+*********************************************************************************************************/
 void llc_app_tick_1khz(void)
 {
-		llc_update_measurements();
-		bus_vol_adj_follow_vout(s_llc.vref, s_llc_rt.meas.vout_v, s_llc_rt.meas.vbus_v,
-													(pfc_is_ready() && (s_llc_rt.app.state != ST_IDLE) && (s_llc_rt.app.state != ST_FAULT)));
-	  bool enable_llc = (LLC_ENABLE != 0) && pfc_is_ready();
-		//bool enable_llc = pfc_is_ready();
-		bool pfc_ready_stable = llc_pfc_ready_stable(enable_llc);
-		if (s_llc_rt.app.state != ST_IDLE && s_llc_rt.app.state != ST_FAULT) {
-			if (llc_faults_present()) {
-				llc_enter_fault();
-				return;
-			}
+	llc_update_measurements(); // 更新电压/电流/温度
+	bool enable_llc = (LLC_ENABLE != 0) && pfc_is_ready();// 使能条件
+	bool pfc_ready_stable = llc_pfc_ready_stable(enable_llc);// 稳定延时
+	if (s_llc_rt.app.state != ST_IDLE && s_llc_rt.app.state != ST_FAULT) {
+		if (llc_faults_present()) {
+			llc_enter_fault();
+			return; // 立即退出，不再执行后续状态处理
 		}
+	}
 	switch(s_llc_rt.app.state)
 	{
-		case ST_IDLE:
+		case ST_IDLE: //	PFC稳定+预检通过
 		{
 			if(pfc_ready_stable &&llc_precheck_ok())
 			{
 				llc_state_enter(ST_PRECHECK);
 			}
 			break;
-	}
-		case ST_PRECHECK:
+		}
+		case ST_PRECHECK: //	时间到+条件保持
 		{
         if (!enable_llc) {
           llc_state_enter(ST_STOPPING);
@@ -1005,7 +1026,7 @@ void llc_app_tick_1khz(void)
 			
         break;
 			}
-		case ST_SOFTSTART:
+		case ST_SOFTSTART: //300ms+50ms延时到
 		{
 			llc_softstart_tick_1khz();
 			if(!enable_llc|| !llc_precheck_ok())
@@ -1023,7 +1044,7 @@ void llc_app_tick_1khz(void)
 		
 			break;
 		}
-    case ST_RUN_ENTRY_HOLD:
+    case ST_RUN_ENTRY_HOLD: //6V窗口内稳定2次+20ms
 		{
 			float hold_err;
 			if(!enable_llc|| !llc_precheck_ok())
@@ -1053,7 +1074,7 @@ void llc_app_tick_1khz(void)
 			}
 				break;		
 		}
-		case ST_LLC_RUN:
+		case ST_LLC_RUN: // 母线低压/使能关闭时退出
 		{
 			if(!enable_llc||(s_llc_rt.meas.vbus_v<(LLC_VBUS_MIN_START_V-LLC_VOUT_HYST_V)))
 			{
@@ -1063,7 +1084,7 @@ void llc_app_tick_1khz(void)
 			break;
 	 }
 		
-		case ST_CYCLE_STOPPING:
+		case ST_CYCLE_STOPPING: //关断完成+500ms等待
 		{
 			/* 执行软关断tick */
 			llc_softstop_tick_1khz();
@@ -1082,7 +1103,7 @@ void llc_app_tick_1khz(void)
 			}
 			break;
 		}
-		case ST_STOPPING:
+		case ST_STOPPING: //关断完成→IDLE
 		{
 			/* 执行软关断tick */
 			llc_softstop_tick_1khz();
@@ -1106,6 +1127,8 @@ void llc_app_tick_1khz(void)
 			break;
 	 }
 	
+    /* 风扇控制：状态机处理完毕后统一更新，根据当前状态和输出电流决定风扇开关 */
+    //llc_fan_tick();
 }
 
 llc_state_t llc_app_state(void)

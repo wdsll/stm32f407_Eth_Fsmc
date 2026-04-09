@@ -54,18 +54,11 @@ static void adc_fast_task_100us(void);
 /*********************************************************************************************************
 *                                              内部函数实现
 *********************************************************************************************************/
-void systick_config(void)
-{
+
     /* setup systick timer for 1000Hz interrupts */
-    if (SysTick_Config(SystemCoreClock / 1000U)){
         /* capture error */
-        while (1){
-        }
-    }
 		
     /* configure the systick handler priority */
-    NVIC_SetPriority(SysTick_IRQn, 0x00U);
-}
 void systick_1ms_init(void){
 		SystemCoreClockUpdate();    
      uint32_t reload  = SystemCoreClock / 1000U;
@@ -127,13 +120,6 @@ void TIMER3_IRQHandler(void)
         timer_interrupt_flag_clear(TIMER3, TIMER_INT_FLAG_UP);
         //adc_fast_task_100us(); // 直接触发ADC0软件采集
 			  s_adc_fast_tick_pending++;
-			#if 0
-			  if (s_adc_fast_tick_pending < 1000U) {
-            s_adc_fast_tick_pending++;
-        } else {
-            s_adc_fast_tick_drop_count++;
-        }
-			#endif
     }
 }
 
@@ -305,18 +291,6 @@ int main(void){
 						pending_ticks = MAX_TICKS_PER_LOOP;
 					}
 			}
-#if 0
-			static uint32_t last_ms = 0;
-if ((g_ms - last_ms) >= 1000U) {
-    last_ms = g_ms;
-    debug_printf("[MAIN] g_ms=%lu\r\n", (unsigned long)g_ms);
-}
-#endif	
-			/* 非阻塞串口发送任务 - 频率控制 */
-	
-				if ((debug_buffer_used() > 0U)) {
-					debug_tx_task();
-				}
 			
     }
 }

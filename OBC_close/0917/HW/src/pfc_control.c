@@ -327,7 +327,7 @@ static void pfc_handle_fault(const char *reason)
 *********************************************************************************************************/
 void pfc_init(void)
 {
-//复合字面量语法： (pfc_ctx_t){0} 是C99特性，比 memset 更安全
+	//复合字面量语法： (pfc_ctx_t){0} 是C99特性，比 memset 更安全
     s_pfc = (pfc_ctx_t){0};
     
 	/* PB0 PWM 仍初始化，但三态机阶段保持 0 */
@@ -374,7 +374,7 @@ void adc_test(void)
 * 创建日期：2025年12月29
 * 注    意：PFC_ST_IDLE → PFC_ST_RAMP ->PFC_ST_READY → (故障检测) → PFC_ST_FAULT
 *********************************************************************************************************/
-uint32_t bkin_flag = 0;
+static uint32_t bkin_flag = 0U; /* 仅本模块内部使用，不对外暴露 */
 void pfc_tick_1khz(void)
 {
   pfc_sample_inputs();                                    // 采集ADC输入信号，更新测量数据
