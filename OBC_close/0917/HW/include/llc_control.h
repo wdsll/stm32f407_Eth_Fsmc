@@ -42,7 +42,13 @@ typedef struct {
 	bool ctrl_en_z1;
 } llc_t;
 //static llc_t s_llc;
-
+typedef struct
+{
+    float vout_v;
+    float iout_a;
+    float vbus_v;
+    llc_state_t state;
+} llc_status_t;
 /*********************************************************************************************************
 *                                              API函数声明
 *********************************************************************************************************/
@@ -51,10 +57,16 @@ void llc_app_tick_1khz(void);
 void llc_app_tick_100us(void);
 void llc_app_tick_1khz_withoutVbus(void);
 llc_state_t llc_app_state(void);
-
-
 void llc_app_tick_adc_test(void);
 
-
+/* 新增：上层充电管理接口 */
+void llc_set_run_request(bool en);
+bool llc_get_run_request(void);
+void llc_set_vref(float vref);
+float llc_get_vref(void);
+void llc_set_iref(float iref);
+float llc_get_iref(void);
+void llc_get_status(llc_status_t *st);
+bool llc_is_fault_state(void);
 
 #endif /* LLC_CONTROL_H */

@@ -4,6 +4,7 @@
 *********************************************************************************************************/
 #include "main.h"
 #include "temp_control.h"
+#include "charge_ctrl.h"
 /*********************************************************************************************************
 *                                              宏定义
 *********************************************************************************************************/
@@ -197,8 +198,8 @@ static void control_loop_tick_1khz(void){
 		adc_multi_sample_aux_1khz();
 		
     pfc_tick_1khz();
+	  charge_ctrl_tick_1khz();   /* 先更新 run_request / vref / iref / relay */
     llc_app_tick_1khz();
-		//llc_app_tick_adc_test();
 
 }
 
@@ -247,6 +248,7 @@ int main(void){
 
 		pfc_init();
 		llc_app_init();
+		charge_ctrl_init();
 		delay_ms(1000);
 		pfc_enable();
 

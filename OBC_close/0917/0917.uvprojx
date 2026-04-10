@@ -442,6 +442,16 @@
               <FileType>5</FileType>
               <FilePath>.\APP\include\temp_control.h</FilePath>
             </File>
+            <File>
+              <FileName>charge_ctrl.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\APP\src\charge_ctrl.c</FilePath>
+            </File>
+            <File>
+              <FileName>charge_ctrl.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\APP\include\charge_ctrl.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

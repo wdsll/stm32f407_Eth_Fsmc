@@ -100,6 +100,7 @@ typedef struct {
 
 static llc_curr_t s_llc_curr;
 static llc_t s_llc; //llc上下文
+static bool s_llc_run_request = false;
 /*********************************************************************************************************
 *                                              内部函数声明
 *********************************************************************************************************/
@@ -113,8 +114,7 @@ static bool llc_pfc_ready_stable(bool enable_llc);
 static bool llc_faults_present(void);
 static void llc_enter_fault(void);
 static bool llc_is_active_state(llc_state_t st);  /* 前向声明 */
-//单环版本的
-// static float llc_ctrl_step(float e);
+
 //双环竞争版本的
 static float llc_ctrl_step(float e, bool en, bool limit_active, float f_init, float f_track);
 static float llc_bumpless_integ(float f0, float e0, float kp, float f_nom, float f_min, float f_max);
@@ -130,6 +130,59 @@ static bool llc_overtemp_shutdown(void);
 /*********************************************************************************************************
 *                                              静态工具
 *********************************************************************************************************/
+
+void llc_set_run_request(bool en)
+{
+    s_llc_run_request = en;
+}
+
+bool llc_get_run_request(void)
+{
+    return s_llc_run_request;
+}
+
+void llc_set_vref(float vref)
+{
+    /* 给一点基础钳位，避免乱写 */
+    s_llc.vref = f_clampf(vref, 0.0f, LLC_VOUT_OVP_V - 0.5f);
+}
+
+float llc_get_vref(void)
+{
+    return s_llc.vref;
+}
+
+void llc_set_iref(float iref)
+{
+    float i = f_clampf(iref, 0.0f, LLC_IOUT_TARGET_A);
+    s_llc_curr.iref = i;
+    if (s_llc_curr.iref_cmd > i || s_llc_curr.iref_cmd <= 0.0f) {
+        s_llc_curr.iref_cmd = i;
+    }
+    llc_current_thresholds_update();
+}
+
+float llc_get_iref(void)
+{
+    return s_llc_curr.iref;
+}
+
+void llc_get_status(llc_status_t *st)
+{
+    if (st == NULL) {
+        return;
+    }
+
+    st->vout_v = s_llc_rt.meas.vout_v;
+    st->iout_a = s_llc_rt.meas.iout_a;
+    st->vbus_v = s_llc_rt.meas.vbus_v;
+    st->state  = s_llc_rt.app.state;
+}
+
+bool llc_is_fault_state(void)
+{
+    return (s_llc_rt.app.state == ST_FAULT);
+}
 static inline float conv_adc_to_v_div(uint16_t raw, float rtop, float rbot)
 {
     float v = (raw * VREF_ADC) / 4095.0f;
@@ -144,7 +197,7 @@ static inline float conv_adc_to_i(uint16_t raw)
 
 static inline float llc_get_f_nom(float f_min, float f_max, float f_stage_cmd)
 {
-#if  (LLC_F_NOM_FOLLOW_MODE == LLC_F_NOM_FOLLOW_TARGET_FREQ)
+#if (LLC_F_NOM_FOLLOW_MODE == LLC_F_NOM_FOLLOW_TARGET_FREQ)
     if (f_stage_cmd >= f_min && f_stage_cmd <= f_max) {
         return f_stage_cmd;
     }
@@ -268,11 +321,16 @@ static void llc_fan_tick(void)
         fan_off_delay_ms = 0U;
     }
 }
-/**
- * @brief 设置LLC开关频率
- * @param hz 目标频率
- * @param force_update 是否强制立即更新（见llc_pwm_set_freq说明）
- */
+
+/*********************************************************************************************************
+* 函数名称：llc_set_freq
+* 函数功能：
+* 输入参数：hz 目标频率
+* 输出参数：
+* 返 回 值：
+* 创建日期：2026年04月08日
+* 注    意：force_update 是否强制立即更新（见llc_pwm_set_freq说明）
+*********************************************************************************************************/
 static void llc_set_freq(float hz, bool force_update)
 {
     float f = f_clampf(hz, s_llc.f_min, s_llc.f_max);
@@ -297,17 +355,18 @@ static float llc_ctrl_step(float e, bool en, bool limit_active, float f_init, fl
     float ki = s_llc.ki;
     float f_min = s_llc.f_min;
     float f_max = s_llc.f_max;
-    float f_slew = s_llc.f_slew;
+    float f_slew = s_llc.f_slew; 
 	  float f_nom = s_llc.f_nom;  //额定频率（与软启动末拍对齐）
     float e_db = s_llc.e_db; 
     float f_q_step = s_llc.f_q_step;  //频率量化步进
 	
+    //1.f_min/f_max/kp/ki/f_nom/f_q_step 合法性检查
 	  if (f_min <= 0.0f || f_min >= f_max) {
-        f_min = 75000.0f;
-        f_max = 150000.0f;
+        f_min = 65000.0f;
+        f_max = 250000.0f;
     }
     if (f_slew <= 0.0f) {
-        f_slew = 1000.0f;
+        f_slew = 3000.0f;
     }
     if (kp <= 0.0f) {
         kp = 10.0f;
@@ -322,38 +381,39 @@ static float llc_ctrl_step(float e, bool en, bool limit_active, float f_init, fl
 		{
 			 f_q_step = 0.0f;
 		}
+		//2.是否使能电压环
 		if (!en) {
 			s_llc.integ = 0.0f; // 重置积分器
-			s_llc.f_cmd = f_init; // 设置初始频率
-        s_llc.ctrl_en_z1 = false;  /* 清除使能记忆，下次进入时重新做 bumpless 初始化 */
+			s_llc.f_cmd = f_init; // 设置电压环环路控制的初始频率
+      s_llc.ctrl_en_z1 = false;  /* 清除使能记忆，下次进入时重新做 bumpless 初始化 */
 			return s_llc.f_cmd;
 		}
 		if (e_db < 0.0f) 
 			e_db = 0.0f;
 		//死区处理避免控制器对微小误差的过度反应，应用场景：减少噪声引起的振荡，提高系统稳定性
 		float e_pi = (fabsf(e) < e_db) ? 0.0f : e;
+		//3.是否是首次执行
     if (!s_llc.ctrl_en_z1) {
 			s_llc.f_cmd = f_init;
 			//s_llc.integ = (f_nom - f_init) - kp * e;
 			//调用专用函数计算积分初始值，实现“无扰切换”（bumpless transfer）。
 			s_llc.integ = llc_bumpless_integ(f_init, e_pi, kp, f_nom, f_min, f_max); //u0 = f_nom -  f_init
-        s_llc.ctrl_en_z1 = true;
+      s_llc.ctrl_en_z1 = true;
     }
     float f_prev = s_llc.f_cmd; // 上一次的频率
 		float f_sat = f_prev; // 限幅后的频率
-		
+		//优先级：电流保护 > 电压控制作用：当电流过大时，放弃电压环，跟踪电流环提供的频率
 		if (limit_active) {
-			//优先级：电流保护 > 电压控制作用：当电流过大时，放弃电压环，跟踪电流环提供的频率
         float f_t = f_clampf(f_track, f_min, f_max); //	电流限制时，跟踪频率
         s_llc.integ = (f_nom - f_t) - kp * e_pi; // 重置积分器以防积分风up
         f_sat = f_t; // 设置限幅后的频率为跟踪频率
         //f_prev = f_t; //	更新上一次的频率
     } else {
-        /* 电压 PI 控制：e>0(Vref>Vout) → 加功率 → 频率下降 */
+      /* 电压 PI 控制：e>0(Vref>Vout) → 加功率 → 频率下降 */
 			//u 是 PI 控制器根据电压误差计算出的频率调整量，决定了当前周期应当向 f_nom 增加或减少多少频率，以维持输出电压稳定。它是电压环的核心输出，
 			//后续经过限幅、斜率限制等保护环节，最终生成安全的开关频率命令 f_cmd。
-			float x_candidate = s_llc.integ + ki * e_pi; 
-			float u = kp * e_pi + x_candidate;
+			float x_candidate = s_llc.integ + ki * e_pi;  //∫edt = s_llc.integ 积分的累加值  ki * e_pi 本次误差的积分贡献
+			float u = kp * e_pi + x_candidate; //kp * e_pi 比例项即时响应
 			 		
 			/* LLC频率控制：
 			 * e > 0 (Vref > Vout) => 需要加功率 => 频率下降
@@ -478,17 +538,18 @@ static float llc_current_limit_step(float i_meas,bool en)
 
 /*********************************************************************************************************
 * 函数名称：llc_current_thresholds_update
-* 函数功能：
+* 函数功能：根据电流参考值 iref_cmd 动态计算迟滞比较器的上下阈值，实现电流限流模式的平滑切换
 * 输入参数：void
 * 输出参数：void
 * 返 回 值：void
-* 创建日期：2026年02月10日
-* 注    意：
+* 创建日期：2026年04月09日
+* 注    意：若单阈值：电流在阈值附近抖动 → 限流模式频繁开关 → 频率命令震荡
+						双阈值滞环：必须穿越整个滞回带才能切换，抗噪声干扰
 *********************************************************************************************************/
 static void llc_current_thresholds_update(void)
 {
-    float i_on  = s_llc_curr.iref_cmd + LLC_IOUT_ON_DELTA_A;
-    float i_off = s_llc_curr.iref_cmd - LLC_IOUT_OFF_DELTA_A;
+    float i_on  = s_llc_curr.iref_cmd + LLC_IOUT_ON_DELTA_A;  // 进入限流的阈值（偏高）
+    float i_off = s_llc_curr.iref_cmd - LLC_IOUT_OFF_DELTA_A; // 退出限流的阈值（偏低）
 
     if (i_on  < 0.0f) i_on  = 0.0f;
     if (i_off < 0.0f) i_off = 0.0f;
@@ -991,7 +1052,8 @@ static bool llc_is_active_state(llc_state_t st)
 void llc_app_tick_1khz(void)
 {
 	llc_update_measurements(); // 更新电压/电流/温度
-	bool enable_llc = (LLC_ENABLE != 0) && pfc_is_ready();// 使能条件
+	//bool enable_llc = (LLC_ENABLE != 0) && pfc_is_ready();// 使能条件
+	bool enable_llc = (LLC_ENABLE != 0) && pfc_is_ready() && s_llc_run_request;
 	bool pfc_ready_stable = llc_pfc_ready_stable(enable_llc);// 稳定延时
 	if (s_llc_rt.app.state != ST_IDLE && s_llc_rt.app.state != ST_FAULT) {
 		if (llc_faults_present()) {

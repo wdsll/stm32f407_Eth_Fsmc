@@ -2,6 +2,7 @@
 ".\objects\main.o"
 ".\objects\llc_soft_start.o"
 ".\objects\temp_control.o"
+".\objects\charge_ctrl.o"
 ".\objects\gd32f30x_adc.o"
 ".\objects\gd32f30x_bkp.o"
 ".\objects\gd32f30x_can.o"

@@ -124,8 +124,6 @@
 #define LLC_F_MAX_HZ        (250000.0f)
 #define LLC_F_INIT_HZ       (75000.0f)
 #define LLC_F_SLEW_HZ       (3000.0f)
-#define LLC_F_DEBUG_HZ      (130000.0f)
-
 
 #define LLC_CTRL_TS_S           (0.0005f)
 #define LLC_VCTRL_F_NOM_HZ       (100000.0f)
@@ -147,9 +145,9 @@
 #define LLC_VOUT_TARGET_V            (55.0f)
 #define LLC_VOUT_HYST_V              (15.0f)
 #define LLC_VOUT_OVP_V               (58.0f)
-#define LLC_IOUT_OCP_A               (42.0f)
+#define LLC_IOUT_OCP_A               (43.0f)
 
-#define LLC_IOUT_TARGET_A            (20.0f)
+#define LLC_IOUT_TARGET_A            (40.0f)
 #define LLC_IOUT_CTRL_KP             (400.0f)
 #define LLC_IOUT_CTRL_KI             (1200.0f)
 

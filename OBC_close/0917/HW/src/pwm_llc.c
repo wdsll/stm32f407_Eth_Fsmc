@@ -261,35 +261,35 @@ void llc_pwm_break(bool en){
  */
 void llc_pwm_set_freq(uint32_t f_hz, bool force_update)
 { 
-	if (f_hz == 0U) {
-		return;
-	}
-	uint32_t tclk = timer0_clk_hz();
-	if (tclk == 0U) {
-		return;
-	}
-	uint32_t ticks = tclk / f_hz;
-	if (ticks < 2U) {
-		ticks = 2U;
-	}
-	if (ticks > 0x10000U) {
-		ticks = 0x10000U;
-	}
-	s_period = ticks - 1U;
-	s_cfg.pwm_hz = tclk / ticks;
+		if (f_hz == 0U) {
+			return;
+		}
+		uint32_t tclk = timer0_clk_hz();
+		if (tclk == 0U) {
+			return;
+		}
+		uint32_t ticks = tclk / f_hz;
+		if (ticks < 2U) {
+			ticks = 2U;
+		}
+		if (ticks > 0x10000U) {
+			ticks = 0x10000U;
+		}
+		s_period = ticks - 1U;
+		s_cfg.pwm_hz = tclk / ticks;
 
-    /* 更新 ARR（CAR），写入影子寄存器 */
-    TIMER_CAR(TIMER0) = s_period;	
-	
-	/* 根据占空比计算CCR并更新 */
-	uint16_t pwm_ccr = duty_to_ccr(s_cfg.duty);
-	timer_channel_output_pulse_value_config(TIMER0, LLC_PWM_CH, pwm_ccr);	
-	
-	/* 根据场景决定是否强制立即更新 */
-	if (force_update) {
-		timer_event_software_generate(TIMER0, TIMER_EVENT_SRC_UPG);
-	}
-	/* force_update=false时：不触发UEV，等待自然更新边界（当前周期结束） */
+		/* 更新 ARR（CAR），写入影子寄存器 */
+		TIMER_CAR(TIMER0) = s_period;	
+		
+		/* 根据占空比计算CCR并更新 */
+		uint16_t pwm_ccr = duty_to_ccr(s_cfg.duty);
+		timer_channel_output_pulse_value_config(TIMER0, LLC_PWM_CH, pwm_ccr);	
+		
+		/* 根据场景决定是否强制立即更新 */
+		if (force_update) {
+			timer_event_software_generate(TIMER0, TIMER_EVENT_SRC_UPG);
+		}
+		/* force_update=false时：不触发UEV，等待自然更新边界（当前周期结束） */
 }
 
 uint32_t llc_pwm_get_freq_hz(void)
