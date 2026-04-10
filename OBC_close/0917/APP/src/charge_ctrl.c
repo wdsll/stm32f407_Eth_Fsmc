@@ -182,6 +182,12 @@ void charge_ctrl_tick_1khz(void)
 
         charge_apply(true, false, vref, s_chg_cfg.precharge_current_a);
 
+				/* wait until LLC enters RUN before applying precharge completion checks */
+        if (llc_app_state() != ST_LLC_RUN) {
+            s_chg_rt.term_ms = 0U;
+            break;
+        }
+
         if (s_chg_rt.vbat_v < s_chg_cfg.vbat_absent_max_v) {
             charge_enter(CHG_ST_IDLE);
             break;

@@ -247,10 +247,12 @@ static inline void adc_multi_store_frame(const uint16_t *src)
 void adc_multi_copy(void)
 {
     adc_multi_frame_t frame;
+	  __disable_irq();           // ¡û DMA ISR ºÍ SysTick ¶¼±»ÆÁ±Î
     frame.vout_raw   = s_latched.vout_raw;
     frame.isense_raw = s_latched.isense_raw;
 	  frame.v3v3_raw   = s_latched.v3v3_raw;
     frame.vbt_raw    = s_latched.vbt_raw;
+	  __enable_irq();           // ¡û »Ö¸´
     g_adc_multi = frame;
 
 }
@@ -335,7 +337,7 @@ void DMA0_Channel0_IRQHandler(void)
         adc_multi_store_frame(&s_buf[0]);
     }
     if(dma_interrupt_flag_get(DMA0, DMA_CH0, DMA_INT_FLAG_FTF)){
-		dma_interrupt_flag_clear(DMA0, DMA_CH0, DMA_INT_FLAG_FTF);
+				dma_interrupt_flag_clear(DMA0, DMA_CH0, DMA_INT_FLAG_FTF);
         adc_multi_store_frame(&s_buf[ADC_TIM0_TRIGGERED_COUNT]);
     }
     dma_interrupt_flag_clear(DMA0, DMA_CH0, DMA_INT_FLAG_G);

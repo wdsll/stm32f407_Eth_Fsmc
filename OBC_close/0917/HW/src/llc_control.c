@@ -723,10 +723,13 @@ static bool llc_faults_present(void)
     if (s_llc_rt.meas.iout_a > LLC_IOUT_OCP_A) { //41
         return true;
     }
-
+		
+/* Vbus Ç·Ñ¹²»½ø¹ÊÕÏ½østop
     if (s_llc_rt.meas.vbus_v < (LLC_VBUS_MIN_START_V - LLC_VOUT_HYST_V)) {
         return true;
     }
+*/
+		
 		if (llc_overtemp_shutdown()) {
         return true;
     }
