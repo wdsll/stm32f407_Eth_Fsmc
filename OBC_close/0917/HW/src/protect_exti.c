@@ -19,38 +19,33 @@ int protect_fault_active_hw(void)
 {
   return gpio_input_bit_get(HARD_PRO_READ_PORT, HARD_PRO_READ_PIN) == RESET;
 }
-
+//BKIN 引脚的物理电气属性（复用功能 + 上拉）
 void protect_exti_init(void){
-	rcu_periph_clock_enable(RCU_GPIOC);
-	rcu_periph_clock_enable(RCU_GPIOB);
-	rcu_periph_clock_enable(RCU_AF);
-	
-	/* 故障检测输入引脚必须初始化 */
-	gpio_init(HARD_PRO_READ_PORT, GPIO_MODE_IN_FLOATING, GPIO_OSPEED_50MHZ, HARD_PRO_READ_PIN);
-	
+	/* 引脚配置（已在 pins_init 做过，此处可省略） */
 	/* 清除并使能故障中断 */
 	timer_interrupt_flag_clear(TIMER0,TIMER_INT_FLAG_BRK);
+	
+
+	/* 上电自检 */
+	if(protect_fault_active_hw()) // BKIN 当前低 = 比较器在报警
+	{
+		//protect_fault_trigger();  // → s_fault=1，直接锁死
+		// → 先标记，不立刻锁死，检查是否持续 */
+    s_fault_source_hw = 1;
+    s_fault = 1;
+	}
 	nvic_irq_enable(TIMER0_BRK_IRQn_VALUE, IRQ_PRIO_FAULT_PREEMPT, IRQ_PRIO_FAULT_SUB);
 	timer_interrupt_enable(TIMER0,TIMER_INT_BRK);
 	
-	/* 故障清除输出引脚 */
-	//gpio_init(HARD_PRO_CL_GPIO_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, HARD_PRO_CL_GPIO_PIN);
-   // gpio_bit_reset(HARD_PRO_CL_GPIO_PORT, HARD_PRO_CL_GPIO_PIN);
-	
-	/* 上电自检 */
-	if(protect_fault_active_hw())
-	{
-		protect_fault_trigger();
-	}
 }
 
 
 void TIMER0_BRK_IRQHandler_NAME(void)
 {
 	if(RESET != timer_interrupt_flag_get(TIMER0,TIMER_INT_FLAG_BRK))
-	{
-		protect_fault_trigger();
+	{		
 		timer_interrupt_flag_clear(TIMER0, TIMER_INT_FLAG_BRK);
+		protect_fault_trigger();
 	}
 }
 int protect_fault_latched(void)

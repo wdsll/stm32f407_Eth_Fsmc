@@ -83,6 +83,6 @@ float llc_get_vref(void);
 void llc_set_iref(float iref);
 float llc_get_iref(void);
 void llc_get_status(llc_status_t *st);
-bool llc_is_fault_state(void);
+
 
 #endif /* LLC_CONTROL_H */

@@ -62,6 +62,7 @@ static void pins_init(void){
 		gpio_bit_reset(LLC_L_PORT, LLC_L_PIN);
     gpio_init(LLC_H_PORT, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, LLC_H_PIN);
     gpio_init(LLC_L_PORT, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, LLC_L_PIN);
+	
     gpio_init(BKIN_PORT,  GPIO_MODE_IPU,  GPIO_OSPEED_50MHZ, BKIN_PIN);
 }
 
@@ -79,7 +80,7 @@ static uint32_t timer0_clk_hz(void){
 * 创建日期：2025/09/29
 * 注    意：调用此函数前，需确保相关外设时钟已使能。 初始化完成后，PWM模块会自动启动。
 *********************************************************************************************************/
-//初始化定时器基本参数
+//初始化定时器基本参数 
 void llc_pwm_init(const llc_pwm_cfg_t* cfg){
     s_cfg=*cfg;
     pins_init();

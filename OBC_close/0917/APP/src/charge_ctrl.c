@@ -300,10 +300,16 @@ void charge_ctrl_tick_1khz(void)
 
     /* BRK 硬件故障：BKIN 拉低即锁存，优先级最高，在 LLC 状态判断之前拦截
      * 硬件路径（BKIN→MOE=0）已经关掉了 PWM，这里只处理 charge 层状态转换 */
-    if (protect_fault_latched()) {
+    if (protect_fault_latched()||protect_fault_active_hw()) {
         s_chg_rt.stop_reason = CHG_STOP_LLC_FAULT;
-        charge_apply(false, false, s_chg_cfg.cv_target_v, s_chg_cfg.precharge_current_a);
-        charge_enter(CHG_ST_FAULT);
+        /* 软件保序：若继电器已闭合，先走 STOPPING（先停 LLC 请求，待底层回 IDLE 后再断继电器）；
+         * 若继电器本就断开，则直接进入 FAULT。*/
+        if (s_apply_relay_on) {
+            charge_enter(CHG_ST_STOPPING);
+        } else {
+            charge_apply(false, false, s_chg_cfg.cv_target_v, s_chg_cfg.precharge_current_a);
+            charge_enter(CHG_ST_FAULT);
+        }
         return;
     }
 
