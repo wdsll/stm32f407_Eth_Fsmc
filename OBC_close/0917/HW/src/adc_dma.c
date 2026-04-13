@@ -103,7 +103,7 @@ uint8_t adc0_is_initialized(void)
 static void adc1_analog_pins_init(void)
 {   
 		rcu_periph_clock_enable(RCU_GPIOA);
-	  rcu_periph_clock_enable(RCU_GPIOA);
+	  rcu_periph_clock_enable(RCU_GPIOB);
     rcu_periph_clock_enable(RCU_GPIOC);
     /* ADC1Õ®µ¿≈‰÷√ */
     gpio_init(GPIOC, GPIO_MODE_AIN, GPIO_OSPEED_50MHZ, GPIO_PIN_4|GPIO_PIN_5);
@@ -252,6 +252,8 @@ void adc_multi_copy(void)
     frame.isense_raw = s_latched.isense_raw;
 	  frame.v3v3_raw   = s_latched.v3v3_raw;
     frame.vbt_raw    = s_latched.vbt_raw;
+		//frame.tsense_pfc_raw = s_latched.tsense_pfc_raw ;
+    //frame.tsense_llc_raw = s_latched.tsense_llc_raw ;
 	  __enable_irq();           // °˚ ª÷∏¥
     g_adc_multi = frame;
 

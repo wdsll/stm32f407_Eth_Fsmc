@@ -10,25 +10,26 @@ typedef enum
     CHG_ST_RELAY_ON,
     CHG_ST_CC,
     CHG_ST_CV,
+    CHG_ST_STOPPING,   /* LLCè½¯åœä¸­ï¼Œç­‰å¾…ST_IDLEåå†æ–­ç»§ç”µå™¨ */
     CHG_ST_DONE,
     CHG_ST_FAULT,
 } charge_state_t;
 
 typedef struct
 {
-    float cv_target_v;            /* ºãÑ¹Ä¿±ê */
-    float cc_target_a;            /* ºãÁ÷Ä¿±ê */
-    float precharge_current_a;    /* Ô¤³ä½×¶ÎÏŞÁ÷ */
-    float precharge_margin_v;     /* ¿ªÂ·À­Éıµ½ VBT + margin */
-    float v_match_window_v;       /* VOUT Óë VBT µÄÆ¥Åä´°¿Ú */
-    float vbat_present_min_v;     /* Ä£Äâµç³Ø´æÔÚãĞÖµ */
-    float vbat_absent_max_v;      /* µôµç/°ÎµôãĞÖµ */
-    float cv_enter_margin_v;      /* ½øÈëCVµÄµçÑ¹Ô£Á¿ */
-    float term_current_a;         /* ½ØÖ¹µçÁ÷ */
-    uint32_t detect_debounce_ms;  /* µç³Ø¼ì²âÈ¥¶¶ */
-    uint32_t precharge_hold_ms;   /* Æ¥Åä±£³ÖÊ±¼ä */
-    uint32_t relay_settle_ms;     /* ¼ÌµçÆ÷±ÕºÏÎÈ¶¨Ê±¼ä */
-    uint32_t term_hold_ms;        /* ½ØÖ¹±£³ÖÊ±¼ä */
+    float cv_target_v;            /* æ’å‹ç›®æ ‡ */
+    float cc_target_a;            /* æ’æµç›®æ ‡ */
+    float precharge_current_a;    /* é¢„å……é˜¶æ®µé™æµ */
+    float precharge_margin_v;     /* å¼€è·¯æ‹‰å‡åˆ° VBT + margin */
+    float v_match_window_v;       /* VOUT ä¸ VBT çš„åŒ¹é…çª—å£ */
+    float vbat_present_min_v;     /* æ¨¡æ‹Ÿç”µæ± å­˜åœ¨é˜ˆå€¼ */
+    float vbat_absent_max_v;      /* æ‰ç”µ/æ‹”æ‰é˜ˆå€¼ */
+    float cv_enter_margin_v;      /* è¿›å…¥CVçš„ç”µå‹è£•é‡ */
+    float term_current_a;         /* æˆªæ­¢ç”µæµ */
+    uint32_t detect_debounce_ms;  /* ç”µæ± æ£€æµ‹å»æŠ– */
+    uint32_t precharge_hold_ms;   /* åŒ¹é…ä¿æŒæ—¶é—´ */
+    uint32_t relay_settle_ms;     /* ç»§ç”µå™¨é—­åˆç¨³å®šæ—¶é—´ */
+    uint32_t term_hold_ms;        /* æˆªæ­¢ä¿æŒæ—¶é—´ */
 } charge_cfg_t;
 
 typedef struct
@@ -47,5 +48,7 @@ void charge_ctrl_set_target(float cv_v, float cc_a);
 
 charge_state_t charge_ctrl_state(void);
 void charge_ctrl_get_status(charge_status_t *st);
+
+
 
 #endif

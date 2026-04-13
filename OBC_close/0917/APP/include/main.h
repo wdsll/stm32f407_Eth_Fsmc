@@ -102,7 +102,6 @@
 #define LLC_SOFTSTART_USE_COSINE_EASE 1        // 1: 余弦S曲线；0: 指数曲线
 #define LLC_SOFTSTART_EXP_K           3.0f     // 指数陡峭度（越大前期越缓）
 #define LLC_SOFTSTART_EXTRA_MARGIN      (0.02f)   /* 安全窗额外余量（防抖） */
-#define LLC_SOFTSTART_TICK_MS         (0.1f)
 
 /* ==== LLC_SOFTSTOP ==== */
 #define LLC_SOFTSTOP_DURATION_MS      200U      // 软关断总时长（比软启短一些）
