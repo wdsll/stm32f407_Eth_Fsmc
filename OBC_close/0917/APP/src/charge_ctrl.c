@@ -13,6 +13,7 @@ typedef struct
     uint32_t entry_ms;
     uint32_t detect_ms;
     uint32_t term_ms;
+    uint32_t cv_enter_begin_ms;   /* CC→CV：电压进入窗口时刻（用于保持计时） */
     float vbat_v;
     float vout_v;
     float iout_a;
@@ -29,13 +30,26 @@ static charge_cfg_t s_chg_cfg =
     .vbat_absent_max_v   = 5.0f,
     .cv_enter_margin_v   = 0.5f,
     .term_current_a      = 2.0f,
+    .cv_enter_hold_ms    = 1000U,
     .detect_debounce_ms  = 200U,
     .precharge_hold_ms   = 200U,
+    .precharge_timeout_ms = 30000U,  /* 30s 超时，0=不使能 */
+    .stopping_timeout_ms  = 5000U,   /* 5s 兜底，0=不使能 */
     .relay_settle_ms     = 100U,
     .term_hold_ms        = 3000U,
 };
 
 static charge_rt_t s_chg_rt;
+
+/* charge_apply 的影子状态：仅在值实际变化时才下发到 LLC/继电器 */
+#ifndef CHARGE_APPLY_VREF_HYST_V
+#define CHARGE_APPLY_VREF_HYST_V  (0.05f)   /* 50mV 滞后，抑制 ADC 噪声抖动 */
+#endif
+
+static float     s_apply_vref;       /* 上次写入的 vref */
+static float     s_apply_iref;       /* 上次写入的 iref */
+static bool      s_apply_llc_run;    /* 上次写入的 llc_run_request */
+static bool      s_apply_relay_on;   /* 上次写入的 relay 状态 */
 
 static inline float charge_conv_adc_to_v(uint16_t raw, float rtop, float rbot)
 {
@@ -139,6 +153,7 @@ static void charge_enter(charge_state_t st)
     s_chg_rt.state = st;
     s_chg_rt.entry_ms = g_ms;
     s_chg_rt.term_ms = 0U;
+    s_chg_rt.cv_enter_begin_ms = 0U;  /* 跨状态统一清理 */
 }
 /*********************************************************************************************************
 * 函数名称：charge_update_meas
@@ -176,10 +191,23 @@ static bool charge_llc_ready_for_closed_relay(void)
 *********************************************************************************************************/
 static void charge_apply(bool llc_run, bool relay_on, float vref, float iref)
 {
-    llc_set_vref(vref);
-    llc_set_iref(iref);
-    llc_set_run_request(llc_run);
-    charge_out_relay_set(relay_on);
+    if ((fabsf(vref - s_apply_vref) > CHARGE_APPLY_VREF_HYST_V) ||
+        (fabsf(iref - s_apply_iref) > 0.05f)) {
+        llc_set_vref(vref);
+        llc_set_iref(iref);
+        s_apply_vref = vref;
+        s_apply_iref = iref;
+    }
+
+    if (llc_run != s_apply_llc_run) {
+        llc_set_run_request(llc_run);
+        s_apply_llc_run = llc_run;
+    }
+
+    if (relay_on != s_apply_relay_on) {
+        charge_out_relay_set(relay_on);
+        s_apply_relay_on = relay_on;
+    }
 }
 /*********************************************************************************************************
 * 函数名称: charge_ctrl_init
@@ -196,10 +224,16 @@ void charge_ctrl_init(void)
     s_chg_rt.entry_ms = 0U;
     s_chg_rt.detect_ms = 0U;
     s_chg_rt.term_ms = 0U;
+    s_chg_rt.cv_enter_begin_ms = 0U;
     s_chg_rt.vbat_v = 0.0f;
     s_chg_rt.vout_v = 0.0f;
     s_chg_rt.iout_a = 0.0f;
 
+    /* 影子状态初始化为当前硬件实际值，确保首次 charge_apply 不重复下发 */
+    s_apply_vref    = s_chg_cfg.cv_target_v;
+    s_apply_iref    = s_chg_cfg.precharge_current_a;
+    s_apply_llc_run = false;
+    s_apply_relay_on = false;
     charge_out_relay_set(false);
     llc_set_run_request(false);
     llc_set_vref(s_chg_cfg.cv_target_v);
@@ -264,7 +298,17 @@ void charge_ctrl_tick_1khz(void)
 {
 	charge_update_meas();
 
-    /* LLC自己已经故障，直接转FAULT */
+    /* BRK 硬件故障：BKIN 拉低即锁存，优先级最高，在 LLC 状态判断之前拦截
+     * 硬件路径（BKIN→MOE=0）已经关掉了 PWM，这里只处理 charge 层状态转换 */
+    if (protect_fault_latched()) {
+        s_chg_rt.stop_reason = CHG_STOP_LLC_FAULT;
+        charge_apply(false, false, s_chg_cfg.cv_target_v, s_chg_cfg.precharge_current_a);
+        charge_enter(CHG_ST_FAULT);
+        return;
+    }
+
+    /* LLC 状态机内部故障（OVP/OCP/OTP/BRK已由 llc_faults_present 检测后进入 ST_FAULT）
+     * 注：BRK 的 protect_fault_latched() 已在上面拦截，此处处理 LLC 自己的 OVP/OCP/OTP */
     if (llc_is_fault_state()) {
         s_chg_rt.stop_reason = CHG_STOP_LLC_FAULT;
         charge_apply(false, false, s_chg_cfg.cv_target_v, s_chg_cfg.precharge_current_a);
@@ -308,6 +352,14 @@ void charge_ctrl_tick_1khz(void)
 				/* wait until LLC enters RUN before applying precharge completion checks */
 				if (llc_app_state() != ST_LLC_RUN) {
 						s_chg_rt.term_ms = 0U;
+						break;
+				}
+
+				/* PRECHARGE 超时：entry_ms 基于（从进入此状态起计），仅在 LLC RUN 后检查 */
+				if ((s_chg_cfg.precharge_timeout_ms > 0U) &&
+						elapsed_reached(s_chg_rt.entry_ms, s_chg_cfg.precharge_timeout_ms)) {
+						s_chg_rt.stop_reason = CHG_STOP_PRECHARGE_TIMEOUT;
+						charge_enter(CHG_ST_FAULT);
 						break;
 				}
 
@@ -361,10 +413,18 @@ void charge_ctrl_tick_1khz(void)
 					break;
 			}
 
-			if (s_chg_rt.vbat_v >= (s_chg_cfg.cv_target_v - s_chg_cfg.cv_enter_margin_v)) { //电池电压大于 54.75 - 0.5
-						charge_enter(CHG_ST_CV);
-				}
-				break;
+			/* CC→CV：电压进入目标窗口并保持 cv_enter_hold_ms，才进入恒压 */
+			if (s_chg_rt.vbat_v >= (s_chg_cfg.cv_target_v - s_chg_cfg.cv_enter_margin_v)) {
+					if (s_chg_rt.cv_enter_begin_ms == 0U) {
+							s_chg_rt.cv_enter_begin_ms = g_ms;
+					} else if (elapsed_reached(s_chg_rt.cv_enter_begin_ms, s_chg_cfg.cv_enter_hold_ms)) {
+							s_chg_rt.cv_enter_begin_ms = 0U;  /* 进入CV后清除 */
+							charge_enter(CHG_ST_CV);
+					}
+			} else {
+					s_chg_rt.cv_enter_begin_ms = 0U;  /* 电压跌出窗口，重置计时 */
+			}
+			break;
 		}
 
 		case CHG_ST_CV:
@@ -397,11 +457,25 @@ void charge_ctrl_tick_1khz(void)
 				llc_set_run_request(false);
 				charge_out_relay_set(true);
 
+				/* STOPPING 超时：防止 LLC 异常卡在非 IDLE 状态（软停应只需几百ms） */
+				if ((s_chg_cfg.stopping_timeout_ms > 0U) &&
+						elapsed_reached(s_chg_rt.entry_ms, s_chg_cfg.stopping_timeout_ms)) {
+						s_chg_rt.stop_reason = CHG_STOP_STOPPING_TIMEOUT;
+						charge_out_relay_set(false);
+						charge_enter(CHG_ST_FAULT);
+						break;
+				}
+
 				/* 第二步：等待LLC状态机回到IDLE（软关断走完） */
 				if (llc_app_state() == ST_IDLE) {
-						/* LLC已完全停止，安全断开继电器 */
-						charge_out_relay_set(false);
-						charge_enter(CHG_ST_DONE);
+						charge_out_relay_set(false);  /* 安全断开继电器 */
+						/* 按 stop_reason 分流：正常充满→DONE，异常→FAULT */
+						if (s_chg_rt.stop_reason == CHG_STOP_DONE) {
+								charge_enter(CHG_ST_DONE);
+						} else {
+								/* stop_reason 已在跳转 STOPPING 前设置好，此处不再覆盖 */
+								charge_enter(CHG_ST_FAULT);
+						}
 				}
 				break;
 		}
@@ -411,6 +485,7 @@ void charge_ctrl_tick_1khz(void)
 				charge_apply(false, false, s_chg_cfg.cv_target_v, s_chg_cfg.precharge_current_a);
 
 				if (s_chg_rt.vbat_v < s_chg_cfg.vbat_absent_max_v) {
+						s_chg_rt.stop_reason = CHG_STOP_NONE;  /* 清除本次停止原因，进入下一轮充电 */
 						charge_enter(CHG_ST_IDLE);
 				}
 				break;
