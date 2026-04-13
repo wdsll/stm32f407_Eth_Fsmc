@@ -85,13 +85,19 @@ static bool relay_self_test(void)
 
     uint32_t passed = 0U;
 
-    /* 测试序列：SET(1) → 读回 → RESET(0) → 读回 */
+    /* 测试序列：高电平写入→读回；低电平写入→读回，各一轮 */
     for (uint8_t i = 0U; i < 2U; i++) {
+        /* i=0: target=1（写高读高）; i=1: target=0（写低读低）*/
         bool target = (i == 0U);
 
 #if CHARGE_OUT_RELAY_ACTIVE_LEVEL
-        /* ACTIVE_LEVEL=1: set=吸合, reset=断开 */
-        gpio_bit_set(OUT_RELAY, OUT_RELAY_PIN);   /* 写入SET */
+        /* ACTIVE_LEVEL=1: GPIO高=吸合, GPIO低=断开 */
+        /* 按 target 决定写入电平，而非两轮都固定写同一值 */
+        if (target) {
+            gpio_bit_set(OUT_RELAY, OUT_RELAY_PIN);
+        } else {
+            gpio_bit_reset(OUT_RELAY, OUT_RELAY_PIN);
+        }
         gpio_init(OUT_RELAY, GPIO_MODE_IN_FLOATING, GPIO_OSPEED_50MHZ, OUT_RELAY_PIN);
         /* 切换为输入后等待一个GPIO响应周期，约1~2个APB时钟，这里延时10us确保稳定 */
         for (volatile uint32_t dly = 0U; dly < 240U; dly++) { (void)0; }
@@ -101,18 +107,25 @@ static bool relay_self_test(void)
             passed++;
         }
         gpio_init(OUT_RELAY, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, OUT_RELAY_PIN);
-        gpio_bit_reset(OUT_RELAY, OUT_RELAY_PIN); /* 恢复断开状态 */
+        gpio_bit_reset(OUT_RELAY, OUT_RELAY_PIN); /* 每轮结束后恢复断开状态 */
 #else
-        /* ACTIVE_LEVEL=0: reset=吸合, set=断开 */
-        gpio_bit_reset(OUT_RELAY, OUT_RELAY_PIN);
+        /* ACTIVE_LEVEL=0: GPIO低=吸合, GPIO高=断开
+         * 此时物理电平与 target 含义相反：target=1（吸合）对应写低
+         * 按 target 取反决定写入电平 */
+        if (!target) {
+            gpio_bit_set(OUT_RELAY, OUT_RELAY_PIN);
+        } else {
+            gpio_bit_reset(OUT_RELAY, OUT_RELAY_PIN);
+        }
         gpio_init(OUT_RELAY, GPIO_MODE_IN_FLOATING, GPIO_OSPEED_50MHZ, OUT_RELAY_PIN);
         for (volatile uint32_t dly = 0U; dly < 240U; dly++) { (void)0; }
-        bool level_detected = gpio_input_bit_get(OUT_RELAY, OUT_RELAY_PIN) != RESET;
+        /* 读回实际电平，再取反还原为逻辑 target（因为 ACTIVE_LEVEL=0 时电平含义相反）*/
+        bool level_detected = gpio_input_bit_get(OUT_RELAY, OUT_RELAY_PIN) == RESET;
         if (level_detected == target) {
             passed++;
         }
         gpio_init(OUT_RELAY, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, OUT_RELAY_PIN);
-        gpio_bit_set(OUT_RELAY, OUT_RELAY_PIN); /* 恢复断开状态 */
+        gpio_bit_set(OUT_RELAY, OUT_RELAY_PIN); /* 每轮结束后恢复断开状态（ACTIVE=0时高电平=断开）*/
 #endif
     }
 
@@ -144,6 +157,12 @@ static void charge_update_meas(void)
     s_chg_rt.vbat_v = charge_conv_adc_to_v(g_adc_multi.vbt_raw, VBT_RTOP_OHM, VBT_RBOT_OHM);
     s_chg_rt.vout_v = llc_st.vout_v;
     s_chg_rt.iout_a = llc_st.iout_a;
+}
+
+
+static bool charge_llc_ready_for_closed_relay(void)
+{
+    return (llc_app_state() == ST_LLC_RUN);
 }
 /*********************************************************************************************************
 * 函数名称：charge_apply
@@ -304,6 +323,12 @@ void charge_ctrl_tick_1khz(void)
         }
 
         charge_apply(true, true, vref, s_chg_cfg.precharge_current_a);
+	
+				/* 继电器闭合阶段若LLC已掉出RUN，立即走停机流程，避免“继电器闭合但LLC未稳态” */
+        if (!charge_llc_ready_for_closed_relay()) {
+            charge_enter(CHG_ST_STOPPING);
+            break;
+        }
 
         if (elapsed_reached(s_chg_rt.entry_ms, s_chg_cfg.relay_settle_ms)) {
             charge_enter(CHG_ST_CC);
@@ -315,6 +340,11 @@ void charge_ctrl_tick_1khz(void)
     {
         charge_apply(true, true, s_chg_cfg.cv_target_v, s_chg_cfg.cc_target_a);
 
+			  if (!charge_llc_ready_for_closed_relay()) {
+            charge_enter(CHG_ST_STOPPING);
+            break;
+        }
+
         if (s_chg_rt.vbat_v >= (s_chg_cfg.cv_target_v - s_chg_cfg.cv_enter_margin_v)) { //电池电压大于 54.75 - 0.5
             charge_enter(CHG_ST_CV);
         }
@@ -324,6 +354,11 @@ void charge_ctrl_tick_1khz(void)
     case CHG_ST_CV:
     {
         charge_apply(true, true, s_chg_cfg.cv_target_v, s_chg_cfg.cc_target_a);
+			
+        if (!charge_llc_ready_for_closed_relay()) {
+            charge_enter(CHG_ST_STOPPING);
+            break;
+        }
 
         if (s_chg_rt.iout_a <= s_chg_cfg.term_current_a) {
             if (s_chg_rt.term_ms == 0U) {
