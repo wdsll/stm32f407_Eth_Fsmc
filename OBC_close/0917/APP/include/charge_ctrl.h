@@ -15,6 +15,16 @@ typedef enum
     CHG_ST_FAULT,
 } charge_state_t;
 
+/* charge 层停止/故障原因枚举，与 state 正交 */
+typedef enum
+{
+    CHG_STOP_NONE = 0,       /* 正常运行中，无停止 */
+    CHG_STOP_DONE,            /* 充电完成正常终止 */
+    CHG_STOP_LLC_FAULT,       /* LLC 底层故障（OVP/OCP/OTP） */
+    CHG_STOP_LLC_DROPOUT,     /* LLC 运行中异常掉出 RUN */
+    CHG_STOP_RELAY_FAIL,      /* 继电器上电自检失败 */
+} charge_stop_reason_t;
+
 typedef struct
 {
     float cv_target_v;            /* 恒压目标 */
@@ -38,6 +48,7 @@ typedef struct
     float vbat_v;
     float vout_v;
     float iout_a;
+    charge_stop_reason_t stop_reason;   /* 上次停止/故障原因 */
 } charge_status_t;
 
 void charge_ctrl_init(void);
@@ -47,6 +58,7 @@ void charge_ctrl_set_cfg(const charge_cfg_t *cfg);
 void charge_ctrl_set_target(float cv_v, float cc_a);
 
 charge_state_t charge_ctrl_state(void);
+charge_stop_reason_t charge_ctrl_stop_reason(void);
 void charge_ctrl_get_status(charge_status_t *st);
 
 

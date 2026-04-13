@@ -9,6 +9,7 @@
 typedef struct
 {
     charge_state_t state;
+    charge_stop_reason_t stop_reason;
     uint32_t entry_ms;
     uint32_t detect_ms;
     uint32_t term_ms;
@@ -191,6 +192,7 @@ static void charge_apply(bool llc_run, bool relay_on, float vref, float iref)
 void charge_ctrl_init(void)
 {
     s_chg_rt.state = CHG_ST_IDLE;
+    s_chg_rt.stop_reason = CHG_STOP_NONE;
     s_chg_rt.entry_ms = 0U;
     s_chg_rt.detect_ms = 0U;
     s_chg_rt.term_ms = 0U;
@@ -205,7 +207,10 @@ void charge_ctrl_init(void)
 
     /* 上电继电器自检：LLC未启动，GPIO回读安全，失败直接锁入FAULT */
     if (!relay_self_test()) {
+        s_chg_rt.stop_reason = CHG_STOP_RELAY_FAIL;
         s_chg_rt.state = CHG_ST_FAULT;
+    } else {
+        s_chg_rt.stop_reason = CHG_STOP_NONE;
     }
 }
 
@@ -228,13 +233,19 @@ charge_state_t charge_ctrl_state(void)
     return s_chg_rt.state;
 }
 
+charge_stop_reason_t charge_ctrl_stop_reason(void)
+{
+    return s_chg_rt.stop_reason;
+}
+
 void charge_ctrl_get_status(charge_status_t *st)
 {
     if (st == NULL) {
         return;
     }
 
-    st->state  = s_chg_rt.state;
+    st->state       = s_chg_rt.state;
+    st->stop_reason = s_chg_rt.stop_reason;
     st->vbat_v = s_chg_rt.vbat_v;
     st->vout_v = s_chg_rt.vout_v;
     st->iout_a = s_chg_rt.iout_a;
@@ -251,157 +262,164 @@ void charge_ctrl_get_status(charge_status_t *st)
 
 void charge_ctrl_tick_1khz(void)
 {
-    charge_update_meas();
+	charge_update_meas();
 
     /* LLC自己已经故障，直接转FAULT */
     if (llc_is_fault_state()) {
+        s_chg_rt.stop_reason = CHG_STOP_LLC_FAULT;
         charge_apply(false, false, s_chg_cfg.cv_target_v, s_chg_cfg.precharge_current_a);
         charge_enter(CHG_ST_FAULT);
         return;
     }
 
-    switch (s_chg_rt.state)
-    {
-    default:
+	switch (s_chg_rt.state)
+	{
+		default:
 			
-    case CHG_ST_IDLE:
-    {
-			  
-        charge_apply(false, false, s_chg_cfg.cv_target_v, s_chg_cfg.precharge_current_a);
+		case CHG_ST_IDLE:
+		{
+				// 默认状态：LLC关闭，继电器断开，处于安全待机模式
+				charge_apply(false, false, s_chg_cfg.cv_target_v, s_chg_cfg.precharge_current_a);
 
-        if (s_chg_rt.vbat_v >= s_chg_cfg.vbat_present_min_v) { // >=预充最小电压 
-            if (s_chg_rt.detect_ms == 0U) {
-                s_chg_rt.detect_ms = g_ms;
-            } else if (elapsed_reached(s_chg_rt.detect_ms, s_chg_cfg.detect_debounce_ms)) { //链接性检查
-                charge_enter(CHG_ST_PRECHARGE);
-                s_chg_rt.detect_ms = 0U;
-            }
-        } else {
-            s_chg_rt.detect_ms = 0U;
-        }
-        break;
-    }
-
-    case CHG_ST_PRECHARGE:
-    {
-        float vref = s_chg_rt.vbat_v + s_chg_cfg.precharge_margin_v; //最多54.75
-        if (vref > s_chg_cfg.cv_target_v) {
-            vref = s_chg_cfg.cv_target_v;
-        }
-		    // 预充阶段：LLC开启，继电器断开
-        charge_apply(true, false, vref, s_chg_cfg.precharge_current_a);
-		    // 关键检查：必须等待LLC进入RUN状态
+				if (s_chg_rt.vbat_v >= s_chg_cfg.vbat_present_min_v) { // >=预充最小电压 
+						if (s_chg_rt.detect_ms == 0U) {
+								s_chg_rt.detect_ms = g_ms;  // 首次检测到，记录时间点
+						} else if (elapsed_reached(s_chg_rt.detect_ms, s_chg_cfg.detect_debounce_ms)) {
+								// 持续满足条件超过消抖时间，确认电池接入
+								charge_enter(CHG_ST_PRECHARGE);
+								// 进入新状态前清零计时器
+								s_chg_rt.detect_ms = 0U;
+						}
+				} else {
+						s_chg_rt.detect_ms = 0U; // 条件不满足立即重置，重新消抖
+				}
+				break;
+		}
+		//实现防打火预充机制：先开启LLC将输出电容电压提升至接近电池电压，再闭合继电器，避免大电流冲击损坏触点。
+		case CHG_ST_PRECHARGE:
+		{
+				float vref = s_chg_rt.vbat_v + s_chg_cfg.precharge_margin_v; //最多54.75
+				if (vref > s_chg_cfg.cv_target_v) {
+						vref = s_chg_cfg.cv_target_v;
+				}
+				// 预充阶段：LLC开启，继电器断开
+				charge_apply(true, false, vref, s_chg_cfg.precharge_current_a);
+				// 关键检查：必须等待LLC进入RUN状态
 				/* wait until LLC enters RUN before applying precharge completion checks */
-        if (llc_app_state() != ST_LLC_RUN) {
-            s_chg_rt.term_ms = 0U;
-            break;
-        }
+				if (llc_app_state() != ST_LLC_RUN) {
+						s_chg_rt.term_ms = 0U;
+						break;
+				}
 
-        if (s_chg_rt.vbat_v < s_chg_cfg.vbat_absent_max_v) { //电池电压小于5V继续进IDLE
-            charge_enter(CHG_ST_IDLE);
-            break;
-        }
+				if (s_chg_rt.vbat_v < s_chg_cfg.vbat_absent_max_v) { //检查电池是否断开 电池电压小于5V继续进IDLE
+						charge_enter(CHG_ST_IDLE);
+						break;
+				}
 
-        if (fabsf(s_chg_rt.vout_v - s_chg_rt.vbat_v) <= s_chg_cfg.v_match_window_v) {
-            if (s_chg_rt.term_ms == 0U) {
-                s_chg_rt.term_ms = g_ms;
-            } else if (elapsed_reached(s_chg_rt.term_ms, s_chg_cfg.precharge_hold_ms)) {  //压差大于1V才会进继电器控制模块
-                charge_enter(CHG_ST_RELAY_ON);
-                s_chg_rt.term_ms = 0U;
-            }
-        } else {
-            s_chg_rt.term_ms = 0U;
-        }
-        break;
-    }
+				if (fabsf(s_chg_rt.vout_v - s_chg_rt.vbat_v) <= s_chg_cfg.v_match_window_v) {
+						if (s_chg_rt.term_ms == 0U) {
+								s_chg_rt.term_ms = g_ms;
+						} else if (elapsed_reached(s_chg_rt.term_ms, s_chg_cfg.precharge_hold_ms)) {  //压差大于1V才会进继电器控制模块
+								charge_enter(CHG_ST_RELAY_ON);
+								s_chg_rt.term_ms = 0U;
+						}
+				} else {
+						s_chg_rt.term_ms = 0U;
+				}
+				break;
+		}
 
-    case CHG_ST_RELAY_ON:
-    {
-        float vref = s_chg_rt.vbat_v + s_chg_cfg.precharge_margin_v;
-        if (vref > s_chg_cfg.cv_target_v) {
-            vref = s_chg_cfg.cv_target_v;
-        }
+		case CHG_ST_RELAY_ON:
+		{
+				float vref = s_chg_rt.vbat_v + s_chg_cfg.precharge_margin_v;
+				if (vref > s_chg_cfg.cv_target_v) {
+						vref = s_chg_cfg.cv_target_v;
+				}
 
-        charge_apply(true, true, vref, s_chg_cfg.precharge_current_a);
+				charge_apply(true, true, vref, s_chg_cfg.precharge_current_a);//2A的预充电流
 	
 				/* 继电器闭合阶段若LLC已掉出RUN，立即走停机流程，避免“继电器闭合但LLC未稳态” */
-        if (!charge_llc_ready_for_closed_relay()) {
-            charge_enter(CHG_ST_STOPPING);
-            break;
-        }
+			if (!charge_llc_ready_for_closed_relay()) {
+					s_chg_rt.stop_reason = CHG_STOP_LLC_DROPOUT;
+					charge_enter(CHG_ST_STOPPING);
+					break;
+			}
+			//机械稳定延时
+				if (elapsed_reached(s_chg_rt.entry_ms, s_chg_cfg.relay_settle_ms)) {
+						charge_enter(CHG_ST_CC); //延时结束进入恒流充电
+				}
+				break;
+		}
 
-        if (elapsed_reached(s_chg_rt.entry_ms, s_chg_cfg.relay_settle_ms)) {
-            charge_enter(CHG_ST_CC);
-        }
-        break;
-    }
+		case CHG_ST_CC:
+		{
+				charge_apply(true, true, s_chg_cfg.cv_target_v, s_chg_cfg.cc_target_a);
 
-    case CHG_ST_CC:
-    {
-        charge_apply(true, true, s_chg_cfg.cv_target_v, s_chg_cfg.cc_target_a);
+			if (!charge_llc_ready_for_closed_relay()) {
+					s_chg_rt.stop_reason = CHG_STOP_LLC_DROPOUT;
+					charge_enter(CHG_ST_STOPPING);
+					break;
+			}
 
-			  if (!charge_llc_ready_for_closed_relay()) {
-            charge_enter(CHG_ST_STOPPING);
-            break;
-        }
+			if (s_chg_rt.vbat_v >= (s_chg_cfg.cv_target_v - s_chg_cfg.cv_enter_margin_v)) { //电池电压大于 54.75 - 0.5
+						charge_enter(CHG_ST_CV);
+				}
+				break;
+		}
 
-        if (s_chg_rt.vbat_v >= (s_chg_cfg.cv_target_v - s_chg_cfg.cv_enter_margin_v)) { //电池电压大于 54.75 - 0.5
-            charge_enter(CHG_ST_CV);
-        }
-        break;
-    }
-
-    case CHG_ST_CV:
-    {
-        charge_apply(true, true, s_chg_cfg.cv_target_v, s_chg_cfg.cc_target_a);
+		case CHG_ST_CV:
+		{
+				charge_apply(true, true, s_chg_cfg.cv_target_v, s_chg_cfg.cc_target_a);
 			
-        if (!charge_llc_ready_for_closed_relay()) {
-            charge_enter(CHG_ST_STOPPING);
-            break;
-        }
+			if (!charge_llc_ready_for_closed_relay()) {
+					s_chg_rt.stop_reason = CHG_STOP_LLC_DROPOUT;
+					charge_enter(CHG_ST_STOPPING);
+					break;
+			}
 
-        if (s_chg_rt.iout_a <= s_chg_cfg.term_current_a) {
-            if (s_chg_rt.term_ms == 0U) {
-                s_chg_rt.term_ms = g_ms;
-            } else if (elapsed_reached(s_chg_rt.term_ms, s_chg_cfg.term_hold_ms)) {  //维持3000ms
-                charge_enter(CHG_ST_STOPPING);   /* 先软停LLC，再断继电器 */
-                s_chg_rt.term_ms = 0U;
-            }
-        } else {
-            s_chg_rt.term_ms = 0U;
-        }
-        break;
-    }
+			if (s_chg_rt.iout_a <= s_chg_cfg.term_current_a) {
+					if (s_chg_rt.term_ms == 0U) {
+							s_chg_rt.term_ms = g_ms;
+					} else if (elapsed_reached(s_chg_rt.term_ms, s_chg_cfg.term_hold_ms)) {  //维持3000ms
+							s_chg_rt.stop_reason = CHG_STOP_DONE;   /* 正常充满 */
+							charge_enter(CHG_ST_STOPPING);   /* 先软停LLC，再断继电器 */
+							s_chg_rt.term_ms = 0U;
+						}
+				} else {
+						s_chg_rt.term_ms = 0U;
+				}
+				break;
+		}
 
-    case CHG_ST_STOPPING:
-    {
-        /* 第一步：停止LLC请求，继电器保持闭合（防止触点断弧） */
-        llc_set_run_request(false);
-        charge_out_relay_set(true);
+		case CHG_ST_STOPPING:
+		{
+				/* 第一步：停止LLC请求，继电器保持闭合（防止触点断弧） */
+				llc_set_run_request(false);
+				charge_out_relay_set(true);
 
-        /* 第二步：等待LLC状态机回到IDLE（软关断走完） */
-        if (llc_app_state() == ST_IDLE) {
-            /* LLC已完全停止，安全断开继电器 */
-            charge_out_relay_set(false);
-            charge_enter(CHG_ST_DONE);
-        }
-        break;
-    }
+				/* 第二步：等待LLC状态机回到IDLE（软关断走完） */
+				if (llc_app_state() == ST_IDLE) {
+						/* LLC已完全停止，安全断开继电器 */
+						charge_out_relay_set(false);
+						charge_enter(CHG_ST_DONE);
+				}
+				break;
+		}
 
-    case CHG_ST_DONE:
-    {
-        charge_apply(false, false, s_chg_cfg.cv_target_v, s_chg_cfg.precharge_current_a);
+		case CHG_ST_DONE:
+		{
+				charge_apply(false, false, s_chg_cfg.cv_target_v, s_chg_cfg.precharge_current_a);
 
-        if (s_chg_rt.vbat_v < s_chg_cfg.vbat_absent_max_v) {
-            charge_enter(CHG_ST_IDLE);
-        }
-        break;
-    }
+				if (s_chg_rt.vbat_v < s_chg_cfg.vbat_absent_max_v) {
+						charge_enter(CHG_ST_IDLE);
+				}
+				break;
+		}
 
-    case CHG_ST_FAULT:
-    {
-        charge_apply(false, false, s_chg_cfg.cv_target_v, s_chg_cfg.precharge_current_a);
-        break;
-    }
-    }
+		case CHG_ST_FAULT:
+		{
+				charge_apply(false, false, s_chg_cfg.cv_target_v, s_chg_cfg.precharge_current_a);
+				break;
+		}
+	}
 }
