@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "d:/STM/stm32f407_Wspc/DMM/Core/Inc",
+                "d:/STM/stm32f407_Wspc/DMM/Drivers/STM32F4xx_HAL_Driver/Inc"
+            ],
+            "defines": [
+                "USE_HAL_DRIVER",
+                "STM32F407xx"
+            ],
+            "compilerPath": "C:/Program Files (x86)/GNU Arm Embedded Toolchain/10 2021.10/bin/arm-none-eabi-gcc.exe",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "gcc-arm"
+        }
+    ],
+    "version": 4
+}

@@ -1,0 +1,11 @@
+../Core/Src/adc_mux.c:48:21:code_to_V	32	static
+../Core/Src/adc_mux.c:55:13:i_range_apply	16	static
+../Core/Src/adc_mux.c:62:13:r_apply_index	24	static
+../Core/Src/adc_mux.c:74:8:MEAS_Range_R_Count	4	static
+../Core/Src/adc_mux.c:79:18:MEAS_Range_R_Config	16	static
+../Core/Src/adc_mux.c:88:9:MEAS_GetResistanceRangeIndex	4	static
+../Core/Src/adc_mux.c:93:7:MEAS_CodeToVoltage	24	static
+../Core/Src/adc_mux.c:98:6:MEAS_SetResistanceRangeIndex	16	static
+../Core/Src/adc_mux.c:103:13:MEAS_Range_R_Label	4	static
+../Core/Src/adc_mux.c:108:6:MEAS_Init	8	static
+../Core/Src/adc_mux.c:123:6:MEAS_I_Autorange_1kHz	16	static

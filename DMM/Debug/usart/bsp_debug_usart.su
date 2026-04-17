@@ -1,0 +1,5 @@
+D:/STM/stm32f407_Wspc/PublicDrivers/usart/bsp_debug_usart.c:21:6:HAL_UART_MspInit	40	static
+D:/STM/stm32f407_Wspc/PublicDrivers/usart/bsp_debug_usart.c:50:6:HAL_UART_MspDeInit	16	static
+D:/STM/stm32f407_Wspc/PublicDrivers/usart/bsp_debug_usart.c:73:6:MX_DEBUG_USART_Init	16	static
+C:\ST\STM32CubeIDE_1.19.0\STM32CubeIDE\plugins\com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344\tools\bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/include/stdio.h:220:5:fputc	16	static
+C:\ST\STM32CubeIDE_1.19.0\STM32CubeIDE\plugins\com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344\tools\bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/include/stdio.h:218:5:fgetc	24	static
