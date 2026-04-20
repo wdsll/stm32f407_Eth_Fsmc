@@ -238,7 +238,6 @@ int main(void){
 		}
     bool protect_ok = protect_startup_check();
     bool adc_ok = adc_startup_check();
-		//bool adc_ok = adc_test();
     if (!protect_ok || !adc_ok) {
        debug_printf("[STARTUP] Preflight checks failed, PFC/LLC hold\n");
        while (1) {

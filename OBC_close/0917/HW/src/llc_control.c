@@ -730,12 +730,6 @@ static bool llc_faults_present(void)
         return true;
     }
 		
-/* Vbus 欠压不进故障进stop
-    if (s_llc_rt.meas.vbus_v < (LLC_VBUS_MIN_START_V - LLC_VOUT_HYST_V)) {
-        return true;
-    }
-*/
-		
 		if (llc_overtemp_shutdown()) {
         return true;
     }

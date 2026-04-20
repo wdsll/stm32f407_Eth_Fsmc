@@ -4723,11 +4723,11 @@ Image component sizes
       2094          4          0          0          0      11914   gd32f30x_rcu.o
       2196         20          0          0          0      18790   gd32f30x_timer.o
        796          0          0          0          0      11439   gd32f30x_usart.o
-      6358        144          0          0        225      12648   llc_control.o
+      6358        144          0          0        225      12646   llc_control.o
       1914         60          0          0         60       5683   llc_soft_start.o
       1586         24         61          0         20       8353   main.o
       2630         68         18          0         70       7227   pfc_control.o
-       238          0          0          0          2       3172   protect_exti.o
+       238          0          0          0          2       3174   protect_exti.o
        184          0          0          1          1       3994   pwm.o
       2016         48          0          0         16       6321   pwm_llc.o
        150          0          0          0          0       1401   rcu.o
