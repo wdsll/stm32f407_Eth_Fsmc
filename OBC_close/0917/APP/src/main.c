@@ -1,35 +1,33 @@
 
 /*********************************************************************************************************
-*                                              ∞¸∫¨Õ∑Œƒº˛
+*                                              ÂåÖÂê´Â§¥Êñá‰ª∂
 *********************************************************************************************************/
 #include "main.h"
-#include "temp_control.h"
-#include "charge_ctrl.h"
 /*********************************************************************************************************
-*                                              ∫Í∂®“Â
+*                                              ÂÆèÂÆö‰πâ
 *********************************************************************************************************/
 #define Bus_Adj 0
-/* øÿ÷∆—≠ª∑≤Œ ˝£®1 kHz£© */
+/* ÊéßÂà∂Âæ™ÁéØÂèÇÊï∞Ôºà1 kHzÔºâ */
 #define CONTROL_LOOP_HZ            (1000U)
 #define CONTROL_LOOP_DT_S          (1.0f / (float)CONTROL_LOOP_HZ)
-/* ÷˜—≠ª∑“ª¥Œ◊Ó∂‡¥¶¿Ìµƒ tick£¨≥¨π˝Ω´º∆ ˝Œ™∂™∆˙£®±‹√‚÷˜—≠ª∑≥§ ±º‰’º”√£© */
+/* ‰∏ªÂæ™ÁéØ‰∏ÄÊ¨°ÊúÄÂ§öÂ§ÑÁêÜÁöÑ tickÔºåË∂ÖËøáÂ∞ÜËÆ°Êï∞‰∏∫‰∏¢ÂºÉÔºàÈÅøÂÖç‰∏ªÂæ™ÁéØÈïøÊó∂Èó¥Âç†Áî®Ôºâ */
 #define MAX_TICKS_PER_LOOP         (5U)
 #define FAST_ADC_MAX_TICKS_PER_LOOP (20U)
 #define FAULT_RECOVER_DELAY_MS     (200U)
-/* ¥Æø⁄»ŒŒÒµ˜”√∆µ¬ øÿ÷∆£®√ø10¥Œ÷˜—≠ª∑µ˜”√1¥Œ£© */
+/* ‰∏≤Âè£‰ªªÂä°Ë∞ÉÁî®È¢ëÁéáÊéßÂà∂ÔºàÊØè10Ê¨°‰∏ªÂæ™ÁéØË∞ÉÁî®1Ê¨°Ôºâ */
 /*********************************************************************************************************
-*                                              √∂æŸΩ·ππÃÂ
+*                                              Êûö‰∏æÁªìÊûÑ‰Ωì
 *********************************************************************************************************/
 
 static uint32_t s_fault_latched_ms = 0U;
 /*********************************************************************************************************
-*                                              ƒ⁄≤ø±‰¡ø∂®“Â
+*                                              ÂÜÖÈÉ®ÂèòÈáèÂÆö‰πâ
 *********************************************************************************************************/
 volatile uint32_t g_ms=0;
 static volatile uint32_t s_control_tick_pending = 0U;
 static volatile uint32_t s_adc_fast_tick_pending = 0U;
 
-static volatile uint32_t s_tick_drop_count = 0U; /* ±ª∂™∆˙µƒ tick º∆ ˝ */
+static volatile uint32_t s_tick_drop_count = 0U; /* Ë¢´‰∏¢ÂºÉÁöÑ tick ËÆ°Êï∞ */
 static volatile uint32_t s_adc_fast_tick_drop_count = 0U; /*  tick  */
 void delay_ms(uint32_t duration_ms)
 {
@@ -44,41 +42,48 @@ void delay_ms(uint32_t duration_ms)
 }
 
 /*********************************************************************************************************
-*                                              ƒ⁄≤ø∫Ø ˝…˘√˜
+*                                              ÂÜÖÈÉ®ÂáΩÊï∞Â£∞Êòé
 *********************************************************************************************************/
 
 
-/* ADC1Õ®µ¿14≤‚ ‘∫Ø ˝…˘√˜ */
+/* ADC1ÈÄöÈÅì14ÊµãËØïÂáΩÊï∞Â£∞Êòé */
 uint16_t adc1_channel14_test(void);
 uint16_t adc1_channel14_multiple_samples(uint16_t sample_count, uint16_t *samples);
 static void adc_fast_task_100us(void);
 /*********************************************************************************************************
-*                                              ƒ⁄≤ø∫Ø ˝ µœ÷
+*                                              ÂÜÖÈÉ®ÂáΩÊï∞ÂÆûÁé∞
 *********************************************************************************************************/
-
+void systick_config(void)
+{
     /* setup systick timer for 1000Hz interrupts */
+    if (SysTick_Config(SystemCoreClock / 1000U)){
         /* capture error */
+        while (1){
+        }
+    }
 		
     /* configure the systick handler priority */
+    NVIC_SetPriority(SysTick_IRQn, 0x00U);
+}
 void systick_1ms_init(void){
 		SystemCoreClockUpdate();    
      uint32_t reload  = SystemCoreClock / 1000U;
 	  if (reload == 0U || reload > SysTick_LOAD_RELOAD_Msk) {
-                                           //  ß∞‹£∫∆µ¬ “Ï≥£ªÚ≥¨≥ˆ24Œª
+                                           // Â§±Ë¥•ÔºöÈ¢ëÁéáÂºÇÂ∏∏ÊàñË∂ÖÂá∫24‰Ωç
     }
-	reload -= 1U; //µ˜’˚÷ÿ‘ÿ÷µ£¨»∑±£∂® ±∆˜––Œ™∑˚∫œ‘§∆⁄°£
+	reload -= 1U; //Ë∞ÉÊï¥ÈáçËΩΩÂÄºÔºåÁ°Æ‰øùÂÆöÊó∂Âô®Ë°å‰∏∫Á¨¶ÂêàÈ¢ÑÊúü„ÄÇ
 	if (reload > SysTick_LOAD_RELOAD_Msk) {
 		reload = SysTick_LOAD_RELOAD_Msk;
 	}
 	
-	SysTick->CTRL = 0U;  //œ»Ω˚”√ SysTick°£
-	SysTick->LOAD = reload; //…Ë÷√÷ÿ‘ÿ÷µ°£
-	SysTick->VAL  = 0U; //«Â≥˝µ±«∞º∆ ˝÷µ°£
+	SysTick->CTRL = 0U;  //ÂÖàÁ¶ÅÁî® SysTick„ÄÇ
+	SysTick->LOAD = reload; //ËÆæÁΩÆÈáçËΩΩÂÄº„ÄÇ
+	SysTick->VAL  = 0U; //Ê∏ÖÈô§ÂΩìÂâçËÆ°Êï∞ÂÄº„ÄÇ
     //NVIC_SetPriority(SysTick_IRQn, 0x0F);
 	NVIC_SetPriority(SysTick_IRQn, irq_priority_encode(IRQ_PRIO_SYSTICK_PREEMPT, IRQ_PRIO_SYSTICK_SUB));
-	//…Ë÷√ SysTick µƒ ±÷”‘¥°£»Áπ˚∏√Œª±ª÷√ 1£¨±Ì æ π”√¥¶¿Ì∆˜ ±÷”£®HCLK£©£ª»Áπ˚Œ™ 0£¨±Ì æ π”√ HCLK µƒ 8 ∑÷∆µ°£
-	//øÿ÷∆ SysTick ÷–∂œµƒ∆Ù”√°£»Áπ˚∏√Œª±ª÷√ 1£¨±Ì æ‘ –Ì SysTick ∂® ±∆˜‘⁄º∆ ˝µΩ 0  ±¥•∑¢÷–∂œ°£
-	//øÿ÷∆ SysTick ∂® ±∆˜µƒ∆Ù”√°£»Áπ˚∏√Œª±ª÷√ 1£¨±Ì æ∆Ù∂Ø∂® ±∆˜º∆ ˝°£
+	//ËÆæÁΩÆ SysTick ÁöÑÊó∂ÈíüÊ∫ê„ÄÇÂ¶ÇÊûúËØ•‰ΩçË¢´ÁΩÆ 1ÔºåË°®Á§∫‰ΩøÁî®Â§ÑÁêÜÂô®Êó∂ÈíüÔºàHCLKÔºâÔºõÂ¶ÇÊûú‰∏∫ 0ÔºåË°®Á§∫‰ΩøÁî® HCLK ÁöÑ 8 ÂàÜÈ¢ë„ÄÇ
+	//ÊéßÂà∂ SysTick ‰∏≠Êñ≠ÁöÑÂêØÁî®„ÄÇÂ¶ÇÊûúËØ•‰ΩçË¢´ÁΩÆ 1ÔºåË°®Á§∫ÂÖÅËÆ∏ SysTick ÂÆöÊó∂Âô®Âú®ËÆ°Êï∞Âà∞ 0 Êó∂Ëß¶Âèë‰∏≠Êñ≠„ÄÇ
+	//ÊéßÂà∂ SysTick ÂÆöÊó∂Âô®ÁöÑÂêØÁî®„ÄÇÂ¶ÇÊûúËØ•‰ΩçË¢´ÁΩÆ 1ÔºåË°®Á§∫ÂêØÂä®ÂÆöÊó∂Âô®ËÆ°Êï∞„ÄÇ
 	SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk |  
 							SysTick_CTRL_TICKINT_Msk   |
 							SysTick_CTRL_ENABLE_Msk;
@@ -119,8 +124,15 @@ void TIMER3_IRQHandler(void)
 {
     if (timer_interrupt_flag_get(TIMER3, TIMER_INT_FLAG_UP) == SET) {
         timer_interrupt_flag_clear(TIMER3, TIMER_INT_FLAG_UP);
-        //adc_fast_task_100us(); // ÷±Ω”¥•∑¢ADC0»Ìº˛≤…ºØ
+        //adc_fast_task_100us(); // Áõ¥Êé•Ëß¶ÂèëADC0ËΩØ‰ª∂ÈááÈõÜ
 			  s_adc_fast_tick_pending++;
+			#if 0
+			  if (s_adc_fast_tick_pending < 1000U) {
+            s_adc_fast_tick_pending++;
+        } else {
+            s_adc_fast_tick_drop_count++;
+        }
+			#endif
     }
 }
 
@@ -198,8 +210,8 @@ static void control_loop_tick_1khz(void){
 		adc_multi_sample_aux_1khz();
 		
     pfc_tick_1khz();
-	  charge_ctrl_tick_1khz();   /* œ»∏¸–¬ run_request / vref / iref / relay */
     llc_app_tick_1khz();
+		//llc_app_tick_adc_test();
 
 }
 
@@ -217,27 +229,28 @@ int main(void){
 
 			//debug_printf("System Clock: %lu Hz\n", SystemCoreClock);
 		systick_1ms_init();
-    /* LLC complementary PWM ≈‰÷√LLCµƒPWM∆µ¬  °¢À¿«¯ ±º‰∫Õ’ºø’±»£¨≤¢≥ı ºªØPWMƒ£øÈ*/
+    /* LLC complementary PWM ÈÖçÁΩÆLLCÁöÑPWMÈ¢ëÁéá „ÄÅÊ≠ªÂå∫Êó∂Èó¥ÂíåÂç†Á©∫ÊØîÔºåÂπ∂ÂàùÂßãÂåñPWMÊ®°Âùó*/
     llc_pwm_cfg_t lcfg = { .pwm_hz=LLC_PWM_BASE_HZ, .deadtime_ns=LLC_PWM_DEAD_NS, .duty=LLC_PWM_DUTY };//130
     llc_pwm_init(&lcfg);
 		
     /* ADC multi (PA3/PA1 removed) triggered by TIMER3 interrupt @100us (software trigger) */
-    adc_multi_init_dma(ADC0_1_2_EXTTRIG_REGULAR_NONE); 
+    //adc_multi_init_dma(ADC0_1_2_EXTTRIG_REGULAR_NONE); 
+		adc_multi_init_dma(ADC0_1_EXTTRIG_REGULAR_T0_CH0);
     adc_multi_start();
-		adc_multi_trigger_fast();
-    adc_fast_timer_init_100us(); // ∆Ù∂Ø100us∂® ±∆˜÷–∂œ”√”⁄ADC0¥•∑¢
+		//adc_multi_trigger_fast();
+    adc_fast_timer_init_100us(); // ÂêØÂä®100usÂÆöÊó∂Âô®‰∏≠Êñ≠Áî®‰∫éADC0Ëß¶Âèë
 		adc1_aux_init();
-		temp_control_init();
     /* Protection EXTI PC11 */
     protect_exti_init();
 		
 		/* after protect_exti_init(); */
  if (!protect_fault_active_hw() && protect_fault_latched()) {
-    /* BKIN“—∏ﬂ°¢µÁ¬∑Œﬁ’Êπ ’œ£¨µ´»Ìº˛ªπº«◊≈æ…±Í÷æ °˙ «Â»Ìº˛ + «Â”≤º˛À¯¥Ê */
+    /* BKINÂ∑≤È´ò„ÄÅÁîµË∑ØÊó†ÁúüÊïÖÈöúÔºå‰ΩÜËΩØ‰ª∂ËøòËÆ∞ÁùÄÊóßÊ†áÂøó ‚Üí Ê∏ÖËΩØ‰ª∂ + Ê∏ÖÁ°¨‰ª∂ÈîÅÂ≠ò */
      protect_clear_fault();
 		}
     bool protect_ok = protect_startup_check();
     bool adc_ok = adc_startup_check();
+		//bool adc_ok = adc_test();
     if (!protect_ok || !adc_ok) {
        debug_printf("[STARTUP] Preflight checks failed, PFC/LLC hold\n");
        while (1) {
@@ -247,7 +260,6 @@ int main(void){
 
 		pfc_init();
 		llc_app_init();
-		charge_ctrl_init();
 		delay_ms(1000);
 		pfc_enable();
 
@@ -258,8 +270,8 @@ int main(void){
 			__disable_irq();
 			if(s_control_tick_pending > 0U)
 			{
-					pending_ticks = s_control_tick_pending; //pending_ticks £∫”√”⁄÷∏ˆ¥¶¿Ì¥˝÷¥––µƒøÿ÷∆»ŒŒÒ°£
-					s_control_tick_pending = 0U;  //º«¬º¥˝¥¶¿Ìµƒøÿ÷∆÷‹∆⁄»ŒŒÒ ˝¡ø°£
+					pending_ticks = s_control_tick_pending; //pending_ticks ÔºöÁî®‰∫éÈÄê‰∏™Â§ÑÁêÜÂæÖÊâßË°åÁöÑÊéßÂà∂‰ªªÂä°„ÄÇ
+					s_control_tick_pending = 0U;  //ËÆ∞ÂΩïÂæÖÂ§ÑÁêÜÁöÑÊéßÂà∂Âë®Êúü‰ªªÂä°Êï∞Èáè„ÄÇ
 			}
 			
 			if (s_adc_fast_tick_pending > 0U)
@@ -269,23 +281,17 @@ int main(void){
 			}
 			__enable_irq();
 			
-			while (pending_adc_fast_ticks-- > 0U)
-			{
-				
-				adc_multi_copy(); 
+		while (pending_adc_fast_ticks-- > 0U)
+		{
+				adc_multi_copy();
 				llc_app_tick_100us();
-				adc_multi_trigger_fast();
-				if (pending_adc_fast_ticks > FAST_ADC_MAX_TICKS_PER_LOOP)
-				{
-					s_adc_fast_tick_drop_count += (pending_adc_fast_ticks - FAST_ADC_MAX_TICKS_PER_LOOP);
-					pending_adc_fast_ticks = FAST_ADC_MAX_TICKS_PER_LOOP;
-				}
-			}
+				// ADC0 Áî± TIMER0 Ch1 Á°¨‰ª∂Ëß¶ÂèëÔºàARR/2 Â§ÑÔºâÔºå‰∏çÂÜçÈúÄË¶ÅËΩØ‰ª∂Ëß¶Âèë
+		}
 			while(pending_ticks-- > 0U)
 			{
 				 control_loop_tick_1khz();
 			
-				//∑¿÷πµ•¥Œ÷˜—≠ª∑¥¶¿Ìπ˝∂‡ tick
+				//Èò≤Ê≠¢ÂçïÊ¨°‰∏ªÂæ™ÁéØÂ§ÑÁêÜËøáÂ§ö tick
 					if(pending_ticks > MAX_TICKS_PER_LOOP)
 					{
 						s_tick_drop_count += (pending_ticks - MAX_TICKS_PER_LOOP);

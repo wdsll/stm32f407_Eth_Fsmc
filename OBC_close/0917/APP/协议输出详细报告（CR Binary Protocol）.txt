@@ -123,7 +123,7 @@ ByteN-1 : EOF = 0x5A
 
 
 
-PB0 = LOW
+
 软启 95k  
     Vout target 37V
     Vout 40V 
@@ -145,71 +145,3 @@ PB0 = LOW
 	PFC RAMP  319~370  
 	谐振电流 17A
 
-
-
-PB0 = HIGH
-软启 95k  
-    Vout target 44V
-    Vout 42.3V 
-	PFC RAMP  319~402  
-	谐振电流 17A
-	
-软启 95k  
-    Vout target 45V
-    Vout 42.3V 
-	PFC RAMP  319~402  
-	谐振电流 17A
-
-软启 95k  
-    Vout target 46V
-    Vout 42.3V 
-	PFC RAMP  319~402  
-	谐振电流 18.6A
-	
-软启 80k  
-    Vout target 47V
-    Vout 45.5 V 
-	PFC RAMP  319~411.8 
-	谐振电流 19A
-	
-软启 80k  
-    Vout target 48V
-    Vout 45.5 V 
-	PFC RAMP  319~411.8 
-	谐振电流 19.8A
-	
-软启 80k  
-    Vout target 49V
-    Vout 45.5 V 
-	PFC RAMP  319~411.8 
-	谐振电流 20A
-
-软启 80k  
-    Vout target 50V
-    Vout 45.5 V 
-	PFC RAMP  319~411.8 
-	谐振电流 20A
-	
-软启 80k  
-    Vout target 52V
-    Vout 45.5 V 
-	PFC RAMP  319~411.8 
-	谐振电流 21A
-	
-软启 80k  
-    Vout target 53V
-    Vout 45.5 V 
-	PFC RAMP  319~411.8 
-	谐振电流 22.7A
-
-软启 80k  
-    Vout target 54V
-    Vout 45.5 V 
-	PFC RAMP  319~411.8 
-	谐振电流 23.8
-	
-软启 75k  
-    Vout target 55V
-    Vout 48.6 V 
-	PFC RAMP  319~411.8 
-	谐振电流 23.8

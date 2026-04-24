@@ -8,8 +8,8 @@
 /* VBUS有效性检查范围 */
 #define PFC_VBUS_RATIO_IDLE_MIN     (1.3f)    /* 未使能时：VBUS/VAC 最小倍数 */
 #define PFC_VBUS_RATIO_IDLE_MAX     (1.5f)    /* 未使能时：VBUS/VAC 最大倍数 */
-#define PFC_VBUS_ENABLED_MIN_V      (380.0f)  /* 使能后：VBUS 最小电压 */
-#define PFC_VBUS_ENABLED_MAX_V      (410.0f)  /* 使能后：VBUS 最大电压 */
+#define PFC_VBUS_ENABLED_MIN_V      (359.0f)  /* 使能后：VBUS 最小电压 */
+#define PFC_VBUS_ENABLED_MAX_V      (379.0f)  /* 使能后：VBUS 最大电压 */
 
 
 /*********************************************************************************************************
@@ -327,11 +327,11 @@ static void pfc_handle_fault(const char *reason)
 *********************************************************************************************************/
 void pfc_init(void)
 {
-	//复合字面量语法： (pfc_ctx_t){0} 是C99特性，比 memset 更安全
+//复合字面量语法： (pfc_ctx_t){0} 是C99特性，比 memset 更安全
     s_pfc = (pfc_ctx_t){0};
     
 	/* PB0 PWM 仍初始化，但三态机阶段保持 0 */
-
+    pb0_pwm_init(PB0_PWM_BASE_HZ);
     bus_vol_adj_init();
 		
     adc1_aux_init();
@@ -374,7 +374,7 @@ void adc_test(void)
 * 创建日期：2025年12月29
 * 注    意：PFC_ST_IDLE → PFC_ST_RAMP ->PFC_ST_READY → (故障检测) → PFC_ST_FAULT
 *********************************************************************************************************/
-static uint32_t bkin_flag = 0U; /* 仅本模块内部使用，不对外暴露 */
+uint32_t bkin_flag = 0;
 void pfc_tick_1khz(void)
 {
   pfc_sample_inputs();                                    // 采集ADC输入信号，更新测量数据
