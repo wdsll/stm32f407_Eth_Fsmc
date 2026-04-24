@@ -49,7 +49,6 @@ void delay_ms(uint32_t duration_ms)
 /* ADC1通道14测试函数声明 */
 uint16_t adc1_channel14_test(void);
 uint16_t adc1_channel14_multiple_samples(uint16_t sample_count, uint16_t *samples);
-static void adc_fast_task_100us(void);
 /*********************************************************************************************************
 *                                              内部函数实现
 *********************************************************************************************************/
@@ -124,22 +123,11 @@ void TIMER3_IRQHandler(void)
 {
     if (timer_interrupt_flag_get(TIMER3, TIMER_INT_FLAG_UP) == SET) {
         timer_interrupt_flag_clear(TIMER3, TIMER_INT_FLAG_UP);
-        //adc_fast_task_100us(); // 直接触发ADC0软件采集
-			  s_adc_fast_tick_pending++;
-			#if 0
-			  if (s_adc_fast_tick_pending < 1000U) {
-            s_adc_fast_tick_pending++;
-        } else {
-            s_adc_fast_tick_drop_count++;
-        }
-			#endif
+        s_adc_fast_tick_pending++;
     }
 }
 
-static void adc_fast_task_100us(void)
-{
-    adc_multi_trigger_fast();
-}
+
 
 static inline float conv_adc_to_v_div(uint16_t raw, float rtop, float rbot){
     float v = ((float)raw * VREF_ADC) / 4095.0f;  
@@ -233,9 +221,9 @@ int main(void){
     llc_pwm_cfg_t lcfg = { .pwm_hz=LLC_PWM_BASE_HZ, .deadtime_ns=LLC_PWM_DEAD_NS, .duty=LLC_PWM_DUTY };//130
     llc_pwm_init(&lcfg);
 		
-    /* ADC multi (PA3/PA1 removed) triggered by TIMER3 interrupt @100us (software trigger) */
-    //adc_multi_init_dma(ADC0_1_2_EXTTRIG_REGULAR_NONE); 
-		adc_multi_init_dma(ADC0_1_EXTTRIG_REGULAR_T0_CH0);
+    /* ADC0 由 TIMER0 Ch1 硬件触发（200kHz），不再需要软件触发
+     * adc_multi_init_dma() 内部硬编码为 T0_CH1，见 adc_dma.c */
+		adc_multi_init_dma();
     adc_multi_start();
 		//adc_multi_trigger_fast();
     adc_fast_timer_init_100us(); // 启动100us定时器中断用于ADC0触发
@@ -286,6 +274,10 @@ int main(void){
 				adc_multi_copy();
 				llc_app_tick_100us();
 				// ADC0 由 TIMER0 Ch1 硬件触发（ARR/2 处），不再需要软件触发
+				if (pending_adc_fast_ticks > FAST_ADC_MAX_TICKS_PER_LOOP) {
+						s_adc_fast_tick_drop_count += (pending_adc_fast_ticks - FAST_ADC_MAX_TICKS_PER_LOOP);
+						pending_adc_fast_ticks = FAST_ADC_MAX_TICKS_PER_LOOP;
+				}
 		}
 			while(pending_ticks-- > 0U)
 			{

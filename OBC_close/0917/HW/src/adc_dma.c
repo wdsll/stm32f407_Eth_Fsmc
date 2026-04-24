@@ -46,8 +46,11 @@ static void adc0_dma_cfg(void)
     dma_interrupt_flag_clear(DMA0, DMA_CH0, DMA_INT_FLAG_G);
 }
 
-/* ADC0初始化 - DMA/软件触发模式 */
-void adc0_dma_init(uint32_t trig_src)
+/* ADC0初始化 - TIMER0 Ch1 硬件触发 DMA 模式
+ * 触发源: TIMER0 Ch1 比较事件 (pwm_llc.c 初始化，ARR/2 处产生)
+ * 频率:   由 TIMER0 ARR 决定（当前 200kHz PWM）
+ * 注意: trig_src 参数已废弃，始终使用 ADC0_1_EXTTRIG_REGULAR_T0_CH1 */
+void adc0_dma_init(uint32_t trig_src __attribute__((unused)))
 {
     if(adc0_initialized) {
         return; // 避免重复初始化
@@ -220,6 +223,9 @@ uint8_t adc1_is_initialized(void)
     return adc1_initialized;
 }
 
+/* ADC0 软件触发（已废弃）
+ * ADC0 现由 TIMER0 Ch1 硬件触发（200kHz），此函数不再被调用，保留仅用于兼容性
+ * @deprecated 请勿在新代码中使用 */
 void adc_multi_trigger_fast(void)
 {
     if(!adc0_initialized) {
@@ -254,9 +260,10 @@ void adc_multi_copy(void)
 * 兼容性函数（保持原有接口）
 *********************************************************************************************************/
 
-void adc_multi_init_dma(uint32_t trig_src)
+/* 兼容层，见 adc0_dma_init() */
+void adc_multi_init_dma(void)
 {
-    adc0_dma_init(trig_src);
+    adc0_dma_init(0U);
 }
 
 void adc_multi_start(void)

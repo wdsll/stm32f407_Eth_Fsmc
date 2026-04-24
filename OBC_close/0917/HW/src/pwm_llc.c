@@ -202,7 +202,7 @@ static void llc_pwm_force_start(bool high_side_on)
 	timer_channel_output_mode_config(
     TIMER0, LLC_PWM_CH,
     high_side_on ? TIMER_OC_MODE_ACTIVE : TIMER_OC_MODE_INACTIVE
-);
+	);
 
     // 4. 强制生成更新事件，确保配置生效
     timer_flag_clear(TIMER0, TIMER_FLAG_UP);
