@@ -3,9 +3,9 @@
 <title>Static Call Graph - [.\Objects\0917.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Objects\0917.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6090000: Last Updated: Fri Apr 24 13:14:50 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6090000: Last Updated: Sat Apr 25 13:58:33 2026
 <BR><P>
-<H3>Maximum Stack Usage =        468 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
+<H3>Maximum Stack Usage =        460 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
 main &rArr; control_loop_tick_1khz &rArr; llc_app_tick_1khz &rArr; llc_enter_fault &rArr; llc_state_enter &rArr; llc_softstart_start &rArr; llc_softstart_begin &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
 <P>
@@ -994,7 +994,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[47]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[d7]"></a>llc_app_tick_100us</STRONG> (Thumb, 364 bytes, Stack size 24 bytes, llc_control.o(.text.llc_app_tick_100us))
+<P><STRONG><a name="[d7]"></a>llc_app_tick_100us</STRONG> (Thumb, 368 bytes, Stack size 24 bytes, llc_control.o(.text.llc_app_tick_100us))
 <BR><BR>[Stack]<UL><LI>Max Depth = 220<LI>Call Chain = llc_app_tick_100us &rArr; llc_set_freq &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
 </UL>
 <BR>[Calls]<UL><LI><a href="#[db]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_set_freq
@@ -1188,8 +1188,8 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_app_tick_1khz
 </UL>
 
-<P><STRONG><a name="[47]"></a>main</STRONG> (Thumb, 386 bytes, Stack size 48 bytes, main.o(.text.main))
-<BR><BR>[Stack]<UL><LI>Max Depth = 468<LI>Call Chain = main &rArr; control_loop_tick_1khz &rArr; llc_app_tick_1khz &rArr; llc_enter_fault &rArr; llc_state_enter &rArr; llc_softstart_start &rArr; llc_softstart_begin &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
+<P><STRONG><a name="[47]"></a>main</STRONG> (Thumb, 386 bytes, Stack size 40 bytes, main.o(.text.main))
+<BR><BR>[Stack]<UL><LI>Max Depth = 460<LI>Call Chain = main &rArr; control_loop_tick_1khz &rArr; llc_app_tick_1khz &rArr; llc_enter_fault &rArr; llc_state_enter &rArr; llc_softstart_start &rArr; llc_softstart_begin &rArr; ss_apply &rArr; llc_pwm_set_freq &rArr; timer0_clk_hz &rArr; rcu_clock_freq_get
 </UL>
 <BR>[Calls]<UL><LI><a href="#[115]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;systick_1ms_init
 <LI><a href="#[118]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_latched
@@ -1802,8 +1802,8 @@ Local Symbols
 <BR>[Called By]<UL><LI><a href="#[47]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[a3]"></a>adc_startup_check</STRONG> (Thumb, 372 bytes, Stack size 48 bytes, main.o(.text.adc_startup_check))
-<BR><BR>[Stack]<UL><LI>Max Depth = 188<LI>Call Chain = adc_startup_check &rArr; adc_multi_sample_aux_1khz &rArr; adc1_sample_aux_1khz &rArr; adc1_aux_read_channel &rArr; adc_regular_channel_config
+<P><STRONG><a name="[a3]"></a>adc_startup_check</STRONG> (Thumb, 364 bytes, Stack size 40 bytes, main.o(.text.adc_startup_check))
+<BR><BR>[Stack]<UL><LI>Max Depth = 180<LI>Call Chain = adc_startup_check &rArr; adc_multi_sample_aux_1khz &rArr; adc1_sample_aux_1khz &rArr; adc1_aux_read_channel &rArr; adc_regular_channel_config
 </UL>
 <BR>[Calls]<UL><LI><a href="#[8e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
 <LI><a href="#[a0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_multi_sample_aux_1khz
@@ -2415,8 +2415,8 @@ Local Symbols
 <LI><a href="#[e5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_enter_fault
 </UL>
 
-<P><STRONG><a name="[dc]"></a>llc_update_measurements</STRONG> (Thumb, 100 bytes, Stack size 16 bytes, llc_control.o(.text.llc_update_measurements))
-<BR><BR>[Stack]<UL><LI>Max Depth = 44<LI>Call Chain = llc_update_measurements &rArr; conv_adc_to_v_div
+<P><STRONG><a name="[dc]"></a>llc_update_measurements</STRONG> (Thumb, 128 bytes, Stack size 24 bytes, llc_control.o(.text.llc_update_measurements))
+<BR><BR>[Stack]<UL><LI>Max Depth = 52<LI>Call Chain = llc_update_measurements &rArr; conv_adc_to_v_div
 </UL>
 <BR>[Calls]<UL><LI><a href="#[d9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;conv_adc_to_v_div
 <LI><a href="#[112]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;conv_adc_to_i

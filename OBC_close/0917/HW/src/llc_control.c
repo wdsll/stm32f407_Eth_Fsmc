@@ -382,10 +382,15 @@ static float llc_ctrl_step(float e)
 static void llc_update_measurements(void)
 {
     //adc_multi_copy();
-    s_llc_rt.meas.vout_v = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
+    float vout_raw = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
     s_llc_rt.meas.iout_a = conv_adc_to_i(g_adc_multi.isense_raw);
     s_llc_rt.meas.vbus_v = pfc_bus_voltage();
-    s_llc.vmeas = s_llc_rt.meas.vout_v;
+	  /* RUN/BURST 下 Vout 由 100us 滤波路径维护，避免 1ms raw 覆盖 filtered */
+	  if ((s_llc_rt.app.state != ST_LLC_RUN) &&
+        (s_llc_rt.app.state != ST_BURST_MODE)) {
+        s_llc_rt.meas.vout_v = vout_raw;
+        s_llc.vmeas = vout_raw;
+    }   
 }
 
 static bool llc_precheck_ok(void)
@@ -1215,6 +1220,7 @@ void llc_app_tick_100us(void)
     /* 100us快环滤波，alpha可后续再调 */
     vout_filt_v += LLC_VOUT_FILT_ALPHA * (vout_now - vout_filt_v);
     s_llc.vmeas = vout_filt_v;
+		s_llc_rt.meas.vout_v = vout_filt_v;
 		/* Burst模式：只保留滤波，不跑PI */
     if (s_llc_rt.app.state == ST_BURST_MODE) {
         vloop_div = 0U;
@@ -1232,7 +1238,6 @@ void llc_app_tick_100us(void)
 			vloop_div = 0;
 			f_cmd = llc_ctrl_step(err);
 			llc_set_freq(f_cmd, false);  /* 自然更新：闭环微调 */
-			llc_cr_resp_tick();
 			}
 		}
 		

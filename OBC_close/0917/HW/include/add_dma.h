@@ -23,6 +23,8 @@ extern volatile adc_multi_frame_t g_adc_multi;
 
 /* ADC0 DMA 初始化，始终使用 TIMER0 Ch1 硬件触发（见 adc_dma.c） */
 void adc_multi_init_dma(void);
+void adc_multi_copy(void);
+void adc_multi_start(void);
 /* ADC0 软件触发（已废弃，保留兼容性） */
 void adc_multi_trigger_fast(void) __attribute__((deprecated));
 void adc_multi_sample_aux_1khz(void);
