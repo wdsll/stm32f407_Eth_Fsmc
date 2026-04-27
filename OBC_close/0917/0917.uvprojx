@@ -432,6 +432,26 @@
               <FileType>5</FileType>
               <FilePath>.\APP\协议输出详细报告（CR Binary Protocol）.txt</FilePath>
             </File>
+            <File>
+              <FileName>temp_control.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\APP\src\temp_control.c</FilePath>
+            </File>
+            <File>
+              <FileName>temp_control.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\APP\include\temp_control.h</FilePath>
+            </File>
+            <File>
+              <FileName>charge_ctrl.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\APP\src\charge_ctrl.c</FilePath>
+            </File>
+            <File>
+              <FileName>charge_ctrl.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\APP\include\charge_ctrl.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -721,6 +741,26 @@
               <FileName>llc_cr_proto.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Proto\llc_cr_proto.c</FilePath>
+            </File>
+            <File>
+              <FileName>llc_log_dump.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Proto\llc_log_dump.c</FilePath>
+            </File>
+            <File>
+              <FileName>llc_log_dump.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Proto\llc_log_dump.h</FilePath>
+            </File>
+            <File>
+              <FileName>llc_trace.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Proto\llc_trace.c</FilePath>
+            </File>
+            <File>
+              <FileName>llc_trace.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Proto\llc_trace.h</FilePath>
             </File>
           </Files>
         </Group>

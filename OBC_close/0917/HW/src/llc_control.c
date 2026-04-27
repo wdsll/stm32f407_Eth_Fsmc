@@ -1,11 +1,13 @@
 #include "llc_control.h"
 #include "float.h"
-#include "llc_cr_proto.h"
+#include "temp_control.h"
+#include "llc_trace.h"
+#include "llc_log_dump.h"
 /*********************************************************************************************************
-*                                              ºê¶¨Òå
+*                                              å®å®šä¹‰
 *********************************************************************************************************/
 #ifndef LLC_VOUT_FILT_ALPHA
-#define LLC_VOUT_FILT_ALPHA          (0.08f) /* 100us¿ì»·ÂË²¨ÏµÊı */
+#define LLC_VOUT_FILT_ALPHA          (0.08f) /* 100uså¿«ç¯æ»¤æ³¢ç³»æ•° */
 #endif
 
 #ifndef LLC_F_NOM_USE_STAGE_CMD
@@ -13,10 +15,10 @@
 #endif
 
 #ifndef LLC_F_NOM_HZ
-#define LLC_F_NOM_HZ                 (92000.0f)  
+#define LLC_F_NOM_HZ                 (75000.0f)  
 #endif
 /*********************************************************************************************************
-*                                             CRÄ£Ê½¸ºÔØ¶¯Ì¬ÏìÓ¦²âÊÔ
+*                                             CRæ¨¡å¼è´Ÿè½½åŠ¨æ€å“åº”æµ‹è¯•
 *********************************************************************************************************/
 #ifndef LLC_CR_RESP_LOG_ENABLE
 #define LLC_CR_RESP_LOG_ENABLE        (1U)
@@ -47,16 +49,18 @@
 #endif
 
 #ifndef CRITICAL_LOG_ONLY
-#define CRITICAL_LOG_ONLY               (0U)  /* 1:½ö¹Ø¼üÈÕÖ¾, 0:ÏêÏ¸ÈÕÖ¾ */
+#define CRITICAL_LOG_ONLY               (0U)  /* 1:ä»…å…³é”®æ—¥å¿—, 0:è¯¦ç»†æ—¥å¿— */
 #endif
 
 /*********************************************************************************************************
-*                                              ÄÚ²¿±äÁ¿¶¨Òå
+*                                              å†…éƒ¨å˜é‡å®šä¹‰
 *********************************************************************************************************/
 typedef struct {
     float vbus_v;
     float vout_v;
     float iout_a;
+		float llc_temp_c;
+		bool llc_temp_valid;
 } llc_meas_t;
 typedef struct {
     llc_app_ctx_t app;
@@ -67,91 +71,38 @@ typedef struct {
     uint32_t hold_last_adjust_ms;
 	  uint32_t run_entry_hold_begin_ms;
     uint32_t run_entry_stable_ticks;
-	  uint32_t cycle_stop_begin_ms;      /* ÖÜÆÚĞÔÈí¹Ø¶Ï¿ªÊ¼Ê±¼ä */
-    bool     cycle_stop_enable;        /* ÖÜÆÚĞÔÈí¹Ø¶ÏÊ¹ÄÜ */
-    /* Burst Mode ±äÁ¿ */
-    burst_state_t burst_state;         /* Burst ×Ó×´Ì¬ */
-    uint32_t burst_begin_ms;           /* Burst ½×¶Î¿ªÊ¼Ê±¼ä */
-    float vout_burst_target;           /* Burst Ä£Ê½Ä¿±êµçÑ¹ */
-    uint32_t burst_enter_delay_ms;     /* Burst½øÈëÑÓ³Ù¼ÆÊ± */
-    uint32_t burst_exit_delay_ms;      /* BurstÍË³öÑÓ³Ù¼ÆÊ± */
-    float f_pre_burst_hz;              /* ½øÈëBurstÇ°µÄÆµÂÊ£¬ÓÃÓÚÍË³öÊ±bumpless */
-    uint8_t burst_first_entry;         /* Ê×´Î½øÈëBurst±êÖ¾ */
+	  uint32_t cycle_stop_begin_ms;      /* å‘¨æœŸæ€§è½¯å…³æ–­å¼€å§‹æ—¶é—´ */
+    bool     cycle_stop_enable;        /* å‘¨æœŸæ€§è½¯å…³æ–­ä½¿èƒ½ */
 }llc_runtime_ctx_t;
 static llc_runtime_ctx_t s_llc_rt;
 
 static llc_app_ctx_t s_llc_app;
 
-enum{
-	LLC_START_DELAY_MS = 10000
-};
+typedef struct {
+    float iref; 	//å‚è€ƒç”µæµ
+		float iref_cmd;
+    float imeas;  	//æµ‹é‡ç”µæµ
+	  float i_err_sat; //è¯¯å·®é™å¹…
+    float kp;   	//æ¯”ä¾‹ç³»æ•°
+    float ki;  	    //ç§¯åˆ†ç³»æ•° 
+    float integ;    //ç§¯åˆ†å€¼
+    float f_min; 	//æœ€å°é¢‘ç‡
+    float f_max; 	//æœ€å¤§é¢‘ç‡
+		float df_max;   //é¢‘ç‡å¢é‡ä¸Šé™
+    float df_slew;  //é¢‘ç‡ slew
+	  float df_prev;  //ä¸Šä¸€æ‹ df
+    float i_on;     //æ¿€æ´»ç”µæµ
+    float i_off;    //é€€å‡ºç”µæµ
+	  uint32_t derate_step_ms;
+	  uint32_t derate_recover_ms;
+    bool limit_active; //é™æµæ¿€æ´»æ ‡å¿—
+} llc_curr_t;
 
-typedef struct
-{
-    uint8_t  active;
-    uint32_t seq;
-    uint32_t start_ms;
-    uint32_t settled_ms;
-    float    iout_prev_a;
-    float    iout_from_a;
-    float    iout_to_a;
-    float    vout_pre_v;
-    float    vout_min_v;
-    float    vout_max_v;
-    float    max_abs_err_v;
-    uint16_t stable_ticks;
-    uint32_t next_period_log_ms;
-} llc_cr_resp_ctx_t;
-
-static llc_cr_resp_ctx_t s_cr_resp;
-
-typedef struct
-{
-    uint32_t t_ms;
-    uint8_t state;
-    float f_cmd_hz;
-    uint32_t f_act_hz;
-    float vout_v;
-} llc_collapse_snap_t;
-
-typedef struct
-{
-    llc_collapse_snap_t buf[LLC_COLLAPSE_TRACE_PRE_MS + LLC_COLLAPSE_TRACE_POST_MS + 2U];
-    uint16_t wr;
-    uint16_t size;
-    uint8_t active;
-    uint8_t post_left;
-    uint32_t last_trigger_ms;
-	  uint8_t trigger_inhibit;
-    float last_vout_v;
-} llc_collapse_trace_ctx_t;
-
-static llc_collapse_trace_ctx_t s_collapse_trace;
-
-typedef struct
-{
-    uint8_t pending;
-    uint8_t emit_idx;
-    llc_collapse_snap_t pre;
-    llc_collapse_snap_t trig;
-    llc_collapse_snap_t post;
-    uint8_t verdict;
-    uint8_t reason_state;
-    float dv_v;
-    float df_cmd_hz;
-    float df_act_hz;
-} llc_collapse_emit_ctx_t;
-
-static llc_collapse_emit_ctx_t s_collapse_emit;
-static llc_cr_log_item_t s_cr_log_buf[LLC_CR_RESP_LOG_CACHE_MAX];
-static uint16_t s_cr_log_w = 0U;
-static uint16_t s_cr_log_r = 0U;
-static uint16_t s_cr_log_cnt = 0U;
-static uint8_t  s_cr_log_pending_dump = 0U;
-static uint32_t s_cr_log_overflow_cnt = 0U;
-static uint32_t s_cr_log_overflow_reported = 0U;
+static llc_curr_t s_llc_curr;
+static llc_t s_llc; //llcä¸Šä¸‹æ–‡
+static bool s_llc_run_request = false;
 /*********************************************************************************************************
-*                                              ÄÚ²¿º¯ÊıÉùÃ÷
+*                                              å†…éƒ¨å‡½æ•°å£°æ˜
 *********************************************************************************************************/
 static void llc_state_enter(llc_state_t next);
 static void llc_update_measurements(void);
@@ -162,20 +113,85 @@ static bool llc_precheck_ok(void);
 static bool llc_pfc_ready_stable(bool enable_llc);
 static bool llc_faults_present(void);
 static void llc_enter_fault(void);
-static float llc_ctrl_step(float e);
-static void llc_fan_tick(void); //·çÉÈµÄtask
+static bool llc_is_active_state(llc_state_t st);  /* å‰å‘å£°æ˜ */
 
-static void llc_cr_resp_log_push(const llc_cr_log_item_t *item);
-static void llc_cr_resp_log_dump(void);
-static void llc_cr_resp_log_dump_all(void);  /* STOPÄ£Ê½ÅúÁ¿Êä³ö */
+//åŒç¯ç«äº‰ç‰ˆæœ¬çš„
+static float llc_ctrl_step(float e, bool en, bool limit_active, float f_init, float f_track);
+static float llc_bumpless_integ(float f0, float e0, float kp, float f_nom, float f_min, float f_max);
+static float llc_current_limit_step(float i_meas,bool en);
 
-static void llc_collapse_trace_tick(void);
-static void llc_collapse_trace_push(uint32_t f_act_hz);
-static void llc_collapse_trace_dump(uint8_t reason_state);
-static void llc_collapse_trace_drain_budget(uint8_t budget);
+static void llc_fan_tick(void); //é£æ‰‡çš„task
+
+static void llc_current_thresholds_update(void);
+static void llc_derate_reset(void);
+static void llc_derate_update(float i_meas, bool enable);
+static bool llc_temp_derate_active(void);
+static bool llc_overtemp_shutdown(void);
 /*********************************************************************************************************
-*                                              ¾²Ì¬¹¤¾ß
+*                                              é™æ€å·¥å…·
 *********************************************************************************************************/
+
+void llc_set_run_request(bool en)
+{
+    s_llc_run_request = en;
+}
+
+bool llc_get_run_request(void)
+{
+    return s_llc_run_request;
+}
+
+void llc_set_vref(float vref)
+{
+    /* ç»™ä¸€ç‚¹åŸºç¡€é’³ä½ï¼Œé¿å…ä¹±å†™ */
+    s_llc.vref = f_clampf(vref, 0.0f, LLC_VOUT_OVP_V - 0.5f);
+}
+
+float llc_get_vref(void)
+{
+    return s_llc.vref;
+}
+
+/*********************************************************************************************************
+* å‡½æ•°åç§°ï¼šllc_set_iref
+* å‡½æ•°åŠŸèƒ½ï¼šè®¾ç½®LLCç”µæµç¯å‚è€ƒå€¼ï¼Œå®ç°ç”µæµé™åˆ¶å€¼çš„å¹³æ»‘ä¸‹è°ƒå’ŒåŠ¨æ€é˜ˆå€¼æ›´æ–°
+* è¾“å…¥å‚æ•°ï¼širef - ç›®æ ‡ç”µæµå‚è€ƒå€¼ï¼ˆAï¼‰
+* è¾“å‡ºå‚æ•°ï¼švoid
+* è¿” å› å€¼ï¼švoid
+* åˆ›å»ºæ—¥æœŸï¼š2026å¹´04æœˆ08æ—¥
+* æ³¨    æ„ï¼šç”µæµå‚è€ƒå€¼åªèƒ½å¹³æ»‘ä¸‹è°ƒæˆ–é¦–æ¬¡è®¾ç½®ï¼Œä¸Šè°ƒéœ€é€šè¿‡é™é¢æ¢å¤æœºåˆ¶ï¼›åŒæ­¥æ›´æ–°ç”µæµä¿æŠ¤é˜ˆå€¼
+*********************************************************************************************************/
+void llc_set_iref(float iref)
+{
+    float i = f_clampf(iref, 0.0f, LLC_IOUT_TARGET_A);
+    s_llc_curr.iref = i;
+    if (s_llc_curr.iref_cmd > i || s_llc_curr.iref_cmd <= 0.0f) {
+        s_llc_curr.iref_cmd = i;
+    }
+    llc_current_thresholds_update();
+}
+
+float llc_get_iref(void)
+{
+    return s_llc_curr.iref;
+}
+
+void llc_get_status(llc_status_t *st)
+{
+    if (st == NULL) {
+        return;
+    }
+
+    st->vout_v = s_llc_rt.meas.vout_v;
+    st->iout_a = s_llc_rt.meas.iout_a;
+    st->vbus_v = s_llc_rt.meas.vbus_v;
+    st->state  = s_llc_rt.app.state;
+}
+
+bool llc_is_fault_state(void)
+{
+    return (s_llc_rt.app.state == ST_FAULT);
+}
 static inline float conv_adc_to_v_div(uint16_t raw, float rtop, float rbot)
 {
     float v = (raw * VREF_ADC) / 4095.0f;
@@ -190,7 +206,7 @@ static inline float conv_adc_to_i(uint16_t raw)
 
 static inline float llc_get_f_nom(float f_min, float f_max, float f_stage_cmd)
 {
-#if  (LLC_F_NOM_FOLLOW_MODE == LLC_F_NOM_FOLLOW_TARGET_FREQ)
+#if (LLC_F_NOM_FOLLOW_MODE == LLC_F_NOM_FOLLOW_TARGET_FREQ)
     if (f_stage_cmd >= f_min && f_stage_cmd <= f_max) {
         return f_stage_cmd;
     }
@@ -230,6 +246,20 @@ static void llc_driver_en_set(bool on)
 	}
 }
 
+/**
+ * @brief æ§åˆ¶é£æ‰‡å¼€å…³
+ * 
+ * è¯¥å‡½æ•°ç”¨äºæ§åˆ¶å†·å´é£æ‰‡çš„å¼€å¯å’Œå…³é—­ï¼Œé‡‡ç”¨é™æ€å˜é‡å®ç°åˆå§‹åŒ–å’ŒçŠ¶æ€ç¼“å­˜ï¼Œ
+ * é¿å…é‡å¤çš„GPIOé…ç½®å’Œæ— æ•ˆçš„GPIOæ“ä½œã€‚
+ * 
+ * @param on trueè¡¨ç¤ºå¼€å¯é£æ‰‡ï¼Œfalseè¡¨ç¤ºå…³é—­é£æ‰‡
+ * 
+ * @note é¦–æ¬¡è°ƒç”¨æ—¶ä¼šè‡ªåŠ¨åˆå§‹åŒ–GPIOå¤–è®¾æ—¶é’Ÿå’Œå¼•è„šé…ç½®
+ * @note é£æ‰‡é»˜è®¤çŠ¶æ€ä¸ºå…³é—­
+ * @note ä½¿ç”¨çŠ¶æ€ç¼“å­˜æœºåˆ¶ï¼Œåªæœ‰çŠ¶æ€å˜åŒ–æ—¶æ‰æ‰§è¡ŒGPIOæ“ä½œ
+ * 
+ * @static è¯¥å‡½æ•°ä¸ºé™æ€å‡½æ•°ï¼Œä»…åœ¨å½“å‰æ–‡ä»¶å†…å¯è§
+ */
 static void llc_fan_set(bool on)
 {
     static bool initialized = false;
@@ -238,38 +268,58 @@ static void llc_fan_set(bool on)
     if (!initialized) {
         rcu_periph_clock_enable(RCU_GPIOC);
         gpio_init(FAN_CTL_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, FAN_CTL_PIN);
-        gpio_bit_reset(FAN_CTL_PORT, FAN_CTL_PIN);   /* Ä¬ÈÏ¹Ø·çÉÈ */
+        gpio_bit_reset(FAN_CTL_PORT, FAN_CTL_PIN);   /* é»˜è®¤å…³é£æ‰‡ */
         initialized = true;
     }
+
     if (last == on) {
         return;
     }
     last = on;
+
     if (on) {
         gpio_bit_set(FAN_CTL_PORT, FAN_CTL_PIN);
     } else {
         gpio_bit_reset(FAN_CTL_PORT, FAN_CTL_PIN);
     }
 }
+/**
+ * @brief LLCé£æ‰‡æ§åˆ¶å‘¨æœŸä»»åŠ¡
+ * 
+ * æ ¹æ®LLCå·¥ä½œçŠ¶æ€å’Œè¾“å‡ºç”µæµè‡ªåŠ¨æ§åˆ¶é£æ‰‡çš„å¯åœï¼Œå®ç°è¿Ÿæ»æ§åˆ¶é€»è¾‘ã€‚
+ * 
+ * æ§åˆ¶ç­–ç•¥ï¼š
+ * - LLCéå·¥ä½œçŠ¶æ€ï¼ˆè½¯å¯åŠ¨ã€è¿è¡Œã€çªå‘æ¨¡å¼ä»¥å¤–ï¼‰ï¼šç«‹å³å…³é—­é£æ‰‡
+ * - è¾“å‡ºç”µæµ >= FAN_ON_IOUT_Aï¼šç«‹å³å¼€å¯é£æ‰‡
+ * - è¾“å‡ºç”µæµ <= FAN_OFF_IOUT_Aï¼šå»¶æ—¶FAN_OFF_DELAY_MSåå…³é—­é£æ‰‡
+ * - ç”µæµä»‹äºä¸¤è€…ä¹‹é—´ï¼šä¿æŒé£æ‰‡å¼€å¯çŠ¶æ€ï¼Œé‡ç½®å…³é—­å»¶æ—¶
+ * 
+ * @note è¯¥å‡½æ•°åº”åœ¨ä¸»å¾ªç¯ä¸­å‘¨æœŸæ€§è°ƒç”¨
+ * @note ä½¿ç”¨é™æ€å˜é‡fan_off_delay_msè®°å½•é£æ‰‡å…³é—­å»¶æ—¶æ—¶é—´æˆ³
+ * @note è¿Ÿæ»æ§åˆ¶é¿å…é£æ‰‡åœ¨é˜ˆå€¼é™„è¿‘é¢‘ç¹å¯åœ
+ */
 static void llc_fan_tick(void)
 {
     static uint32_t fan_off_delay_ms = 0U;
     float iout = s_llc_rt.meas.iout_a;
     bool llc_active;
+
     llc_active = (s_llc_rt.app.state == ST_SOFTSTART) ||
                  (s_llc_rt.app.state == ST_RUN_ENTRY_HOLD) ||
-                 (s_llc_rt.app.state == ST_LLC_RUN) ||
-                 (s_llc_rt.app.state == ST_BURST_MODE);
+                 (s_llc_rt.app.state == ST_LLC_RUN);
+
     if (!llc_active) {
         fan_off_delay_ms = 0U;
         llc_fan_set(false);
         return;
     }
+
     if (iout >= FAN_ON_IOUT_A) {
         fan_off_delay_ms = 0U;
         llc_fan_set(true);
         return;
     }
+
     if (iout <= FAN_OFF_IOUT_A) {
         if (fan_off_delay_ms == 0U) {
             fan_off_delay_ms = g_ms;
@@ -280,11 +330,16 @@ static void llc_fan_tick(void)
         fan_off_delay_ms = 0U;
     }
 }
-/**
- * @brief ÉèÖÃLLC¿ª¹ØÆµÂÊ
- * @param hz Ä¿±êÆµÂÊ
- * @param force_update ÊÇ·ñÇ¿ÖÆÁ¢¼´¸üĞÂ£¨¼ûllc_pwm_set_freqËµÃ÷£©
- */
+
+/*********************************************************************************************************
+* å‡½æ•°åç§°ï¼šllc_set_freq
+* å‡½æ•°åŠŸèƒ½ï¼š
+* è¾“å…¥å‚æ•°ï¼šhz ç›®æ ‡é¢‘ç‡
+* è¾“å‡ºå‚æ•°ï¼š
+* è¿” å› å€¼ï¼š
+* åˆ›å»ºæ—¥æœŸï¼š2026å¹´04æœˆ08æ—¥
+* æ³¨    æ„ï¼šforce_update æ˜¯å¦å¼ºåˆ¶ç«‹å³æ›´æ–°ï¼ˆè§llc_pwm_set_freqè¯´æ˜ï¼‰
+*********************************************************************************************************/
 static void llc_set_freq(float hz, bool force_update)
 {
     float f = f_clampf(hz, s_llc.f_min, s_llc.f_max);
@@ -292,35 +347,35 @@ static void llc_set_freq(float hz, bool force_update)
     llc_pwm_set_freq((uint32_t)f, force_update);
 }
 
-//ÆµÂÊPI
-/**
- * @brief LLC PI¿ØÖÆÆ÷µ¥²½¼ÆËã
- * 
- * ¸ù¾İÎó²îĞÅºÅ¼ÆËã²¢¸üĞÂLLC¿ª¹ØÆµÂÊ£¬ÊµÏÖµçÑ¹±Õ»·¿ØÖÆ¡£°üº¬²ÎÊıÓĞĞ§ĞÔ¼ì²é¡¢
- * ¿¹»ı·Ö±¥ºÍ´¦ÀíºÍÆµÂÊĞ±ÂÊÏŞÖÆ¡£
- * 
- * @param e ¿ØÖÆÎó²î£¬ÕıÖµ±íÊ¾Vref > Vout£¨ĞèÒªÔö¼Ó¹¦ÂÊ£¬½µµÍÆµÂÊ£©
- * @return ¼ÆËãºóµÄLLC¿ª¹ØÆµÂÊ£¨Hz£©£¬ÒÑÓ¦ÓÃĞ±ÂÊÏŞÖÆºÍ±ß½çÔ¼Êø
- * 
- * @note ¿ØÖÆÂß¼­£ºe > 0 Ê±ÆµÂÊÏÂ½µÒÔÔö¼ÓÊä³ö¹¦ÂÊ
- * @note µ±²ÎÊıÎŞĞ§Ê±Ê¹ÓÃÄ¬ÈÏÖµ£ºf_min=75kHz, f_max=150kHz, f_slew=1kHz/s, kp=10
- * @note Ê¹ÓÃ¿¹»ı·Ö±¥ºÍ£¨anti-windup£©»úÖÆ·ÀÖ¹»ı·ÖÆ÷ÔÚ±¥ºÍÊ±³ÖĞøÀÛ»ı
- * @note ÆµÂÊ±ä»¯ÊÜĞ±ÂÊÏŞÖÆ£¬·ÀÖ¹Êä³öÍ»±ä
- */
-static float llc_ctrl_step(float e)
+/*********************************************************************************************************
+* å‡½æ•°åç§°ï¼šllc_ctrl_step
+* å‡½æ•°åŠŸèƒ½ï¼š
+* è¾“å…¥å‚æ•°ï¼še ç”µå‹è¯¯å·®ï¼šv_ref - v_meas; en æ§åˆ¶å™¨ä½¿èƒ½æ ‡å¿—; limit_active ç”µæµé™åˆ¶æ¿€æ´»æ ‡å¿—
+						f_init åˆå§‹é¢‘ç‡ï¼ˆç”¨äºä½¿èƒ½æ—¶çš„åˆå§‹åŒ–ï¼‰; f_track è·Ÿè¸ªé¢‘ç‡ï¼ˆç”µæµé™åˆ¶æ¿€æ´»æ—¶ä½¿ç”¨ï¼‰
+* è¾“å‡ºå‚æ•°ï¼š
+* è¿” å› å€¼ï¼š
+* åˆ›å»ºæ—¥æœŸï¼š2026å¹´04æœˆ08æ—¥
+* æ³¨    æ„ï¼š
+*********************************************************************************************************/
+static float llc_ctrl_step(float e, bool en, bool limit_active, float f_init, float f_track)
 {
+    /* ä½¿èƒ½è®°å¿†ä½¿ç”¨ç»“æ„ä½“å­—æ®µï¼Œè€Œéå‡½æ•°å†… staticï¼Œä¾¿äºçŠ¶æ€æœºåˆ‡æ¢æ—¶ç»Ÿä¸€é‡ç½® */
 	  float kp = s_llc.kp;
     float ki = s_llc.ki;
     float f_min = s_llc.f_min;
     float f_max = s_llc.f_max;
-    float f_slew = s_llc.f_slew;
+    float f_slew = s_llc.f_slew; 
+	  float f_nom = s_llc.f_nom;  //é¢å®šé¢‘ç‡ï¼ˆä¸è½¯å¯åŠ¨æœ«æ‹å¯¹é½ï¼‰
+    float e_db = s_llc.e_db; 
+    float f_q_step = s_llc.f_q_step;  //é¢‘ç‡é‡åŒ–æ­¥è¿›
 	
+    //1.f_min/f_max/kp/ki/f_nom/f_q_step åˆæ³•æ€§æ£€æŸ¥
 	  if (f_min <= 0.0f || f_min >= f_max) {
-        f_min = 75000.0f;
-        f_max = 150000.0f;
+        f_min = 65000.0f;
+        f_max = 250000.0f;
     }
     if (f_slew <= 0.0f) {
-        f_slew = 1000.0f;
+        f_slew = 3000.0f;
     }
     if (kp <= 0.0f) {
         kp = 10.0f;
@@ -328,38 +383,62 @@ static float llc_ctrl_step(float e)
     if (ki < 0.0f) {
         ki = 0.0f;
     }
-		
-		//float f_nom = 0.5f * (f_min + f_max);
-		//float f_nom = llc_get_f_nom(f_min,f_max,s_llc.f_cmd);
-		float f_nom = s_llc.f_nom;
-#if (LLC_F_NOM_FOLLOW_MODE == LLC_F_NOM_FOLLOW_TARGET_FREQ)
-		f_nom = llc_get_f_nom(f_min, f_max, s_llc.f_cmd);
-		s_llc.f_nom = f_nom;
-#endif
-		if (f_nom < f_min || f_nom > f_max) {
-			f_nom = f_clampf(s_llc.f_cmd, f_min, f_max);
+		if (f_nom <= 0.0f) {
+			f_nom = 0.5f * (f_min + f_max);
 		}
-    float f_prev = s_llc.f_cmd;
-    if (f_prev < f_min || f_prev > f_max) {
-        f_prev = f_nom;
+		if(f_q_step<0.0f)
+		{
+			 f_q_step = 0.0f;
+		}
+		//2.æ˜¯å¦ä½¿èƒ½ç”µå‹ç¯
+		if (!en) {
+			s_llc.integ = 0.0f; // é‡ç½®ç§¯åˆ†å™¨
+			s_llc.f_cmd = f_init; // è®¾ç½®ç”µå‹ç¯ç¯è·¯æ§åˆ¶çš„åˆå§‹é¢‘ç‡
+      s_llc.ctrl_en_z1 = false;  /* æ¸…é™¤ä½¿èƒ½è®°å¿†ï¼Œä¸‹æ¬¡è¿›å…¥æ—¶é‡æ–°åš bumpless åˆå§‹åŒ– */
+			return s_llc.f_cmd;
+		}
+		if (e_db < 0.0f) 
+			e_db = 0.0f;
+		//æ­»åŒºå¤„ç†é¿å…æ§åˆ¶å™¨å¯¹å¾®å°è¯¯å·®çš„è¿‡åº¦ååº”ï¼Œåº”ç”¨åœºæ™¯ï¼šå‡å°‘å™ªå£°å¼•èµ·çš„æŒ¯è¡ï¼Œæé«˜ç³»ç»Ÿç¨³å®šæ€§
+		float e_pi = (fabsf(e) < e_db) ? 0.0f : e;
+		//3.æ˜¯å¦æ˜¯é¦–æ¬¡æ‰§è¡Œ
+    if (!s_llc.ctrl_en_z1) {
+			s_llc.f_cmd = f_init;
+			//s_llc.integ = (f_nom - f_init) - kp * e;
+			//è°ƒç”¨ä¸“ç”¨å‡½æ•°è®¡ç®—ç§¯åˆ†åˆå§‹å€¼ï¼Œå®ç°â€œæ— æ‰°åˆ‡æ¢â€ï¼ˆbumpless transferï¼‰ã€‚
+			s_llc.integ = llc_bumpless_integ(f_init, e_pi, kp, f_nom, f_min, f_max); //u0 = f_nom -  f_init
+      s_llc.ctrl_en_z1 = true;
     }
-		
-		float x_candidate = s_llc.integ + ki * e;  
-    float u = kp * e + x_candidate;
-		
-		/* LLCÆµÂÊ¿ØÖÆ£º
-     * e > 0 (Vref > Vout) => ĞèÒª¼Ó¹¦ÂÊ => ÆµÂÊÏÂ½µ
-     */
-    float f_req = f_nom - u;
-    float f_sat = f_clampf(f_req, f_min, f_max);
-		if (fabsf(f_req - f_sat) > 1e-6f) {
-        /* ±¥ºÍ£º¿¹»ı·Ö±¥ºÍ */
-        s_llc.integ = (f_nom - f_sat) - kp * e;
+    float f_prev = s_llc.f_cmd; // ä¸Šä¸€æ¬¡çš„é¢‘ç‡
+		float f_sat = f_prev; // é™å¹…åçš„é¢‘ç‡
+		//ä¼˜å…ˆçº§ï¼šç”µæµä¿æŠ¤ > ç”µå‹æ§åˆ¶ä½œç”¨ï¼šå½“ç”µæµè¿‡å¤§æ—¶ï¼Œæ”¾å¼ƒç”µå‹ç¯ï¼Œè·Ÿè¸ªç”µæµç¯æä¾›çš„é¢‘ç‡
+		if (limit_active) {
+        float f_t = f_clampf(f_track, f_min, f_max); //	ç”µæµé™åˆ¶æ—¶ï¼Œè·Ÿè¸ªé¢‘ç‡
+        s_llc.integ = (f_nom - f_t) - kp * e_pi; // é‡ç½®ç§¯åˆ†å™¨ä»¥é˜²ç§¯åˆ†é£up
+        f_sat = f_t; // è®¾ç½®é™å¹…åçš„é¢‘ç‡ä¸ºè·Ÿè¸ªé¢‘ç‡
+        //f_prev = f_t; //	æ›´æ–°ä¸Šä¸€æ¬¡çš„é¢‘ç‡
     } else {
-        /* Î´±¥ºÍ£ºÕı³£»ı·Ö */
-        s_llc.integ = x_candidate;
+      /* ç”µå‹ PI æ§åˆ¶ï¼še>0(Vref>Vout) â†’ åŠ åŠŸç‡ â†’ é¢‘ç‡ä¸‹é™ */
+			//u æ˜¯ PI æ§åˆ¶å™¨æ ¹æ®ç”µå‹è¯¯å·®è®¡ç®—å‡ºçš„é¢‘ç‡è°ƒæ•´é‡ï¼Œå†³å®šäº†å½“å‰å‘¨æœŸåº”å½“å‘ f_nom å¢åŠ æˆ–å‡å°‘å¤šå°‘é¢‘ç‡ï¼Œä»¥ç»´æŒè¾“å‡ºç”µå‹ç¨³å®šã€‚å®ƒæ˜¯ç”µå‹ç¯çš„æ ¸å¿ƒè¾“å‡ºï¼Œ
+			//åç»­ç»è¿‡é™å¹…ã€æ–œç‡é™åˆ¶ç­‰ä¿æŠ¤ç¯èŠ‚ï¼Œæœ€ç»ˆç”Ÿæˆå®‰å…¨çš„å¼€å…³é¢‘ç‡å‘½ä»¤ f_cmdã€‚
+			float x_candidate = s_llc.integ + ki * e_pi;  //âˆ«edt = s_llc.integ ç§¯åˆ†çš„ç´¯åŠ å€¼  ki * e_pi æœ¬æ¬¡è¯¯å·®çš„ç§¯åˆ†è´¡çŒ®
+			float u = kp * e_pi + x_candidate; //kp * e_pi æ¯”ä¾‹é¡¹å³æ—¶å“åº”
+			 		
+			/* LLCé¢‘ç‡æ§åˆ¶ï¼š
+			 * e > 0 (Vref > Vout) => éœ€è¦åŠ åŠŸç‡ => é¢‘ç‡ä¸‹é™
+			 */
+			float f_req = f_nom - u; //é¢‘ç‡è¯·æ±‚ = é¢å®šé¢‘ç‡ - ç”µå‹ç¯çš„æ§åˆ¶é‡
+			f_sat = f_clampf(f_req, f_min, f_max);
+			if (fabsf(f_req - f_sat) > 1e-6f) {
+					/* é¥±å’Œï¼šæŠ—ç§¯åˆ†é¥±å’Œ */
+					s_llc.integ = (f_nom - f_sat) - kp * e_pi;
+			} else {
+					/* æœªé¥±å’Œï¼šæ­£å¸¸ç§¯åˆ† */
+					s_llc.integ = x_candidate;
+			}
+			
     }
-    /* ÆµÂÊslewÏŞÖÆ */
+    /* é¢‘ç‡slewé™åˆ¶ */
 		float df = f_sat - f_prev;
     if (df > f_slew) {
         s_llc.f_cmd = f_prev + f_slew;
@@ -368,24 +447,229 @@ static float llc_ctrl_step(float e)
     } else {
         s_llc.f_cmd = f_sat;
     }
+    if (f_q_step > 0.0f) {
+        s_llc.f_cmd = roundf(s_llc.f_cmd / f_q_step) * f_q_step; // é‡åŒ–é¢‘ç‡
+    }
 		s_llc.f_cmd = f_clampf(s_llc.f_cmd, f_min, f_max);
 	  return s_llc.f_cmd;
 }
-/**
- * @brief ¸üĞÂLLC²âÁ¿Öµ
- * 
- * ´ÓADC²É¼¯Ô­Ê¼Êı¾İ²¢×ª»»ÎªÎïÀíÁ¿£¬°üÀ¨Êä³öµçÑ¹¡¢Êä³öµçÁ÷ºÍÄ¸ÏßµçÑ¹¡£
- * ¸üĞÂºóµÄ²âÁ¿Öµ´æ´¢ÔÚÔËĞĞÊ±ÉÏÏÂÎÄºÍÈ«¾ÖLLC½á¹¹ÖĞ¡£
- * 
- * @note ¸Ãº¯ÊıÎª¾²Ì¬ÄÚ²¿º¯Êı£¬½ö¹©Ä£¿éÄÚ²¿µ÷ÓÃ
- */
+/*********************************************************************************************************
+* å‡½æ•°åç§°ï¼šllc_current_limit_step
+* å‡½æ•°åŠŸèƒ½ï¼šç”µæµé™æµPIæ§åˆ¶å™¨ï¼ˆå¸¦è¿Ÿæ»å’ŒæŠ—é¥±å’Œï¼‰
+* è¾“å…¥å‚æ•°ï¼ši_meas æµ‹é‡ç”µæµå€¼ï¼ˆAï¼‰  ä½¿èƒ½æ§åˆ¶ï¼ˆfalseæ—¶å¤ä½ç§¯åˆ†å™¨å¹¶è¿”å›0ï¼‰
+* è¾“å‡ºå‚æ•°ï¼šé¢‘ç‡å¢é‡ï¼ˆHzï¼‰
+* è¿” å› å€¼ï¼š
+* åˆ›å»ºæ—¥æœŸï¼š2026å¹´04æœˆ08æ—¥
+* æ³¨    æ„ï¼šé™æ€å‡½æ•°ï¼Œè¿”å›é¢‘ç‡å¢é‡ï¼ˆHzï¼‰
+*	ç®—æ³•æ¦‚è¿°ï¼š1. è¿Ÿæ»åˆ‡æ¢ï¼šå½“æµ‹é‡ç”µæµ i_meas â‰¥ i_on æ—¶æ¿€æ´»é™æµæ¨¡å¼ï¼Œå½“ i_meas â‰¤ i_off æ—¶é€€å‡º
+						2. PIæ§åˆ¶ï¼šè®¡ç®—é¢‘ç‡å¢é‡ u = kp*ierr + integï¼Œå…¶ä¸­ ierr = i_meas - irefï¼ˆç»é™å¹…ï¼‰
+					  3. æŠ—é¥±å’Œï¼šå½“è¾“å‡ºé¥±å’Œæ—¶ï¼ˆu>df_max æˆ– u<0ï¼‰ï¼Œé‡‡ç”¨åè®¡ç®—æ³•è°ƒæ•´ç§¯åˆ†å™¨
+						4. æ–œç‡é™åˆ¶ï¼šé™åˆ¶è¾“å‡ºå˜åŒ–ç‡ä¸è¶…è¿‡ df_slew
+						5. è¾“å‡ºé’³ä½ï¼šæœ€ç»ˆè¾“å‡ºé™åˆ¶åœ¨ [0, df_max] èŒƒå›´å†…
+*********************************************************************************************************/
+static float llc_current_limit_step(float i_meas,bool en)
+{
+	 // ä»å…¨å±€ç»“æ„ä½“æå–æ§åˆ¶å™¨å‚æ•°ï¼ˆé¿å…å¤šæ¬¡è®¿é—®ï¼‰
+    float iref = s_llc_curr.iref_cmd;  // ç”µæµå‚è€ƒå€¼ï¼ˆAï¼‰
+    float i_err_sat = s_llc_curr.i_err_sat;  // è¯¯å·®é™å¹…å€¼
+    float kp = s_llc_curr.kp; // æ¯”ä¾‹ç³»æ•°ï¼ˆHz/Aï¼‰
+    float ki = s_llc_curr.ki; // ç§¯åˆ†ç³»æ•°ï¼ˆHz/(AÂ·å‘¨æœŸ)ï¼‰
+    float df_max = s_llc_curr.df_max; // æœ€å¤§é¢‘ç‡å¢é‡ï¼ˆHzï¼‰
+    float df_slew = s_llc_curr.df_slew; // é¢‘ç‡å˜åŒ–ç‡é™åˆ¶ï¼ˆHz/å‘¨æœŸï¼‰
+
+    if (!en) {
+        s_llc_curr.integ = 0.0f; // æ¸…é›¶ç§¯åˆ†å™¨
+        s_llc_curr.df_prev = 0.0f; // æ¸…é›¶ä¸Šä¸€å‘¨æœŸè¾“å‡º
+        s_llc_curr.limit_active = false; // é€€å‡ºé™æµæ¨¡å¼
+        return 0.0f;
+    }
+
+		s_llc_curr.imeas = i_meas;  // ä¿å­˜æµ‹é‡å€¼ä¾›è°ƒè¯•/ç›‘è§†
+		// è¿Ÿæ»åˆ‡æ¢é€»è¾‘ï¼šåˆ¤æ–­æ˜¯å¦è¿›å…¥/é€€å‡ºé™æµæ¨¡å¼
+    if (!s_llc_curr.limit_active) { // å½“å‰æœªå¤„äºé™æµæ¨¡å¼
+        if (i_meas >= s_llc_curr.i_on) { // è‹¥ç”µæµè¶…è¿‡å¼€å¯é˜ˆå€¼
+            s_llc_curr.limit_active = true; // æ¿€æ´»é™æµæ¨¡å¼
+        }
+    } else {
+        if (i_meas <= s_llc_curr.i_off) { // è‹¥ç”µæµä½äºå…³é—­é˜ˆå€¼
+            s_llc_curr.limit_active = false; // é€€å‡ºé™æµæ¨¡å¼
+        }
+			}
+    
+		float df_sat = 0.0f;    // é¥±å’Œåçš„é¢‘ç‡å¢é‡ï¼ˆæœªç»è¿‡æ–œç‡é™åˆ¶ï¼‰
+		// æ ¹æ®é™æµæ¨¡å¼çŠ¶æ€å†³å®šå¤„ç†é€»è¾‘
+    if (!s_llc_curr.limit_active) { // éé™æµæ¨¡å¼
+        s_llc_curr.integ = 0.0f;    // æ¸…é›¶ç§¯åˆ†å™¨ï¼ˆé˜²æ­¢ç§¯åˆ†æ¼‚ç§»ï¼‰
+        df_sat = 0.0f;              // è¾“å‡ºä¸º0
+    } else {												// é™æµæ¨¡å¼æ¿€æ´»ï¼Œæ‰§è¡ŒPIæ§åˆ¶
+		//ç”µå‹ç¯é‡‡ç”¨ â€œæ ‡ç§°é¢‘ç‡å‡å»æ§åˆ¶é‡â€ çš„ç»“æ„ï¼ˆf_req = f_nom - uï¼‰ï¼Œå› æ­¤è¯¯å·®å®šä¹‰ä¸º v_ref - v_measï¼Œä½¿æ§åˆ¶é‡ u ä¸é¢‘ç‡å˜åŒ– åå‘ã€‚
+    //ç”µæµç¯é‡‡ç”¨ â€œæœ€å°é¢‘ç‡åŠ ä¸Šå¢é‡â€ çš„ç»“æ„ï¼ˆf_cmd_i = f_min + df_iï¼‰ï¼Œå› æ­¤è¯¯å·®å®šä¹‰ä¸º i_meas - irefï¼Œä½¿å¢é‡ df_i ä¸é¢‘ç‡å˜åŒ– åŒå‘ã€‚
+        float ierr = i_meas - iref; // è®¡ç®—ç”µæµè¯¯å·®ï¼ˆæµ‹é‡å€¼ - å‚è€ƒå€¼ï¼‰
+        if (ierr > i_err_sat) {     // è¯¯å·®é™å¹…ï¼Œé˜²æ­¢ç§¯åˆ†å™¨è¿‡åº¦ç´¯ç§¯
+            ierr = i_err_sat;       // æ­£å‘é¥±å’Œ
+        } else if (ierr < -i_err_sat) {
+            ierr = -i_err_sat;      // è´Ÿå‘é¥±å’Œ
+        }
+				// ç§¯åˆ†å™¨å‰å‘è®¡ç®—ï¼ˆå€™é€‰å€¼ï¼‰
+        float x_candidate = s_llc_curr.integ + ki * ierr;
+				// PIæ§åˆ¶å™¨è¾“å‡ºï¼šæ¯”ä¾‹é¡¹ + ç§¯åˆ†å€™é€‰å€¼
+        float u = kp * ierr + x_candidate;
+				// è¾“å‡ºé¥±å’Œå¤„ç†ï¼ˆæŠ—é¥±å’Œé€»è¾‘çš„å‰åŠéƒ¨åˆ†ï¼‰
+        if (u > df_max) {
+            df_sat = df_max;  // æ­£å‘é¥±å’Œè‡³æœ€å¤§é¢‘ç‡å¢é‡
+        } else if (u < 0.0f) {
+            df_sat = 0.0f;    // è´Ÿå‘é¥±å’Œè‡³0ï¼ˆé¢‘ç‡ä¸èƒ½ä¸ºè´Ÿï¼‰
+        } else {
+            df_sat = u;       // æœªé¥±å’Œï¼Œç›´æ¥ä½¿ç”¨è®¡ç®—å€¼
+        }
+				// æŠ—é¥±å’Œç§¯åˆ†å™¨è°ƒæ•´ï¼ˆåè®¡ç®—æ³•ï¼‰
+        if (fabsf(u - df_sat) > 1e-6f) { // å¦‚æœè¾“å‡ºå‘ç”Ÿäº†é¥±å’Œï¼ˆå®¹å·®1e?6ï¼‰
+            s_llc_curr.integ = df_sat - kp * ierr;  // é‡æ–°è®¡ç®—ç§¯åˆ†å™¨ï¼Œä½¿è¾“å‡ºæ°å¥½ç­‰äºé¥±å’Œå€¼
+        } else {
+            s_llc_curr.integ = x_candidate; // æœªé¥±å’Œï¼Œä½¿ç”¨å€™é€‰å€¼æ›´æ–°ç§¯åˆ†å™¨
+        }
+				// ç§¯åˆ†å™¨é’³ä½ï¼Œé˜²æ­¢ç§¯åˆ†å™¨æº¢å‡º
+        s_llc_curr.integ = f_clampf(s_llc_curr.integ, -df_max, df_max);
+    }
+		// æ–œç‡ï¼ˆå˜åŒ–ç‡ï¼‰é™åˆ¶
+		float ddf = df_sat - s_llc_curr.df_prev; // è®¡ç®—æœ¬æ¬¡é¥±å’Œè¾“å‡ºä¸ä¸Šä¸€å‘¨æœŸæœ€ç»ˆè¾“å‡ºçš„å·®å€¼
+    float df_i = df_sat;  // åˆå§‹å€¼ä¸ºé¥±å’Œè¾“å‡º
+    if (ddf > df_slew) {  // å¦‚æœæ­£å‘å˜åŒ–è¶…è¿‡å…è®¸æ–œç‡
+        df_i = s_llc_curr.df_prev + df_slew; // åªå¢åŠ å…è®¸çš„æœ€å¤§å˜åŒ–é‡
+    } else if (ddf < -df_slew) {// å¦‚æœè´Ÿå‘å˜åŒ–è¶…è¿‡å…è®¸æ–œç‡
+        df_i = s_llc_curr.df_prev - df_slew;// åªå‡å°‘å…è®¸çš„æœ€å¤§å˜åŒ–é‡
+    }    
+	// æœ€ç»ˆè¾“å‡ºé’³ä½
+    df_i = f_clampf(df_i, 0.0f, df_max); // ç¡®ä¿è¾“å‡ºåœ¨[0, df_max]èŒƒå›´å†…
+    s_llc_curr.df_prev = df_i;  // ä¿å­˜æœ¬æ¬¡è¾“å‡ºï¼Œä¾›ä¸‹ä¸€å‘¨æœŸä½¿ç”¨
+    return df_i;
+}
+
+/*********************************************************************************************************
+* å‡½æ•°åç§°ï¼šllc_current_thresholds_update
+* å‡½æ•°åŠŸèƒ½ï¼šæ ¹æ®ç”µæµå‚è€ƒå€¼ iref_cmd åŠ¨æ€è®¡ç®—è¿Ÿæ»æ¯”è¾ƒå™¨çš„ä¸Šä¸‹é˜ˆå€¼ï¼Œå®ç°ç”µæµé™æµæ¨¡å¼çš„å¹³æ»‘åˆ‡æ¢
+* è¾“å…¥å‚æ•°ï¼švoid
+* è¾“å‡ºå‚æ•°ï¼švoid
+* è¿” å› å€¼ï¼švoid
+* åˆ›å»ºæ—¥æœŸï¼š2026å¹´04æœˆ09æ—¥
+* æ³¨    æ„ï¼šè‹¥å•é˜ˆå€¼ï¼šç”µæµåœ¨é˜ˆå€¼é™„è¿‘æŠ–åŠ¨ â†’ é™æµæ¨¡å¼é¢‘ç¹å¼€å…³ â†’ é¢‘ç‡å‘½ä»¤éœ‡è¡
+						åŒé˜ˆå€¼æ»ç¯ï¼šå¿…é¡»ç©¿è¶Šæ•´ä¸ªæ»å›å¸¦æ‰èƒ½åˆ‡æ¢ï¼ŒæŠ—å™ªå£°å¹²æ‰°
+*********************************************************************************************************/
+static void llc_current_thresholds_update(void)
+{
+    float i_on  = s_llc_curr.iref_cmd + LLC_IOUT_ON_DELTA_A;  // è¿›å…¥é™æµçš„é˜ˆå€¼ï¼ˆåé«˜ï¼‰
+    float i_off = s_llc_curr.iref_cmd - LLC_IOUT_OFF_DELTA_A; // é€€å‡ºé™æµçš„é˜ˆå€¼ï¼ˆåä½ï¼‰
+
+    if (i_on  < 0.0f) i_on  = 0.0f;
+    if (i_off < 0.0f) i_off = 0.0f;
+ 
+    if (i_off >= i_on) {
+        i_off = i_on - 0.1f;          // ç»™ä¸ªæœ€å°æ»å›ï¼ˆ0.1A å¯æŒ‰éœ€è°ƒæ•´ï¼‰
+        if (i_off < 0.0f) i_off = 0.0f;
+    }
+ 
+    s_llc_curr.i_on  = i_on;
+    s_llc_curr.i_off = i_off;
+}
+/*********************************************************************************************************
+* å‡½æ•°åç§°ï¼šllc_derate_reset
+* å‡½æ•°åŠŸèƒ½ï¼šæ­¤å‡½æ•°æ˜¯ LLCï¼ˆè°æŒ¯å˜æ¢å™¨ï¼‰ç”µæµæ§åˆ¶æ¨¡å— çš„ä¸€éƒ¨åˆ†ï¼Œä¸“ç”¨äºç®¡ç† é™é¢ï¼ˆDeratingï¼‰çŠ¶æ€ çš„å¤ä½æ“ä½œ
+* è¾“å…¥å‚æ•°ï¼švoid
+* è¾“å‡ºå‚æ•°ï¼švoid
+* è¿” å› å€¼ï¼švoid
+* åˆ›å»ºæ—¥æœŸï¼š2026å¹´02æœˆ10æ—¥
+* æ³¨    æ„ï¼šâ€œé™é¢â€æŒ‡åœ¨æ£€æµ‹åˆ°è¿‡æµã€è¿‡çƒ­ç­‰å¼‚å¸¸å·¥å†µæ—¶ï¼Œä¸»åŠ¨é™ä½ç”µæµå‚è€ƒå€¼ä»¥ä¿æŠ¤åŠŸç‡å™¨ä»¶ã€‚è¯¥å‡½æ•°ä½œä¸ºä¸€ä¸ªçŠ¶æ€é‡ç½®æ¢çº½ï¼Œç¡®ä¿ç³»ç»Ÿèƒ½ä»é™é¢æ¨¡å¼å®‰å…¨ã€ä¸€è‡´åœ°æ¢å¤åˆ°æ­£å¸¸å·¥ä½œç‚¹
+*********************************************************************************************************/
+static void llc_derate_reset(void)
+{
+    s_llc_curr.iref_cmd = s_llc_curr.iref;  // (1) å¤ä½å‘½ä»¤ç”µæµ
+    s_llc_curr.derate_step_ms = 0U;   // (2) æ¸…é™¤é™é¢æ­¥è¿›è®¡æ—¶ï¼šè®°å½•ä¸Šä¸€æ¬¡é™é¢æ­¥è¿›ï¼ˆå‡å°‘ç”µæµï¼‰çš„æ—¶é—´æˆ³
+    s_llc_curr.derate_recover_ms = 0U; // (3) æ¸…é™¤é™é¢æ¢å¤è®¡æ—¶ï¼šè®°å½•ä¸Šä¸€æ¬¡é™é¢æ¢å¤ï¼ˆå¢åŠ ç”µæµï¼‰çš„æ—¶é—´æˆ³
+    llc_current_thresholds_update();  // (4) æ›´æ–°ç”µæµé˜ˆå€¼
+}
+
+/*********************************************************************************************************
+* å‡½æ•°åç§°ï¼šllc_derate_update
+* å‡½æ•°åŠŸèƒ½ï¼šå®ç°äº† è‡ªé€‚åº”é™é¢ï¼ˆAdaptive Deratingï¼‰ æœºåˆ¶
+* è¾“å…¥å‚æ•°ï¼ši_meas    enable
+* è¾“å‡ºå‚æ•°ï¼švoid
+* è¿” å› å€¼ï¼švoid
+* åˆ›å»ºæ—¥æœŸï¼š2026å¹´02æœˆ10æ—¥
+* æ³¨    æ„ï¼šå½“æ£€æµ‹åˆ°æŒç»­è¿‡æµæˆ–è¿‡çƒ­ç­‰å¼‚å¸¸å·¥å†µæ—¶ï¼Œç³»ç»Ÿä¸èƒ½ç«‹å³å…³æ–­ï¼ˆå¯èƒ½å¼•èµ·è´Ÿè½½çªå˜ï¼‰ï¼Œè€Œåº”é€æ­¥é™ä½ç”µæµè®¾å®šå€¼ï¼Œç›´è‡³å¼‚å¸¸æ¶ˆé™¤ã€‚è¯¥å‡½æ•°é€šè¿‡ è¿Ÿæ»æ¯”è¾ƒ + æ—¶é—´çª—å£ 
+çš„åŒé‡æ¡ä»¶ï¼Œå®ç°äº†å¹³æ»‘ã€æŠ—æ‰°çš„é™é¢æ§åˆ¶ã€‚
+*********************************************************************************************************/
+static void llc_derate_update(float i_meas, bool enable)
+{
+	//æä¾›å¤–éƒ¨å¼€å…³ï¼Œå…è®¸ä¸Šå±‚é€»è¾‘åŠ¨æ€å¯ç”¨/ç¦ç”¨é™é¢åŠŸèƒ½ã€‚
+    if (!enable) {
+			//ä¸€æ—¦ç¦ç”¨ï¼Œç«‹å³è°ƒç”¨ llc_derate_reset() ç¡®ä¿æ‰€æœ‰çŠ¶æ€å˜é‡å½’é›¶ï¼Œç”µæµå‚è€ƒå€¼æ¢å¤åŸå§‹è®¾å®šç‚¹ã€‚
+        llc_derate_reset(); 
+        return;
+    }
+  //æƒ°æ€§åˆå§‹åŒ–ï¼ˆLazy Initializationï¼‰ï¼šä»…åœ¨ç¬¬ä¸€æ¬¡è¿›å…¥å¯ç”¨çŠ¶æ€æ—¶ï¼Œå°†è®¡æ—¶å™¨è®¾ç½®ä¸ºå½“å‰ç³»ç»Ÿæ—¶é—´ g_msã€‚
+    if (s_llc_curr.derate_step_ms == 0U) {
+        s_llc_curr.derate_step_ms = g_ms;
+    }
+
+    if (s_llc_curr.derate_recover_ms == 0U) {
+        s_llc_curr.derate_recover_ms = g_ms;
+    }
+    bool updated = false;
+    if ((i_meas >= s_llc_curr.i_on) && elapsed_reached(s_llc_curr.derate_step_ms, LLC_DERATE_STEP_PERIOD_MS)) {
+        s_llc_curr.iref_cmd -= LLC_DERATE_STEP_A; // è¿‡æµï¼šé€æ­¥é™ä½ç”µæµ
+        s_llc_curr.derate_step_ms = g_ms;  // é‡ç½®æ­¥è¿›è®¡æ—¶å™¨
+        updated = true;
+    }
+    if ((i_meas <= s_llc_curr.i_off) && elapsed_reached(s_llc_curr.derate_recover_ms, LLC_DERATE_RECOVER_PERIOD_MS)) {
+        s_llc_curr.iref_cmd += LLC_DERATE_RECOVER_STEP_A; // æ¢å¤æ­£å¸¸ï¼šé€æ­¥æé«˜ç”µæµ
+        s_llc_curr.derate_recover_ms = g_ms;   // é‡ç½®æ¢å¤è®¡æ—¶å™¨
+        updated = true;
+    }
+    if (updated) {
+        s_llc_curr.iref_cmd = f_clampf(s_llc_curr.iref_cmd, LLC_DERATE_MIN_A, s_llc_curr.iref);
+        llc_current_thresholds_update();
+    }
+}
+/*********************************************************************************************************
+* å‡½æ•°åç§°ï¼šllc_temp_derate_active
+* å‡½æ•°åŠŸèƒ½ï¼šæ£€æµ‹LLCæ¸©åº¦é™é¢æ¡ä»¶æ˜¯å¦æ¿€æ´»
+* è¾“å…¥å‚æ•°ï¼šæ— 
+* è¾“å‡ºå‚æ•°ï¼šæ— 
+* è¿” å› å€¼ï¼šbool true-æ¸©åº¦é™é¢æ¡ä»¶å·²æ¿€æ´»ï¼Œfalse-æ¸©åº¦é™é¢æ¡ä»¶æœªæ¿€æ´»
+* åˆ›å»ºæ—¥æœŸï¼š2026å¹´04æœˆ01æ—¥
+* æ³¨    æ„ï¼šå½“LLCæ¸©åº¦æµ‹é‡æœ‰æ•ˆä¸”æ¸©åº¦å€¼è¾¾åˆ°æˆ–è¶…è¿‡é™é¢å¯åŠ¨é˜ˆå€¼ï¼ˆLLC_TEMP_DERATE_START_Cï¼‰æ—¶ï¼Œ
+*          è¿”å›trueï¼Œè¡¨ç¤ºç³»ç»Ÿéœ€è¦è¿›è¡Œæ¸©åº¦é™é¢æ§åˆ¶ã€‚è¯¥å‡½æ•°ç”¨äºå®æ—¶ç›‘æµ‹æ¸©åº¦çŠ¶æ€ï¼Œ
+*          ä¸ºæ¸©åº¦ä¿æŠ¤ç­–ç•¥æä¾›åˆ¤æ–­ä¾æ®ã€‚
+*********************************************************************************************************/
+static bool llc_temp_derate_active(void)
+{
+    return s_llc_rt.meas.llc_temp_valid && (s_llc_rt.meas.llc_temp_c >= LLC_TEMP_DERATE_START_C);
+}
+static bool llc_overtemp_shutdown(void)
+{
+    return s_llc_rt.meas.llc_temp_valid && (s_llc_rt.meas.llc_temp_c >= LLC_TEMP_SHUTDOWN_C);
+}
+/*********************************************************************************************************
+* å‡½æ•°åç§°ï¼šllc_update_measurements
+* å‡½æ•°åŠŸèƒ½ï¼šå®ç°äº†LLCå˜æ¢å™¨æµ‹é‡æ•°æ®çš„æ›´æ–°ä¸åŒæ­¥ï¼ŒåŒ…æ‹¬æ¸©åº¦ã€ç”µå‹ã€ç”µæµç­‰å…³é”®å‚æ•°çš„é‡‡é›†å’Œè½¬æ¢
+* è¾“å…¥å‚æ•°ï¼švoid
+* è¾“å‡ºå‚æ•°ï¼švoid
+* è¿” å› å€¼ï¼švoid
+* åˆ›å»ºæ—¥æœŸï¼š2026å¹´04æœˆ01æ—¥
+* æ³¨    æ„ï¼šè¯¥å‡½æ•°é€šè¿‡æ¸©åº¦æ§åˆ¶æ¨¡å—è·å–LLCæ¸©åº¦æ•°æ®ï¼Œå¹¶åŒæ­¥æ¸©åº¦æœ‰æ•ˆæ€§æ ‡å¿—ï¼›å°†ADCåŸå§‹æ•°æ®è½¬æ¢ä¸ºå®é™…ç‰©ç†é‡ï¼ˆè¾“å‡ºç”µå‹ã€è¾“å‡ºç”µæµï¼‰ï¼ŒåŒæ—¶è·å–PFCæ€»çº¿ç”µå‹ã€‚æ‰€æœ‰æµ‹é‡æ•°æ®ç»Ÿä¸€å­˜å‚¨åœ¨è¿è¡Œæ—¶æ•°æ®ç»“æ„ä¸­ï¼Œä¾›æ§åˆ¶ç®—æ³•ä½¿ç”¨ã€‚
+*********************************************************************************************************/
 static void llc_update_measurements(void)
 {
     //adc_multi_copy();
+	  temp_sensor_data_t llc_temp = {0};  //(1)æ¸©åº¦æ•°æ®å®¹å™¨åˆå§‹åŒ–
+    temp_control_get_llc(&llc_temp);  //(2)è·å–æ¸©åº¦ä¼ æ„Ÿå™¨æ•°æ®
+    s_llc_rt.meas.llc_temp_valid = llc_temp.valid; //(3)åŒæ­¥æ¸©åº¦æœ‰æ•ˆæ€§æ ‡å¿—
+    s_llc_rt.meas.llc_temp_c = llc_temp.temperature_c; //(4)åŒæ­¥æ¸©åº¦å€¼
+		
+		
     s_llc_rt.meas.vout_v = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
     s_llc_rt.meas.iout_a = conv_adc_to_i(g_adc_multi.isense_raw);
     s_llc_rt.meas.vbus_v = pfc_bus_voltage();
-	  /* RUN/BURST ÏÂ Vout ÓÉ 100us ÂË²¨Â·¾¶Î¬»¤£¬±ÜÃâ 1ms raw ¸²¸Ç filtered */
     s_llc.vmeas = s_llc_rt.meas.vout_v;
 }
 
@@ -393,13 +677,16 @@ static bool llc_precheck_ok(void)
 {
     return (s_llc_rt.meas.vbus_v >= LLC_VBUS_MIN_START_V);
 }
-/**
- * @brief ¼ì²éPFC¾ÍĞ÷ĞÅºÅÊÇ·ñÎÈ¶¨
- * @param enable_llc ÊÇ·ñÆôÓÃLLC¿ØÖÆ
- * @return true PFC¾ÍĞ÷ĞÅºÅÒÑÎÈ¶¨´ïµ½Éè¶¨Ê±³¤
- * @return false PFC¾ÍĞ÷ĞÅºÅÎ´ÎÈ¶¨»òLLCÎ´ÆôÓÃ
- * @note µ±enable_llcÎªfalseÊ±ÖØÖÃ¼ÆÊ±Æ÷£¬ÎªtrueÊ±¿ªÊ¼¼ÆÊ±
- */
+/*********************************************************************************************************
+* å‡½æ•°åç§°ï¼šllc_pfc_ready_stable
+* å‡½æ•°åŠŸèƒ½ï¼šæ£€æµ‹PFCï¼ˆåŠŸç‡å› æ•°æ ¡æ­£ï¼‰å°±ç»ªçŠ¶æ€æ˜¯å¦ç¨³å®šï¼Œé€šè¿‡æ—¶é—´çª—å£åˆ¤æ–­PFCæ˜¯å¦å·²å‡†å¤‡å¥½å¯åŠ¨LLC
+* è¾“å…¥å‚æ•°ï¼šenable_llc  LLCä½¿èƒ½æ ‡å¿—ï¼Œfalseæ—¶é‡ç½®è®¡æ—¶å™¨å¹¶è¿”å›false
+* è¾“å‡ºå‚æ•°ï¼švoid
+* è¿” å› å€¼ï¼šbool  trueè¡¨ç¤ºPFCå°±ç»ªçŠ¶æ€å·²ç¨³å®šï¼Œfalseè¡¨ç¤ºæœªç¨³å®šæˆ–è¢«ç¦ç”¨
+* åˆ›å»ºæ—¥æœŸï¼š2026å¹´04æœˆ01æ—¥
+* æ³¨    æ„ï¼šé‡‡ç”¨æ—¶é—´çª—å£æœºåˆ¶ï¼Œä»é¦–æ¬¡ä½¿èƒ½LLCå¼€å§‹è®¡æ—¶ï¼Œç»è¿‡PFC_READY_STABLE_BEFORE_LLC_MSæ—¶é—´
+*          åæ‰è®¤ä¸ºPFCå°±ç»ªçŠ¶æ€ç¨³å®šï¼Œé¿å…å› ç¬æ—¶æ³¢åŠ¨å¯¼è‡´è¯¯åˆ¤ã€‚ç¦ç”¨æ—¶è‡ªåŠ¨é‡ç½®è®¡æ—¶å™¨ã€‚
+*********************************************************************************************************/
 static bool llc_pfc_ready_stable(bool enable_llc)
 {
     if (!enable_llc) {
@@ -413,16 +700,36 @@ static bool llc_pfc_ready_stable(bool enable_llc)
 
     return elapsed_reached(s_llc_rt.pfc_ready_begin_ms, PFC_READY_STABLE_BEFORE_LLC_MS);
 }
-
+/**************************************************************************************** *****************
+* å‡½æ•°åç§°ï¼šllc_faults_present
+* å‡½æ•°åŠŸèƒ½ï¼šæ£€æµ‹LLCå˜æ¢å™¨æ˜¯å¦å­˜åœ¨æ•…éšœçŠ¶æ€
+* è¾“å…¥å‚æ•°ï¼švoid
+* è¾“å‡ºå‚æ•°ï¼švoid
+* è¿” å› å€¼ï¼šbool true-å­˜åœ¨æ•…éšœï¼Œfalse-æ— æ•…éšœ
+* åˆ›å»ºæ—¥æœŸï¼š2026å¹´04æœˆ01æ—¥
+* æ³¨    æ„ï¼šè¯¥å‡½æ•°ç»¼åˆæ£€æµ‹ä»¥ä¸‹æ•…éšœæ¡ä»¶ï¼š
+*           1. è¾“å‡ºè¿‡å‹ï¼ˆVOUT_OVP_Vï¼‰ï¼šè¾“å‡ºç”µå‹è¶…è¿‡58Vä¿æŠ¤é˜ˆå€¼
+*           2. è¾“å‡ºè¿‡æµï¼ˆIOUT_OCP_Aï¼‰ï¼šè¾“å‡ºç”µæµè¶…è¿‡41Aä¿æŠ¤é˜ˆå€¼
+*           3. æ¯çº¿æ¬ å‹ï¼ˆVBUS_MIN_START_V - VOUT_HYST_Vï¼‰ï¼šæ¯çº¿ç”µå‹ä½äºå¯åŠ¨æœ€å°å€¼å‡å»è¿Ÿæ»ç”µå‹
+*           4. è¿‡æ¸©ä¿æŠ¤ï¼šé€šè¿‡llc_overtemp_shutdown()æ£€æµ‹æ¸©åº¦æ•…éšœ
+*           è¯¥å‡½æ•°ä¸ºLLCæ§åˆ¶ç³»ç»Ÿçš„æ ¸å¿ƒæ•…éšœæ£€æµ‹å…¥å£ï¼Œç”¨äºå®æ—¶ç›‘æ§å˜æ¢å™¨è¿è¡ŒçŠ¶æ€ï¼Œ
+*           ä¸€æ—¦æ£€æµ‹åˆ°ä»»ä¸€æ•…éšœæ¡ä»¶ç«‹å³è¿”å›trueï¼Œè§¦å‘ç›¸åº”çš„ä¿æŠ¤åŠ¨ä½œã€‚
+*********************************************************************************************************/
 static bool llc_faults_present(void)
 {
-   // if (protect_fault_active_hw() || protect_fault_latched()) {
-   //     return true;
-   // }
+    /* BRK ç¡¬ä»¶æ•…éšœï¼šBKIN å½“å‰ä½ç”µå¹³ï¼ˆå¤–éƒ¨æ¯”è¾ƒå™¨ä»åœ¨æŠ¥è­¦ï¼‰ */
+    if (protect_fault_active_hw()) {
+        return true;
+    }
+    /* BRK è½¯ä»¶é”å­˜ï¼šBKIN æ›¾ç»ä½è¿‡ä½†å·²æ¢å¤ï¼Œs_fault ä»ä¿æŒï¼ˆéœ€ protect_clear_fault æ‰æ¸…é™¤ï¼‰*/
+    if (protect_fault_latched()) {
+        return true;
+    }
 
-   // if (pfc_is_fault()) {
-   //     return true;
-   // }
+    /* PFC åº•å±‚æ•…éšœ */
+    if (pfc_is_fault()) {
+        return true;
+    }
 
     if (s_llc_rt.meas.vout_v > LLC_VOUT_OVP_V) {  //58
         return true;
@@ -431,730 +738,153 @@ static bool llc_faults_present(void)
     if (s_llc_rt.meas.iout_a > LLC_IOUT_OCP_A) { //41
         return true;
     }
-
-    if (s_llc_rt.meas.vbus_v < (LLC_VBUS_MIN_START_V - LLC_VOUT_HYST_V)) {
+		
+		if (llc_overtemp_shutdown()) {
         return true;
     }
 
     return false;
 }
+/*********************************************************************************************************
+* å‡½æ•°åç§°ï¼šllc_enter_fault
+* å‡½æ•°åŠŸèƒ½ï¼šè¿›å…¥LLCæ•…éšœçŠ¶æ€ï¼Œå°†çŠ¶æ€æœºåˆ‡æ¢åˆ°æ•…éšœçŠ¶æ€
+* è¾“å…¥å‚æ•°ï¼švoid
+* è¾“å‡ºå‚æ•°ï¼švoid
+* è¿” å› å€¼ï¼švoid
+* åˆ›å»ºæ—¥æœŸï¼š2026å¹´04æœˆ01æ—¥
+* æ³¨    æ„ï¼šè¯¥å‡½æ•°ä¸ºé™æ€å‡½æ•°ï¼Œä»…åœ¨æ¨¡å—å†…éƒ¨ä½¿ç”¨ã€‚å½“æ£€æµ‹åˆ°ä¸¥é‡æ•…éšœæ—¶è°ƒç”¨ï¼Œè§¦å‘çŠ¶æ€æœºè¿›å…¥æ•…éšœå¤„ç†æµç¨‹
+*********************************************************************************************************/
 static void llc_enter_fault(void)
 {
     llc_state_enter(ST_FAULT);
 }
-
-
-static void llc_start_guard_diag_tick(bool enable_llc, bool pfc_ready_stable)
-{
-#if 1
-    static uint32_t s_last_log_ms = 0U;
-    static uint8_t s_last_reason = 0xFFU;
-    uint8_t reason = 0U;
-
-    if ((s_llc_rt.app.state != ST_IDLE) && (s_llc_rt.app.state != ST_PRECHECK)) {
-        s_last_reason = 0xFFU;
-        return;
-    }
-
-    if (!enable_llc) {
-        reason = 1U; /* pfc not ready */
-    } else if (!pfc_ready_stable) {
-        reason = 2U; /* ready debounce */
-    } else if (!llc_precheck_ok()) {
-        reason = 3U; /* vbus low */
-    } else {
-        reason = 0U; /* all pass */
-    }
-
-    if (reason == 0U) {
-        s_last_reason = 0xFFU;
-        return;
-    }
-
-    if ((reason != s_last_reason) || (s_last_log_ms == 0U) || elapsed_reached(s_last_log_ms, 500U)) {
-        debug_printf("[LLC_GUARD] st=%d reason=%u pfc_ready=%u stable=%u vbus=%.1fV target=%.1fV\r\n",
-                     (int)s_llc_rt.app.state,
-                     (unsigned)reason,
-                     (unsigned)enable_llc,
-                     (unsigned)pfc_ready_stable,
-                     s_llc_rt.meas.vbus_v,
-                     (float)LLC_VBUS_MIN_START_V);
-        s_last_log_ms = g_ms;
-        s_last_reason = reason;
-    }
-#else
-    (void)enable_llc;
-    (void)pfc_ready_stable;
-#endif
-}
-/**
- * @brief ½«CRÏìÓ¦²âÊÔÈÕÖ¾ÏîÍÆÈë»·ĞÎ»º³åÇø
- * 
- * ¸Ãº¯Êı½«µ¥¸öÈÕÖ¾ÏîĞ´ÈëCR²âÊÔÈÕÖ¾»º´æ£¬²ÉÓÃ»·ĞÎ»º³åÇø¹ÜÀí²ßÂÔ¡£
- * µ±»º³åÇøÎ´ÂúÊ±Ö±½ÓĞ´Èë£»µ±»º³åÇøÒÑÂúÊ±£¬¸²¸Ç×î¾ÉµÄÈÕÖ¾Ïî¡£
- * 
- * @param item Ö¸Ïò´ıĞ´ÈëµÄÈÕÖ¾ÏîµÄÖ¸Õë£¬ÈôÎªNULLÔòÖ±½Ó·µ»Ø
- * 
- * @note ½öÔÚLLC_CR_RESP_LOG_ENABLEºê¶¨ÒåÊ±ÉúĞ§
- * @note Ğ´Èë²Ù×÷»á×Ô¶¯ÉèÖÃ´ı×ª´¢±êÖ¾£¬´¥·¢ºóĞøµÄÈÕÖ¾×ª´¢Á÷³Ì
- * @note »º³åÇø´óĞ¡ÓÉLLC_CR_RESP_LOG_CACHE_MAXºê¶¨Òå
- */
-static void llc_cr_resp_log_push(const llc_cr_log_item_t *item)
-{
-#if LLC_CR_RESP_LOG_ENABLE
-    uint16_t idx;
-    uint32_t primask;
-	
-		//¼ì²é¿ÕÖ¸Õë£¬·ÀÖ¹ÎŞĞ§Êı¾İĞ´Èë
-    if (item == NULL) {
-        return;
-    }
-	
-    // ½øÈëÁÙ½çÇø - ½ûÓÃÖĞ¶Ï
-    primask = __get_PRIMASK();
-    __disable_irq();
-	
-		//Ê¹ÓÃÄ£ÔËËãÊµÏÖ»·ĞÎ»º³åÇø LLC_CR_RESP_LOG_CACHE_MAX ¶¨ÒåÎª32£¬Ìá¹©32¸öÈÕÖ¾ÏîµÄ»º´æ¿Õ¼ä
-    idx = s_cr_log_w;
-    s_cr_log_buf[idx] = *item;
-    s_cr_log_w = (uint16_t)((s_cr_log_w + 1U) % LLC_CR_RESP_LOG_CACHE_MAX);
-
-    if (s_cr_log_cnt < LLC_CR_RESP_LOG_CACHE_MAX) {
-        s_cr_log_cnt++; //µ±»º³åÇøÎ´ÂúÊ±£¬Ö»Ôö¼Ó¼ÆÊı
-    } else {
-			  //µ±»º³åÇøÒÑÂúÊ±£¬ÒÆ¶¯¶ÁÖ¸Õë£¬ÊµÏÖÏÈ½øÏÈ³öµÄ¸²¸Ç²ßÂÔ
-        s_cr_log_r = (uint16_t)((s_cr_log_r + 1U) % LLC_CR_RESP_LOG_CACHE_MAX); 
-			  s_cr_log_overflow_cnt++;
-    }
-    //ÉèÖÃ´ı´¦Àí±êÖ¾£¬Í¨ÖªÆäËûÈÎÎñ½øĞĞÒì²½ÈÕÖ¾Êä³ö
-    s_cr_log_pending_dump = 1U;
-	
-    // ÍË³öÁÙ½çÇø - »Ö¸´ÖĞ¶Ï×´Ì¬
-    __set_PRIMASK(primask);
-#endif
-}
-/**
- * @brief ×ª´¢CRÏìÓ¦ÈÕÖ¾»º³åÇøÖĞµÄËùÓĞÈÕÖ¾Ïî
- * 
- * ¸Ãº¯Êı±éÀú»·ĞÎ»º³åÇø£¬½«ËùÓĞ´ı´¦ÀíµÄCR²âÊÔÈÕÖ¾ÏîÍ¨¹ıµ÷ÊÔ½Ó¿ÚÊä³ö¡£
- * Ö§³ÖÈıÖÖÀàĞÍµÄÈÕÖ¾¸ñÊ½£º
- * - CR_LOG_MON: ÖÜÆÚĞÔ¼à¿ØÈÕÖ¾£¬°üº¬Ê±¼ä´Á¡¢Êä³öµçÑ¹¡¢Êä³öµçÁ÷¡¢Îó²îºÍÆµÂÊ
- * - CR_LOG_EVT_BEGIN: ²âÊÔ¿ªÊ¼ÊÂ¼ş£¬°üº¬²âÊÔID¡¢¸ºÔØµçÁ÷±ä»¯ºÍ³õÊ¼µçÑ¹
- * - CR_LOG_EVT_END: ²âÊÔ½áÊøÊÂ¼ş£¬°üº¬²âÊÔ½á¹û¡¢³ÖĞøÊ±¼ä¡¢ÎÈ¶¨Ê±¼ä¡¢µçÑ¹·¶Î§ºÍ×î´óÎó²î
- * 
- * @note ¸Ãº¯Êı½öÔÚ LLC_CR_RESP_LOG_ENABLE ºê¶¨ÒåÊ±±àÒë
- * @note º¯ÊıÖ´ĞĞºó»áÇå³ı s_cr_log_pending_dump ±êÖ¾
- * @note µ÷ÓÃ¸Ãº¯Êı»áÇå¿Õ»º³åÇøÖĞµÄËùÓĞÈÕÖ¾Ïî
- */
-static void llc_cr_resp_log_dump_test(void)
-{
-#if LLC_CR_RESP_LOG_ENABLE
-  
-    while (s_cr_log_cnt > 0U) {
-        llc_cr_log_item_t item = s_cr_log_buf[s_cr_log_r];
-        s_cr_log_r = (uint16_t)((s_cr_log_r + 1U) % LLC_CR_RESP_LOG_CACHE_MAX);
-        s_cr_log_cnt--;
-				//¼à¿ØÊı¾İÊä³ö Êä³öµçÑ¹¡¢Êä³öµçÁ÷¡¢Îó²î¡¢ÆµÂÊ
-        if (item.type == CR_LOG_MON) {
-            debug_printf("[CR_MON] t=%lu vout=%.1fV iout=%.1fA err=%.1fV f=%.0fHz\n",
-                         (unsigned long)item.t_ms,
-                         item.vout_v,
-                         item.iout_a,
-                         item.err_v,
-                         item.f_cmd_hz);
-        }
-				//²âÊÔ¿ªÊ¼ÊÂ¼ş ¼ÇÂ¼²âÊÔ¿ªÊ¼Ç°µÄÊä³öµçÑ¹,»¹ÓĞµçÁ÷µÄ±ä»¯·¶Î§
-				else if (item.type == CR_LOG_EVT_BEGIN) {
-            debug_printf("[CR_EVT_BEGIN] id=%lu iout=%.1f->%.1fA vout=%.1fV\n",
-                         (unsigned long)item.id,
-                         item.iout_from_a,
-                         item.iout_to_a,
-                         item.vout_pre_v);
-        } 
-				//²âÊÔ½áÊøÊÂ¼ş  pass=%u ÏÔÊ¾²âÊÔÊÇ·ñÍ¨¹ı ÏìÓ¦Ê±¼ä¡¢ÎÈ¶¨Ê±¼ä µçÑ¹²¨¶¯·¶Î§¡¢×î´óÎó²î
-				else 
-				{
-            debug_printf("[CR_EVT_END] id=%lu pass=%u dt=%lums settle=%lums "
-                         "vmin=%.1fV vmax=%.1fV maxerr=%.1fV\n",
-                         (unsigned long)item.id,
-                         (unsigned)item.pass,
-                         (unsigned long)item.dt_ms,
-                         (unsigned long)item.settle_ms,
-                         item.vmin_v,
-                         item.vmax_v,
-                         item.maxerr_v);
-        }
-    }
-    s_cr_log_pending_dump = 0U;
-    
-#endif
-}
-static uint16_t llc_cr_log_frame_bytes(const llc_cr_log_item_t *item)
-{
-    uint8_t payload_len = 0U;
-
-    if (item == NULL) {
-        return 0U;
-    }
-
-    switch (item->type) {
-    case CR_LOG_MON:
-        payload_len = 10U;
-        break;
-
-    case CR_LOG_EVT_BEGIN:
-        payload_len = 8U;
-        break;
-
-    case CR_LOG_EVT_END:
-        payload_len = 14U;
-        break;
-
-    default:
-        return 0U;
-    }
-
-    /* frame = A5 + type + len + seq + payload + chk + 5A = 6 + payload */
-    return (uint16_t)(6U + payload_len);
-}
-
-static void llc_cr_resp_log_dump(void)
-{
-#if LLC_CR_RESP_LOG_ENABLE
-    while (1) {
-        llc_cr_log_item_t item;
-        uint32_t primask;
-
-        primask = __get_PRIMASK();
-        __disable_irq();
-
-        if (s_cr_log_cnt == 0U) {
-            s_cr_log_pending_dump = 0U;
-            __set_PRIMASK(primask);
-            break;
-        }
-
-        item = s_cr_log_buf[s_cr_log_r];
-        s_cr_log_r = (uint16_t)((s_cr_log_r + 1U) % LLC_CR_RESP_LOG_CACHE_MAX);
-        s_cr_log_cnt--;
-        s_cr_log_pending_dump = (s_cr_log_cnt > 0U) ? 1U : 0U;
-
-        __set_PRIMASK(primask);
-
-        switch (item.type) {
-        case CR_LOG_MON:
-            debug_printf("[M] %lu %.1f %.1f %.1f %.0f\r\n",
-                         (unsigned long)item.t_ms,
-                         item.vout_v,
-                         item.iout_a,
-                         item.err_v,
-                         item.f_cmd_hz);
-            break;
-
-        case CR_LOG_EVT_BEGIN:
-            debug_printf("[B] %lu %.1f %.1f %.1f\r\n",
-                         (unsigned long)item.id,
-                         item.iout_from_a,
-                         item.iout_to_a,
-                         item.vout_pre_v);
-            break;
-
-        case CR_LOG_EVT_END:
-            debug_printf("[E] %lu %u %lu %lu %.1f %.1f %.1f\r\n",
-                         (unsigned long)item.id,
-                         (unsigned)item.pass,
-                         (unsigned long)item.dt_ms,
-                         (unsigned long)item.settle_ms,
-                         item.vmin_v,
-                         item.vmax_v,
-                         item.maxerr_v);
-            break;
-
-        default:
-            break;
-        }
-    }
-#endif
-}
-
-/**
- * @brief LLCµçÁ÷ÏìÓ¦(CR)²âÊÔÖÜÆÚ´¦Àíº¯Êı
- * 
- * ¸Ãº¯ÊıÔÚÏµÍ³ÔËĞĞÊ±¶¨ÆÚµ÷ÓÃ£¬¸ºÔğ£º
- * 1. ÖÜÆÚĞÔ¼ÇÂ¼ÏµÍ³ÔËĞĞ×´Ì¬£¨Êä³öµçÑ¹¡¢µçÁ÷¡¢Îó²î¡¢ÆµÂÊ£©
- * 2. ¼ì²â¸ºÔØ½×Ô¾ÊÂ¼ş£¨Êä³öµçÁ÷±ä»¯³¬¹ıãĞÖµ£©
- * 3. Ö´ĞĞCR¶¯Ì¬ÏìÓ¦²âÊÔ£¬¼ÇÂ¼Ë²Ì¬ĞÔÄÜÖ¸±ê
- * 4. ÅĞ¶ÏÏµÍ³ÊÇ·ñ´ïµ½ÎÈ¶¨×´Ì¬£¬¼ÆËãÎÈ¶¨Ê±¼ä
- * 
- * ²âÊÔ´¥·¢Ìõ¼ş£ºÊä³öµçÁ÷±ä»¯ ¡İ LLC_CR_RESP_STEP_IOUT_A
- * ÎÈ¶¨ÅĞ¶ÏÌõ¼ş£ºÎó²îÔÚ LLC_CR_RESP_STABLE_WIN_V ·¶Î§ÄÚ³ÖĞø LLC_CR_RESP_STABLE_TICKS ¸öÖÜÆÚ
- * ³¬Ê±±£»¤£º²âÊÔÊ±³¤³¬¹ı LLC_CR_RESP_TIMEOUT_MS ×Ô¶¯½áÊø
- * 
- * @note ½öÔÚ LLC_CR_RESP_LOG_ENABLE ºê¶¨ÒåÊ±±àÒë
- * @note ·ÇST_LLC_RUN×´Ì¬ÏÂ²»Ö´ĞĞ²âÊÔ£¬½ö¸üĞÂ×´Ì¬±äÁ¿
- * @note ËùÓĞ²âÊÔÊı¾İÍ¨¹ı llc_cr_resp_log_push() Òì²½ÍÆËÍµ½ÈÕÖ¾»º³åÇø
- */
-static void llc_cr_resp_tick(void)
-{
-#if LLC_CR_RESP_LOG_ENABLE
-    float iout = s_llc_rt.meas.iout_a;
-    float vout = s_llc_rt.meas.vout_v;
-    float err = s_llc.vref - vout;
-	/* ±¾´ÎµçÁ÷ÓëÉÏÒ»´Î¼ÇÂ¼µçÁ÷µÄ²îÖµ¾ø¶ÔÖµ£¬ÓÃÓÚÅĞ¶ÏÊÇ·ñ·¢Éú¸ºÔØ½×Ô¾ */
-    float i_step = fabsf(iout - s_cr_resp.iout_prev_a);
-  /* Ö»ÓĞ LLC ´¦ÓÚÕı³£ÔËĞĞÌ¬²Å×ö¶¯Ì¬ÏìÓ¦¼à²â */
-    if (s_llc_rt.app.state != ST_LLC_RUN) {
-			 /* ²»ÔÚ RUN ×´Ì¬Ê±£¬¸üĞÂÉÏ´ÎµçÁ÷Öµ£¬±ÜÃâÖØĞÂ½øÈë RUN Ê±Îó´¥·¢½×Ô¾ */
-        s_cr_resp.iout_prev_a = iout;
-			 /* ÖØÖÃÏÂÒ»´ÎÖÜÆÚ¼à¿ØÈÕÖ¾µÄÊ±¼äµã */
-        s_cr_resp.next_period_log_ms = g_ms + LLC_CR_RESP_LOG_PERIOD_MS;
-		  	/* ÍË³öµ±Ç°¶¯Ì¬ÏìÓ¦ÊÂ¼ş */
-			  s_cr_resp.active = 0U;
-			  /* ÇåÁãÎÈ¶¨¼ÆÊı */
-        s_cr_resp.stable_ticks = 0U;
-			  /* ÇåÁãÎÈ¶¨Ê±¼ä */
-        s_cr_resp.settled_ms = 0U;
-        return;
-    }
-#if !CRITICAL_LOG_ONLY
-		 /* µ½´ïÖÜÆÚ¼à¿ØÈÕÖ¾Ê±¼äµãÊ±£¬Êä³öÒ»Ìõ MON ¼à¿ØÈÕÖ¾ */
-    if (g_ms >= s_cr_resp.next_period_log_ms) {
-        llc_cr_log_item_t item;
-			/* ÈÕÖ¾ÀàĞÍ£ºÖÜÆÚ¼à¿Ø */
-        item.type = CR_LOG_MON;
-			/* µ±Ç°Ê±¼ä´Á */
-        item.t_ms = g_ms;
-			/* µ±Ç°Êä³öµçÑ¹ */
-        item.vout_v = vout;
-			 /* µ±Ç°Êä³öµçÁ÷ */
-        item.iout_a = iout;
-			  /* µ±Ç°µçÑ¹Îó²î */
-        item.err_v = err;
-			 /* µ±Ç° LLC ÆµÂÊÖ¸Áî */
-        item.f_cmd_hz = s_llc.f_cmd;
-			 /* Ñ¹Èë CR ÈÕÖ¾»º³åÇø£¬ºóĞøÓÉ 1kHz ÂıÈÎÎñÍ³Ò»µ¼³ö */
-        llc_cr_resp_log_push(&item);
-			 /* ¸üĞÂÏÂÒ»´ÎÖÜÆÚ¼à¿ØÈÕÖ¾Ê±¼ä */
-        s_cr_resp.next_period_log_ms = g_ms + LLC_CR_RESP_LOG_PERIOD_MS;
-    }
-#endif
-     /* Èç¹ûµ±Ç°Ã»ÓĞÏìÓ¦ÊÂ¼şÔÚ½øĞĞ£¬²¢ÇÒ¼ì²âµ½µçÁ÷Ìø±äÁ¿³¬¹ıãĞÖµ£¬ÔòÈÏÎª·¢ÉúÁËÒ»´Î¸ºÔØ½×Ô¾ */
-		if (!s_cr_resp.active && (i_step >= LLC_CR_RESP_STEP_IOUT_A)) {
-			/* ±ê¼Ç¶¯Ì¬ÏìÓ¦ÊÂ¼ş¿ªÊ¼ */
-        s_cr_resp.active = 1U;
-			 /* ÊÂ¼şĞòºÅ×ÔÔö£¬ÓÃÓÚÇø·ÖÃ¿Ò»´ÎÏìÓ¦ÊÂ¼ş */
-        s_cr_resp.seq++;
-			 /* ¼ÇÂ¼ÊÂ¼ş¿ªÊ¼Ê±¼ä */
-        s_cr_resp.start_ms = g_ms;
-			 /* ÇåÁãÎÈ¶¨Ê±¼ä£¬ºóĞøÂú×ãÎÈ¶¨Ìõ¼şÊ±ÔÙ¸³Öµ */
-        s_cr_resp.settled_ms = 0U;
-			 /* ¼ÇÂ¼½×Ô¾Ç°µçÁ÷Öµ */
-        s_cr_resp.iout_from_a = s_cr_resp.iout_prev_a;
-			/* ¼ÇÂ¼½×Ô¾ºóµ±Ç°µçÁ÷Öµ */
-        s_cr_resp.iout_to_a = iout;
-			/* ¼ÇÂ¼ÊÂ¼ş¿ªÊ¼Ë²¼äµÄÊä³öµçÑ¹£¬×÷Îª½×Ô¾Ç°²Î¿¼µçÑ¹ */
-        s_cr_resp.vout_pre_v = vout;
-			 /* ³õÊ¼»¯ÊÂ¼şÆÚ¼ä×îĞ¡Êä³öµçÑ¹ */
-        s_cr_resp.vout_min_v = vout;
-			 /* ³õÊ¼»¯ÊÂ¼şÆÚ¼ä×î´óÊä³öµçÑ¹ */
-        s_cr_resp.vout_max_v = vout;
-			 /* ³õÊ¼»¯ÊÂ¼şÆÚ¼ä×î´ó¾ø¶ÔÎó²î */
-        s_cr_resp.max_abs_err_v = fabsf(err);
-			  /* ÇåÁãÎÈ¶¨¼ÆÊı */
-        s_cr_resp.stable_ticks = 0U;
-        {
-					 
-            llc_cr_log_item_t item;
-					 /* ÈÕÖ¾ÀàĞÍ£ºÊÂ¼ş¿ªÊ¼ */
-            item.type = CR_LOG_EVT_BEGIN;
-					/* µ±Ç°ÊÂ¼ş ID */
-            item.id = s_cr_resp.seq;
-					 /* ½×Ô¾Ç°µçÁ÷ */
-            item.iout_from_a = s_cr_resp.iout_from_a;
-					/* ½×Ô¾ºóµçÁ÷ */
-            item.iout_to_a = s_cr_resp.iout_to_a;
-					 /* ½×Ô¾Ç°Êä³öµçÑ¹ */
-            item.vout_pre_v = s_cr_resp.vout_pre_v;
-					 /* Ñ¹ÈëÊÂ¼ş¿ªÊ¼ÈÕÖ¾ */
-            llc_cr_resp_log_push(&item);
-        }
-    }
-/* Èç¹ûµ±Ç°ÓĞ¶¯Ì¬ÏìÓ¦ÊÂ¼şÕıÔÚ½øĞĞ£¬Ôò³ÖĞø¸ú×ÙÆäÏìÓ¦¹ı³Ì */
-    if (s_cr_resp.active) {
-			/* ¸üĞÂÊÂ¼şÆÚ¼äµÄ×îĞ¡Êä³öµçÑ¹ */
-        if (vout < s_cr_resp.vout_min_v) {
-            s_cr_resp.vout_min_v = vout;
-        }
-				 /* ¸üĞÂÊÂ¼şÆÚ¼äµÄ×î´óÊä³öµçÑ¹ */
-        if (vout > s_cr_resp.vout_max_v) {
-            s_cr_resp.vout_max_v = vout;
-        }
-				/* ¸üĞÂÊÂ¼şÆÚ¼äµÄ×î´ó¾ø¶ÔÎó²î */
-        if (fabsf(err) > s_cr_resp.max_abs_err_v) {
-            s_cr_resp.max_abs_err_v = fabsf(err);
-        }
-				/* Èç¹ûµ±Ç°Îó²îÒÑ¾­½øÈëÎÈ¶¨´°¿Ú£¬ÔòÀÛ¼ÓÎÈ¶¨¼ÆÊı */
-        if (fabsf(err) <= LLC_CR_RESP_STABLE_WIN_V) {
-					 /* ÎÈ¶¨¼ÆÊı²»³¬¹ıÉè¶¨ÉÏÏŞ */
-            if (s_cr_resp.stable_ticks < LLC_CR_RESP_STABLE_TICKS) {
-                s_cr_resp.stable_ticks++;
-            }
-						 /* µ±ÎÈ¶¨¼ÆÊıÊ×´Î´ïµ½ÒªÇóÊ±£¬¼ÇÂ¼ÎÈ¶¨Ê±¼ä */
-            if ((s_cr_resp.stable_ticks >= LLC_CR_RESP_STABLE_TICKS) && (s_cr_resp.settled_ms == 0U)) {
-                s_cr_resp.settled_ms = g_ms - s_cr_resp.start_ms;
-            }
-        } else {
-					 /* Ò»µ©Îó²î³¬³öÎÈ¶¨´°¿Ú£¬ÎÈ¶¨¼ÆÊıÇåÁã£¬ÖØĞÂ¿ªÊ¼ÀÛ¼Æ */
-            s_cr_resp.stable_ticks = 0U;
-        }
-				 /* Èç¹ûÒÑ¾­ÎÈ¶¨£¬»òÕßÒÑ¾­³¬Ê±£¬Ôò½áÊø±¾´ÎÊÂ¼ş */
-        if ((s_cr_resp.settled_ms > 0U) ||
-            elapsed_reached(s_cr_resp.start_ms, LLC_CR_RESP_TIMEOUT_MS)) {
-						/* µ±Ç°ÊÂ¼ş×ÜºÄÊ± */
-            uint32_t event_ms = g_ms - s_cr_resp.start_ms;
-						/* ÊÇ·ñÅĞ¶¨Í¨¹ı£ºÎÈ¶¨Ê±¼äÓĞĞ§Ôò pass=1£¬·ñÔò pass=0 */
-            uint8_t pass = (s_cr_resp.settled_ms > 0U) ? 1U : 0U;
-            {
-                llc_cr_log_item_t item;
-							/* ÈÕÖ¾ÀàĞÍ£ºÊÂ¼ş½áÊø */
-                item.type = CR_LOG_EVT_END;
-							 /* µ±Ç°ÊÂ¼ş ID */
-                item.id = s_cr_resp.seq;
-							 /* ÊÇ·ñÍ¨¹ı */
-                item.pass = pass;
-							/* ÊÂ¼ş×Ü³ÖĞøÊ±¼ä */
-                item.dt_ms = event_ms;
-							  /* Êµ¼ÊÎÈ¶¨Ê±¼ä£»ÈôÎ´ÎÈ¶¨ÔòÒ»°ãÎª 0 */
-                item.settle_ms = s_cr_resp.settled_ms;
-							 /* ÊÂ¼şÆÚ¼äµÄ×îĞ¡Êä³öµçÑ¹ */
-                item.vmin_v = s_cr_resp.vout_min_v;
-							/* ÊÂ¼şÆÚ¼äµÄ×î´óÊä³öµçÑ¹ */
-                item.vmax_v = s_cr_resp.vout_max_v;
-							 /* ÊÂ¼şÆÚ¼ä×î´ó¾ø¶ÔÎó²î */
-                item.maxerr_v = s_cr_resp.max_abs_err_v;
-							  /* Ñ¹ÈëÊÂ¼ş½áÊøÈÕÖ¾ */
-                llc_cr_resp_log_push(&item);
-            }
-						 /* Çå³ı»î¶¯±êÖ¾£¬±íÊ¾±¾´Î¶¯Ì¬ÏìÓ¦ÊÂ¼ş½áÊø */
-            s_cr_resp.active = 0U;
-						 /* ÇåÁãÎÈ¶¨¼ÆÊı */
-            s_cr_resp.stable_ticks = 0U;
-						/* ÇåÁãÎÈ¶¨Ê±¼ä */
-            s_cr_resp.settled_ms = 0U;
-        }
-    }
-
-    s_cr_resp.iout_prev_a = iout;
-#endif
-}
-/**
- * @file llc_cr_resp_tick_test
- * @brief LLC CR£¨µçÁ÷½×Ô¾£©¶¯Ì¬ÏìÓ¦¼à¿Ø´¦Àíº¯Êı
- * 
- * ±¾º¯ÊıÔÚLLC¿ØÖÆÖÜÆÚÖĞ±»µ÷ÓÃ£¬ÓÃÓÚÊµÊ±¼à²âºÍ¼ÇÂ¼¸ºÔØµçÁ÷½×Ô¾±ä»¯Ê±µÄ
- * Êä³öµçÑ¹¶¯Ì¬ÏìÓ¦ÌØĞÔ¡£Í¨¹ı¼ì²âÊä³öµçÁ÷µÄ½×Ô¾±ä»¯£¬×Ô¶¯´¥·¢ÏìÓ¦²âÊÔ£¬
- * ²¢¼ÇÂ¼¹Ø¼üĞÔÄÜÖ¸±ê°üÀ¨ÏìÓ¦Ê±¼ä¡¢³¬µ÷Á¿¡¢ÎÈ¶¨Ê±¼äµÈ¡£
- * 
- * @note ½öµ±LLC_CR_RESP_LOG_ENABLEºê¶¨ÒåÊ±ÉúĞ§
- * 
- * ¹¦ÄÜËµÃ÷£º
- * - ÖÜÆÚĞÔ¼ÇÂ¼ÔËĞĞ×´Ì¬£¨µçÑ¹¡¢µçÁ÷¡¢Îó²î¡¢ÆµÂÊ£©
- * - ¼ì²âÊä³öµçÁ÷½×Ô¾±ä»¯£¨ãĞÖµ£ºLLC_CR_RESP_STEP_IOUT_A£©
- * - ×Ô¶¯´¥·¢ÏìÓ¦²âÊÔ²¢¼ÇÂ¼³õÊ¼×´Ì¬
- * - ÊµÊ±¸ú×ÙÊä³öµçÑ¹¼«Öµ£¨×îĞ¡Öµ¡¢×î´óÖµ£©
- * - ¼à²âµçÑ¹Îó²î²¢ÅĞ¶ÏÊÇ·ñ½øÈëÎÈ¶¨´°¿Ú
- * - ¼ÆËãÎÈ¶¨Ê±¼ä£¨Îó²îÔÚÎÈ¶¨´°¿ÚÄÚ³ÖĞøLLC_CR_RESP_STABLE_TICKS¸öÖÜÆÚ£©
- * - ²âÊÔ³¬Ê±±£»¤£¨LLC_CR_RESP_TIMEOUT_MS£©
- * - Êä³ö²âÊÔ½á¹û±¨¸æ£¨Í¨¹ı/Ê§°Ü¡¢ÏìÓ¦Ê±¼ä¡¢ÎÈ¶¨Ê±¼ä¡¢µçÑ¹¼«Öµ¡¢×î´óÎó²î£©
- * 
- * ²âÊÔ´¥·¢Ìõ¼ş£º
- * - µ±Ç°Î´´¦ÓÚ²âÊÔ×´Ì¬£¨s_cr_resp.active == 0£©
- * - Êä³öµçÁ÷±ä»¯·ù¶È´ïµ½»ò³¬¹ıÉè¶¨ãĞÖµ£¨|iout - iout_prev| >= LLC_CR_RESP_STEP_IOUT_A£©
- * - LLC´¦ÓÚÔËĞĞ×´Ì¬£¨s_llc_rt.app.state == ST_LLC_RUN£©
- * 
- * ²âÊÔÍê³ÉÌõ¼ş£º
- * - Îó²î½øÈëÎÈ¶¨´°¿Ú²¢³ÖĞøLLC_CR_RESP_STABLE_TICKS¸öÖÜÆÚ£¨²âÊÔÍ¨¹ı£©
- * - »ò´ïµ½³¬Ê±Ê±¼äLLC_CR_RESP_TIMEOUT_MS£¨²âÊÔÊ§°Ü£©
- * 
- * @param void ÎŞ²ÎÊı
- * @return void ÎŞ·µ»ØÖµ
- * 
- * @see LLC_CR_RESP_LOG_ENABLE - CRÏìÓ¦ÈÕÖ¾Ê¹ÄÜºê
- * @see LLC_CR_RESP_LOG_PERIOD_MS - ÖÜÆÚĞÔÈÕÖ¾¼ÇÂ¼¼ä¸ô£¨ºÁÃë£©
- * @see LLC_CR_RESP_STEP_IOUT_A - ´¥·¢CR²âÊÔµÄµçÁ÷½×Ô¾ãĞÖµ£¨°²Åà£©
- * @see LLC_CR_RESP_STABLE_WIN_V - ÎÈ¶¨ÅĞ¶ÏµÄÎó²î´°¿Ú£¨·üÌØ£©
- * @see LLC_CR_RESP_STABLE_TICKS - ÎÈ¶¨ÅĞ¶ÏĞèÒªµÄ³ÖĞøÖÜÆÚÊı
- * @see LLC_CR_RESP_TIMEOUT_MS - ²âÊÔ³¬Ê±Ê±¼ä£¨ºÁÃë£©
- * 
- * @note ±¾º¯ÊıÎªÄÚ²¿¾²Ì¬º¯Êı£¬½öÔÚllc_control.cÎÄ¼şÄÚ¿É¼û
- * @note Ê¹ÓÃÈ«¾Ö±äÁ¿g_ms»ñÈ¡ÏµÍ³Ê±¼ä
- * @note Ê¹ÓÃÈ«¾Ö½á¹¹Ìås_llc_rt¡¢s_llc¡¢s_cr_resp´æ´¢×´Ì¬ºÍ²ÎÊı
- */
-static void llc_cr_resp_tick_test(void)
-{
-#if LLC_CR_RESP_LOG_ENABLE
-    float iout = s_llc_rt.meas.iout_a;
-    float vout = s_llc_rt.meas.vout_v;
-    float err = s_llc.vref - vout;
-    float i_step = fabsf(iout - s_cr_resp.iout_prev_a);
-    //È·±£Ö»ÓĞÔÚLLCÕı³£ÔËĞĞÊ±²Å¼ÇÂ¼CRÏìÓ¦Êı¾İ
-    if (s_llc_rt.app.state != ST_LLC_RUN) {
-        s_cr_resp.iout_prev_a = iout; //½«µ±Ç°Êä³öµçÁ÷Öµ±£´æÎª"Ç°Ò»´Î"µçÁ÷Öµ",ÎªÏÂÒ»´ÎCRÏìÓ¦¼ÆËãÌá¹©»ù×¼µã
-        s_cr_resp.next_period_log_ms = g_ms + LLC_CR_RESP_LOG_PERIOD_MS; //ÉèÖÃÏÂÒ»´ÎCRÏìÓ¦Êı¾İ¼ÇÂ¼µÄÊ±¼äµã
-        return;
-    }
-    //»ùÓÚµ±Ç°Ê±¼ä´¥·¢£¬¶ø·Ç¼ÆÊıÆ÷
-    if (g_ms >= s_cr_resp.next_period_log_ms) {
-        debug_printf("[CR_MON] t=%lu vout=%.2fV iout=%.2fA err=%.2fV f=%luHz\n",
-                     (unsigned long)g_ms,
-                     vout,
-                     iout,
-                     err,
-                     (unsigned long)s_llc.f_cmd);
-				//¸üĞÂÏÂ´Î½øÈëÊ±¼ä
-        s_cr_resp.next_period_log_ms = g_ms + LLC_CR_RESP_LOG_PERIOD_MS;
-    }
-    //ÖÇÄÜÊÂ¼ş¼ì²âÆ÷£¬µ±¼ì²âµ½Êä³öµçÁ÷·¢ÉúÏÔÖø±ä»¯Ê±£¬×Ô¶¯Æô¶¯CR¶¯Ì¬ÏìÓ¦²âÊÔ£¬²¢¼ÇÂ¼ÍêÕûµÄ²âÊÔÉÏÏÂÎÄĞÅÏ¢¡£
-    if (!s_cr_resp.active && (i_step >= LLC_CR_RESP_STEP_IOUT_A)) {
-        s_cr_resp.active = 1U;   // ¼¤»î²âÊÔ±êÖ¾
-        s_cr_resp.seq++; // ²âÊÔĞòÁĞºÅµİÔö
-        s_cr_resp.start_ms = g_ms;  // ¼ÇÂ¼²âÊÔ¿ªÊ¼Ê±¼ä
-        s_cr_resp.settled_ms = 0U;  // ÇåÁãÎÈ¶¨Ê±¼ä¼ÆÊıÆ÷
-			// µçÁ÷±ä»¯¹ì¼£
-        s_cr_resp.iout_from_a = s_cr_resp.iout_prev_a;  // ±ä»¯Ç°µçÁ÷
-        s_cr_resp.iout_to_a = iout;  // ±ä»¯ºóµÄµçÁ÷
-			// µçÑ¹»ù×¼ºÍ¼«Öµ¸ú×Ù
-        s_cr_resp.vout_pre_v = vout; // ±ä»¯Ç°µçÑ¹
-        s_cr_resp.vout_min_v = vout; // ³õÊ¼»¯×îĞ¡µçÑ¹
-        s_cr_resp.vout_max_v = vout; // ³õÊ¼»¯×î´óµçÑ¹
-			// ¿ØÖÆĞÔÄÜÖ¸±ê
-        s_cr_resp.max_abs_err_v = fabsf(err); // ×î´óÎó²î¾ø¶ÔÖµ
-        s_cr_resp.stable_ticks = 0U;// ÎÈ¶¨¼ÆÊıÆ÷ÇåÁã
-        debug_printf("[CR_EVT_BEGIN] id=%lu iout=%.2f->%.2fA vout=%.2fV\n",
-                     (unsigned long)s_cr_resp.seq,
-                     s_cr_resp.iout_from_a,
-                     s_cr_resp.iout_to_a,
-                     s_cr_resp.vout_pre_v);
-    }
-		//È·±£Ö»ÔÚ»îÔ¾²âÊÔÆÚ¼äÖ´ĞĞ¼à¿ØÂß¼­£¬±ÜÃâ²»±ØÒªµÄ¼ÆËã¿ªÏú
-    if (s_cr_resp.active) {
-        if (vout < s_cr_resp.vout_min_v) {
-            s_cr_resp.vout_min_v = vout; // ¸üĞÂ×îĞ¡µçÑ¹
-        }
-        if (vout > s_cr_resp.vout_max_v) {
-            s_cr_resp.vout_max_v = vout; // ¸üĞÂ×î´óµçÑ¹
-        }
-				//¿ØÖÆĞÔÄÜÖ¸±ê£º·´Ó³PI¿ØÖÆÆ÷ÔÚË²Ì¬¹ı³ÌÖĞµÄ×î´óÆ«²î¡£
-        if (fabsf(err) > s_cr_resp.max_abs_err_v) {
-            s_cr_resp.max_abs_err_v = fabsf(err); // ¸üĞÂ×î´ó¾ø¶ÔÎó²î
-        }
-
-        if (fabsf(err) <= LLC_CR_RESP_STABLE_WIN_V) {  // Îó²îÔÚÎÈ¶¨´°¿ÚÄÚ
-            if (s_cr_resp.stable_ticks < LLC_CR_RESP_STABLE_TICKS) {
-                s_cr_resp.stable_ticks++; // ÎÈ¶¨¼ÆÊıÆ÷µİÔö
-            }
-            if ((s_cr_resp.stable_ticks >= LLC_CR_RESP_STABLE_TICKS) && (s_cr_resp.settled_ms == 0U)) {
-                s_cr_resp.settled_ms = g_ms - s_cr_resp.start_ms;  // ¼ÇÂ¼ÎÈ¶¨Ê±¼ä
-            }
-        } else {
-            s_cr_resp.stable_ticks = 0U; // Îó²î³¬³ö´°¿Ú£¬ÖØÖÃ¼ÆÊıÆ÷
-        }
-
-        if ((s_cr_resp.settled_ms > 0U) || // Ìõ¼ş1£ºÒÑ´ïµ½ÎÈ¶¨
-            elapsed_reached(s_cr_resp.start_ms, LLC_CR_RESP_TIMEOUT_MS)) {  // Ìõ¼ş2£º³¬Ê±
-            uint32_t event_ms = g_ms - s_cr_resp.start_ms;
-            uint8_t pass = (s_cr_resp.settled_ms > 0U) ? 1U : 0U;
-            debug_printf("[CR_EVT_END] id=%lu pass=%u dt=%lums settle=%lums "
-                         "vmin=%.2fV vmax=%.2fV maxerr=%.2fV\n",
-                         (unsigned long)s_cr_resp.seq,
-                         (unsigned)pass,  //pass£º²âÊÔÊÇ·ñÍ¨¹ı£¨1=Í¨¹ı£¬0=³¬Ê±£©
-                         (unsigned long)event_ms,
-                         (unsigned long)s_cr_resp.settled_ms, //ÎÈ¶¨Ê±¼ä£¨ºËĞÄÖ¸±ê£©
-                         s_cr_resp.vout_min_v,
-                         s_cr_resp.vout_max_v,
-                         s_cr_resp.max_abs_err_v); //×î´ó¿ØÖÆÎó²î
-            s_cr_resp.active = 0U;
-            s_cr_resp.stable_ticks = 0U;
-            s_cr_resp.settled_ms = 0U;
-        }
-    }
-
-    s_cr_resp.iout_prev_a = iout; // ÎªÏÂÒ»´Î½×Ô¾¼ì²â×¼±¸
-#endif
-}
-
-
-
-
 /*********************************************************************************************************
-*                                              ×´Ì¬»úºËĞÄ
+*                                              çŠ¶æ€æœºæ ¸å¿ƒ
 *********************************************************************************************************/
-//ÆµÂÊ°æµÄÔÚÇĞÈë±Õ»·Ë²¼ä×ö"ÎŞÈÅÇĞ»»£¨bumpless transfer£©"
-
-/**
- * @brief ÎŞÈÅ¶¯ÇĞ»»³õÊ¼»¯
- * @details ¼ÆËãPI¿ØÖÆÆ÷µÄ»ı·ÖÏî³õÊ¼Öµ£¬Ê¹µÃÔÚ¸ø¶¨²Î¿¼µçÑ¹ºÍµ±Ç°²âÁ¿µçÑ¹ÏÂ£¬
- *          ¿ØÖÆÆ÷Êä³öµÄ³õÊ¼ÆµÂÊµÈÓÚµ±Ç°¹¤×÷ÆµÂÊ£¬´Ó¶øÊµÏÖÄ£Ê½ÇĞ»»Ê±µÄÎŞÈÅ¶¯¹ı¶É¡£
- * @param vref ²Î¿¼µçÑ¹£¨V£©
- * @param vmeas µ±Ç°²âÁ¿µçÑ¹£¨V£©
- * @param f_now µ±Ç°¹¤×÷ÆµÂÊ£¨Hz£©
- * @note »ı·ÖÏî»á±»ÏŞÖÆÔÚ [f_max - f_min, -(f_max - f_min)] ·¶Î§ÄÚ
- */
-//static void llc_ctrl_bumpless_init(float vref, float vmeas, float f_now)
-static void llc_ctrl_bumpless_init(float vref, float vmeas, float f_now)
+static float llc_bumpless_integ(float f0, float e0, float kp, float f_nom, float f_min, float f_max)
 {
-		float kp = s_llc.kp;
-    float f_min = s_llc.f_min;
-    float f_max = s_llc.f_max;
-    //float f_nom = 0.5f * (f_min + f_max);
-	  //float f_nom = llc_get_f_nom(f_min,f_max,s_llc.f_cmd);
-		float f_nom = s_llc.f_nom;
-		if (f_nom < f_min || f_nom > f_max) {
-			f_nom = f_clampf(f_now, f_min, f_max);
-		}
-    float e = vref - vmeas;
-    float integ = (f_nom - f_now) - kp * e;
-    float i_lim = f_max - f_min;
+    float u0    = f_nom - f0;              // å› ä¸ºï¼šf = f_nom - u
+    float integ = u0 - kp * e0;            // u = kp*e + integ
 
-    if (integ > i_lim) {
-        integ = i_lim;
-    } else if (integ < -i_lim) {
-        integ = -i_lim;
-    }
-
-    s_llc.integ = integ;
-    s_llc.f_cmd = f_clampf(f_now, f_min, f_max);
+    float i_lim = f_max - f_min;           // ç§¯åˆ†é™å¹…ï¼ˆå•ä½ï¼šHz ç­‰ä»·ï¼‰
+    return f_clampf(integ, -i_lim, i_lim); // è¿”å›ç§¯åˆ†å€¼ï¼Œé™å¹…åœ¨ -i_lim å’Œ i_lim ä¹‹é—´
 }
 
 /**
- * @brief LLC ×´Ì¬»ú×´Ì¬ÇĞ»»º¯Êı
+ * @brief LLC çŠ¶æ€æœºçŠ¶æ€åˆ‡æ¢å‡½æ•°
  * 
- * Ö´ĞĞ´Óµ±Ç°×´Ì¬µ½Ä¿±ê×´Ì¬µÄÇĞ»»£¬°üÀ¨×´Ì¬¸üĞÂ¡¢Ê±¼ä´Á¼ÇÂ¼ºÍ¸÷×´Ì¬µÄ³õÊ¼»¯²Ù×÷¡£
- * Èç¹ûÄ¿±ê×´Ì¬Óëµ±Ç°×´Ì¬ÏàÍ¬£¬ÔòÖ±½Ó·µ»Ø²»Ö´ĞĞÈÎºÎ²Ù×÷¡£
+ * æ‰§è¡Œä»å½“å‰çŠ¶æ€åˆ°ç›®æ ‡çŠ¶æ€çš„åˆ‡æ¢ï¼ŒåŒ…æ‹¬çŠ¶æ€æ›´æ–°ã€æ—¶é—´æˆ³è®°å½•å’Œå„çŠ¶æ€çš„åˆå§‹åŒ–æ“ä½œã€‚
+ * å¦‚æœç›®æ ‡çŠ¶æ€ä¸å½“å‰çŠ¶æ€ç›¸åŒï¼Œåˆ™ç›´æ¥è¿”å›ä¸æ‰§è¡Œä»»ä½•æ“ä½œã€‚
  * 
- * @param next Ä¿±ê×´Ì¬£¬È¡ÖµÎª llc_state_t Ã¶¾ÙÀàĞÍ£º
- *             - ST_IDLE: ¿ÕÏĞ×´Ì¬£¬¹Ø±ÕËùÓĞÊä³ö£¬ÖØÖÃÊ±¼ä´Á
- *             - ST_PRECHECK: Ô¤¼ì²é×´Ì¬£¬Ê¹ÄÜÇı¶¯µ«±£³ÖPWM¹Ø±Õ
- *             - ST_SOFTSTART: ÈíÆô¶¯×´Ì¬£¬¿ªÊ¼ÆµÂÊĞ±ÆÂÉÏÉı
- *             - ST_RUN_ENTRY_HOLD: ÔËĞĞ½øÈë±£³Ö×´Ì¬£¬µÈ´ıÎÈ¶¨
- *             - ST_LLC_RUN: Õı³£ÔËĞĞ×´Ì¬£¬Æô¶¯±Õ»·¿ØÖÆ
- *             - ST_STOPPING: Í£»ú×´Ì¬£¬ÆµÂÊ»Øµ½×î´óÖµ
- *             - ST_FAULT: ¹ÊÕÏ×´Ì¬£¬¹Ø±ÕËùÓĞÊä³ö
+ * @param next ç›®æ ‡çŠ¶æ€ï¼Œå–å€¼ä¸º llc_state_t æšä¸¾ç±»å‹ï¼š
+ *             - ST_IDLE: ç©ºé—²çŠ¶æ€ï¼Œå…³é—­æ‰€æœ‰è¾“å‡ºï¼Œé‡ç½®æ—¶é—´æˆ³
+ *             - ST_PRECHECK: é¢„æ£€æŸ¥çŠ¶æ€ï¼Œä½¿èƒ½é©±åŠ¨ä½†ä¿æŒPWMå…³é—­
+ *             - ST_SOFTSTART: è½¯å¯åŠ¨çŠ¶æ€ï¼Œå¼€å§‹é¢‘ç‡æ–œå¡ä¸Šå‡
+ *             - ST_RUN_ENTRY_HOLD: è¿è¡Œè¿›å…¥ä¿æŒçŠ¶æ€ï¼Œç­‰å¾…ç¨³å®š
+ *             - ST_LLC_RUN: æ­£å¸¸è¿è¡ŒçŠ¶æ€ï¼Œå¯åŠ¨é—­ç¯æ§åˆ¶
+ *             - ST_STOPPING: åœæœºçŠ¶æ€ï¼Œé¢‘ç‡å›åˆ°æœ€å¤§å€¼
+ *             - ST_FAULT: æ•…éšœçŠ¶æ€ï¼Œå…³é—­æ‰€æœ‰è¾“å‡º
  * 
- * @note ¸÷×´Ì¬ÇĞ»»Ê±»áÖ´ĞĞÏàÓ¦µÄ³õÊ¼»¯²Ù×÷£º
- *       - ST_IDLE: ¹Ø±ÕPWMÊä³ö£¬½ûÓÃÇı¶¯£¬ÆµÂÊÉèÎª×î´óÖµ£¬ÖØÖÃËùÓĞÊ±¼ä´Á
- *       - ST_PRECHECK: Ê¹ÄÜÇı¶¯£¬¹Ø±ÕPWM£¬ÆµÂÊÉèÎª×î´óÖµ
- *       - ST_SOFTSTART: ¼ÇÂ¼Æô¶¯Ê±¼ä£¬Ê¹ÄÜÇı¶¯ºÍPWM£¬¿ªÊ¼ÈíÆô¶¯Ğ±ÆÂ
- *       - ST_RUN_ENTRY_HOLD: ¼ÇÂ¼±£³ÖÊ±¼ä£¬³õÊ¼»¯ÆµÂÊÎªÈíÆô¶¯½áÊøÆµÂÊ
- *       - ST_LLC_RUN: ³õÊ¼»¯ÎŞÈÅ¶¯¿ØÖÆ£¬¿ÉÑ¡×Ô¶¯´¥·¢²¨ĞÎ¸ú×Ù
- *       - ST_STOPPING: ¼ÇÂ¼Í£»úÊ±¼ä£¬ÆµÂÊ»Øµ½×î´óÖµ
- *       - ST_FAULT: ¹Ø±ÕËùÓĞÊä³ö£¬ÆµÂÊÉèÎª×î´óÖµ
+ * @note å„çŠ¶æ€åˆ‡æ¢æ—¶ä¼šæ‰§è¡Œç›¸åº”çš„åˆå§‹åŒ–æ“ä½œï¼š
+ *       - ST_IDLE: å…³é—­PWMè¾“å‡ºï¼Œç¦ç”¨é©±åŠ¨ï¼Œé¢‘ç‡è®¾ä¸ºæœ€å¤§å€¼ï¼Œé‡ç½®æ‰€æœ‰æ—¶é—´æˆ³
+ *       - ST_PRECHECK: ä½¿èƒ½é©±åŠ¨ï¼Œå…³é—­PWMï¼Œé¢‘ç‡è®¾ä¸ºæœ€å¤§å€¼
+ *       - ST_SOFTSTART: è®°å½•å¯åŠ¨æ—¶é—´ï¼Œä½¿èƒ½é©±åŠ¨å’ŒPWMï¼Œå¼€å§‹è½¯å¯åŠ¨æ–œå¡
+ *       - ST_RUN_ENTRY_HOLD: è®°å½•ä¿æŒæ—¶é—´ï¼Œåˆå§‹åŒ–é¢‘ç‡ä¸ºè½¯å¯åŠ¨ç»“æŸé¢‘ç‡
+ *       - ST_LLC_RUN: åˆå§‹åŒ–æ— æ‰°åŠ¨æ§åˆ¶ï¼Œå¯é€‰è‡ªåŠ¨è§¦å‘æ³¢å½¢è·Ÿè¸ª
+ *       - ST_STOPPING: è®°å½•åœæœºæ—¶é—´ï¼Œé¢‘ç‡å›åˆ°æœ€å¤§å€¼
+ *       - ST_FAULT: å…³é—­æ‰€æœ‰è¾“å‡ºï¼Œé¢‘ç‡è®¾ä¸ºæœ€å¤§å€¼
  * 
- * @warning º¯ÊıÄÚ²¿»áÖ±½ÓĞŞ¸ÄÈ«¾ÖÔËĞĞÊ±×´Ì¬ s_llc_rt.app.state
+ * @warning å‡½æ•°å†…éƒ¨ä¼šç›´æ¥ä¿®æ”¹å…¨å±€è¿è¡Œæ—¶çŠ¶æ€ s_llc_rt.app.state
  */
 static void llc_state_enter(llc_state_t next)
 {
-	// ¸üĞÂ LLC ×´Ì¬ºÍ½øÈëÊ±¼ä
+	// æ›´æ–° LLC çŠ¶æ€å’Œè¿›å…¥æ—¶é—´
 	if (s_llc_rt.app.state == next) 
 		return;
+
+    llc_state_t prev = s_llc_rt.app.state;  /* è®°å½•æ—§çŠ¶æ€ç”¨äºæ—¥å¿— */
 	s_llc_rt.app.state = next;
   s_llc_rt.app.entry_ms = g_ms;
+
+    /* ========== çŠ¶æ€åˆ‡æ¢æ—¥å¿—ï¼ˆéé˜»å¡DMAä¸²å£ï¼‰ ========== */
+    debug_printf("[LLC] %d->%d @%lu ms, Vout=%.1fV, Iout=%.1fA, Vbus=%.1fV\r\n",
+                 (int)prev, (int)next,
+                 (unsigned long)g_ms,
+                 (double)s_llc_rt.meas.vout_v,
+                 (double)s_llc_rt.meas.iout_a,
+                 (double)s_llc_rt.meas.vbus_v);
+
+	if (next != ST_LLC_RUN) {
+		(void)llc_ctrl_step(0.0f, false, false, s_llc.f_cmd, s_llc.f_cmd);
+		(void)llc_current_limit_step(0.0f, false);
+		llc_derate_reset();
+	}
 	//s_llc_app.entry_ms = g_ms;
-	#if Bus_Adj
-	//bus_vol_adj_reset();   //ÖØÖÃ×ÜÏßµçÑ¹µ÷ÕûÂß¼­ °Ù·ÖÖ®ÎåÊ®µÄÕ¼¿Õ±È
-	#endif
-	// ¸ù¾İÄ¿±ê×´Ì¬Ö´ĞĞÏàÓ¦µÄ³õÊ¼»¯»òÇåÀí²Ù×÷
+	// æ ¹æ®ç›®æ ‡çŠ¶æ€æ‰§è¡Œç›¸åº”çš„åˆå§‹åŒ–æˆ–æ¸…ç†æ“ä½œ
 	switch(next)
 	{
 	 case ST_IDLE:
 		  llc_softstart_on_fault();
-		  llc_softstop_reset();  /* ÖØÖÃÈí¹Ø¶Ï×´Ì¬ */
-		  //pfc_hw_set_main(false);   // Ç¿ÖÆ¹Ø±Õ PFC
-			//pfc_disable();
-		  llc_pwm_outputs_enable(0); // ½ûÓÃ PWM Êä³ö
+		  llc_softstop_reset();  /* é‡ç½®è½¯å…³æ–­çŠ¶æ€ */
+		  llc_pwm_outputs_enable(0); // ç¦ç”¨ PWM è¾“å‡º
 		  llc_driver_en_set(false); //disable llc
-		  llc_set_freq(s_llc.f_max, true);  /* Ç¿ÖÆ¸üĞÂ£º×´Ì¬ÇĞ»»È·±£Á¢¼´ÉúĞ§ */		
-	 	  s_llc_rt.softstart_begin_ms = 0U;  //ÈíÆô¶¯¿ªÊ¼Ê±¼ä´Á£¬ÓÃÓÚ¿ØÖÆÈíÆô¶¯Ğ±ÆÂ
-	 	  s_llc_rt.stopping_begin_ms = 0U;  //Í£»ú¹ı³Ì¿ªÊ¼Ê±¼ä´Á£¬ÓÃÓÚ¿ØÖÆÍ£»úÊ±Ğò
-	 	  s_llc_rt.hold_last_adjust_ms = 0U; //±£³Ö×îºóµ÷ÕûµÄÊ±¼ä´Á£¬ÓÃÓÚÆµÂÊµ÷ÕûµÄÈ¥¶¶
-		  s_llc_rt.pfc_ready_begin_ms = 0U;
+		  llc_set_freq(s_llc.f_max, true);  /* å¼ºåˆ¶æ›´æ–°ï¼šçŠ¶æ€åˆ‡æ¢ç¡®ä¿ç«‹å³ç”Ÿæ•ˆ */		
+	 	  s_llc_rt.softstart_begin_ms = 0U;  //è½¯å¯åŠ¨å¼€å§‹æ—¶é—´æˆ³ï¼Œç”¨äºæ§åˆ¶è½¯å¯åŠ¨æ–œå¡
+	 	  s_llc_rt.stopping_begin_ms = 0U;  //åœæœºè¿‡ç¨‹å¼€å§‹æ—¶é—´æˆ³ï¼Œç”¨äºæ§åˆ¶åœæœºæ—¶åº
+	 	  s_llc_rt.hold_last_adjust_ms = 0U; //ä¿æŒæœ€åè°ƒæ•´çš„æ—¶é—´æˆ³ï¼Œç”¨äºé¢‘ç‡è°ƒæ•´çš„å»æŠ–
+		  s_llc_rt.pfc_ready_begin_ms = 0U; //pfcå‡†å¤‡å¥½çš„æ—¶é—´æˆ³ï¼Œç”¨äºpfcå‡†å¤‡å¥½çš„æ—¶é—´è®¡æ•°
 		  s_llc_rt.run_entry_hold_begin_ms = 0U;
 		  s_llc_rt.run_entry_stable_ticks = 0U;
-		  s_llc_rt.cycle_stop_begin_ms = 0U;  /* ÖØÖÃÖÜÆÚĞÔÈí¹Ø¶Ï¼ÆÊ± */
-		  s_llc_rt.burst_state = BURST_STATE_OFF;
-		  s_llc_rt.burst_begin_ms = 0U;
-		  s_llc_rt.burst_first_entry = 1;     /* ÖØÖÃÊ×´Î½øÈë±êÖ¾ */
+		  s_llc_rt.cycle_stop_begin_ms = 0U;  /* é‡ç½®å‘¨æœŸæ€§è½¯å…³æ–­è®¡æ—¶ */
 		  break;
 	 case ST_PRECHECK:  
 	  	llc_driver_en_set(true);
-    	llc_pwm_outputs_enable(0); // ½ûÓÃ PWM Êä³ö
-    	llc_set_freq(s_llc.f_max, true);  /* Ç¿ÖÆ¸üĞÂ */
+    	llc_pwm_outputs_enable(0); // ç¦ç”¨ PWM è¾“å‡º
+    	llc_set_freq(s_llc.f_max, true);  /* å¼ºåˆ¶æ›´æ–° */
 	 
       break;
 	 case ST_SOFTSTART:
-			s_llc_rt.softstart_begin_ms = g_ms;
+			s_llc_rt.softstart_begin_ms = g_ms; //ç»´ç¨³è®¡æ•°
 			llc_driver_en_set(true);
 			llc_pwm_outputs_enable(1);
 			llc_softstart_start(LLC_SOFTSTART_TARGET_HZ);
 			break;
 	 case ST_RUN_ENTRY_HOLD:
 			llc_driver_en_set(true);
-			s_llc_rt.run_entry_hold_begin_ms = g_ms;
-			s_llc_rt.run_entry_stable_ticks = 0U;
-			s_llc.f_cmd = llc_softstart_last_hz();
-			llc_set_freq(s_llc.f_cmd, true);  /* Ç¿ÖÆ¸üĞÂ£º´ÓÈíÆô¹ı¶Éµ½±Õ»· */
-
+			s_llc_rt.run_entry_hold_begin_ms = g_ms; //è®°å½•ä¿æŒæ—¶é—´
+			s_llc_rt.run_entry_stable_ticks = 0U; //è®°å½•ç»´ç¨³æ¬¡æ•°
+	    s_llc.f_cmd = llc_softstart_last_hz(); //é¢‘ç‡è®¾ç½®ä¸ºè½¯å¯ç»“æŸå€¼
+			llc_set_freq(s_llc.f_cmd, true);  /* å¼ºåˆ¶æ›´æ–°ï¼šä»è½¯å¯è¿‡æ¸¡åˆ°é—­ç¯ */
 			break;
 	 case ST_LLC_RUN:
 			llc_driver_en_set(true);
       s_llc_rt.hold_last_adjust_ms = g_ms;
-	 #if (LLC_F_NOM_FOLLOW_MODE == LLC_F_NOM_FOLLOW_SOFTSTART_END)
+#if (LLC_F_NOM_FOLLOW_MODE == LLC_F_NOM_FOLLOW_SOFTSTART_END)
 	    s_llc.f_nom = f_clampf(s_llc.f_cmd, s_llc.f_min, s_llc.f_max);
-	 #else
+#else
 	 	    s_llc.f_nom = llc_get_f_nom(s_llc.f_min, s_llc.f_max, s_llc.f_cmd);
 #endif
-      /* ÖØÖÃBurstÑÓ³Ù¼ÆÊ±Æ÷ */
-      s_llc_rt.burst_enter_delay_ms = 0U;
-      s_llc_rt.burst_exit_delay_ms = 0U;
-
-      llc_ctrl_bumpless_init(LLC_VOUT_TARGET_V, s_llc_rt.meas.vout_v, s_llc.f_cmd);
+	 		s_llc_curr.df_prev = 0.0f;
+			s_llc_curr.limit_active = false; // é‡ç½®é™æµå™¨çŠ¶æ€
 			break;
 	 case ST_STOPPING:
       s_llc_rt.stopping_begin_ms = g_ms;
 		  llc_driver_en_set(true);
-      /* Æô¶¯Èí¹Ø¶Ï£º´Óµ±Ç°ÆµÂÊÆ½»¬ÉÏÉıµ½×î¸ßÆµÂÊ */
+      /* å¯åŠ¨è½¯å…³æ–­ï¼šä»å½“å‰é¢‘ç‡å¹³æ»‘ä¸Šå‡åˆ°æœ€é«˜é¢‘ç‡ */
       llc_softstop_start(s_llc.f_cmd);
       break;
 	 case ST_CYCLE_STOPPING:
       s_llc_rt.stopping_begin_ms = g_ms;
       llc_driver_en_set(true);
-      /* Æô¶¯Èí¹Ø¶Ï */
+      /* å¯åŠ¨è½¯å…³æ–­ */
       llc_softstop_start(s_llc.f_cmd);
       break;
-	 case ST_BURST_MODE:
-			llc_driver_en_set(true);
-			s_llc_rt.vout_burst_target = LLC_VOUT_TARGET_V;
-			/* ¼ÇÂ¼½øÈëBurstÇ°µÄÆµÂÊ£¬ÓÃÓÚÍË³öÊ±bumpless */
-			s_llc_rt.f_pre_burst_hz = f_clampf(s_llc.f_cmd, s_llc.f_min, s_llc.f_max);
-			
-			/* Ã¿´Î½øÈëBurst¶¼×ßENTRY_PREPARE£¬È·±£Èí½øÈë */
-			s_llc_rt.burst_state = BURST_STATE_ENTRY_PREPARE;
-			s_llc_rt.burst_first_entry = 0;
-			llc_pwm_outputs_enable(1);  /* ½øÈë×¼±¸½×¶Î±£³ÖPWM¿ªÆô */
-			llc_set_freq(LLC_F_MAX_HZ, true); /* Ç¿ÖÆ¸üĞÂ£º½øÈëBurstÉıÆµ×¼±¸ */
-			s_llc_rt.burst_begin_ms = g_ms;
-			
-#if DEBUG_PRINTF_BURST_MODE
-			debug_printf("[BURST] ENTER: iout=%.2fA, f_pre=%.0fHz, state=%d\n", 
-			             s_llc_rt.meas.iout_a, s_llc_rt.f_pre_burst_hz, s_llc_rt.burst_state);
-#endif
-			break;
 	 case ST_FAULT:
 	 		llc_softstart_on_fault();
-			llc_softstop_reset();  /* ¹ÊÕÏÊ±ÖØÖÃÈí¹Ø¶Ï×´Ì¬ */
+			llc_softstop_reset();  /* æ•…éšœæ—¶é‡ç½®è½¯å…³æ–­çŠ¶æ€ */
 			llc_pwm_outputs_enable(0);
 			llc_driver_en_set(false);
-			llc_set_freq(s_llc.f_max, true);  /* Ç¿ÖÆ¸üĞÂ£º¹ÊÕÏ±£»¤Á¢¼´ÉúĞ§ */
+			llc_set_freq(s_llc.f_max, true);  /* å¼ºåˆ¶æ›´æ–°ï¼šæ•…éšœä¿æŠ¤ç«‹å³ç”Ÿæ•ˆ */
 
 			break;
 	 
@@ -1163,14 +893,14 @@ static void llc_state_enter(llc_state_t next)
       pfc_hw_set_main(false); //PFC_off
       llc_pwm_outputs_enable(0); //llc pwm disable
       llc_driver_en_set(false);
-      llc_set_freq(s_llc.f_max, true);  /* Ç¿ÖÆ¸üĞÂ */
+      llc_set_freq(s_llc.f_max, true);  /* å¼ºåˆ¶æ›´æ–° */
       break;
 	}
 }
 
 
 /*********************************************************************************************************
-*                                              ¹«¹²½Ó¿Ú
+*                                              å…¬å…±æ¥å£
 *********************************************************************************************************/
 void llc_app_init(void)
 {
@@ -1179,13 +909,9 @@ void llc_app_init(void)
         .vref    = LLC_VOUT_TARGET_V,
         .vmeas   = 0.0f,
 
-        /* Õı³£µçÑ¹PI²ÎÊı */
+        /* æ­£å¸¸ç”µå‹PIå‚æ•° */
         .kp      = 1900.0f,
         .ki      = 18.0f,
-
-        /* RAW PI²ÎÊı */
-        .kp_raw  = 3.0f,
-        .ki_raw  = 0.050f,
 
         .integ   = 0.0f,
         .iref    = 0.0f,
@@ -1199,546 +925,174 @@ void llc_app_init(void)
         .f_cmd_v = 0.0f,
         .f_cmd_i = 0.0f
     };
-
-    /* ³õÊ¼»¯ÖÜÆÚĞÔÈí¹Ø¶Ï */
-    s_llc_rt.cycle_stop_enable = false;  /* ½ûÓÃÖÜÆÚĞÔÈí¹Ø£¬Ê¹ÓÃBurst */
+	s_llc_curr = (llc_curr_t){
+				.iref=LLC_IOUT_TARGET_A, //åŸå§‹ç›®æ ‡ç”µæµ
+				.iref_cmd=LLC_IOUT_TARGET_A, //å½“å‰å®é™…ç”Ÿæ•ˆçš„ç›®æ ‡ç”µæµ
+		    .imeas=0.0f,  //å½“å‰æµ‹é‡ç”µæµï¼Œåˆå§‹åŒ–ä¸º 0
+				.i_err_sat=LLC_IOUT_ERR_SAT_A, //ç”µæµè¯¯å·®é™å¹…ï¼Œé˜²æ­¢ ierr = i_meas - iref_cmd å¤ªå¤§æ—¶æŠŠ PI ä¸€ä¸‹å†²é£
+				.kp=LLC_IOUT_CTRL_KP, 
+				.ki=LLC_IOUT_CTRL_KI * LLC_CTRL_TS_S, 
+				.integ=0.0f,
+				.f_min=LLC_F_MIN_HZ, 
+				.f_max=LLC_F_MAX_HZ,
+				.df_max=LLC_IOUT_DF_MAX_HZ,  //ç”µæµç¯æœ€å¤šèƒ½æŠŠé¢‘ç‡ä» f_min å¾€ä¸ŠæŠ¬å¤šå°‘
+				.df_slew=LLC_IOUT_DF_SLEW_HZ_S * LLC_CTRL_TS_S, 
+				.df_prev=0.0f, //ä¸Šä¸€æ‹ç”µæµç¯è¾“å‡ºï¼Œä¾› slew é™åˆ¶ä½¿ç”¨
+				.i_on=LLC_IOUT_TARGET_A + LLC_IOUT_ON_DELTA_A,
+				.i_off=LLC_IOUT_TARGET_A - LLC_IOUT_OFF_DELTA_A,
+		    .derate_step_ms=0U, //å¤šä¹…å…è®¸å†å¾€ä¸‹é™ä¸€æ­¥
+				.derate_recover_ms=0U, //å¤šä¹…å…è®¸å†æ¢å¤ä¸€æ­¥
+				.limit_active=false
+	};
+		llc_current_thresholds_update();
+    /* åˆå§‹åŒ–å‘¨æœŸæ€§è½¯å…³æ–­ */
+    s_llc_rt.cycle_stop_enable = false;  /* ç¦ç”¨å‘¨æœŸæ€§è½¯å…³ï¼Œä½¿ç”¨Burst */
     s_llc_rt.cycle_stop_begin_ms = 0U;
-    s_llc_rt.burst_state = BURST_STATE_OFF;
-    s_llc_rt.burst_begin_ms = 0U;
-    s_llc_rt.vout_burst_target = LLC_VOUT_TARGET_V;
-    s_llc_rt.burst_enter_delay_ms = 0U;
-    s_llc_rt.burst_exit_delay_ms = 0U;
-    s_llc_rt.f_pre_burst_hz = LLC_F_NOM_HZ;  /* Ä¬ÈÏÓÃ±ê³ÆÆµÂÊ */
-    s_llc_rt.burst_first_entry = 1;          /* ±ê¼ÇÊ×´Î½øÈë */
-#if LLC_COLLAPSE_TRACE_ENABLE
-    s_collapse_trace.wr = 0U;
-    s_collapse_trace.size = 0U;
-    s_collapse_trace.active = 0U;
-    s_collapse_trace.post_left = 0U;
-		s_collapse_trace.trigger_inhibit = 0U;
-    s_collapse_trace.last_trigger_ms = 0U;
-    s_collapse_trace.last_vout_v = 0.0f;
-		
-		s_collapse_emit.pending = 0U;
-    s_collapse_emit.emit_idx = 0U;
-#endif
+
     llc_state_enter(ST_IDLE);
 }
 
-
-static uint8_t vloop_div = 0;
-static uint8_t vout_filt_inited = 0U;
-#if 1
+/*********************************************************************************************************
+* å‡½æ•°åç§°ï¼šllc_app_tick_100us
+* å‡½æ•°åŠŸèƒ½ï¼šå®ç°äº† LLC å˜æ¢å™¨çš„ 100Î¼s å‘¨æœŸæ€§æ§åˆ¶ä»»åŠ¡ï¼ŒåŒ…æ‹¬è¾“å‡ºç”µå‹æ»¤æ³¢ã€ç”µå‹é—­ç¯æ§åˆ¶åŠ Burst æ¨¡å¼ç®¡ç†
+* è¾“å…¥å‚æ•°ï¼švoid
+* è¾“å‡ºå‚æ•°ï¼švoid
+* è¿” å› å€¼ï¼švoid
+* åˆ›å»ºæ—¥æœŸï¼š2026å¹´04æœˆ01æ—¥
+* æ³¨    æ„ï¼šè¯¥å‡½æ•°åœ¨ 100Î¼s å®šæ—¶å™¨ä¸­æ–­ä¸­è°ƒç”¨ï¼Œå®ç°ä»¥ä¸‹åŠŸèƒ½ï¼š
+*           1. çŠ¶æ€åˆ¤æ–­ï¼šä»…åœ¨ ST_LLC_RUN æˆ– ST_BURST_MODE çŠ¶æ€ä¸‹æ‰§è¡Œæ§åˆ¶é€»è¾‘
+*           2. ç”µå‹æ»¤æ³¢ï¼šé‡‡ç”¨ä¸€é˜¶ä½é€šæ»¤æ³¢å™¨å¯¹è¾“å‡ºç”µå‹ ADC åŸå§‹å€¼è¿›è¡Œæ»¤æ³¢ï¼Œæ»¤æ³¢ç³»æ•°ä¸º LLC_VOUT_FILT_ALPHA
+*           //3. Burst æ¨¡å¼ï¼šåœ¨ Burst æ¨¡å¼ä¸‹ä»…ä¿ç•™ç”µå‹æ»¤æ³¢ï¼Œä¸æ‰§è¡Œç”µå‹ PI æ§åˆ¶
+*           4. ç”µå‹é—­ç¯ï¼šæ¯ 5 ä¸ª tickï¼ˆ500Î¼sï¼‰æ‰§è¡Œä¸€æ¬¡ç”µå‹ PI æ§åˆ¶ï¼Œè®¡ç®—é¢‘ç‡æŒ‡ä»¤å¹¶æ›´æ–°å¼€å…³é¢‘ç‡
+*           5. é¢‘ç‡æ›´æ–°ï¼šé€šè¿‡ llc_set_freq å‡½æ•°è‡ªç„¶æ›´æ–°é¢‘ç‡ï¼Œå®ç°é—­ç¯å¾®è°ƒ
+*           è®¾è®¡è¦ç‚¹ï¼šç”µå‹æ»¤æ³¢é‡‡ç”¨é™æ€å˜é‡ vout_filt_v ä¿å­˜æ»¤æ³¢çŠ¶æ€ï¼Œç¡®ä¿æ»¤æ³¢è¿ç»­æ€§ï¼›
+*                     vout_filt_inited æ ‡å¿—ç”¨äºæ»¤æ³¢å™¨åˆå§‹åŒ–ï¼Œé¿å…å¯åŠ¨ç¬æ€ï¼›
+*                     vloop_div è®¡æ•°å™¨å®ç° 500Î¼s çš„æ…¢ç¯æ§åˆ¶å‘¨æœŸï¼Œé™ä½è®¡ç®—è´Ÿè½½
+*********************************************************************************************************/
 void llc_app_tick_100us(void)
 {
-	  static float vout_filt_v   = 0.0f;   /* µçÑ¹PIÓÃÂË²¨×´Ì¬ */
-    float err;
-    float f_cmd;
-	
-	
-    if (s_llc_rt.app.state != ST_LLC_RUN && s_llc_rt.app.state != ST_BURST_MODE) {
+		static uint8_t vloop_div = 0;
+		
+	  static float vout_filt_v   = 0.0f;   /* ç”µå‹PIç”¨æ»¤æ³¢çŠ¶æ€ */
+    static uint8_t vout_filt_inited = 0U; /* æ»¤æ³¢å™¨åˆå§‹åŒ–æ ‡å¿—ï¼Œå±€éƒ¨å³å¯ */
+
+    if (s_llc_rt.app.state != ST_LLC_RUN ) {
 			vloop_div = 0;
 			vout_filt_inited = 0U;
-			llc_cr_resp_tick();
       return;
     }	
-
 		 /* =========================
-     * Õı³£µçÑ¹PIÄ£Ê½
-     * raw -> µçÑ¹ -> ÂË²¨ -> PI
+     * æ­£å¸¸ç”µå‹PIæ¨¡å¼
+     * raw -> ç”µå‹ -> æ»¤æ³¢ -> PI
      * err = vref - vmeas
      * ========================= */
     float vout_now = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
-		
+		float iout_now = conv_adc_to_i(g_adc_multi.isense_raw);
 		if (!vout_filt_inited) {
 				vout_filt_v = vout_now;
 				vout_filt_inited = 1U;
 		}
-	  if (vout_filt_v < 0.001f) {
-					vout_filt_v = vout_now;
-			}
-    /* 100us¿ì»·ÂË²¨£¬alpha¿ÉºóĞøÔÙµ÷ */
+	  if (vout_filt_v < 0.001f) 
+		{
+				vout_filt_v = vout_now;
+		}
+    /* 100uså¿«ç¯æ»¤æ³¢ï¼Œalphaå¯åç»­å†è°ƒ */
     vout_filt_v += LLC_VOUT_FILT_ALPHA * (vout_now - vout_filt_v);
     s_llc.vmeas = vout_filt_v;
-		/* BurstÄ£Ê½£ºÖ»±£ÁôÂË²¨£¬²»ÅÜPI */
-    if (s_llc_rt.app.state == ST_BURST_MODE) {
-        vloop_div = 0U;
-			  llc_cr_resp_tick();
-        return;
-    }
+
 #if LLC_FIXED_FREQ_LOAD_TEST_ENABLE
     vloop_div = 0U;
     llc_set_freq(LLC_FIXED_FREQ_LOAD_TEST_HZ, false);
-    llc_cr_resp_tick();
     return;
 #endif
-    err = s_llc.vref - s_llc.vmeas;
-		if (++vloop_div >= 5U) {   // 500us
-			vloop_div = 0;
-			f_cmd = llc_ctrl_step(err);
-			llc_set_freq(f_cmd, false);  /* ×ÔÈ»¸üĞÂ£º±Õ»·Î¢µ÷ */
-			}
-		}
+		// 1. ç”µå‹ç¯è®¡ç®—
+    float err = s_llc.vref - s_llc.vmeas;
+		float f_init  = s_llc.f_cmd;                           // ä¸Šä¸€æ‹ä¸‹å‘çš„é¢‘ç‡ï¼ˆç”¨äºslewåŸºå‡†ï¼‰
+	
+
 		
-#endif 
+		if (++vloop_div >= 5U) 
+		{   // 500us
+			vloop_div = 0;
+			// 2. é™é¢ä¿æŠ¤æ›´æ–°
+			llc_derate_update(iout_now, llc_temp_derate_active());
+			// 3. ç”µæµé™åˆ¶ç¯
+			float df_i = llc_current_limit_step(iout_now, true);
+			float f_cmd_i = s_llc.f_min + df_i;
+			/* å…³é”®ï¼šç”¨ df_i åˆ¤æ–­å½“å‰æ˜¯å¦ä»è¢«ç”µæµç¯æŠ¬é«˜ï¼ˆä¸è¦ç”¨ limit_activeï¼‰ */
+			// 4. ç”µå‹æ§åˆ¶ç¯ï¼ˆè€ƒè™‘ç”µæµé™åˆ¶ï¼‰
+			bool lim_for_v = df_i > 1.0f;   // df_i > 0 ==> 10  
+			float f_cmd_v = llc_ctrl_step(err, true, lim_for_v, f_init, f_cmd_i); 
+			float f_cmd = (f_cmd_i > f_cmd_v) ? f_cmd_i : f_cmd_v; 
+			llc_set_freq(f_cmd, false);  /* è‡ªç„¶æ›´æ–°ï¼šé—­ç¯å¾®è°ƒ */
+		}
+}
+/*********************************************************************************************************
+* å‡½æ•°åç§°ï¼šllc_is_active_state
+* å‡½æ•°åŠŸèƒ½ï¼šåˆ¤æ–­æŒ‡å®šçš„LLCçŠ¶æ€æ˜¯å¦ä¸ºæ´»è·ƒå·¥ä½œçŠ¶æ€
+* è¾“å…¥å‚æ•°ï¼šst - å¾…åˆ¤æ–­çš„LLCçŠ¶æ€æšä¸¾å€¼
+* è¾“å‡ºå‚æ•°ï¼šæ— 
+* è¿” å› å€¼ï¼štrue-è¡¨ç¤ºè¯¥çŠ¶æ€ä¸ºæ´»è·ƒçŠ¶æ€ï¼›false-è¡¨ç¤ºè¯¥çŠ¶æ€ä¸ºéæ´»è·ƒçŠ¶æ€ï¼ˆIDLEæˆ–FAULTï¼‰
+* åˆ›å»ºæ—¥æœŸï¼š2026å¹´04æœˆ08æ—¥
+* æ³¨    æ„ï¼šæ´»è·ƒçŠ¶æ€åŒ…æ‹¬ï¼šPRECHECKã€SOFTSTARTã€RUN_ENTRY_HOLDã€LLC_RUNã€CYCLE_STOPPINGã€STOPPINGï¼›
+*           éæ´»è·ƒçŠ¶æ€åŒ…æ‹¬ï¼šIDLEï¼ˆç©ºé—²ï¼‰å’ŒFAULTï¼ˆæ•…éšœï¼‰ï¼›
+*           è¯¥å‡½æ•°ç”¨äºæ•…éšœæ£€æµ‹é€»è¾‘ä¸­ï¼Œä»…åœ¨æ´»è·ƒçŠ¶æ€ä¸‹æ‰è¿›è¡Œæ•…éšœåˆ¤æ–­ï¼Œé¿å…å¾…æœºæ—¶è¯¯æŠ¥æ¬ å‹æ•…éšœ
+*********************************************************************************************************/		
 static bool llc_is_active_state(llc_state_t st)
 {
     return (st == ST_PRECHECK) ||
            (st == ST_SOFTSTART) ||
            (st == ST_RUN_ENTRY_HOLD) ||
            (st == ST_LLC_RUN) ||
-           (st == ST_BURST_MODE) ||
            (st == ST_CYCLE_STOPPING) ||
            (st == ST_STOPPING);
 }
-
-
-static bool power_stage_all_idle(void)
-{
-    /* PFC »¹ready£¬ËµÃ÷Ç°¼¶ÈÔ´¦ÓÚ¹¤×÷/¿É¹¤×÷Ì¬£¬²»ÔÊĞíË¢ÈÕÖ¾ */
-    if (pfc_is_ready()) {
-        return false;
-    }
-
-    /* LLC ÈÔÔÚ»î¶¯Ì¬£¬Ò²²»ÔÊĞíË¢ÈÕÖ¾ */
-    if (llc_is_active_state(s_llc_rt.app.state)) {
-        return false;
-    }
-		return true;
-}
-/**
- * @brief ÏŞÖÆĞÔµØµ¼³öLLCµçÁ÷ÏìÓ¦ÈÕÖ¾Êı¾İ
- * 
- * ¸Ãº¯Êı´Ó»·ĞÎÈÕÖ¾»º³åÇøÖĞ¶ÁÈ¡Ö¸¶¨ÊıÁ¿µÄÈÕÖ¾Ïî£¬²¢Í¨¹ı¶ş½øÖÆĞ­Òé·¢ËÍ¡£
- * Ö§³ÖÒç³ö×´Ì¬±¨¸æºÍ¼à¿ØÊı¾İ¹ıÂË¹¦ÄÜ¡£
- * 
- * @param max_items ±¾´Îµ¼³öµÄ×î´óÈÕÖ¾ÏîÊıÁ¿£¬Îª0Ê±Ö±½Ó·µ»Ø
- * @param allow_mon ÊÇ·ñÔÊĞíµ¼³ö¼à¿ØÀàĞÍÈÕÖ¾(CR_LOG_MON)£¬0±íÊ¾Ìø¹ı¼à¿ØÊı¾İ
- * 
- * @note ¸Ãº¯ÊıÊ¹ÓÃÁÙ½çÇø±£»¤»·ĞÎ»º³åÇøµÄ¶ÁÈ¡²Ù×÷
- * @note Òç³ö×´Ì¬±ä»¯Ê±»á×Ô¶¯±¨¸æÒç³öÍ³¼ÆĞÅÏ¢
- * @note ÈÕÖ¾µ¼³öºó×Ô¶¯¸üĞÂ´ıµ¼³ö±êÖ¾(s_cr_log_pending_dump)
- * 
- * @attention ½öÔÚLLC_CR_RESP_LOG_ENABLEºê¶¨ÒåÊ±ÓĞĞ§
- */
-static void llc_cr_resp_log_dump_limited_PRO(uint8_t max_items, uint8_t allow_mon)
-{
-#if LLC_CR_RESP_LOG_ENABLE
-    uint8_t dumped = 0U;
-
-    if (max_items == 0U) {
-        return;
-    }
-		//ÓÅÑÅµÄÒç³ö±¨¸æ»úÖÆ,Ö»ÓĞÒç³öµÄÊ±ºò²Å»á´òÓ¡
-    if (s_cr_log_overflow_reported != s_cr_log_overflow_cnt) {
-        debug_printf("[CR_OVF] total=%lu pending=%u\r\n",
-                     (unsigned long)s_cr_log_overflow_cnt,
-                     (unsigned)s_cr_log_cnt);
-        s_cr_log_overflow_reported = s_cr_log_overflow_cnt;
-    }
-    while (dumped < max_items) {
-        llc_cr_log_item_t item;
-        uint32_t primask;
-
-        primask = __get_PRIMASK();
-        __disable_irq();
-
-        if (s_cr_log_cnt == 0U) {
-            s_cr_log_pending_dump = 0U;
-            __set_PRIMASK(primask);
-            break;
-        }
-				//»·ĞÎ»º³åÇø²ßÂÔ¹ÜÀí
-        item = s_cr_log_buf[s_cr_log_r];
-        s_cr_log_r = (uint16_t)((s_cr_log_r + 1U) % LLC_CR_RESP_LOG_CACHE_MAX);
-        s_cr_log_cnt--;
-        s_cr_log_pending_dump = (s_cr_log_cnt > 0U) ? 1U : 0U;
-
-        __set_PRIMASK(primask);
-
-        /* ¸Ä³ÉÎÄ±¾´®¿ÚÖ¡Êä³ö */
-        if ((item.type != CR_LOG_MON) || allow_mon) {
-					#if 1
-            llc_cr_proto_log_emit_bin(&item);
-					#else
-					            switch (item.type) {
-            case CR_LOG_MON:
-                debug_printf("[M] %lu %.1f %.1f %.1f %.0f\r\n",
-                             (unsigned long)item.t_ms,
-                             item.vout_v,
-                             item.iout_a,
-                             item.err_v,
-                             item.f_cmd_hz);
-                break;
-
-            case CR_LOG_EVT_BEGIN:
-                debug_printf("[B] %lu %.1f %.1f %.1f\r\n",
-                             (unsigned long)item.id,
-                             item.iout_from_a,
-                             item.iout_to_a,
-                             item.vout_pre_v);
-                break;
-
-            case CR_LOG_EVT_END:
-                debug_printf("[E] %lu %u %lu %lu %.1f %.1f %.1f\r\n",
-                             (unsigned long)item.id,
-                             (unsigned)item.pass,
-                             (unsigned long)item.dt_ms,
-                             (unsigned long)item.settle_ms,
-                             item.vmin_v,
-                             item.vmax_v,
-                             item.maxerr_v);
-                break;
-
-            default:
-                break;
-            }
-						#endif
-        }
-
-        dumped++;
-    }
-#endif
-}
-/*
-	°Ñµ±Ç°¡°ÏÈ pop ÔÙ¾ö¶¨·¢²»·¢¡±µÄ·½Ê½¸Ä³É£º
-
-	ÏÈÍµ¿´¶ÓÊ× item
-	ÅĞ¶ÏÀàĞÍ
-	ÅĞ¶Ï¿Õ¼ä
-	Âú×ãÌõ¼şÔÙ pop
-*/
-static void llc_cr_resp_log_dump_limited(uint8_t max_items, uint8_t allow_mon)
-{
-#if LLC_CR_RESP_LOG_ENABLE
-    uint8_t dumped = 0U;
-
-    if (max_items == 0U) {
-        return;
-    }
-
-    while (dumped < max_items) {
-        llc_cr_log_item_t item;
-        uint32_t primask;
-        uint16_t frame_len;
-        uint8_t can_pop = 0U;
-
-        primask = __get_PRIMASK();
-        __disable_irq();
-
-        if (s_cr_log_cnt == 0U) {
-            s_cr_log_pending_dump = 0U;
-            __set_PRIMASK(primask);
-            break;
-        }
-
-        /* ÏÈÍµ¿´¶ÓÊ×£¬²»Á¢¼´ pop */
-        item = s_cr_log_buf[s_cr_log_r];
-        __set_PRIMASK(primask);
-
-        /* MON ÇÒµ±Ç°²»ÔÊĞíÊä³ö£¬ÔòÖ±½Ó¶ªÆúÕâÒ»Ìõ */
-        if ((item.type == CR_LOG_MON) && (allow_mon == 0U)) {
-            primask = __get_PRIMASK();
-            __disable_irq();
-
-            if (s_cr_log_cnt > 0U) {
-                s_cr_log_r = (uint16_t)((s_cr_log_r + 1U) % LLC_CR_RESP_LOG_CACHE_MAX);
-                s_cr_log_cnt--;
-                s_cr_log_pending_dump = (s_cr_log_cnt > 0U) ? 1U : 0U;
-            } else {
-                s_cr_log_pending_dump = 0U;
-            }
-
-            __set_PRIMASK(primask);
-            dumped++;
-            continue;
-        }
-
-        frame_len = llc_cr_log_frame_bytes(&item);
-
-        /* BEGIN/END£º¿Õ¼ä²»¹»Ôò²»Òª pop£¬ÏÂ´ÎÔÙÊÔ */
-        if ((item.type == CR_LOG_EVT_BEGIN) || (item.type == CR_LOG_EVT_END)) {
-            if (debug_tx_available() < (int)frame_len) {
-                break;
-            }
-        }
-
-        /* MON£º¿Õ¼ä²»¹»ÔÊĞí¶ª */
-        if (item.type == CR_LOG_MON) {
-            if (debug_tx_available() < (int)frame_len) {
-                primask = __get_PRIMASK();
-                __disable_irq();
-
-                if (s_cr_log_cnt > 0U) {
-                    s_cr_log_r = (uint16_t)((s_cr_log_r + 1U) % LLC_CR_RESP_LOG_CACHE_MAX);
-                    s_cr_log_cnt--;
-                    s_cr_log_pending_dump = (s_cr_log_cnt > 0U) ? 1U : 0U;
-                } else {
-                    s_cr_log_pending_dump = 0U;
-                }
-
-                __set_PRIMASK(primask);
-                dumped++;
-                continue;
-            }
-        }
-
-        /* µ½ÕâÀïËµÃ÷¿ÉÒÔÕæÕı pop */
-        primask = __get_PRIMASK();
-        __disable_irq();
-
-        if (s_cr_log_cnt > 0U) {
-            item = s_cr_log_buf[s_cr_log_r];
-            s_cr_log_r = (uint16_t)((s_cr_log_r + 1U) % LLC_CR_RESP_LOG_CACHE_MAX);
-            s_cr_log_cnt--;
-            s_cr_log_pending_dump = (s_cr_log_cnt > 0U) ? 1U : 0U;
-            can_pop = 1U;
-        } else {
-            s_cr_log_pending_dump = 0U;
-        }
-
-        __set_PRIMASK(primask);
-
-        if (can_pop) {
-            llc_cr_proto_log_emit_bin(&item);
-            dumped++;
-        } else {
-            break;
-        }
-    }
-#endif
-}
-
-static void llc_collapse_trace_push(uint32_t f_act_hz)
-{
-#if LLC_COLLAPSE_TRACE_ENABLE
-    uint16_t cap = (uint16_t)(sizeof(s_collapse_trace.buf) / sizeof(s_collapse_trace.buf[0]));
-    llc_collapse_snap_t *snap = &s_collapse_trace.buf[s_collapse_trace.wr];
-
-    snap->t_ms = g_ms;
-    snap->state = (uint8_t)s_llc_rt.app.state;
-    snap->f_cmd_hz = s_llc.f_cmd;
-    snap->f_act_hz = f_act_hz;
-    snap->vout_v = s_llc_rt.meas.vout_v;
-
-    s_collapse_trace.wr = (uint16_t)((s_collapse_trace.wr + 1U) % cap);
-    if (s_collapse_trace.size < cap) {
-        s_collapse_trace.size++;
-    }
-#else
-    (void)f_act_hz;
-#endif
-}
-
-static void llc_collapse_trace_dump(uint8_t reason_state)
-{
-#if LLC_COLLAPSE_TRACE_ENABLE
-    uint16_t cap = (uint16_t)(sizeof(s_collapse_trace.buf) / sizeof(s_collapse_trace.buf[0]));
-    uint16_t cnt = s_collapse_trace.size;
-	
-    uint16_t start_idx;
-    uint16_t trig_off;
-    uint16_t idx_pre;
-    uint16_t idx_trig;
-    uint16_t idx_post;
-    const llc_collapse_snap_t *pre;
-    const llc_collapse_snap_t *trig;
-    const llc_collapse_snap_t *post;
-    float dv_v;
-    float df_cmd_hz;
-    float df_act_hz;
-    uint8_t verdict = 0U;
-    if (cnt == 0U) {
-        return;
-    }
-
-		    start_idx = (uint16_t)((s_collapse_trace.wr + cap - cnt) % cap);
-    trig_off = (cnt > (LLC_COLLAPSE_TRACE_POST_MS + 1U)) ?
-               (uint16_t)(cnt - LLC_COLLAPSE_TRACE_POST_MS - 1U) : 0U;
-
-    idx_pre = start_idx;
-    idx_trig = (uint16_t)((start_idx + trig_off) % cap);
-    idx_post = (uint16_t)((start_idx + cnt - 1U) % cap);
-
-    pre = &s_collapse_trace.buf[idx_pre];
-    trig = &s_collapse_trace.buf[idx_trig];
-    post = &s_collapse_trace.buf[idx_post];
-
-    dv_v = trig->vout_v - pre->vout_v;
-    df_cmd_hz = trig->f_cmd_hz - pre->f_cmd_hz;
-    df_act_hz = (float)trig->f_act_hz - (float)pre->f_act_hz;
-
-    if ((pre->state != trig->state) || (fabsf(df_cmd_hz) > 3000.0f)) {
-        verdict = 1U; /* software_suspect */
-    } else if (fabsf(trig->f_cmd_hz - (float)trig->f_act_hz) < 2500.0f) {
-        verdict = 2U; /* hardware_suspect */
-    }
-
-		    s_collapse_emit.pre = *pre;
-    s_collapse_emit.trig = *trig;
-    s_collapse_emit.post = *post;
-    s_collapse_emit.verdict = verdict;
-    s_collapse_emit.reason_state = reason_state;
-    s_collapse_emit.dv_v = dv_v;
-    s_collapse_emit.df_cmd_hz = df_cmd_hz;
-    s_collapse_emit.df_act_hz = df_act_hz;
-    s_collapse_emit.emit_idx = 0U;
-    s_collapse_emit.pending = 1U;
-#endif
-}
-
-static void llc_collapse_trace_drain_budget(uint8_t budget)
-{
-#if LLC_COLLAPSE_TRACE_ENABLE
-    while ((budget > 0U) && s_collapse_emit.pending) {
-			  /* keep CR logs higher priority to avoid UART bandwidth contention */
-        if (s_cr_log_pending_dump || (s_cr_log_cnt > 0U)) {
-            break;
-        }
-        if (s_collapse_emit.emit_idx <= 2U) {
-            if (debug_tx_available() < 18) {
-                break;
-            }
-
-            if (s_collapse_emit.emit_idx == 0U) {
-                llc_cr_proto_collapse_emit_bin(0U,
-                                               s_collapse_emit.pre.t_ms,
-                                               s_collapse_emit.pre.state,
-                                               s_collapse_emit.pre.vout_v,
-                                               s_collapse_emit.pre.f_cmd_hz,
-                                               s_collapse_emit.pre.f_act_hz);
-            } else if (s_collapse_emit.emit_idx == 1U) {
-                llc_cr_proto_collapse_emit_bin(1U,
-                                               s_collapse_emit.trig.t_ms,
-                                               s_collapse_emit.trig.state,
-                                               s_collapse_emit.trig.vout_v,
-                                               s_collapse_emit.trig.f_cmd_hz,
-                                               s_collapse_emit.trig.f_act_hz);
-            } else {
-                llc_cr_proto_collapse_emit_bin(2U,
-                                               s_collapse_emit.post.t_ms,
-                                               s_collapse_emit.post.state,
-                                               s_collapse_emit.post.vout_v,
-                                               s_collapse_emit.post.f_cmd_hz,
-                                               s_collapse_emit.post.f_act_hz);
-            }
-            s_collapse_emit.emit_idx++;
-        } else {
-            if (debug_tx_available() < 14) {
-                break;
-            }
-            llc_cr_proto_collapse_diag_emit_bin(s_collapse_emit.verdict,
-                                                s_collapse_emit.reason_state,
-                                                s_collapse_emit.dv_v,
-                                                s_collapse_emit.df_cmd_hz,
-                                                s_collapse_emit.df_act_hz);
-            s_collapse_emit.pending = 0U;
-            s_collapse_emit.emit_idx = 0U;
-        }
-        budget--;
-    }
-#else
-    (void)budget;
-#endif
-}
-
-static void llc_collapse_trace_tick(void)
-{
-#if LLC_COLLAPSE_TRACE_ENABLE
-    float vout = s_llc_rt.meas.vout_v;
-    uint32_t f_act = llc_pwm_get_freq_hz();
-
-	  uint8_t in_arm_state = ((s_llc_rt.app.state == ST_LLC_RUN) ||(s_llc_rt.app.state == ST_BURST_MODE)) ? 1U : 0U;
-    if (!in_arm_state) {
-        s_collapse_trace.active = 0U;
-        s_collapse_trace.post_left = 0U;
-        s_collapse_trace.trigger_inhibit = 0U;
-        s_collapse_trace.last_vout_v = vout;
-        return;
-    }
-
-    llc_collapse_trace_push(f_act);
-    if (s_collapse_trace.active) {
-        if (s_collapse_trace.post_left > 0U) {
-            s_collapse_trace.post_left--;
-        }
-        if (s_collapse_trace.post_left == 0U) {
-            llc_collapse_trace_dump((uint8_t)s_llc_rt.app.state);
-            s_collapse_trace.active = 0U;
-					  s_collapse_trace.trigger_inhibit = 1U;
-            s_collapse_trace.last_trigger_ms = g_ms;
-        }
-    } else  if (s_collapse_trace.trigger_inhibit == 0U) {
-        float dv = s_collapse_trace.last_vout_v - vout;
-        uint8_t abs_hit = (vout <= LLC_COLLAPSE_VOUT_ABS_MIN_V) ? 1U : 0U;
-        uint8_t drop_hit = (dv >= LLC_COLLAPSE_VOUT_DROP_V) ? 1U : 0U;
-        uint8_t rearmed = (s_collapse_trace.last_trigger_ms == 0U) ||
-                          elapsed_reached(s_collapse_trace.last_trigger_ms, LLC_COLLAPSE_TRACE_REARM_MS);
-
-        if (rearmed && (abs_hit || drop_hit)) {
-            s_collapse_trace.active = 1U;
-            s_collapse_trace.post_left = (uint8_t)LLC_COLLAPSE_TRACE_POST_MS;
-        }
-    }
-
-    s_collapse_trace.last_vout_v = vout;
-#endif
-}
-
+/*********************************************************************************************************
+* å‡½æ•°åç§°ï¼šllc_app_tick_1khz
+* å‡½æ•°åŠŸèƒ½ï¼šå®ç° LLC å˜æ¢å™¨çš„ 1kHz å‘¨æœŸæ€§ä¸»æ§åˆ¶ä»»åŠ¡ï¼ŒåŒ…æ‹¬çŠ¶æ€æœºç®¡ç†ã€æµ‹é‡æ›´æ–°ã€æ•…éšœæ£€æµ‹åŠæ¨¡å¼åˆ‡æ¢
+* è¾“å…¥å‚æ•°ï¼švoid
+* è¾“å‡ºå‚æ•°ï¼šæ— 
+* è¿” å› å€¼ï¼švoid
+* åˆ›å»ºæ—¥æœŸï¼š2026å¹´04æœˆ08æ—¥
+* æ³¨    æ„ï¼šè¯¥å‡½æ•°åœ¨ 1kHz å®šæ—¶å™¨ä¸­æ–­ä¸­è°ƒç”¨ï¼Œæ˜¯ LLC æ§åˆ¶çš„ä¸»çŠ¶æ€æœºå…¥å£ï¼›
+*           1. æµ‹é‡æ›´æ–°ï¼šè°ƒç”¨ llc_update_measurements æ›´æ–°ç”µå‹ã€ç”µæµã€æ¸©åº¦ç­‰æµ‹é‡å€¼ï¼›
+*           2. æ•…éšœæ£€æµ‹ï¼šåœ¨éç©ºé—²å’Œéæ•…éšœçŠ¶æ€ä¸‹æ£€æµ‹æ•…éšœï¼Œè§¦å‘ llc_enter_faultï¼›
+*           3. çŠ¶æ€æœºåˆ‡æ¢ï¼šå®ç° 9 ä¸ªçŠ¶æ€çš„è½¬æ¢é€»è¾‘ï¼›
+*              - ST_IDLEï¼šPFC å°±ç»ªä¸”é¢„æ£€é€šè¿‡æ—¶è¿›å…¥ ST_PRECHECKï¼›
+*              - ST_PRECHECKï¼šç­‰å¾… 100ms ç¨³å®šåè¿›å…¥ ST_SOFTSTARTï¼›
+*              - ST_SOFTSTARTï¼šæ‰§è¡Œè½¯å¯åŠ¨ï¼Œæ—¶é—´åˆ°åè¿›å…¥ ST_RUN_ENTRY_HOLDï¼›
+*              - ST_RUN_ENTRY_HOLDï¼šç­‰å¾…è¾“å‡ºç”µå‹ç¨³å®šï¼ˆè¯¯å·®çª—å£å†…æŒç»­ä¸€å®šå‘¨æœŸï¼‰æˆ–è¶…æ—¶ï¼›
+*              - ST_LLC_RUNï¼šæ­£å¸¸è¿è¡ŒçŠ¶æ€ï¼Œæ¯çº¿ç”µå‹è¿‡ä½æ—¶è¿›å…¥ ST_STOPPINGï¼›
+*              - ST_CYCLE_STOPPINGï¼šæ‰§è¡Œè½¯å…³æ–­ï¼Œå»¶æ—¶åé‡æ–°å¯åŠ¨ï¼›
+*              - ST_STOPPINGï¼šæ‰§è¡Œè½¯å…³æ–­ï¼Œå®Œæˆåå›åˆ° ST_IDLEï¼›
+*              - ST_FAULTï¼šæ•…éšœçŠ¶æ€ï¼Œå½“å‰æ— æ¢å¤é€»è¾‘ï¼›
+*           4. ä½¿èƒ½æ§åˆ¶ï¼šLLC_ENABLE å®ä¸ PFC å°±ç»ªçŠ¶æ€å…±åŒå†³å®š enable_llcï¼›
+*           5. é¢„æ£€ä¿æŠ¤ï¼šå„è¿è¡ŒçŠ¶æ€ä¸‹æŒç»­æ£€æŸ¥ llc_precheck_okï¼Œå¤±è´¥åˆ™è¿›å…¥ ST_STOPPING
+*********************************************************************************************************/
 void llc_app_tick_1khz(void)
 {
-	llc_update_measurements();
-		//llc_fan_tick();
-	bus_vol_adj_follow_vout(s_llc.vref, s_llc_rt.meas.vout_v, s_llc_rt.meas.vbus_v,
-	                      (pfc_is_ready() && (s_llc_rt.app.state != ST_IDLE) && (s_llc_rt.app.state != ST_FAULT)));
-	llc_collapse_trace_tick();
-	static uint32_t s_cr_dump_last_ms = 0U;
-	static uint32_t s_cr_mon_last_ms = 0U;
-  bool run_state = (s_llc_rt.app.state == ST_LLC_RUN);
-//×ÔÊÊÓ¦ÈÕÖ¾×ª´¢µ÷¶ÈÆ÷
-	//if (s_cr_log_pending_dump && elapsed_reached(s_cr_dump_last_ms, run_state ? 2U : 5U)) 
-		if (s_cr_log_pending_dump &&(s_cr_dump_last_ms == 0U || elapsed_reached(s_cr_dump_last_ms, run_state ? 2U : 5U))){
-			uint8_t allow_mon = 1U;
-			uint8_t dump_n = 4U;
-
-			if (run_state) {
-					//allow_mon = elapsed_reached(s_cr_mon_last_ms, 100U) ? 1U : 0U;
-				  allow_mon = (s_cr_mon_last_ms == 0U || elapsed_reached(s_cr_mon_last_ms, 100U)) ? 1U : 0U;
-					if (allow_mon) {
-							s_cr_mon_last_ms = g_ms;
-					}
-					dump_n = (s_cr_log_cnt > (LLC_CR_RESP_LOG_CACHE_MAX / 2U)) ? 12U : 6U;
-			} else if (power_stage_all_idle()) {
-				//¸ºÔØ×ÔÊÊÓ¦µÄ×ª´¢Á¿¿ØÖÆ
-					dump_n = (s_cr_log_cnt > (LLC_CR_RESP_LOG_CACHE_MAX / 2U)) ? 10U : 5U;
-			}
-
-			s_cr_dump_last_ms = g_ms;
-			llc_cr_resp_log_dump_limited(dump_n, allow_mon);
-	}
-		
-		llc_collapse_trace_drain_budget(1U);
-	  //bool enable_llc = (LLC_ENABLE != 0) && pfc_is_ready();
-		 bool enable_llc = pfc_is_ready();
-		bool pfc_ready_stable = llc_pfc_ready_stable(enable_llc);
-	  //llc_start_guard_diag_tick(enable_llc, pfc_ready_stable);
-		if (s_llc_rt.app.state != ST_IDLE && s_llc_rt.app.state != ST_FAULT) {
-			if (llc_faults_present()) {
-				llc_enter_fault();
-				return;
-			}
+	llc_update_measurements(); // æ›´æ–°ç”µå‹/ç”µæµ/æ¸©åº¦
+	//bool enable_llc = (LLC_ENABLE != 0) && pfc_is_ready();// ä½¿èƒ½æ¡ä»¶
+	bool enable_llc = (LLC_ENABLE != 0) && pfc_is_ready() && s_llc_run_request;
+	bool pfc_ready_stable = llc_pfc_ready_stable(enable_llc);// ç¨³å®šå»¶æ—¶
+	
+	if (s_llc_rt.app.state != ST_IDLE && s_llc_rt.app.state != ST_FAULT) {
+		if (llc_faults_present()) {
+			llc_enter_fault();
+			return; // ç«‹å³é€€å‡ºï¼Œä¸å†æ‰§è¡Œåç»­çŠ¶æ€å¤„ç†
 		}
+	}
 	switch(s_llc_rt.app.state)
 	{
-		case ST_IDLE:
+		case ST_IDLE: //	PFCç¨³å®š+é¢„æ£€é€šè¿‡
 		{
 			if(pfc_ready_stable &&llc_precheck_ok())
 			{
 				llc_state_enter(ST_PRECHECK);
 			}
 			break;
-	}
-		case ST_PRECHECK:
+		}
+		case ST_PRECHECK: //	æ—¶é—´åˆ°+æ¡ä»¶ä¿æŒ
 		{
         if (!enable_llc) {
           llc_state_enter(ST_STOPPING);
@@ -1748,14 +1102,14 @@ void llc_app_tick_1khz(void)
 					llc_state_enter(ST_STOPPING);
 					break;
 				}
-				if (!elapsed_reached(s_llc_rt.app.entry_ms, 100U)) { // 100ms ÎÈ¶¨µÈ´ı
+				if (!elapsed_reached(s_llc_rt.app.entry_ms, 100U)) { // 100ms ç¨³å®šç­‰å¾…
 					break;
 				}
 				llc_state_enter(ST_SOFTSTART);
 			
         break;
 			}
-		case ST_SOFTSTART:
+		case ST_SOFTSTART: //300ms+50mså»¶æ—¶åˆ°
 		{
 			llc_softstart_tick_1khz();
 			if(!enable_llc|| !llc_precheck_ok())
@@ -1765,9 +1119,6 @@ void llc_app_tick_1khz(void)
 			}
 			if(elapsed_reached(s_llc_rt.softstart_begin_ms,LLC_SOFTSTART_DURATION_MS + LLC_SOFTSTART_STABILIZE_MS))
 			{
-				float e = s_llc_rt.meas.vout_v - LLC_VOUT_TARGET_V;   // §Ù
-				float ae = fabsf(e);
-				(void)ae;
 				llc_softstart_stop();
 				s_llc.f_cmd = llc_softstart_last_hz();
 				llc_state_enter(ST_RUN_ENTRY_HOLD);
@@ -1776,7 +1127,7 @@ void llc_app_tick_1khz(void)
 		
 			break;
 		}
-    case ST_RUN_ENTRY_HOLD:
+    case ST_RUN_ENTRY_HOLD: //6Vçª—å£å†…ç¨³å®š2æ¬¡+20ms
 		{
 			float hold_err;
 			if(!enable_llc|| !llc_precheck_ok())
@@ -1806,189 +1157,27 @@ void llc_app_tick_1khz(void)
 			}
 				break;		
 		}
-		case ST_LLC_RUN:
+		case ST_LLC_RUN: // æ¯çº¿ä½å‹/ä½¿èƒ½å…³é—­æ—¶é€€å‡º
 		{
 			if(!enable_llc||(s_llc_rt.meas.vbus_v<(LLC_VBUS_MIN_START_V-LLC_VOUT_HYST_V)))
 			{
 				llc_state_enter(ST_STOPPING);
 				break;
 			}
-
-#if LLC_BURST_MODE_ENABLE
-#if !LLC_FIXED_FREQ_LOAD_TEST_ENABLE
-		/* Burst½øÈë¼ì²â - Âı½øÈë£¬Ğè³ÖĞøÇáÔØ³¬¹ıÑÓ³ÙÊ±¼ä */
-		if(s_llc_rt.meas.iout_a < LLC_BURST_IOUT_ENTER_A)
-		{
-			if(s_llc_rt.burst_enter_delay_ms == 0)
-			{
-				s_llc_rt.burst_enter_delay_ms = g_ms; /* ¿ªÊ¼¼ÆÊ± */
-			}
-			else if(elapsed_reached(s_llc_rt.burst_enter_delay_ms, LLC_BURST_ENTER_DELAY_MS))
-			{
-				/* ³ÖĞøÇáÔØ³¬¹ı1Ãë£¬½øÈëBurst */
-				s_llc_rt.burst_enter_delay_ms = 0;
-				llc_state_enter(ST_BURST_MODE);
-				break;
-			}
-		}
-		else
-		{
-			s_llc_rt.burst_enter_delay_ms = 0; /* µçÁ÷»ØÉı£¬ÖØÖÃ¼ÆÊ± */
-		}
-#endif
-#endif
 			break;
 	 }
-		case ST_BURST_MODE:
+		
+		case ST_CYCLE_STOPPING: //å…³æ–­å®Œæˆ+500msç­‰å¾…
 		{
-			float vout = s_llc_rt.meas.vout_v;
-			float vtarget = s_llc_rt.vout_burst_target;
-			
-			/* Ê×´Î½øÈëBurstµÄÈí½øÈë£ºÏÈÉıÆµµ½×î¸ß£¬ÔÙ½øÈëOFF */
-			if(s_llc_rt.burst_state == BURST_STATE_ENTRY_PREPARE)
-			{
-				if(elapsed_reached(s_llc_rt.burst_begin_ms, LLC_BURST_ENTRY_RAMP_MS))
-				{
-				/* ÉıÆµÍê³É£¬½øÈëOFF×´Ì¬ */
-				s_llc_rt.burst_state = BURST_STATE_OFF;
-				s_llc_rt.burst_begin_ms = g_ms;
-				llc_pwm_outputs_enable(0);
-				llc_set_freq(LLC_BURST_F_HZ, true);  /* Ç¿ÖÆ¸üĞÂ£º×´Ì¬ÇĞ»» */
-				
-#if DEBUG_PRINTF_BURST_MODE
-				debug_printf("[BURST] ENTRY_PREPARE->OFF: vout=%.2fV, iout=%.2fA\n", 
-				             s_llc_rt.meas.vout_v, s_llc_rt.meas.iout_a);
-#endif
-				}
-			}
-			else if(s_llc_rt.burst_state == BURST_STATE_OFF)
-			{
-				/* OFF½×¶Î£ºµçÑ¹µÍÓÚãĞÖµÊ±´ò¿ª */
-				if(vout < (vtarget - LLC_BURST_VOUT_HYST_V))
-				{
-					if(elapsed_reached(s_llc_rt.burst_begin_ms, LLC_BURST_OFF_MIN_MS))
-					{
-						s_llc_rt.burst_state = BURST_STATE_ON;
-						s_llc_rt.burst_begin_ms = g_ms;
-						/* ÏÈÉèÖÃÆµÂÊ£¬ÔÙÊ¹ÄÜÊä³ö */
-						llc_set_freq(LLC_BURST_F_HZ, true); /* Ç¿ÖÆ¸üĞÂ£ºOFF->ONÇĞ»» */
-						llc_pwm_outputs_enable(1);
-						
-#if DEBUG_PRINTF_BURST_MODE
-						debug_printf("[BURST] OFF->ON (voltage): vout=%.2fV, iout=%.2fA, off_time=%dms\n", 
-						             vout, s_llc_rt.meas.iout_a, elapsed_since(s_llc_rt.burst_begin_ms));
-#endif
-					}
-				}
-			
-				else if(elapsed_reached(s_llc_rt.burst_begin_ms, LLC_BURST_OFF_MAX_MS))
-				{
-				/* Ç¿ÖÆ´ò¿ª£¬·ÀÖ¹µçÑ¹¹ıµÍ */
-				s_llc_rt.burst_state = BURST_STATE_ON;
-				s_llc_rt.burst_begin_ms = g_ms;
-				/* ÏÈÉèÖÃÆµÂÊ£¬ÔÙÊ¹ÄÜÊä³ö */
-				llc_set_freq(LLC_BURST_F_HZ, true); /* Ç¿ÖÆ¸üĞÂ£ºOFF->ONÇĞ»» */
-				llc_pwm_outputs_enable(1);
-				
-#if DEBUG_PRINTF_BURST_MODE
-				debug_printf("[BURST] OFF->ON (timeout): vout=%.2fV, iout=%.2fA, off_time=%dms\n", 
-				             vout, s_llc_rt.meas.iout_a, elapsed_since(s_llc_rt.burst_begin_ms));
-#endif
-				}
-			}
-		else if(s_llc_rt.burst_state == BURST_STATE_ON_PREPARE)
-			{
-				/* ¸ßÆµ×¼±¸½×¶Î£ºÏÈ½«ÆµÂÊÌáÉıµ½×î¸ß£¬ÔÙ¹ØPWM (1ms×¼±¸Ê±¼ä) */
-				if(elapsed_reached(s_llc_rt.burst_begin_ms, LLC_BURST_F_PREPARE_MS))
-				{
-					s_llc_rt.burst_state = BURST_STATE_OFF;
-					s_llc_rt.burst_begin_ms = g_ms;
-					llc_pwm_outputs_enable(0); /* ¸ßÆµ×¼±¸Íê³É£¬¹ØPWM */
-					
-#if DEBUG_PRINTF_BURST_MODE
-					debug_printf("[BURST] ON_PREPARE->OFF: vout=%.2fV, iout=%.2fA\n", 
-					             vout, s_llc_rt.meas.iout_a);
-#endif
-				}
-			}
-			else /* BURST_STATE_ON */
-			{
-				/* ON½×¶Î£ºµçÑ¹¸ßÓÚãĞÖµÊ±£¬ÏÈ¸ßÆµ×¼±¸ÔÙ¹Ø±Õ */
-				if(vout > (vtarget + LLC_BURST_VOUT_HYST_V))
-				{
-					if(elapsed_reached(s_llc_rt.burst_begin_ms, LLC_BURST_ON_MIN_MS))
-					{
-						/* ½øÈë¸ßÆµ×¼±¸½×¶Î£¬¶ø²»ÊÇÁ¢¼´¹ØPWM */
-						s_llc_rt.burst_state = BURST_STATE_ON_PREPARE;
-						s_llc_rt.burst_begin_ms = g_ms;
-						llc_set_freq(LLC_F_MAX_HZ, true); /* Ç¿ÖÆ¸üĞÂ£ºON->ON_PREPAREÇĞ»» */
-						
-#if DEBUG_PRINTF_BURST_MODE
-						debug_printf("[BURST] ON->ON_PREPARE (voltage): vout=%.2fV, iout=%.2fA, on_time=%dms\n", 
-						             vout, s_llc_rt.meas.iout_a, elapsed_since(s_llc_rt.burst_begin_ms));
-#endif
-					}
-				}
-				else if(elapsed_reached(s_llc_rt.burst_begin_ms, LLC_BURST_ON_MAX_MS))
-				{
-					/* Ç¿ÖÆ¸ßÆµ×¼±¸ºó¹Ø±Õ */
-					s_llc_rt.burst_state = BURST_STATE_ON_PREPARE;
-					s_llc_rt.burst_begin_ms = g_ms;
-					llc_set_freq(LLC_F_MAX_HZ, true);  /* Ç¿ÖÆ¸üĞÂ */
-					
-#if DEBUG_PRINTF_BURST_MODE
-					debug_printf("[BURST] ON->ON_PREPARE (timeout): vout=%.2fV, iout=%.2fA, on_time=%dms\n", 
-					             vout, s_llc_rt.meas.iout_a, elapsed_since(s_llc_rt.burst_begin_ms));
-#endif
-				}
-			}
-			
-			/* ÍË³öBurst¼ì²â - ¿ìÍË³ö */
-			if(s_llc_rt.meas.iout_a > LLC_BURST_IOUT_EXIT_A)
-			{
-				if(s_llc_rt.burst_exit_delay_ms == 0)
-				{
-					s_llc_rt.burst_exit_delay_ms = g_ms;
-				}
-				else if(elapsed_reached(s_llc_rt.burst_exit_delay_ms, LLC_BURST_EXIT_DELAY_MS))
-				{
-					 float f_resume;
-					 s_llc_rt.burst_exit_delay_ms = 0U;
-					 /* ÓÃ½øÈëBurstÇ°±£´æµÄÆµÂÊ»Ö¸´±Õ»·½Ó¹Üµã */
-					 f_resume = f_clampf(s_llc_rt.f_pre_burst_hz, s_llc.f_min, s_llc.f_max);
-					 /* ÏÈ»Ö¸´PWM£¬ÔÙ»Ö¸´½Ó¹ÜÆµÂÊ */
-           llc_pwm_outputs_enable(1);
-           llc_set_freq(f_resume, true);
-					 /* ÒÔ»Ö¸´ÆµÂÊ×÷Îªµ±Ç°¹¤×÷µã×öbumpless */
-           llc_ctrl_bumpless_init(LLC_VOUT_TARGET_V, vout, f_resume);
-					 /* Í¬²½ÃüÁîÆµÂÊ£¬±ÜÃâST_LLC_RUNÈë¿ÚÔÙ´Î¸ÄĞ´Ê±³öÏÖÌø±ä */
-					 s_llc.f_cmd = f_resume;
-
-#if DEBUG_PRINTF_BURST_MODE
-					 debug_printf("[BURST] EXIT: iout=%.2fA, f_resume=%.0fHz, vout=%.2fV, state=%d\n", 
-					              s_llc_rt.meas.iout_a, f_resume, vout, s_llc_rt.burst_state);
-#endif
-					 llc_state_enter(ST_LLC_RUN);
-				}
-			}
-			else
-			{
-				s_llc_rt.burst_exit_delay_ms = 0; /* µçÁ÷»ØÂä£¬ÖØÖÃÍË³ö¼ÆÊ± */
-			}
-
-			break;
-		}
-		case ST_CYCLE_STOPPING:
-		{
-			/* Ö´ĞĞÈí¹Ø¶Ïtick */
+			/* æ‰§è¡Œè½¯å…³æ–­tick */
 			llc_softstop_tick_1khz();
 			
-			/* ¼ì²éÈí¹Ø¶ÏÊÇ·ñÍê³É */
+			/* æ£€æŸ¥è½¯å…³æ–­æ˜¯å¦å®Œæˆ */
 			if(llc_softstop_is_done())
 			{
 				llc_pwm_outputs_enable(0);
 				llc_softstop_reset();
-				/* µÈ´ıÒ»¶ÎÊ±¼äºóÔÙÖØĞÂÈíÆô¶¯ */
+				/* ç­‰å¾…ä¸€æ®µæ—¶é—´åå†é‡æ–°è½¯å¯åŠ¨ */
 				if(elapsed_reached(s_llc_rt.stopping_begin_ms, LLC_SOFTSTOP_DURATION_MS + LLC_CYCLE_STOP_RESTART_MS))
 				{
 					llc_driver_en_set(false);
@@ -1997,18 +1186,18 @@ void llc_app_tick_1khz(void)
 			}
 			break;
 		}
-		case ST_STOPPING:
+		case ST_STOPPING: //å…³æ–­å®Œæˆâ†’IDLE
 		{
-			/* Ö´ĞĞÈí¹Ø¶Ïtick */
+			/* æ‰§è¡Œè½¯å…³æ–­tick */
 			llc_softstop_tick_1khz();
 			
-			/* ¼ì²éÈí¹Ø¶ÏÊÇ·ñÍê³É */
+			/* æ£€æŸ¥è½¯å…³æ–­æ˜¯å¦å®Œæˆ */
 			if(llc_softstop_is_done())
 			{
 				llc_pwm_outputs_enable(0);
 				llc_driver_en_set(false);
 
-				llc_softstop_reset();  /* ÖØÖÃÈí¹Ø¶Ï×´Ì¬ */
+				llc_softstop_reset();  /* é‡ç½®è½¯å…³æ–­çŠ¶æ€ */
 				llc_state_enter(ST_IDLE);
 			}
 			break;
@@ -2021,6 +1210,8 @@ void llc_app_tick_1khz(void)
 			break;
 	 }
 	
+    /* é£æ‰‡æ§åˆ¶ï¼šçŠ¶æ€æœºå¤„ç†å®Œæ¯•åç»Ÿä¸€æ›´æ–°ï¼Œæ ¹æ®å½“å‰çŠ¶æ€å’Œè¾“å‡ºç”µæµå†³å®šé£æ‰‡å¼€å…³ */
+    //llc_fan_tick();
 }
 
 llc_state_t llc_app_state(void)

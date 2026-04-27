@@ -3,6 +3,8 @@
 *                                              包含头文件
 *********************************************************************************************************/
 #include "main.h"
+#include "temp_control.h"
+#include "charge_ctrl.h"
 /*********************************************************************************************************
 *                                              宏定义
 *********************************************************************************************************/
@@ -49,21 +51,15 @@ void delay_ms(uint32_t duration_ms)
 /* ADC1通道14测试函数声明 */
 uint16_t adc1_channel14_test(void);
 uint16_t adc1_channel14_multiple_samples(uint16_t sample_count, uint16_t *samples);
+static void adc_fast_task_100us(void);
 /*********************************************************************************************************
 *                                              内部函数实现
 *********************************************************************************************************/
-void systick_config(void)
-{
+
     /* setup systick timer for 1000Hz interrupts */
-    if (SysTick_Config(SystemCoreClock / 1000U)){
         /* capture error */
-        while (1){
-        }
-    }
 		
     /* configure the systick handler priority */
-    NVIC_SetPriority(SysTick_IRQn, 0x00U);
-}
 void systick_1ms_init(void){
 		SystemCoreClockUpdate();    
      uint32_t reload  = SystemCoreClock / 1000U;
@@ -123,11 +119,15 @@ void TIMER3_IRQHandler(void)
 {
     if (timer_interrupt_flag_get(TIMER3, TIMER_INT_FLAG_UP) == SET) {
         timer_interrupt_flag_clear(TIMER3, TIMER_INT_FLAG_UP);
-        s_adc_fast_tick_pending++;
+        //adc_fast_task_100us(); // 直接触发ADC0软件采集
+			  s_adc_fast_tick_pending++;
     }
 }
 
-
+static void adc_fast_task_100us(void)
+{
+    adc_multi_trigger_fast();
+}
 
 static inline float conv_adc_to_v_div(uint16_t raw, float rtop, float rbot){
     float v = ((float)raw * VREF_ADC) / 4095.0f;  
@@ -198,8 +198,8 @@ static void control_loop_tick_1khz(void){
 		adc_multi_sample_aux_1khz();
 		
     pfc_tick_1khz();
+	  charge_ctrl_tick_1khz();   /* 先更新 run_request / vref / iref / relay */
     llc_app_tick_1khz();
-		//llc_app_tick_adc_test();
 
 }
 
@@ -221,13 +221,13 @@ int main(void){
     llc_pwm_cfg_t lcfg = { .pwm_hz=LLC_PWM_BASE_HZ, .deadtime_ns=LLC_PWM_DEAD_NS, .duty=LLC_PWM_DUTY };//130
     llc_pwm_init(&lcfg);
 		
-    /* ADC0 由 TIMER0 Ch1 硬件触发（200kHz），不再需要软件触发
-     * adc_multi_init_dma() 内部硬编码为 T0_CH1，见 adc_dma.c */
-		adc_multi_init_dma();
+    /* ADC multi (PA3/PA1 removed) triggered by TIMER3 interrupt @100us (software trigger) */
+    adc_multi_init_dma(ADC0_1_2_EXTTRIG_REGULAR_NONE); 
     adc_multi_start();
-		//adc_multi_trigger_fast();
+		adc_multi_trigger_fast();
     adc_fast_timer_init_100us(); // 启动100us定时器中断用于ADC0触发
 		adc1_aux_init();
+		temp_control_init();
     /* Protection EXTI PC11 */
     protect_exti_init();
 		
@@ -238,7 +238,6 @@ int main(void){
 		}
     bool protect_ok = protect_startup_check();
     bool adc_ok = adc_startup_check();
-		//bool adc_ok = adc_test();
     if (!protect_ok || !adc_ok) {
        debug_printf("[STARTUP] Preflight checks failed, PFC/LLC hold\n");
        while (1) {
@@ -248,6 +247,7 @@ int main(void){
 
 		pfc_init();
 		llc_app_init();
+		charge_ctrl_init();
 		delay_ms(1000);
 		pfc_enable();
 
@@ -261,24 +261,29 @@ int main(void){
 					pending_ticks = s_control_tick_pending; //pending_ticks ：用于逐个处理待执行的控制任务。
 					s_control_tick_pending = 0U;  //记录待处理的控制周期任务数量。
 			}
-			
+
 			if (s_adc_fast_tick_pending > 0U)
 			{
 				pending_adc_fast_ticks = s_adc_fast_tick_pending;
 				s_adc_fast_tick_pending = 0U;
 			}
 			__enable_irq();
-			
-		while (pending_adc_fast_ticks-- > 0U)
-		{
-				adc_multi_copy();
+
+			/* ========== 后台DMA串口发送（不影响中断时序） ========== */
+			debug_tx_task();
+
+			while (pending_adc_fast_ticks-- > 0U)
+			{
+				
+				adc_multi_copy(); 
 				llc_app_tick_100us();
-				// ADC0 由 TIMER0 Ch1 硬件触发（ARR/4 处），不再需要软件触发
-				if (pending_adc_fast_ticks > FAST_ADC_MAX_TICKS_PER_LOOP) {
-						s_adc_fast_tick_drop_count += (pending_adc_fast_ticks - FAST_ADC_MAX_TICKS_PER_LOOP);
-						pending_adc_fast_ticks = FAST_ADC_MAX_TICKS_PER_LOOP;
+				adc_multi_trigger_fast();
+				if (pending_adc_fast_ticks > FAST_ADC_MAX_TICKS_PER_LOOP)
+				{
+					s_adc_fast_tick_drop_count += (pending_adc_fast_ticks - FAST_ADC_MAX_TICKS_PER_LOOP);
+					pending_adc_fast_ticks = FAST_ADC_MAX_TICKS_PER_LOOP;
 				}
-		}
+			}
 			while(pending_ticks-- > 0U)
 			{
 				 control_loop_tick_1khz();
