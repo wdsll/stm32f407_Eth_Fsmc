@@ -382,15 +382,11 @@ static float llc_ctrl_step(float e)
 static void llc_update_measurements(void)
 {
     //adc_multi_copy();
-    float vout_raw = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
+    s_llc_rt.meas.vout_v = conv_adc_to_v_div(g_adc_multi.vout_raw, VOUT_RTOP_OHM, VOUT_RBOT_OHM);
     s_llc_rt.meas.iout_a = conv_adc_to_i(g_adc_multi.isense_raw);
     s_llc_rt.meas.vbus_v = pfc_bus_voltage();
 	  /* RUN/BURST 下 Vout 由 100us 滤波路径维护，避免 1ms raw 覆盖 filtered */
-	  if ((s_llc_rt.app.state != ST_LLC_RUN) &&
-        (s_llc_rt.app.state != ST_BURST_MODE)) {
-        s_llc_rt.meas.vout_v = vout_raw;
-        s_llc.vmeas = vout_raw;
-    }   
+    s_llc.vmeas = s_llc_rt.meas.vout_v;
 }
 
 static bool llc_precheck_ok(void)
@@ -447,6 +443,50 @@ static void llc_enter_fault(void)
     llc_state_enter(ST_FAULT);
 }
 
+
+static void llc_start_guard_diag_tick(bool enable_llc, bool pfc_ready_stable)
+{
+#if 1
+    static uint32_t s_last_log_ms = 0U;
+    static uint8_t s_last_reason = 0xFFU;
+    uint8_t reason = 0U;
+
+    if ((s_llc_rt.app.state != ST_IDLE) && (s_llc_rt.app.state != ST_PRECHECK)) {
+        s_last_reason = 0xFFU;
+        return;
+    }
+
+    if (!enable_llc) {
+        reason = 1U; /* pfc not ready */
+    } else if (!pfc_ready_stable) {
+        reason = 2U; /* ready debounce */
+    } else if (!llc_precheck_ok()) {
+        reason = 3U; /* vbus low */
+    } else {
+        reason = 0U; /* all pass */
+    }
+
+    if (reason == 0U) {
+        s_last_reason = 0xFFU;
+        return;
+    }
+
+    if ((reason != s_last_reason) || (s_last_log_ms == 0U) || elapsed_reached(s_last_log_ms, 500U)) {
+        debug_printf("[LLC_GUARD] st=%d reason=%u pfc_ready=%u stable=%u vbus=%.1fV target=%.1fV\r\n",
+                     (int)s_llc_rt.app.state,
+                     (unsigned)reason,
+                     (unsigned)enable_llc,
+                     (unsigned)pfc_ready_stable,
+                     s_llc_rt.meas.vbus_v,
+                     (float)LLC_VBUS_MIN_START_V);
+        s_last_log_ms = g_ms;
+        s_last_reason = reason;
+    }
+#else
+    (void)enable_llc;
+    (void)pfc_ready_stable;
+#endif
+}
 /**
  * @brief 将CR响应测试日志项推入环形缓冲区
  * 
@@ -1220,7 +1260,6 @@ void llc_app_tick_100us(void)
     /* 100us快环滤波，alpha可后续再调 */
     vout_filt_v += LLC_VOUT_FILT_ALPHA * (vout_now - vout_filt_v);
     s_llc.vmeas = vout_filt_v;
-		s_llc_rt.meas.vout_v = vout_filt_v;
 		/* Burst模式：只保留滤波，不跑PI */
     if (s_llc_rt.app.state == ST_BURST_MODE) {
         vloop_div = 0U;
@@ -1649,7 +1688,7 @@ static void llc_collapse_trace_tick(void)
 void llc_app_tick_1khz(void)
 {
 	llc_update_measurements();
-		llc_fan_tick();
+		//llc_fan_tick();
 	bus_vol_adj_follow_vout(s_llc.vref, s_llc_rt.meas.vout_v, s_llc_rt.meas.vbus_v,
 	                      (pfc_is_ready() && (s_llc_rt.app.state != ST_IDLE) && (s_llc_rt.app.state != ST_FAULT)));
 	llc_collapse_trace_tick();
@@ -1682,6 +1721,7 @@ void llc_app_tick_1khz(void)
 	  //bool enable_llc = (LLC_ENABLE != 0) && pfc_is_ready();
 		 bool enable_llc = pfc_is_ready();
 		bool pfc_ready_stable = llc_pfc_ready_stable(enable_llc);
+	  //llc_start_guard_diag_tick(enable_llc, pfc_ready_stable);
 		if (s_llc_rt.app.state != ST_IDLE && s_llc_rt.app.state != ST_FAULT) {
 			if (llc_faults_present()) {
 				llc_enter_fault();

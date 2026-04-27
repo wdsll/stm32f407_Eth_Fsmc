@@ -119,6 +119,22 @@ void llc_pwm_init(const llc_pwm_cfg_t* cfg){
 		// 作用：确保配置在下一次更新事件时生效，避免运行时配置冲突
 		// 关键点：影子寄存器用于保证配置的原子性和实时性
     timer_channel_output_shadow_config(TIMER0, LLC_PWM_CH, TIMER_OC_SHADOW_ENABLE); 
+		
+		 /* === ADC 硬件触发：Channel 1 比较输出在 ARR/4 处触发 === */
+    timer_oc_parameter_struct oc_ch1;
+    oc_ch1.outputstate   = TIMER_CCX_DISABLE;        // 不输出到引脚，只内部触发
+    oc_ch1.outputnstate  = TIMER_CCXN_DISABLE;
+    oc_ch1.ocpolarity    = TIMER_OC_POLARITY_HIGH;
+    oc_ch1.ocnpolarity   = TIMER_OCN_POLARITY_HIGH;
+    oc_ch1.ocidlestate   = TIMER_OC_IDLE_STATE_LOW;
+    oc_ch1.ocnidlestate  = TIMER_OCN_IDLE_STATE_LOW;
+    timer_channel_output_config(TIMER0, TIMER_CH_1, &oc_ch1);
+    timer_channel_output_mode_config(TIMER0, TIMER_CH_1, TIMER_OC_MODE_PWM0);
+    /* 初始值：ARR/4（上管导通中段），llc_pwm_set_freq 会自动重算 */
+    uint32_t trigger_at = ((s_period + 1U) >> 2);    // ARR/4，远离换相边沿，ISENSE 无尖峰
+    timer_channel_output_pulse_value_config(TIMER0, TIMER_CH_1, (uint32_t)trigger_at);
+    timer_channel_output_shadow_config(TIMER0, TIMER_CH_1, TIMER_OC_SHADOW_ENABLE);
+		
 		//死区时间与保护配置
     timer_break_parameter_struct bk;
     bk.runoffstate     = TIMER_ROS_STATE_ENABLE ; //设置定时器在运行状态下的断路行为为禁用。这意味着在正常运行期间，断路功能不会触发。
@@ -144,29 +160,16 @@ void llc_pwm_init(const llc_pwm_cfg_t* cfg){
     //timer_primary_output_config(TIMER0, DISABLE);
     timer_enable(TIMER0);
 	  llc_pwm_outputs_enable(0);  
-
-    /* === ADC 硬件触发：Channel 1 比较输出在 ARR/2 处触发 === */
-    timer_oc_parameter_struct oc_ch1;
-    oc_ch1.outputstate   = TIMER_CCX_DISABLE;        // 不输出到引脚，只内部触发
-    oc_ch1.outputnstate  = TIMER_CCXN_DISABLE;
-    oc_ch1.ocpolarity    = TIMER_OC_POLARITY_HIGH;
-    oc_ch1.ocnpolarity   = TIMER_OCN_POLARITY_HIGH;
-    oc_ch1.ocidlestate   = TIMER_OC_IDLE_STATE_LOW;
-    oc_ch1.ocnidlestate  = TIMER_OCN_IDLE_STATE_LOW;
-    timer_channel_output_config(TIMER0, TIMER_CH_1, &oc_ch1);
-    timer_channel_output_mode_config(TIMER0, TIMER_CH_1, TIMER_OC_MODE_PWM0);
-    /* 初始值：ARR/4（上管导通中段），llc_pwm_set_freq 会自动重算 */
-    uint32_t trigger_at = ((s_period + 1U) >> 2);    // ARR/4，远离换相边沿，ISENSE 无尖峰
-    timer_channel_output_pulse_value_config(TIMER0, TIMER_CH_1, (uint32_t)trigger_at);
-    timer_channel_output_shadow_config(TIMER0, TIMER_CH_1, TIMER_OC_SHADOW_ENABLE);
 }
-static inline uint16_t duty_to_ccr_from_ticks(float d, uint32_t period_ticks)
+static inline uint16_t duty_to_ccr(float d)
 {
 	float duty = clampf(d,0.0f,0.99f);
-	if (period_ticks <= 1U)
+	uint32_t arr = TIMER_CAR(TIMER0);
+	if(arr == 0)
 	{
 		return (duty > 0.0f) ? 1U : 0U;
 	}
+	uint32_t period_ticks = arr + 1U;
 	uint32_t ccr = (uint32_t)((duty * (float)period_ticks) + 0.5f);
 	if (ccr >= period_ticks) {
 		ccr = period_ticks - 1U;
@@ -174,15 +177,8 @@ static inline uint16_t duty_to_ccr_from_ticks(float d, uint32_t period_ticks)
 	if (ccr > 0xFFFFU) {
 		ccr = 0xFFFFU;
 	}
-	return (uint16_t)ccr;
-}
-/* 	频率在线更新：同时更新 ARR 和 CCR，保持占空比 ,ARR（Auto-Reload Register，自动重装载寄存器）
-		CCR（Capture/Compare Register，捕获/比较寄存器）*/
+	return ccr; 
 //该函数的作用是将一个浮点数表示的占空比（ d ）转换为一个16位无符号整数（ uint16_t ），用于配置PWM（脉宽调制）的CCR（捕获/比较寄存器）值。
-static inline uint16_t duty_to_ccr(float d)
-{ 
-	uint32_t ticks = TIMER_CAR(TIMER0) + 1U;
-	return duty_to_ccr_from_ticks(d, ticks);
 }
 
 void llc_pwm_set_duty(float d)
@@ -293,34 +289,20 @@ void llc_pwm_set_freq(uint32_t f_hz, bool force_update)
 	if (ticks > 0x10000U) {
 		ticks = 0x10000U;
 	}
-	uint32_t new_arr = ticks - 1U;
-	//s_cfg.pwm_hz = tclk / ticks;
+	s_period = ticks - 1U;
+	s_cfg.pwm_hz = tclk / ticks;
 
-	uint16_t new_ccr = duty_to_ccr_from_ticks(s_cfg.duty, ticks);
+    /* 更新 ARR（CAR），写入影子寄存器 */
+    TIMER_CAR(TIMER0) = s_period;	
 	
 	/* 同步更新 Ch1 比较值：ARR/4 触发点，上管导通中段采样，避免换相尖峰 */
-	uint32_t trigger_at = (ticks  >> 2);
-	if (trigger_at == 0U) {
-    trigger_at = 1U;
-	}
-	if (trigger_at >= ticks) {
-			trigger_at = ticks - 1U;
-	}
+	uint16_t pwm_ccr = duty_to_ccr(s_cfg.duty);
+	timer_channel_output_pulse_value_config(TIMER0, LLC_PWM_CH, pwm_ccr);	
 	
-	/* ====== 同步写入 ====== */
-	/*
-	* ARR / PWM CCR / ADC触发CCR 必须全部基于同一个 ticks。
-	* 不要在这里再调用 duty_to_ccr()，也不要重复写 TIMER_CAR。
-	*/
-	TIMER_CAR(TIMER0) = new_arr;
-	timer_channel_output_pulse_value_config(TIMER0, LLC_PWM_CH, new_ccr);
-	timer_channel_output_pulse_value_config(TIMER0, TIMER_CH_1, trigger_at);
 
-	s_period = new_arr;
-	s_cfg.pwm_hz = tclk / ticks;
 	/* 根据场景决定是否强制立即更新 */
 	if (force_update) {
-		TIMER_CNT(TIMER0) = 0U;   // 防止周期截断毛刺
+		//TIMER_CNT(TIMER0) = 0U;   // 防止周期截断毛刺
 		timer_event_software_generate(TIMER0, TIMER_EVENT_SRC_UPG);
 	}
 	/* force_update=false时：不触发UEV，等待自然更新边界（当前周期结束） */

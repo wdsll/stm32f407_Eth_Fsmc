@@ -145,7 +145,7 @@
 
 /* ==== LLC frequency window ==== */
 #define LLC_F_MIN_HZ        (75000.0f)
-#define LLC_F_MAX_HZ        (200000.0f)
+#define LLC_F_MAX_HZ        (150000.0f)
 #define LLC_F_INIT_HZ       (100000.0f)
 #define LLC_F_SLEW_HZ       (3000.0f)
 #define LLC_F_DEBUG_HZ      (130000.0f)

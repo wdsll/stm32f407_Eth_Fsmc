@@ -3,7 +3,9 @@
 #include "systick.h"
 #include "Debug_printf.h"
 volatile adc_multi_frame_t g_adc_multi;
-
+//static uint16_t s_buf[ADC_MULTI_CHANNEL_COUNT * 2U];
+static uint16_t s_buf[ADC_TIM0_TRIGGERED_COUNT * 2U];
+static volatile adc_multi_frame_t s_latched;
 // ADC状态标志
 static uint8_t adc0_initialized = 0;
 static uint8_t adc1_initialized = 0;
@@ -47,7 +49,7 @@ static void adc0_dma_cfg(void)
 }
 
 /* ADC0初始化 - TIMER0 Ch1 硬件触发 DMA 模式
- * 触发源: TIMER0 Ch1 比较事件 (pwm_llc.c 初始化，ARR/2 处产生)
+ * 触发源: TIMER0 Ch1 比较事件 (pwm_llc.c 初始化，ARR/4 处产生)
  * 频率:   由 TIMER0 ARR 决定（当前 200kHz PWM）
  * 注意: trig_src 参数已废弃，始终使用 ADC0_1_EXTTRIG_REGULAR_T0_CH1 */
 void adc0_dma_init(uint32_t trig_src __attribute__((unused)))
@@ -71,10 +73,10 @@ void adc0_dma_init(uint32_t trig_src __attribute__((unused)))
     adc_data_alignment_config(ADC0, ADC_DATAALIGN_RIGHT);
 
     adc_channel_length_config(ADC0, ADC_REGULAR_CHANNEL, ADC_TIM0_TRIGGERED_COUNT);
-    adc_regular_channel_config(ADC0, 0, VOUT_SENSE_CH, ADC_SAMPLETIME_7POINT5);
+    adc_regular_channel_config(ADC0, 0, VOUT_SENSE_CH, ADC_SAMPLETIME_41POINT5);
     adc_regular_channel_config(ADC0, 1, ADC_ISENSE_CH, ADC_SAMPLETIME_7POINT5);
 
-    // TIMER0 Ch1 比较事件触发（ARR/2 处产生，pwm_llc.c 初始化 Ch1）
+    // TIMER0 Ch1 比较事件触发（ARR/4 处产生，pwm_llc.c 初始化 Ch1）
     adc_external_trigger_source_config(ADC0, ADC_REGULAR_CHANNEL, ADC0_1_EXTTRIG_REGULAR_T0_CH1);
     adc_external_trigger_config(ADC0, ADC_REGULAR_CHANNEL, ENABLE);
 
@@ -91,6 +93,8 @@ void adc0_dma_start(void)
     if(!adc0_initialized) {
         return;
     }
+		// 定时器触发ADC0采集
+    timer_event_software_generate(LLC_PWM_TIMER, TIMER_EVENT_SRC_CH1G);
 }
 
 /* ADC0状态检查 */

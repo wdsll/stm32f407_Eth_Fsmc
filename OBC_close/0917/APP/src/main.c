@@ -273,7 +273,7 @@ int main(void){
 		{
 				adc_multi_copy();
 				llc_app_tick_100us();
-				// ADC0 由 TIMER0 Ch1 硬件触发（ARR/2 处），不再需要软件触发
+				// ADC0 由 TIMER0 Ch1 硬件触发（ARR/4 处），不再需要软件触发
 				if (pending_adc_fast_ticks > FAST_ADC_MAX_TICKS_PER_LOOP) {
 						s_adc_fast_tick_drop_count += (pending_adc_fast_ticks - FAST_ADC_MAX_TICKS_PER_LOOP);
 						pending_adc_fast_ticks = FAST_ADC_MAX_TICKS_PER_LOOP;
