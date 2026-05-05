@@ -5,6 +5,7 @@
 #include "main.h"
 #include "temp_control.h"
 #include "charge_ctrl.h"
+#include "relay_self_check.h"   /* 主继电器独立自检模块 */
 /*********************************************************************************************************
 *                                              宏定义
 *********************************************************************************************************/
@@ -16,6 +17,7 @@
 #define MAX_TICKS_PER_LOOP         (5U)
 #define FAST_ADC_MAX_TICKS_PER_LOOP (20U)
 #define FAULT_RECOVER_DELAY_MS     (200U)
+#define RELAY_GPIO_TEST_ONLY 1
 /* 串口任务调用频率控制（每10次主循环调用1次） */
 /*********************************************************************************************************
 *                                              枚举结构体
@@ -248,6 +250,26 @@ int main(void){
 		pfc_init();
 		llc_app_init();
 		charge_ctrl_init();
+
+		debug_printf("[SYS] Relay GPIO drive test starting...\r\n");
+		relay_sc_init();
+
+		{
+				relay_check_result_t sc = relay_sc_run();
+				if (sc != RELAY_CHECK_PASS) {
+						debug_printf("[SYS] FATAL: %s - HALTING\r\n", relay_sc_result_str(sc));
+						while (1) { __NOP(); }
+				}
+				debug_printf("[SYS] Relay GPIO drive test done, continue boot\r\n");
+				
+#if RELAY_GPIO_TEST_ONLY
+    debug_printf("[SYS] Relay GPIO test only, PFC/LLC hold\r\n");
+    while (1) {
+        debug_tx_task();
+        __NOP();
+    }
+#endif
+		}
 		delay_ms(1000);
 		pfc_enable();
 

@@ -37,6 +37,7 @@
 ".\objects\debug_printf.o"
 ".\objects\pfc_control.o"
 ".\objects\llc_control.o"
+".\objects\relay_self_check.o"
 ".\objects\gd32f30x_it.o"
 ".\objects\systick.o"
 ".\objects\startup_gd32f30x_hd.o"

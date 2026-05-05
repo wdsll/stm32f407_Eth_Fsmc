@@ -22,22 +22,22 @@ typedef struct
 
 static charge_cfg_t s_chg_cfg =
 {
-    .cv_target_v         = 54.75f,
-    .cc_target_a         = 40.0f,
-    .precharge_current_a = 2.0f,
-    .precharge_margin_v  = 1.5f,
-    .v_match_window_v    = 1.0f,
-    .vbat_present_min_v  = 20.0f,
-    .vbat_absent_max_v   = 5.0f,
-    .cv_enter_margin_v   = 0.5f,
-    .term_current_a      = 2.0f,
-    .cv_enter_hold_ms    = 1000U,
-    .detect_debounce_ms  = 200U,
-    .precharge_hold_ms   = 200U,
-    .precharge_timeout_ms = 30000U,  /* 30s 超时，0=不使能 */
-    .stopping_timeout_ms  = 5000U,   /* 5s 兜底，0=不使能 */
-    .relay_settle_ms     = 100U,
-    .term_hold_ms        = 3000U,
+    .cv_target_v         = 54.75f,  /* CV恒压目标电压：最终充电电压目标，进入CV阶段后LLC目标电压应稳定在约54.75V */
+    .cc_target_a         = 5.0f,   /* CC恒流目标电流：正常恒流阶段目标输出电流为5A，需要受硬件OCP、温升降额、LLC限流共同约束 */
+    .precharge_current_a = 2.0f,		/* 预充电流目标：预充阶段用较小电流给电池/输出端建立电压，降低继电器闭合前后的冲击 */
+    .precharge_margin_v  = 0.5f,    /* 预充电压裕量：预充阶段LLC目标电压通常设为 Vbat + 0.5V；裕量太大会导致输出端高于电池太多，闭合继电器时冲击变大；裕量太小则预充速度慢 */
+    .v_match_window_v    = 1.0f,    /* 继电器闭合压差窗口：当 |Vout - Vbat| <= 1.0V 时才允许闭合输出继电器；窗口越小，继电器打火风险越低，但可能更容易等待超时 */
+    .vbat_present_min_v  = 20.0f,   /* 电池存在判断下限：Vbat >= 20V 认为外部电池/负载端存在，可进入后续充电流程 */
+    .vbat_absent_max_v   = 5.0f,    /* 电池不存在判断上限：Vbat <= 5V 认为外部电池/负载端不存在，用于断开/空载/拔掉电池判断 */
+    .cv_enter_margin_v   = 0.5f,    /* CC转CV电压裕量：当电池电压接近CV目标，例如 Vbat >= cv_target_v - 0.5V，并满足电流窗口/保持时间后，允许从CC切到CV */
+    .term_current_a      = 2.0f,    /* 充电终止电流：CV阶段电流下降到2A以下，并持续满足term_hold_ms后，认为充电接近完成 */
+    .cv_enter_hold_ms    = 1000U,   /* CC转CV保持时间：满足CV进入条件后必须连续保持1000ms，避免电压采样抖动导致CC/CV频繁切换 */
+    .detect_debounce_ms  = 200U,    /* 电池检测去抖时间：Vbat存在/不存在条件需要持续200ms才确认，避免插拔瞬间、采样噪声造成误判 */
+    .precharge_hold_ms   = 200U,    /* 预充完成保持时间：满足Vout/Vbat压差窗口后继续保持200ms，确认电压确实匹配后再闭合输出继电器 */
+    .precharge_timeout_ms = 30000U, /* 预充超时时间：预充阶段最长允许30s；若30s内Vout仍无法接近Vbat，说明LLC未建立、电池异常、采样异常或继电器前级路径异常，应退出/报错；0表示不启用超时 */
+    .stopping_timeout_ms  = 5000U,  /* 停机超时时间：STOPPING阶段最长允许5s；如果软关断/继电器释放/状态回落迟迟不能完成，用该超时做兜底；0表示不启用超时 */
+    .relay_settle_ms     = 100U,    /* 继电器动作稳定时间：输出继电器命令吸合或释放后等待100ms，再读取电压/电流状态，避开触点弹跳和机械动作延迟 */
+    .term_hold_ms        = 3000U,   /* 充电终止保持时间：CV阶段电流低于term_current_a后必须连续保持3000ms，才判定充电完成，避免瞬时电流波动导致误终止 */
 };
 
 static charge_rt_t s_chg_rt;
@@ -198,26 +198,37 @@ static bool charge_llc_ready_for_closed_relay(void)
 * 返 回 值：void
 * 创建日期：2026年04月11日
 * 注    意：该函数为静态内部函数，仅在本文件内可见
+
 *********************************************************************************************************/
 static void charge_apply(bool llc_run, bool relay_on, float vref, float iref)
 {
-    if ((fabsf(vref - s_apply_vref) > CHARGE_APPLY_VREF_HYST_V) ||
-        (fabsf(iref - s_apply_iref) > 0.05f)) {
-        llc_set_vref(vref);
-        llc_set_iref(iref);
-        s_apply_vref = vref;
-        s_apply_iref = iref;
-    }
-
-    if (llc_run != s_apply_llc_run) {
-        llc_set_run_request(llc_run);
-        s_apply_llc_run = llc_run;
-    }
-
-    if (relay_on != s_apply_relay_on) {
-        charge_out_relay_set(relay_on);
-        s_apply_relay_on = relay_on;
-    }
+	/*
+	 * 1.如果本次要求断开输出继电器，优先执行 relay OFF。
+	 *    这样停机/故障/退出时，先隔离外部电池/电子负载端。
+	 */
+	if ((!relay_on) && (s_apply_relay_on)) {
+			charge_out_relay_set(false);
+			s_apply_relay_on = false;
+	}
+	if ((fabsf(vref - s_apply_vref) > CHARGE_APPLY_VREF_HYST_V) || (fabsf(iref - s_apply_iref) > 0.05f))
+	{
+		llc_set_vref(vref); 
+		llc_set_iref(iref); 
+		s_apply_vref = vref; 
+		s_apply_iref = iref;
+	}
+	
+	if (llc_run != s_apply_llc_run) 
+	{ 
+		llc_set_run_request(llc_run); 
+		s_apply_llc_run = llc_run; 
+	}
+	
+	if (relay_on != s_apply_relay_on) 
+	{ 
+		charge_out_relay_set(relay_on); 
+		s_apply_relay_on = relay_on; 
+	}
 }
 /*********************************************************************************************************
 * 函数名称: charge_ctrl_init
@@ -250,12 +261,14 @@ void charge_ctrl_init(void)
     llc_set_iref(s_chg_cfg.precharge_current_a);
 
     /* 上电继电器自检：LLC未启动，GPIO回读安全，失败直接锁入FAULT */
+		#if 0
     if (!relay_self_test()) {
         s_chg_rt.stop_reason = CHG_STOP_RELAY_FAIL;
         s_chg_rt.state = CHG_ST_FAULT;
     } else {
         s_chg_rt.stop_reason = CHG_STOP_NONE;
     }
+		#endif
 }
 
 void charge_ctrl_set_cfg(const charge_cfg_t *cfg)
@@ -306,7 +319,7 @@ void charge_ctrl_get_status(charge_status_t *st)
 
 void charge_ctrl_tick_1khz(void)
 {
-	charge_update_meas();
+	charge_update_meas(); //更新充电运行时的实时测量数据
 
     /* BRK 硬件故障：BKIN 拉低即锁存，优先级最高，在 LLC 状态判断之前拦截
      * 硬件路径（BKIN→MOE=0）已经关掉了 PWM，这里只处理 charge 层状态转换 */
@@ -327,8 +340,13 @@ void charge_ctrl_tick_1khz(void)
      * 注：BRK 的 protect_fault_latched() 已在上面拦截，此处处理 LLC 自己的 OVP/OCP/OTP */
     if (llc_is_fault_state()) {
         s_chg_rt.stop_reason = CHG_STOP_LLC_FAULT;
-        charge_apply(false, false, s_chg_cfg.cv_target_v, s_chg_cfg.precharge_current_a);
-        charge_enter(CHG_ST_FAULT);
+				if (s_apply_relay_on) 
+				{
+					 charge_enter(CHG_ST_STOPPING);
+				}else{
+					charge_apply(false, false, s_chg_cfg.cv_target_v, s_chg_cfg.precharge_current_a);
+					charge_enter(CHG_ST_FAULT);
+				}
         return;
     }
 
@@ -384,7 +402,7 @@ void charge_ctrl_tick_1khz(void)
 						break;
 				}
 
-				if (fabsf(s_chg_rt.vout_v - s_chg_rt.vbat_v) <= s_chg_cfg.v_match_window_v) {
+				if (fabsf(s_chg_rt.vout_v - s_chg_rt.vbat_v) <= s_chg_cfg.v_match_window_v) { //vout大于vbat
 						if (s_chg_rt.term_ms == 0U) {
 								s_chg_rt.term_ms = g_ms;
 						} else if (elapsed_reached(s_chg_rt.term_ms, s_chg_cfg.precharge_hold_ms)) {  //压差大于1V才会进继电器控制模块
@@ -421,14 +439,14 @@ void charge_ctrl_tick_1khz(void)
 
 		case CHG_ST_CC:
 		{
-				charge_apply(true, true, s_chg_cfg.cv_target_v, s_chg_cfg.cc_target_a);
-
+			
 			if (!charge_llc_ready_for_closed_relay()) {
 					s_chg_rt.stop_reason = CHG_STOP_LLC_DROPOUT;
 					charge_enter(CHG_ST_STOPPING);
 					break;
 			}
-
+			charge_apply(true, true, s_chg_cfg.cv_target_v, s_chg_cfg.cc_target_a);
+			
 			/* CC→CV：电压进入目标窗口并保持 cv_enter_hold_ms，才进入恒压 */
 			if (s_chg_rt.vbat_v >= (s_chg_cfg.cv_target_v - s_chg_cfg.cv_enter_margin_v)) {
 					if (s_chg_rt.cv_enter_begin_ms == 0U) {
@@ -444,15 +462,14 @@ void charge_ctrl_tick_1khz(void)
 		}
 
 		case CHG_ST_CV:
-		{
-				charge_apply(true, true, s_chg_cfg.cv_target_v, s_chg_cfg.cc_target_a);
-			
+		{			
 			if (!charge_llc_ready_for_closed_relay()) {
 					s_chg_rt.stop_reason = CHG_STOP_LLC_DROPOUT;
 					charge_enter(CHG_ST_STOPPING);
 					break;
 			}
-
+			charge_apply(true, true, s_chg_cfg.cv_target_v, s_chg_cfg.cc_target_a);
+			
 			if (s_chg_rt.iout_a <= s_chg_cfg.term_current_a) {
 					if (s_chg_rt.term_ms == 0U) {
 							s_chg_rt.term_ms = g_ms;

@@ -667,6 +667,16 @@
               <FileType>5</FileType>
               <FilePath>.\HW\include\llc_control.h</FilePath>
             </File>
+            <File>
+              <FileName>relay_self_check.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\HW\include\relay_self_check.h</FilePath>
+            </File>
+            <File>
+              <FileName>relay_self_check.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\HW\src\relay_self_check.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
