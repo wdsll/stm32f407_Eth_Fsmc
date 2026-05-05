@@ -96,7 +96,7 @@
 #define LLC_SOFTSTART_STABILIZE_MS     50U      // 软启动后稳定等待时间
 #define LLC_SOFTSTART_MIN_DURATION_MS 20U  
 #define LLC_SOFTSTART_START_HZ     (LLC_F_MAX_HZ)
-#define LLC_SOFTSTART_TARGET_HZ    (75000.0f)
+#define LLC_SOFTSTART_TARGET_HZ    (95000.0f)
 #define LLC_SOFTSTART_FAILSAFE_HZ  (LLC_F_MAX_HZ)
 
 #define LLC_SOFTSTART_USE_COSINE_EASE 1        // 1: 余弦S曲线；0: 指数曲线
@@ -119,9 +119,9 @@
 #define LLC_RUN_ENTRY_TIMEOUT_MS       (400U)
 
 /* ==== LLC frequency window ==== */
-#define LLC_F_MIN_HZ        (65000.0f)
+#define LLC_F_MIN_HZ        (95000.0f)
 #define LLC_F_MAX_HZ        (250000.0f)
-#define LLC_F_INIT_HZ       (75000.0f)
+#define LLC_F_INIT_HZ       (95000.0f)
 #define LLC_F_SLEW_HZ       (3000.0f)
 
 #define LLC_CTRL_TS_S           (0.0005f)
@@ -141,7 +141,7 @@
 
 /* ==== LLC open-loop safe bands ==== */
 #define LLC_VBUS_MIN_START_V         (340.0f)
-#define LLC_VOUT_TARGET_V            (55.0f)
+#define LLC_VOUT_TARGET_V            (46.0f)
 #define LLC_VOUT_HYST_V              (15.0f)
 #define LLC_VOUT_OVP_V               (58.0f)
 #define LLC_IOUT_OCP_A               (43.0f)

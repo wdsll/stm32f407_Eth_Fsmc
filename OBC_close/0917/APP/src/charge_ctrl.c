@@ -22,7 +22,7 @@ typedef struct
 
 static charge_cfg_t s_chg_cfg =
 {
-    .cv_target_v         = 54.75f,  /* CV恒压目标电压：最终充电电压目标，进入CV阶段后LLC目标电压应稳定在约54.75V */
+    .cv_target_v         = 46.0f,  /* CV恒压目标电压：最终充电电压目标，进入CV阶段后LLC目标电压应稳定在约54.75V */
     .cc_target_a         = 5.0f,   /* CC恒流目标电流：正常恒流阶段目标输出电流为5A，需要受硬件OCP、温升降额、LLC限流共同约束 */
     .precharge_current_a = 2.0f,		/* 预充电流目标：预充阶段用较小电流给电池/输出端建立电压，降低继电器闭合前后的冲击 */
     .precharge_margin_v  = 0.5f,    /* 预充电压裕量：预充阶段LLC目标电压通常设为 Vbat + 0.5V；裕量太大会导致输出端高于电池太多，闭合继电器时冲击变大；裕量太小则预充速度慢 */
