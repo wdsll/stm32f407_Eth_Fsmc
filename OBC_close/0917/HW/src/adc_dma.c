@@ -103,12 +103,10 @@ uint8_t adc0_is_initialized(void)
 static void adc1_analog_pins_init(void)
 {   
 		rcu_periph_clock_enable(RCU_GPIOA);
-	  rcu_periph_clock_enable(RCU_GPIOB);
     rcu_periph_clock_enable(RCU_GPIOC);
     /* ADC1通道配置 */
     gpio_init(GPIOC, GPIO_MODE_AIN, GPIO_OSPEED_50MHZ, GPIO_PIN_4|GPIO_PIN_5);
-    gpio_init(GPIOA, GPIO_MODE_AIN, GPIO_OSPEED_50MHZ, GPIO_PIN_1 | GPIO_PIN_3 | GPIO_PIN_7);
-	  gpio_init(GPIOB, GPIO_MODE_AIN, GPIO_OSPEED_50MHZ, GPIO_PIN_1);
+    gpio_init(GPIOA, GPIO_MODE_AIN, GPIO_OSPEED_50MHZ, GPIO_PIN_1 | GPIO_PIN_3);
 }
 
 /* ADC1初始化 - 软件触发模式 */
@@ -211,12 +209,9 @@ void adc1_sample_aux_1khz(void)
     }
     uint16_t v3v3 = adc1_aux_read_channel(AD_3V3_CH, ADC_SAMPLETIME_55POINT5);
     uint16_t vbt = adc1_aux_read_channel(VBT_SENSE_CH, ADC_SAMPLETIME_55POINT5);
-    uint16_t tsense_pfc = adc1_aux_read_channel(T_SENSE_PFC_MOS, ADC_SAMPLETIME_55POINT5);
-    uint16_t tsense_llc = adc1_aux_read_channel(T_SENSE_LLCMOS_CH, ADC_SAMPLETIME_55POINT5);
+
     s_latched.v3v3_raw = v3v3;
     s_latched.vbt_raw = vbt;
-		s_latched.tsense_pfc_raw = tsense_pfc;
-    s_latched.tsense_llc_raw = tsense_llc;
 }
 
 /* ADC1状态检查 */
@@ -247,14 +242,10 @@ static inline void adc_multi_store_frame(const uint16_t *src)
 void adc_multi_copy(void)
 {
     adc_multi_frame_t frame;
-	  __disable_irq();           // ← DMA ISR 和 SysTick 都被屏蔽
     frame.vout_raw   = s_latched.vout_raw;
     frame.isense_raw = s_latched.isense_raw;
 	  frame.v3v3_raw   = s_latched.v3v3_raw;
     frame.vbt_raw    = s_latched.vbt_raw;
-		//frame.tsense_pfc_raw = s_latched.tsense_pfc_raw ;
-    //frame.tsense_llc_raw = s_latched.tsense_llc_raw ;
-	  __enable_irq();           // ← 恢复
     g_adc_multi = frame;
 
 }
@@ -339,7 +330,7 @@ void DMA0_Channel0_IRQHandler(void)
         adc_multi_store_frame(&s_buf[0]);
     }
     if(dma_interrupt_flag_get(DMA0, DMA_CH0, DMA_INT_FLAG_FTF)){
-				dma_interrupt_flag_clear(DMA0, DMA_CH0, DMA_INT_FLAG_FTF);
+		dma_interrupt_flag_clear(DMA0, DMA_CH0, DMA_INT_FLAG_FTF);
         adc_multi_store_frame(&s_buf[ADC_TIM0_TRIGGERED_COUNT]);
     }
     dma_interrupt_flag_clear(DMA0, DMA_CH0, DMA_INT_FLAG_G);

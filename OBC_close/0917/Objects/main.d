@@ -41,5 +41,4 @@
   C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdarg.h HW/include\pwm.h \
   HW/include\protect_exti.h HW/include\pfc_control.h \
   HW/include\llc_control.h APP/include/llc_soft_start.h \
-  APP/include/main.h APP/include\temp_control.h \
-  APP/include\charge_ctrl.h HW/include\relay_self_check.h
+  APP/include/main.h

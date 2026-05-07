@@ -19,16 +19,16 @@ typedef enum {
 #define PFC_AC_ADC_GAIN_V_PER_VIN     (369.98f)     // VAC  = ADC_V * 233.38  
 #define PFC_AC_OFFSET                 (12.90f)
 
-/* ===== 44/45/46V 临时测试版 =====
- * 这几个点的母线目标统一按 44*9 = 390V
+/* ===== 37/38/39V 临时测试版 =====
+ * 这几个点的母线目标统一按 41*9 = 369V
  * 目的：先验证降低母线后，LLC 是否更接近谐振点，从而减轻输出坍陷
  */
-#define PFC_VBUS_TARGET_TEST_V        (390.0f)
+#define PFC_VBUS_TARGET_TEST_V        (369.0f)
 /* ===== 三态机：门限/时序 ===== */
 #define PFC_STARTUP_DELAY_MS          (1000U)
 
-/* READY判定：390V ± 10V */
-#define PFC_VBUS_READY_V              (390.0f)
+/* READY判定：369V ± 10V */
+#define PFC_VBUS_READY_V              (369.0f)
 #define PFC_READY_DELAY_MS            (80U)
 
 /* 硬件拉起后等待母线建立 */
@@ -39,7 +39,7 @@ typedef enum {
  * 这个值不要压得太低，否则母线已经明显掉下来了，状态机还不退出
  */
 #define PFC_VBUS_OK_RESET_MARGIN_V    (10.0f)
-#define PFC_VBUS_DROPOUT_THRESHOLD_V  (360.0f)
+#define PFC_VBUS_DROPOUT_THRESHOLD_V  (345.0f)
 #define PFC_VBUS_DROPOUT_MS           (300U)
 
 /* 过压保护
@@ -47,7 +47,7 @@ typedef enum {
  * 这里先按 369 + 31 = 400V
  * 这样既能覆盖一定波动，又不会让目标 369V 的工况过压窗口过大
  */
-#define PFC_VBUS_OVP_V                (420.0f)
+#define PFC_VBUS_OVP_V                (400.0f)
 #define PFC_FAULT_RESTART_MS          (1000U)
 
 /* ===== AC check ===== */

@@ -10,10 +10,20 @@ typedef enum
 	ST_SOFTSTART,
 	ST_RUN_ENTRY_HOLD,
 	ST_LLC_RUN,
+	ST_BURST_MODE,      /* ÇáÔØ´òàÃÄ£Ê½ */
 	ST_STOPPING,
-	ST_CYCLE_STOPPING,  /* å‘¨æœŸæ€§è½¯å…³æ–­çŠ¶æ€ */
+	ST_CYCLE_STOPPING,  /* ÖÜÆÚĞÔÈí¹Ø¶Ï×´Ì¬ */
 	ST_FAULT,
 } llc_state_t;
+
+/* Burst Mode ×Ó×´Ì¬ */
+typedef enum
+{
+	BURST_STATE_ENTRY_PREPARE  = 0,
+	BURST_STATE_OFF ,           /* Burst¹Ø±Õ£¬PWM¹Ø */
+	BURST_STATE_ON,                /* Burst¿ªÆô£¬PWM¿ª£¬¹Ì¶¨¸ßÆµ */
+	BURST_STATE_ON_PREPARE,        /* ×¼±¸¹Ø±Õ£ºÏÈÉıÆµµ½×î¸ßÔÙ¹ØPWM */
+} burst_state_t;
 
 typedef struct
 {
@@ -21,36 +31,28 @@ typedef struct
 	uint32_t entry_ms;
 }llc_app_ctx_t;
 
-//vmeasï¼šå®é™…æµ‹é‡åˆ°çš„ç”µå‹ 
-//integï¼šç§¯åˆ†å™¨çš„å½“å‰ç´¯ç§¯å€¼ï¼ˆç§¯åˆ†çŠ¶æ€ï¼‰ï¼Œé€šå¸¸ä¼šåœ¨é¥±å’Œæˆ–æ¨¡å¼åˆ‡æ¢æ—¶æ¸…é›¶æˆ–è½¯é™åˆ¶ä»¥é˜²é£upã€‚
-//æ–°å¢ç”µæµç¯piå‚æ•°
+//vmeas£ºÊµ¼Ê²âÁ¿µ½µÄµçÑ¹ 
+//integ£º»ı·ÖÆ÷µÄµ±Ç°ÀÛ»ıÖµ£¨»ı·Ö×´Ì¬£©£¬Í¨³£»áÔÚ±¥ºÍ»òÄ£Ê½ÇĞ»»Ê±ÇåÁã»òÈíÏŞÖÆÒÔ·À·çup¡£
+//ĞÂÔöµçÁ÷»·pi²ÎÊı
 typedef struct {
 	float vref, vmeas;
 	
-	/* ç”µå‹ç¯ PI å‚æ•° */
+	/* µçÑ¹»· PI ²ÎÊı */
 	float kp, ki, integ;
-	float kp_raw, ki_raw;  // å¤‡ç”¨RAW_PI
-	/* ç”µæµç¯ï¼ˆå…ˆä¿ç•™ï¼‰ */
+	float kp_raw, ki_raw;  // ±¸ÓÃRAW_PI
+	/* µçÁ÷»·£¨ÏÈ±£Áô£© */
 	float iref, imeas;
 	float ikp, iki, i_integ;
 	
-	 /* é¢‘ç‡è¾¹ç•Œ */
+	 /* ÆµÂÊ±ß½ç */
 	float f_min, f_max, f_cmd,f_nom, f_slew;
-	float e_db, f_q_step;
 	float f_cmd_v, f_cmd_i;
 	
-	bool ctrl_en_z1;
 } llc_t;
-//static llc_t s_llc;
-typedef struct
-{
-    float vout_v;
-    float iout_a;
-    float vbus_v;
-    llc_state_t state;
-} llc_status_t;
+static llc_t s_llc;
+
 /*********************************************************************************************************
-*                                              APIå‡½æ•°å£°æ˜
+*                                              APIº¯ÊıÉùÃ÷
 *********************************************************************************************************/
 void llc_app_init(void);
 void llc_app_tick_1khz(void);
@@ -58,31 +60,9 @@ void llc_app_tick_100us(void);
 void llc_app_tick_1khz_withoutVbus(void);
 llc_state_t llc_app_state(void);
 
-/**
- * @brief LLC çŠ¶æ€æœºæ˜¯å¦å¤„äº FAULT çŠ¶æ€
- */
-bool llc_is_fault_state(void);
 
-/**
- * @brief BRK ç¡¬ä»¶æ•…éšœæ˜¯å¦å·²é”å­˜ï¼ˆBKIN æ›¾ç»æ‹‰ä½è¿‡ï¼Œprotect_clear_fault å‰ä¸€ç›´ä¿æŒï¼‰
- * ç”± protect_exti æ¨¡å—ç®¡ç†ï¼ŒLLC å±‚è½¬å‘æš´éœ²ä¾› charge å±‚ä½¿ç”¨
- */
-int protect_fault_latched(void);
-
-/**
- * @brief æ¸…é™¤ BRK è½¯ä»¶é”å­˜ï¼ˆæ•…éšœæ’æŸ¥å®Œæ¯•åå¯è°ƒç”¨ï¼‰
- */
-void protect_clear_fault(void);
 void llc_app_tick_adc_test(void);
 
-/* æ–°å¢ï¼šä¸Šå±‚å……ç”µç®¡ç†æ¥å£ */
-void llc_set_run_request(bool en);
-bool llc_get_run_request(void);
-void llc_set_vref(float vref);
-float llc_get_vref(void);
-void llc_set_iref(float iref);
-float llc_get_iref(void);
-void llc_get_status(llc_status_t *st);
 
 
 #endif /* LLC_CONTROL_H */

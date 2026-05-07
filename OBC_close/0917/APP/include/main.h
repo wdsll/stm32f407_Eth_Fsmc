@@ -59,7 +59,15 @@
 #define VBT_RTOP_OHM        (200000.0f)   /* PC4 */
 #define VBT_RBOT_OHM        (10000.0f)
 
-#define V3V3_RTOP_OHM        (5100.0f)   
+/* Vout ADC 标定系数（PA5 分压，实测9点标定） */
+#define VOUT_K_V_PER_COUNT  (0.017124f)   /* 斜率 V/count，线性拟合 */
+#define VOUT_B_V            (-0.155626f)  /* 截距 V，线性拟合 */
+
+/* Vbat ADC 标定系数（PC4 分压，实测标定） */
+#define VBAT_K_V_PER_COUNT  (0.017093f)   /* 斜率 V/count，线性拟合 */
+#define VBAT_B_V            (-0.052042f)  /* 截距 V，线性拟合 */
+
+#define V3V3_RTOP_OHM        (5100.0f)
 #define V3V3_RBOT_OHM        (10000.0f)
 
 /* ==== ADC startup sanity check thresholds ==== */
@@ -77,11 +85,11 @@
 #define IAMP_GAIN           (19.8198f)  /* INA gain */
 
 /* ==== Control targets/thresholds ==== */
-#define VBUS_TARGET_V       (390.0f)
+#define VBUS_TARGET_V       (369.0f)
 //#define AC_PRESENT_V        (30.0f)   /* |Vac| to start PFC */
-#define LLC_ENTRY_V         (360.0f)  /* enter LLC when Vbus above this */
-#define RUN_OK_LOW_V        (380.0f)
-#define RUN_OK_HIGH_V       (410.0f)
+#define LLC_ENTRY_V         (340.0f)  /* enter LLC when Vbus above this */
+#define RUN_OK_LOW_V        (359.0f)
+#define RUN_OK_HIGH_V       (379.0f)
 
 /* ==== PWM defaults ==== */
 #define LLC_PWM_BASE_HZ     (87600U)  //98753U
@@ -102,6 +110,7 @@
 #define LLC_SOFTSTART_USE_COSINE_EASE 1        // 1: 余弦S曲线；0: 指数曲线
 #define LLC_SOFTSTART_EXP_K           3.0f     // 指数陡峭度（越大前期越缓）
 #define LLC_SOFTSTART_EXTRA_MARGIN      (0.02f)   /* 安全窗额外余量（防抖） */
+#define LLC_SOFTSTART_TICK_MS         (0.1f)
 
 /* ==== LLC_SOFTSTOP ==== */
 #define LLC_SOFTSTOP_DURATION_MS      200U      // 软关断总时长（比软启短一些）
@@ -112,6 +121,44 @@
 #define LLC_CYCLE_STOP_INTERVAL_MS    3000U     // 周期性软关断间隔（3秒）
 #define LLC_CYCLE_STOP_RESTART_MS     500U      // 软关断后重新启动前等待时间
 
+/* ==== LLC_BURST_MODE 轻载突发模式 ==== */
+#define LLC_BURST_MODE_ENABLE         1         // 1: 使能Burst模式
+
+/* Burst进入/退出 - 第一档轻载：1.5A进入，2.5A退出 */
+#define LLC_BURST_IOUT_ENTER_A        (1.5f)    // 进入阈值 <1.5A (轻载)
+#define LLC_BURST_IOUT_EXIT_A         (2.5f)    // 退出阈值 >2.5A (滞环1A)
+#define LLC_BURST_ENTER_DELAY_MS      (1000U)   // 进入延迟1秒(慢进入防抖动)
+#define LLC_BURST_EXIT_DELAY_MS       (50U)     // 退出延迟50ms(快退出)
+#define LLC_BURST_F_ENTER_MAX_HZ  (LLC_F_MAX_HZ*0.90f)
+/*
+ * Burst 100us 快环门控参数
+ * 说明：
+ * 1 tick = 100us，依赖 llc_app_tick_100us() 周期。
+ */
+#define LLC_BURST_TICK_US             (100U)
+
+/* Burst电压控制：上下滞环分开，避免空载误补脉冲 */
+#define LLC_BURST_HIGH_HYS_V          (0.4f)    /* Vout > target + 0.4V：准备关PWM */
+#define LLC_BURST_LOW_HYS_V           (0.6f)    /* Vout < target - 0.6V：允许开PWM */
+#define LLC_BURST_FORCE_OFF_V         (1.5f)    /* Vout > target + 1.5V：立即关PWM */
+#define LLC_BURST_VOUT_TARGET_V       (LLC_VOUT_TARGET_V)
+
+/* Burst 100us时间窗口 */
+#define LLC_BURST_ON_MIN_TICKS        (1U)      /* 最短ON 100us */
+#define LLC_BURST_ON_MAX_TICKS        (3U)      /* 最长ON 300us */
+#define LLC_BURST_OFF_MIN_TICKS       (5U)      /* 最短OFF 500us */
+
+/*
+ * 不再使用 OFF_MAX 无条件强制开通。
+ * 空载时 Vout 可能长期不掉，OFF_MAX 强制补脉冲会把Vout越顶越高。
+ */
+
+/* Burst频率 */
+#define LLC_BURST_F_HZ                (LLC_F_MAX_HZ)  /* Burst ON时使用最高频，最小能量包 */
+#define LLC_BURST_ENTRY_RAMP_TICKS    (2U)            /* 进入Burst前高频准备 200us */
+#define LLC_BURST_F_PREPARE_TICKS     (1U)            /* 关PWM前高频准备 100us */
+
+
 /* ==== LLC RUN entry hold ==== */
 #define LLC_RUN_ENTRY_HOLD_MS          (20U)
 #define LLC_RUN_ENTRY_STABLE_TICKS     (2U)
@@ -119,21 +166,12 @@
 #define LLC_RUN_ENTRY_TIMEOUT_MS       (400U)
 
 /* ==== LLC frequency window ==== */
-#define LLC_F_MIN_HZ        (95000.0f)
-#define LLC_F_MAX_HZ        (250000.0f)
-#define LLC_F_INIT_HZ       (95000.0f)
+#define LLC_F_MIN_HZ        (75000.0f)
+#define LLC_F_MAX_HZ        (200000.0f)
+#define LLC_F_INIT_HZ       (100000.0f)
 #define LLC_F_SLEW_HZ       (3000.0f)
+#define LLC_F_DEBUG_HZ      (130000.0f)
 
-#define LLC_CTRL_TS_S           (0.0005f)
-#define LLC_VCTRL_F_NOM_HZ       (100000.0f)
-#define LLC_VCTRL_E_DB_V         (0.15f)
-#define LLC_VCTRL_F_Q_STEP_HZ    (100.0f)
-#define LLC_IOUT_ERR_SAT_A       (5.0f)
-#define LLC_IOUT_DF_MAX_HZ       (75000.0f)
-#define LLC_IOUT_DF_SLEW_HZ_S    (1000000.0f)
-
-#define LLC_IOUT_ON_DELTA_A      (0.5f)
-#define LLC_IOUT_OFF_DELTA_A     (1.0f)
 /* ==== LLC f_nom follow mode ==== */
 #define LLC_F_NOM_FOLLOW_TARGET_FREQ      (1U)  /* f_nom follows current target frequency (s_llc.f_cmd) */
 #define LLC_F_NOM_FOLLOW_SOFTSTART_END    (0U)  /* f_nom follows soft-start end frequency */
@@ -141,24 +179,19 @@
 
 /* ==== LLC open-loop safe bands ==== */
 #define LLC_VBUS_MIN_START_V         (340.0f)
-#define LLC_VOUT_TARGET_V            (46.0f)
+#define LLC_VOUT_TARGET_V            (43.0f)
 #define LLC_VOUT_HYST_V              (15.0f)
 #define LLC_VOUT_OVP_V               (58.0f)
-#define LLC_IOUT_OCP_A               (43.0f)
+#define LLC_IOUT_OCP_A               (50.0f)
 
-#define LLC_IOUT_TARGET_A            (40.0f)
-#define LLC_IOUT_CTRL_KP             (400.0f)
-#define LLC_IOUT_CTRL_KI             (1200.0f)
+#define LLC_SWEEP_START_HZ           (100000.0f)
+#define LLC_SWEEP_STOP_HZ            (80000.0f)
+#define LLC_SWEEP_STEP_HZ            (800.0f) 
+#define LLC_SWEEP_STEP_MS            (5U)
+#define LLC_SWEEP_TIMEOUT_MS         (1600U)
+#define LLC_SWEEP_STABLE_COUNT       (2U)
+#define LLC_SWEEP_TARGET_WINDOW_V    (2.0f)
 
-#define LLC_DERATE_STEP_PERIOD_MS    (100U)
-#define LLC_DERATE_STEP_A            (0.5f)
-#define LLC_DERATE_RECOVER_PERIOD_MS (200U)
-#define LLC_DERATE_RECOVER_STEP_A    (0.5f)
-#define LLC_DERATE_MIN_A             (10.0f)
-
-#define LLC_TEMP_DERATE_START_C      (95.0f)
-#define LLC_TEMP_SHUTDOWN_C          (105.0f)
-#define LLC_TEMP_RESTART_C           (-40.0f)
 #define LLC_HOLD_ADJUST_HZ           (400.0f)
 #define LLC_HOLD_ADJUST_PERIOD_MS    (10U)
 #define LLC_HOLD_RESCAN_DELTA_V      (5.0f)
@@ -235,10 +268,10 @@ static inline uint8_t irq_priority_encode(uint8_t preempt, uint8_t sub)
 
 #define VOUT_SENSE_CH      ADC_CHANNEL_5   /* PA5 */
 #define ADC_ISENSE_CH      ADC_CHANNEL_6   /* PA6 */
-#define T_SENSE_PFC_MOS    ADC_CHANNEL_7   /* PA7 PFC MOS 管温度 NTC 采样*/
+//#define T_SENSE_PFC_MOS    ADC_CHANNEL_7   /* PA7 PFC MOS 管温度 NTC 采样*/
 #define AD_3V3_CH          ADC_CHANNEL_14  /* PC4 3.3V 模拟电源监测（AD_3V3）*/ 
 #define VBT_SENSE_CH       ADC_CHANNEL_15  /* PC5 电池端电压采样*/
-#define T_SENSE_LLCMOS_CH  ADC_CHANNEL_9   /* PB1 LLC MOS 管温度 NTC 采样*/
+//#define T_SENSE_LLCMOS_CH  ADC_CHANNEL_9   /* PB1 LLC MOS 管温度 NTC 采样*/
 
 
 #define OUT_RELAY     GPIOB  //直流输出继电器控制
@@ -268,9 +301,6 @@ static inline uint8_t irq_priority_encode(uint8_t preempt, uint8_t sub)
 #define FAN_CTL_PORT            GPIOC
 #define FAN_CTL_PIN             GPIO_PIN_12
 
-#define FAN_ON_IOUT_A              (1.5f)
-#define FAN_OFF_IOUT_A             (0.8f)
-#define FAN_OFF_DELAY_MS           (10000U)
 
 #ifndef PFC_VBUS_DROPOUT_MS_NEW
 #define PFC_VBUS_DROPOUT_MS_NEW        (200U)                     /* 退出延时加长 */
@@ -295,10 +325,10 @@ static inline uint32_t elapsed_since(uint32_t start_ms)
 
 static inline bool elapsed_reached(uint32_t start_ms, uint32_t duration_ms)
 {
-    if (duration_ms == 0U) {
+	if (duration_ms == 0) {
 					return true;
 	}
-    if (start_ms == 0U) {
+	if (start_ms == 0) {
 					return false;
 	}
 	return elapsed_since(start_ms) >= duration_ms;
