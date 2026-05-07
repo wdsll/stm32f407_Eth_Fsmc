@@ -65,9 +65,9 @@ typedef struct {
     uint32_t softstart_begin_ms;
     uint32_t stopping_begin_ms;
     uint32_t hold_last_adjust_ms;
-	uint32_t run_entry_hold_begin_ms;
+	  uint32_t run_entry_hold_begin_ms;
     uint32_t run_entry_stable_ticks;
-	uint32_t cycle_stop_begin_ms;      /* 周期性软关断开始时间 */
+	  uint32_t cycle_stop_begin_ms;      /* 周期性软关断开始时间 */
     bool     cycle_stop_enable;        /* 周期性软关断使能 */
     /* Burst Mode 变量 */
     burst_state_t burst_state;         /* Burst 子状态 */
@@ -77,6 +77,7 @@ typedef struct {
     uint32_t burst_exit_delay_ms;      /* Burst退出延迟计时 */
     float f_pre_burst_hz;              /* 进入Burst前的频率，用于退出时bumpless */
     uint8_t burst_first_entry;         /* 首次进入Burst标志 */
+    uint32_t fault_recover_begin_ms;   /* FAULT恢复防抖计时起点 */
 }llc_runtime_ctx_t;
 static llc_runtime_ctx_t s_llc_rt;
 
@@ -379,27 +380,26 @@ static bool llc_pfc_ready_stable(bool enable_llc)
 
 static bool llc_faults_present(void)
 {
-   // if (protect_fault_active_hw() || protect_fault_latched()) {
-   //     return true;
-   // }
+   /* 4840 原理图确认：BKIN(PB12) 通过光耦 LTV-817S 连接主板 OCP 比较器(LMV393)
+    * 必须检查硬件故障锁存和 BKIN 当前电平，否则 BRK 中断丢失时 LLC 状态机不知道硬件故障。
+    * BKIN 低有效：protect_fault_active_hw() 返回 1 表示 PB12 为低电平（故障存在） */
+   if (protect_fault_active_hw() || protect_fault_latched()) {
+       return true;
+   }
 
-   // if (pfc_is_fault()) {
-   //     return true;
-   // }
+   if (s_llc_rt.meas.vout_v > LLC_VOUT_OVP_V) {  //58
+       return true;
+   }
 
-    if (s_llc_rt.meas.vout_v > LLC_VOUT_OVP_V) {  //58
-        return true;
-    }
+   if (s_llc_rt.meas.iout_a > LLC_IOUT_OCP_A) { //41
+       return true;
+   }
 
-    if (s_llc_rt.meas.iout_a > LLC_IOUT_OCP_A) { //41
-        return true;
-    }
+   if (s_llc_rt.meas.vbus_v < (LLC_VBUS_MIN_START_V - LLC_VOUT_HYST_V)) {
+       return true;
+   }
 
-    if (s_llc_rt.meas.vbus_v < (LLC_VBUS_MIN_START_V - LLC_VOUT_HYST_V)) {
-        return true;
-    }
-
-    return false;
+   return false;
 }
 static void llc_enter_fault(void)
 {
@@ -1123,17 +1123,18 @@ static void llc_state_enter(llc_state_t next)
 		return;
 	s_llc_rt.app.state = next;
   s_llc_rt.app.entry_ms = g_ms;
-
 	// 根据目标状态执行相应的初始化或清理操作
 	switch(next)
 	{
+		// 1. 故障恢复与状态重置
+    // 2. 关闭功率输出（安全保护）
+    // 3. 初始化所有运行时变量
+    // 4. 重置突发模式状态
 	 case ST_IDLE:
-		  llc_softstart_on_fault();
+		  llc_softstart_on_fault(); //软启动故障处理：清理软启动过程中的故障状态
 		  llc_softstop_reset();  /* 重置软关断状态 */
-		  //pfc_hw_set_main(false);   // 强制关闭 PFC
-			//pfc_disable();
 		  llc_pwm_outputs_enable(0); // 禁用 PWM 输出
-		  llc_driver_en_set(false); //disable llc
+		  llc_driver_en_set(false); //disable llc 	
 		  llc_set_freq(s_llc.f_max, true);  /* 强制更新：状态切换确保立即生效 */		
 	 	  s_llc_rt.softstart_begin_ms = 0U;  //软启动开始时间戳，用于控制软启动斜坡
 	 	  s_llc_rt.stopping_begin_ms = 0U;  //停机过程开始时间戳，用于控制停机时序
@@ -1174,7 +1175,7 @@ static void llc_state_enter(llc_state_t next)
 	    s_llc.f_nom = f_clampf(s_llc.f_cmd, s_llc.f_min, s_llc.f_max);
 	 #else
 	 	    s_llc.f_nom = llc_get_f_nom(s_llc.f_min, s_llc.f_max, s_llc.f_cmd);
-#endif
+	 #endif
       /* 重置Burst延迟计时器 */
       s_llc_rt.burst_enter_delay_ms = 0U;
       s_llc_rt.burst_exit_delay_ms = 0U;
@@ -1211,11 +1212,6 @@ static void llc_state_enter(llc_state_t next)
 			llc_pwm_outputs_enable(1);  /* 进入准备阶段保持PWM开启 */
 			llc_set_freq(LLC_F_MAX_HZ, true); /* 强制更新：进入Burst升频准备 */
 			s_burst_pwm_on = 1U;
-			
-#if DEBUG_PRINTF_BURST_MODE
-			debug_printf("[BURST] ENTER: iout=%.2fA, f_pre=%.0fHz, state=%d\n", 
-			             s_llc_rt.meas.iout_a, s_llc_rt.f_pre_burst_hz, s_llc_rt.burst_state);
-#endif
 			break;
 	 case ST_FAULT:
 	 		llc_softstart_on_fault();
@@ -1224,6 +1220,7 @@ static void llc_state_enter(llc_state_t next)
 			llc_driver_en_set(false);
 			llc_set_freq(s_llc.f_max, true);  /* 强制更新：故障保护立即生效 */
 			llc_burst_fast_reset();
+			s_llc_rt.fault_recover_begin_ms = 0U;  /* 重置恢复计时 */
 			break;
 	 
 	 default:
@@ -1307,7 +1304,7 @@ void llc_app_tick_100us(void)
     if (s_llc_rt.app.state != ST_LLC_RUN && s_llc_rt.app.state != ST_BURST_MODE) {
 			vloop_div = 0;
 			vout_filt_inited = 0U;
-			llc_cr_resp_tick();
+			//llc_cr_resp_tick();
       return;
     }	
 
@@ -1347,7 +1344,7 @@ void llc_app_tick_100us(void)
 			vloop_div = 0;
 			f_cmd = llc_ctrl_step(err);
 			llc_set_freq(f_cmd, false);  /* 自然更新：闭环微调 */
-			llc_cr_resp_tick();
+			//llc_cr_resp_tick();
 			}
 		}
 		
@@ -1762,15 +1759,15 @@ void llc_app_tick_1khz(void)
 	bus_vol_adj_follow_vout(s_llc.vref, s_llc_rt.meas.vout_v, s_llc_rt.meas.vbus_v,
 	                      (pfc_is_ready() && (s_llc_rt.app.state != ST_IDLE) && (s_llc_rt.app.state != ST_FAULT)));
 
-	  //bool enable_llc = (LLC_ENABLE != 0) && pfc_is_ready();
-		 bool enable_llc = pfc_is_ready();
-		bool pfc_ready_stable = llc_pfc_ready_stable(enable_llc);
-		if (s_llc_rt.app.state != ST_IDLE && s_llc_rt.app.state != ST_FAULT) {
-			if (llc_faults_present()) {
-				llc_enter_fault();
-				return;
-			}
+	//bool enable_llc = (LLC_ENABLE != 0) && pfc_is_ready();
+	bool enable_llc = pfc_is_ready();
+	bool pfc_ready_stable = llc_pfc_ready_stable(enable_llc);
+	if (s_llc_rt.app.state != ST_IDLE && s_llc_rt.app.state != ST_FAULT) { //非idle&故障太才会进行故障检测
+		if (llc_faults_present()) {
+			llc_enter_fault();
+			return;
 		}
+	}
 	switch(s_llc_rt.app.state)
 	{
 		case ST_IDLE:
@@ -1780,24 +1777,23 @@ void llc_app_tick_1khz(void)
 				llc_state_enter(ST_PRECHECK);
 			}
 			break;
-	}
+		}
 		case ST_PRECHECK:
 		{
-        if (!enable_llc) {
-          llc_state_enter(ST_STOPPING);
-					break;
-				}
-				if (!llc_precheck_ok()) {
-					llc_state_enter(ST_STOPPING);
-					break;
-				}
-				if (!elapsed_reached(s_llc_rt.app.entry_ms, 100U)) { // 100ms 稳定等待
-					break;
-				}
-				llc_state_enter(ST_SOFTSTART);
-			
-        break;
+			if (!enable_llc) {
+				llc_state_enter(ST_STOPPING);
+				break;
 			}
+			if (!llc_precheck_ok()) {
+				llc_state_enter(ST_STOPPING);
+				break;
+			}
+			if (!elapsed_reached(s_llc_rt.app.entry_ms, 100U)) { // 100ms 稳定等待
+				break;
+			}
+			llc_state_enter(ST_SOFTSTART);		
+			break;
+		}
 		case ST_SOFTSTART:
 		{
 			llc_softstart_tick_1khz();
@@ -1809,8 +1805,6 @@ void llc_app_tick_1khz(void)
 			if(elapsed_reached(s_llc_rt.softstart_begin_ms,LLC_SOFTSTART_DURATION_MS + LLC_SOFTSTART_STABILIZE_MS))
 			{
 				float e = s_llc_rt.meas.vout_v - LLC_VOUT_TARGET_V;   // з
-				float ae = fabsf(e);
-				(void)ae;
 				llc_softstart_stop();
 				s_llc.f_cmd = llc_softstart_last_hz();
 				llc_state_enter(ST_RUN_ENTRY_HOLD);
@@ -1859,13 +1853,14 @@ void llc_app_tick_1khz(void)
 
 #if LLC_BURST_MODE_ENABLE
 #if !LLC_FIXED_FREQ_LOAD_TEST_ENABLE
-		/* Burst进入检测 - 慢进入，需持续轻载超过延迟时间 */
+		/* Burst进入检测 - 慢进入，需持续轻载超过延迟时间 三重判断电流小于1.5A,电压要大于目标电压，频率大于百分之九十的最大频率*/
 		if((s_llc_rt.meas.iout_a < LLC_BURST_IOUT_ENTER_A)&&(s_llc.vmeas >= (LLC_VOUT_TARGET_V - 0.5f))&&(s_llc.f_cmd >= LLC_BURST_F_ENTER_MAX_HZ))
 		{
 			if(s_llc_rt.burst_enter_delay_ms == 0)
 			{
 				s_llc_rt.burst_enter_delay_ms = g_ms; /* 开始计时 */
 			}
+			//慢进入200ms延时防抖 
 			else if(elapsed_reached(s_llc_rt.burst_enter_delay_ms, LLC_BURST_ENTER_DELAY_MS))
 			{
 				/* 持续轻载超过1秒，进入Burst */
@@ -1902,22 +1897,19 @@ void llc_app_tick_1khz(void)
 				}else if(elapsed_reached(s_llc_rt.burst_exit_delay_ms, LLC_BURST_EXIT_DELAY_MS))
 				{
 					  float f_resume;
-
             s_llc_rt.burst_exit_delay_ms = 0U;
-
             /*
              * 退出Burst：先恢复PWM，再恢复进入Burst前的频率点，
              * 然后做bumpless，避免回RUN瞬间频率跳变。
-             */
-			
+             */			
 				    f_resume = f_clampf(s_llc_rt.f_pre_burst_hz, s_llc.f_min, s_llc.f_max);
 
             llc_pwm_outputs_enable(1);
             s_burst_pwm_on = 1U;
-
+						s_llc.f_cmd = f_resume;
             llc_set_freq(f_resume, true);
             llc_ctrl_bumpless_init(LLC_VOUT_TARGET_V, vout, f_resume);
-            s_llc.f_cmd = f_resume;
+            
 #if DEBUG_PRINTF_BURST_MODE
             debug_printf("[BURST] EXIT: iout=%.2fA, f_resume=%.0fHz, vout=%.2fV, bst=%d\n",
                          s_llc_rt.meas.iout_a,
@@ -1972,7 +1964,26 @@ void llc_app_tick_1khz(void)
 			break;
 		}
 		case ST_FAULT:
-
+			/*
+			 * FAULT 恢复策略：
+			 * 1. 硬件故障(BKIN)清除：等 BKIN 电平恢复高 + 软件锁存清除
+			 * 2. 软件故障(OVP/OCP/UVP)清除：等测量值恢复正常
+			 * 3. 两种情况都满足后，延时 FAULT_RECOVER_MS 防抖，然后回到 ST_IDLE
+			 *
+			 * 注意：protect_clear_fault() 由外部调用（如 PFC 恢复流程/重启命令），
+			 * 此处仅检查故障是否已解除，不做主动清除。
+			 */
+			if (!llc_faults_present()) {
+				if (s_llc_rt.fault_recover_begin_ms == 0U) {
+					s_llc_rt.fault_recover_begin_ms = g_ms;
+				}
+				if (elapsed_reached(s_llc_rt.fault_recover_begin_ms, LLC_FAULT_RECOVER_MS)) {
+					s_llc_rt.fault_recover_begin_ms = 0U;
+					llc_state_enter(ST_IDLE);
+				}
+			} else {
+				s_llc_rt.fault_recover_begin_ms = 0U;
+			}
 			break;
 			
 		default:

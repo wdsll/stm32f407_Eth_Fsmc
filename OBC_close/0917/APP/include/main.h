@@ -32,6 +32,7 @@
 #include "pfc_control.h"
 #include "llc_control.h"
 #include "llc_soft_start.h"
+#include "bkin_selftest.h"
 /*********************************************************************************************************
 *                                              宏定义
 *********************************************************************************************************/
@@ -127,8 +128,8 @@
 /* Burst进入/退出 - 第一档轻载：1.5A进入，2.5A退出 */
 #define LLC_BURST_IOUT_ENTER_A        (1.5f)    // 进入阈值 <1.5A (轻载)
 #define LLC_BURST_IOUT_EXIT_A         (2.5f)    // 退出阈值 >2.5A (滞环1A)
-#define LLC_BURST_ENTER_DELAY_MS      (1000U)   // 进入延迟1秒(慢进入防抖动)
-#define LLC_BURST_EXIT_DELAY_MS       (50U)     // 退出延迟50ms(快退出)
+#define LLC_BURST_ENTER_DELAY_MS      (200U)   // 进入延迟200ms(慢进入防抖动)
+#define LLC_BURST_EXIT_DELAY_MS       (20U)     // 退出延迟20ms(快退出)
 #define LLC_BURST_F_ENTER_MAX_HZ  (LLC_F_MAX_HZ*0.90f)
 /*
  * Burst 100us 快环门控参数
@@ -164,6 +165,9 @@
 #define LLC_RUN_ENTRY_STABLE_TICKS     (2U)
 #define LLC_RUN_ENTRY_STABLE_WINDOW_V  (6.0f)
 #define LLC_RUN_ENTRY_TIMEOUT_MS       (400U)
+
+/* ==== LLC FAULT recovery ==== */
+#define LLC_FAULT_RECOVER_MS           (500U)    /* FAULT 恢复防抖延时：故障解除后等 500ms 再回 IDLE */
 
 /* ==== LLC frequency window ==== */
 #define LLC_F_MIN_HZ        (75000.0f)

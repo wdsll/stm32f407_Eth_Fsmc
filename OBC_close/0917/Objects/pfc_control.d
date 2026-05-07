@@ -40,4 +40,5 @@
   C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stddef.h \
   C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdarg.h HW/include\pwm.h \
   HW/include\protect_exti.h HW/include\llc_control.h \
-  APP/include/llc_soft_start.h APP/include/main.h
+  APP/include/llc_soft_start.h APP/include/main.h \
+  HW/include\bkin_selftest.h

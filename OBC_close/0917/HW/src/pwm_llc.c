@@ -184,10 +184,10 @@ static void llc_pwm_force_start(bool high_side_on)
 	// 2. 清零PWM脉冲值 - 确保输出为固定电平
     timer_channel_output_pulse_value_config(TIMER0, LLC_PWM_CH, 0U);
 	// 3. 配置输出模式为固定电平模式
-	timer_channel_output_mode_config(
-    TIMER0, LLC_PWM_CH,
-    high_side_on ? TIMER_OC_MODE_ACTIVE : TIMER_OC_MODE_INACTIVE
-);
+		timer_channel_output_mode_config(
+			TIMER0, LLC_PWM_CH,
+			high_side_on ? TIMER_OC_MODE_ACTIVE : TIMER_OC_MODE_INACTIVE
+		);
 
     // 4. 强制生成更新事件，确保配置生效
     timer_flag_clear(TIMER0, TIMER_FLAG_UP);

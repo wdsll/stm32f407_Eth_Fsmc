@@ -257,6 +257,19 @@ int main(void){
         }
     }
 
+    /* BKIN 刹车脚自检：不上高压，验证 Break 通道功能完整性
+     * 前置条件：llc_pwm_init() + protect_exti_init() 已完成
+     * 自检失败则死等，防止带病上高压 */
+    bkin_test_result_t bkin_result = bkin_selftest_run();
+    if (bkin_result != BKIN_TEST_PASS) {
+        debug_printf("[STARTUP] BKIN selftest FAILED: %s (0x%02X), system halted\r\n",
+                     bkin_selftest_result_str(bkin_result), (unsigned)bkin_result);
+        while (1) {
+            __NOP();
+        }
+    }
+    debug_printf("[STARTUP] BKIN selftest PASSED\r\n");
+
 		pfc_init();
 		llc_app_init();
 		delay_ms(1000);

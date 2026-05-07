@@ -647,6 +647,16 @@
               <FileType>5</FileType>
               <FilePath>.\HW\include\llc_control.h</FilePath>
             </File>
+            <File>
+              <FileName>bkin_selftest.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\HW\include\bkin_selftest.h</FilePath>
+            </File>
+            <File>
+              <FileName>bkin_selftest.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\HW\src\bkin_selftest.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
