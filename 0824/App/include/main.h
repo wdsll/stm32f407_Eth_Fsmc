@@ -139,19 +139,12 @@
 
 #define ADC_CHANNEL_QTY                 (5U)
 
-/*
- * 模拟基准输出。
- * CC/CV 是两个独立的模拟给定量，不应配置成互补 PWM。原理图却将 CV_PWM 接到
- * PA8/TIMER0_CH0、CUR_PWM 接到 PB13/TIMER0_CH0_ON；这两个引脚共用 TIMER0 CH0
- * 比较寄存器，只能输出同一 PWM 的主/互补波形，无法独立调节电流和电压给定。
- * 在修改硬件引脚或确认模拟电路确实需要互补关系前，禁止同时启用这两个定时器输出。
- */
+
 #define CV_PWM_PORT                     GPIOA
 #define CV_PWM_PIN                      GPIO_PIN_8      /* U17.41: CV_PWM */
 #define CV_PWM_RCU                      RCU_GPIOA
 #define CV_PWM_TIMER                    TIMER0
 #define CV_PWM_CH                       TIMER_CH_0
-
 #define CUR_PWM_PORT                    GPIOA
 #define CUR_PWM_PIN                     GPIO_PIN_0     /* U17.34: CUR-PWM */
 #define CUR_PWM_RCU                     RCU_GPIOA
@@ -162,28 +155,24 @@
 
 #define PWM_BASE_HZ                     (20000U)
 #define PWM_DUTY_SAFE                   (0.0f)
+#define CV_PWM_DUTY_MIN         (0.05f)         
+#define CV_PWM_DUTY_MAX         (0.95f)         
+#define CV_PWM_DUTY_INIT        (0.05f) 
+#define CC_PWM_DUTY_MIN         (0.02f)         
+#define CC_PWM_DUTY_MAX         (0.95f)         
+#define CC_PWM_DUTY_INIT        (0.02f)  
 
-/* CV_PWM (电压基准) 占空比限制 */
-#define CV_PWM_DUTY_MIN         (0.05f)         /* 最低占空比 (最低电压基准) */
-#define CV_PWM_DUTY_MAX         (0.95f)         /* 最高占空比 (最高电压基准) */
-#define CV_PWM_DUTY_INIT        (0.05f)         /* 初始最低 (安全) */
-
-/* CC_PWM (电流基准) 占空比限制 */
-#define CC_PWM_DUTY_MIN         (0.02f)         /* 最低占空比 (最小电流基准) */
-#define CC_PWM_DUTY_MAX         (0.95f)         /* 最高占空比 (最大电流基准) */
-#define CC_PWM_DUTY_INIT        (0.02f)         /* 初始最低 (安全) */
-
-/* 占空比斜率限制 (防突变, per 1ms tick) */
 #define PWM_DUTY_SLEW           (0.002f)
 
 #if 1
-/* LLC 软启动 (CV_PWM + CC_PWM 占空比缓升) */
+
 #define LLC_SOFTSTART_DURATION_MS  (500U)
 #define LLC_SOFTSTART_CV_START     (CV_PWM_DUTY_MIN)
-#define LLC_SOFTSTART_CV_TARGET    (0.50f)      /* 软启目标电压基准, 待台架精标 */
+#define LLC_SOFTSTART_CV_TARGET    (0.50f)      
 #define LLC_SOFTSTART_CC_START     (CC_PWM_DUTY_MIN)
-#define LLC_SOFTSTART_CC_TARGET    (0.30f)      /* 软启目标电流基准, 待台架精标 */
+#define LLC_SOFTSTART_CC_TARGET    (0.30f)      
 #endif
+
 
 /* 功率级及继电器控制 */
 #define LLC_EN_PORT                     GPIOB
@@ -331,7 +320,6 @@ static inline float f_clampf(float value, float low, float high)
 #define FAST_ADC_MAX_TICKS_PER_LOOP (10U)      /* 单次主循环最多追补的 100us tick */
 #define MAX_TICKS_PER_LOOP          (10U)      /* 单次主循环最多追补的 1ms tick */
 
-/* CC_PWM 别名 (与 CUR_PWM 同引脚 PA0/TIMER1_CH0, 兼容 pwm_llc.c 命名) */
 #define CC_PWM_PORT                 CUR_PWM_PORT
 #define CC_PWM_PIN                  CUR_PWM_PIN
 #define CC_PWM_RCU                  CUR_PWM_RCU

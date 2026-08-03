@@ -57,6 +57,7 @@ void pfc_tick_1khz(void)
         /* 等待母线电压建立 (NCP1654 软启动 ~50ms) */
         if (elapsed_reached(s_pfc_state_ms, 100U)) {
             s_pfc_state = PFC_STATE_RUN;
+					  s_pfc_state_ms = g_ms;
         }
         break;
 

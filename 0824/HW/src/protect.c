@@ -56,6 +56,10 @@ void protect_clear_fault(void)
 
 void protect_set_fault(fault_type_t f)
 {
+	  /* Fail safe immediately; do not wait for the next supervisor tick. */
+    gpio_bit_reset(OUT_RELAY_PORT, OUT_RELAY_PIN);
+    gpio_bit_reset(LLC_EN_PORT, LLC_EN_PIN);
+    gpio_bit_reset(PFC_RELAY_PORT, PFC_RELAY_PIN);
     s_fault_latched = true;
     g_fault = f;
     g_charger_state = MAIN_STEP_FAULT;

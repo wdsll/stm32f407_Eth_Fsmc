@@ -121,11 +121,8 @@ static void control_loop_tick_1khz(void)
     /* PFC 状态机 (NCP1654 外置, MCU 监控+继电器控制) */
     pfc_tick_1khz();
 
-    /* LLC 状态机 (单基准) */
-    llc_app_tick_1khz();
-
-    /* 充电状态机 (CC/CV/涓流) */
-    charger_state_machine_tick();
+    /* MCU updates references and sequences power; analog ICs close the loops. */
+    power_supervisor_tick_1khz();
 }
 /* ========== 启动自检 ========== */
 static bool adc_startup_check(void)
@@ -198,7 +195,7 @@ int main(void)
 
     /* 2. 调试串口 (USART2) */
     debug_printf_init(DEBUG_USART_BAUDRATE);
-    debug_printf("\r\n=== 1.5kW Honda OBC v0.1.2 (CV/CC dual PWM) ===\r\n");
+    debug_printf("\r\n=== 1.5kW OBC monitor FW v0.2.1 ===\r\n");
 
     /* 3. GPIO */
     hw_gpio_init();
@@ -206,11 +203,11 @@ int main(void)
     /* 4. SysTick 1ms */
     systick_1ms_init();
 	
-	  /* 5. CV_PWM(PA8/TIMER0_CH0) + CC_PWM(PA0/TIMER1_CH0) → RC滤波 → LLC IC 电压/电流基准 */
+    /* 5. PWM-to-DC references. Analog ICs close the CC/CV loops. */
     cv_pwm_init(PWM_BASE_HZ, CV_PWM_DUTY_INIT);
     cc_pwm_init(PWM_BASE_HZ, CC_PWM_DUTY_INIT);
 
-    /* 6. ADC 多通道 DMA (10通道) */
+    /* 6. ADC channels are used for monitoring/protection, never PWM correction. */
     adc_multi_init_dma(ADC0_1_2_EXTTRIG_REGULAR_NONE);
     adc_multi_start();
     adc_multi_trigger_fast();
@@ -237,12 +234,11 @@ int main(void)
     }
     debug_printf("[STARTUP] Preflight OK\r\n");
 
-    /* 11. PFC + LLC 初始化 */
+    /* 11. Power-stage supervisory sequencing (no digital control loop). */
     pfc_init();
-    llc_app_init();
+    power_supervisor_init();
 
-    /* 12. 进入待机 */
-    g_charger_state = MAIN_STEP_STANDBY;
+
     debug_printf("[MAIN] Enter standby\r\n");
     while (1) {
 			        uint32_t pending_ticks = 0U;
@@ -262,8 +258,8 @@ int main(void)
         /* 100us 快速 ADC 任务 */
         while (pending_adc_fast_ticks-- > 0U) {
             adc_multi_copy();
-            llc_app_tick_100us();
 					  adc_ac_sample_fast();
+					
             adc_multi_trigger_fast();
             if (pending_adc_fast_ticks > FAST_ADC_MAX_TICKS_PER_LOOP) {
                 s_adc_fast_tick_drop_count += (pending_adc_fast_ticks - FAST_ADC_MAX_TICKS_PER_LOOP);

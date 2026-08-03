@@ -40,6 +40,8 @@
 .\objects\llc_control.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
 .\objects\llc_control.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
 .\objects\llc_control.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h
-.\objects\llc_control.o: .\HW\include\pwm_llc.h
-.\objects\llc_control.o: .\HW\include\pfc_control.h
 .\objects\llc_control.o: .\HW\include\adc_dma.h
+.\objects\llc_control.o: .\HW\include\can_comm.h
+.\objects\llc_control.o: .\HW\include\pfc_control.h
+.\objects\llc_control.o: .\HW\include\protect.h
+.\objects\llc_control.o: .\HW\include\pwm_llc.h
