@@ -42,6 +42,10 @@
 #define AC_RTOP_OHM             (1320000.0f)
 #define AC_RBOT_OHM             (5100.0f)
 
+/* 200 ms includes 10 cycles at 50 Hz and 12 cycles at 60 Hz. */
+#define AC_RMS_WINDOW_SAMPLES   (ADC_FAST_SAMPLE_HZ / 5U)
+#define AC_RMS_CALIBRATION      (1.0f)       /* Bench calibration factor */
+
 /* VOUT: 240k + 4.7k → 分压比 1/52.06 */
 #define VOUT_RTOP_OHM           (240000.0f)
 #define VOUT_RBOT_OHM           (4700.0f)
@@ -133,7 +137,7 @@
 #define T_SENSE_LLC_MOS_PIN             GPIO_PIN_1
 #define T_SENSE_LLC_MOS_CH              ADC_CHANNEL_9   /* U17.27: T_SENSE_LLCMOS */
 
-#define ADC_CHANNEL_QTY                 (10U)
+#define ADC_CHANNEL_QTY                 (5U)
 
 /*
  * 模拟基准输出。

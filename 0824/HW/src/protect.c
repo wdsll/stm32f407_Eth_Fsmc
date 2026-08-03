@@ -87,10 +87,10 @@ void protect_tick_1khz(void)
     }
 
     /* 过温保护: PFC MOS / LLC MOS / 变压器 / 外壳 */
-    if (g_adc_multi.t_pfc_c > TEMP_SHUTDOWN_C) { protect_set_fault(FAULT_OVER_TEMP_PFC);  return; }
-    if (g_adc_multi.t_llc_c  > TEMP_SHUTDOWN_C) { protect_set_fault(FAULT_OVER_TEMP_LLC); return; }
-    if (g_adc_multi.t_tr_c   > TEMP_SHUTDOWN_C) { protect_set_fault(FAULT_OVER_TEMP_TR);  return; }
-    if (g_adc_multi.t_case_c > TEMP_SHUTDOWN_C) { protect_set_fault(FAULT_OVER_TEMP_CASE);return; }
+    //if (g_adc_multi.t_pfc_c > TEMP_SHUTDOWN_C) { protect_set_fault(FAULT_OVER_TEMP_PFC);  return; }
+    //if (g_adc_multi.t_llc_c  > TEMP_SHUTDOWN_C) { protect_set_fault(FAULT_OVER_TEMP_LLC); return; }
+    //if (g_adc_multi.t_tr_c   > TEMP_SHUTDOWN_C) { protect_set_fault(FAULT_OVER_TEMP_TR);  return; }
+    //if (g_adc_multi.t_case_c > TEMP_SHUTDOWN_C) { protect_set_fault(FAULT_OVER_TEMP_CASE);return; }
 }
 
 

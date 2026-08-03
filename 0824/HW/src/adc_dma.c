@@ -1,28 +1,24 @@
-/* adc_dma.c - ADC 多通道 DMA 采样 (10 通道, ADC0 only) */
+/* adc_dma.c - ADC 多通道 DMA 采样 (5 通道, ADC0 only) */
 #include "adc_dma.h"
 
 adc_multi_t g_adc_multi;
 
 static uint16_t s_adc0_dma_buf[ADC_CHANNEL_QTY];
-
+static float s_ac_square_sum;
+static uint32_t s_ac_sample_count;
 /* ========== ADC0 多通道 DMA 初始化 ========== */
 void adc_multi_init_dma(uint32_t exttrig)
 {
     rcu_periph_clock_enable(RCU_GPIOA);
-    rcu_periph_clock_enable(RCU_GPIOB);
     rcu_periph_clock_enable(RCU_GPIOC);
     rcu_periph_clock_enable(RCU_ADC0);
     rcu_periph_clock_enable(RCU_DMA0);
 
     /* ADC 引脚配置为模拟输入 (旧 SPL: GPIO_MODE_AIN, 无独立 PUPD 参数) */
     gpio_init(GPIOA, GPIO_MODE_AIN, GPIO_OSPEED_MAX,
-              GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_4 |
-              GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7);
-    gpio_init(GPIOC, GPIO_MODE_AIN, GPIO_OSPEED_MAX,
-              GPIO_PIN_4 | GPIO_PIN_5);
-    gpio_init(GPIOB, GPIO_MODE_AIN, GPIO_OSPEED_MAX,
-              GPIO_PIN_1);
-
+              GPIO_PIN_1 | GPIO_PIN_3 | GPIO_PIN_5 | GPIO_PIN_6);
+    gpio_init(GPIOC, GPIO_MODE_AIN, GPIO_OSPEED_MAX, GPIO_PIN_5);
+	
     rcu_adc_clock_config(RCU_CKADC_CKAPB2_DIV8);
 
     adc_deinit(ADC0);
@@ -33,9 +29,8 @@ void adc_multi_init_dma(uint32_t exttrig)
 
     /* 通道排序 (rank 0..9, 与 adc_multi_t 字段顺序一致) */
     uint8_t ch_list[ADC_CHANNEL_QTY] = {
-        AC_VOL_SAMPLE_CH, FAN_CS_SAMPLE_CH, BUS_VOL_SAMPLE_CH, T_SENSE_CASE_CH,
-        VOUT_SENSE_CH,    I_SENSE_CH,       T_SENSE_PFC_MOS_CH, T_SENSE_TR_CH,
-        VBT_SENSE_CH,     T_SENSE_LLC_MOS_CH
+        AC_VOL_SAMPLE_CH, BUS_VOL_SAMPLE_CH, VOUT_SENSE_CH,
+        I_SENSE_CH, VBT_SENSE_CH
     };
     for (uint8_t i = 0; i < ADC_CHANNEL_QTY; i++) {
         adc_regular_channel_config(ADC0, i, ch_list[i], ADC_SAMPLETIME_55POINT5);
@@ -77,17 +72,34 @@ void adc_multi_trigger_fast(void)
 void adc_multi_copy(void)
 {
     __disable_irq();
-    g_adc_multi.ac_vol_raw  = s_adc0_dma_buf[0];
-    g_adc_multi.fan_cs_raw  = s_adc0_dma_buf[1];
-    g_adc_multi.bus_vol_raw = s_adc0_dma_buf[2];
-    g_adc_multi.t_case_raw  = s_adc0_dma_buf[3];
-    g_adc_multi.vout_raw    = s_adc0_dma_buf[4];
-    g_adc_multi.isense_raw  = s_adc0_dma_buf[5];
-    g_adc_multi.t_pfc_raw   = s_adc0_dma_buf[6];
-    g_adc_multi.t_tr_raw    = s_adc0_dma_buf[7];
-    g_adc_multi.vbt_raw     = s_adc0_dma_buf[8];
-    g_adc_multi.t_llc_raw   = s_adc0_dma_buf[9];
+	  g_adc_multi.ac_vol_raw  = s_adc0_dma_buf[0];
+    g_adc_multi.bus_vol_raw = s_adc0_dma_buf[1];
+    g_adc_multi.vout_raw    = s_adc0_dma_buf[2];
+    g_adc_multi.isense_raw  = s_adc0_dma_buf[3];
+    g_adc_multi.vbt_raw     = s_adc0_dma_buf[4];
     __enable_irq();
+}
+
+/*
+ * AC_VOL_SENSE is the rectified mains waveform in the latest schematic.
+ * Calculate true RMS from the 10 kHz samples over 200 ms.  The window contains
+ * an integer number of both 50 Hz (10) and 60 Hz (12) mains cycles.
+ */
+void adc_ac_sample_fast(void)
+{
+    float ac_inst = adc_raw_to_voltage(g_adc_multi.ac_vol_raw,
+                                       AC_RTOP_OHM, AC_RBOT_OHM);
+
+    g_adc_multi.ac_vol_inst_v = ac_inst;
+    s_ac_square_sum += ac_inst * ac_inst;
+    s_ac_sample_count++;
+
+    if (s_ac_sample_count >= AC_RMS_WINDOW_SAMPLES) {
+        g_adc_multi.ac_vol_v = sqrtf(s_ac_square_sum /
+                                     (float)s_ac_sample_count) * AC_RMS_CALIBRATION;
+        s_ac_square_sum = 0.0f;
+        s_ac_sample_count = 0U;
+    }
 }
 
 void adc_multi_sample_aux_1khz(void)
@@ -98,11 +110,6 @@ void adc_multi_sample_aux_1khz(void)
     g_adc_multi.vout_v     = adc_raw_to_voltage(g_adc_multi.vout_raw,    VOUT_RTOP_OHM, VOUT_RBOT_OHM);
     g_adc_multi.vbat_v     = adc_raw_to_voltage(g_adc_multi.vbt_raw,     VBT_RTOP_OHM,  VBT_RBOT_OHM);
     g_adc_multi.iout_a     = adc_raw_to_current(g_adc_multi.isense_raw);
-    g_adc_multi.fan_cs_a   = adc_raw_to_fan_current(g_adc_multi.fan_cs_raw);
-    g_adc_multi.t_case_c   = ntc_raw_to_temp_c(g_adc_multi.t_case_raw);
-    g_adc_multi.t_pfc_c    = ntc_raw_to_temp_c(g_adc_multi.t_pfc_raw);
-    g_adc_multi.t_tr_c     = ntc_raw_to_temp_c(g_adc_multi.t_tr_raw);
-    g_adc_multi.t_llc_c    = ntc_raw_to_temp_c(g_adc_multi.t_llc_raw);
 }
 
 /* ========== 物理量转换 ========== */
@@ -121,7 +128,7 @@ float adc_raw_to_current(uint16_t raw)
     float i = (v_adc - v_offset) / (ISHUNT_OHM * IAMP_GAIN);
     return (i < 0.0f) ? 0.0f : i;
 }
-
+#if 0
 float adc_raw_to_fan_current(uint16_t raw)
 {
     float v_adc = ((float)raw * VREF_ADC) / (float)ADC_RESOLUTION;
@@ -141,3 +148,4 @@ float ntc_raw_to_temp_c(uint16_t raw)
     float inv_t = (1.0f / NTC_T0_K) + (logf(r_ntc / NTC_R0_OHM) / NTC_BETA);
     return (1.0f / inv_t) - 273.15f;
 }
+#endif

@@ -139,8 +139,10 @@ static bool adc_startup_check(void)
     adc_multi_sample_aux_1khz();
 
     /* 任意关键通道饱和 (满量程) 视为采样异常 */
+		if (g_adc_multi.ac_vol_raw  >= ADC_RESOLUTION) return false;
     if (g_adc_multi.bus_vol_raw >= ADC_RESOLUTION) return false;
     if (g_adc_multi.vout_raw    >= ADC_RESOLUTION) return false;
+		if (g_adc_multi.isense_raw  >= ADC_RESOLUTION) return false;
     if (g_adc_multi.vbt_raw     >= ADC_RESOLUTION) return false;
     return true;
 }
@@ -261,6 +263,7 @@ int main(void)
         while (pending_adc_fast_ticks-- > 0U) {
             adc_multi_copy();
             llc_app_tick_100us();
+					  adc_ac_sample_fast();
             adc_multi_trigger_fast();
             if (pending_adc_fast_ticks > FAST_ADC_MAX_TICKS_PER_LOOP) {
                 s_adc_fast_tick_drop_count += (pending_adc_fast_ticks - FAST_ADC_MAX_TICKS_PER_LOOP);
