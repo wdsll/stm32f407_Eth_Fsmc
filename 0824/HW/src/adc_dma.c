@@ -1,11 +1,16 @@
 /* adc_dma.c - ADC 多通道 DMA 采样 (5 通道, ADC0 only) */
 #include "adc_dma.h"
 
+#define AC_DIV_RATIO \
+    (5100.0f / (4.0f * 330000.0f + 5100.0f))
 adc_multi_t g_adc_multi;
 
 static uint16_t s_adc0_dma_buf[ADC_CHANNEL_QTY];
 static float s_ac_square_sum;
+static float s_ac_raw_sum;
+static uint64_t s_ac_raw_square_sum;
 static uint32_t s_ac_sample_count;
+static float s_ac_offset_raw = ADC_RESOLUTION * 0.5f;
 /* ========== ADC0 多通道 DMA 初始化 ========== */
 void adc_multi_init_dma(uint32_t exttrig)
 {
@@ -25,6 +30,7 @@ void adc_multi_init_dma(uint32_t exttrig)
     adc_special_function_config(ADC0, ADC_SCAN_MODE, ENABLE);
     adc_special_function_config(ADC0, ADC_CONTINUOUS_MODE, DISABLE);
     adc_external_trigger_source_config(ADC0, ADC_REGULAR_CHANNEL, exttrig);
+	  adc_external_trigger_config(ADC0, ADC_REGULAR_CHANNEL, ENABLE);
     adc_data_alignment_config(ADC0, ADC_DATAALIGN_RIGHT);
 
     /* 通道排序 (rank 0..9, 与 adc_multi_t 字段顺序一致) */
@@ -57,6 +63,8 @@ void adc_multi_init_dma(uint32_t exttrig)
     adc_enable(ADC0);
     dma_channel_enable(DMA0, DMA_CH0);
     adc_calibration_enable(ADC0);
+		s_ac_raw_square_sum = 0ULL;
+    s_ac_sample_count = 0U;
 }
 
 void adc_multi_start(void)
@@ -68,45 +76,91 @@ void adc_multi_trigger_fast(void)
 {
     adc_software_trigger_enable(ADC0, ADC_REGULAR_CHANNEL);
 }
+/*
+ * Copy only after DMA has completed all five channels.
+ * Disabling CPU interrupts cannot stop DMA, so the DMA full-transfer flag is
+ * the synchronization point between the peripheral and the CPU.
+ */
 
-void adc_multi_copy(void)
+bool adc_multi_copy_if_ready(void)
 {
-    __disable_irq();
-	  g_adc_multi.ac_vol_raw  = s_adc0_dma_buf[0];
+    if (dma_flag_get(DMA0, DMA_CH0, DMA_FLAG_FTF) == RESET) {
+        return false;
+    }
+
+    g_adc_multi.ac_vol_raw  = s_adc0_dma_buf[0];
     g_adc_multi.bus_vol_raw = s_adc0_dma_buf[1];
     g_adc_multi.vout_raw    = s_adc0_dma_buf[2];
     g_adc_multi.isense_raw  = s_adc0_dma_buf[3];
     g_adc_multi.vbt_raw     = s_adc0_dma_buf[4];
-    __enable_irq();
+
+    dma_flag_clear(DMA0, DMA_CH0, DMA_FLAG_FTF);
+    return true;
+}
+void adc_multi_copy(void)
+{
+	(void)adc_multi_copy_if_ready();
 }
 
 /*
- * AC_VOL_SENSE is the rectified mains waveform in the latest schematic.
- * Calculate true RMS from the 10 kHz samples over 200 ms.  The window contains
- * an integer number of both 50 Hz (10) and 60 Hz (12) mains cycles.
+ * AC_VOL_SENSE is a bipolar mains waveform centered at REF_1V65.
+ *
+ * Sampling rate: 5 kHz
+ * RMS window:    200 ms / 1000 samples
+ *
+ * The DC offset is removed using:
+ * RMS = sqrt(E[x^2] - E[x]^2)
  */
-void adc_ac_sample_fast(void)
+void adc_ac_sample_fast(uint16_t raw)
 {
-    float ac_inst = adc_raw_to_voltage(g_adc_multi.ac_vol_raw,
-                                       AC_RTOP_OHM, AC_RBOT_OHM);
-
-    g_adc_multi.ac_vol_inst_v = ac_inst;
-    s_ac_square_sum += ac_inst * ac_inst;
+    /* 累计原始码和原始码平方 */
+    s_ac_raw_sum += (uint64_t)raw;
+    s_ac_raw_square_sum +=
+        (uint64_t)raw * (uint64_t)raw;
     s_ac_sample_count++;
 
-    if (s_ac_sample_count >= AC_RMS_WINDOW_SAMPLES) {
-        g_adc_multi.ac_vol_v = sqrtf(s_ac_square_sum /
-                                     (float)s_ac_sample_count) * AC_RMS_CALIBRATION;
-        s_ac_square_sum = 0.0f;
-        s_ac_sample_count = 0U;
-    }
+	if (s_ac_sample_count >= AC_RMS_WINDOW_SAMPLES) {
+		float count = (float)s_ac_sample_count;
+		/* ADC直流中点，正常应接近2048码 */
+		float mean_raw = (float)s_ac_raw_sum / count;
+
+		float mean_square_raw = (float)s_ac_raw_square_sum / count;
+/*
+ * 去除REF_1V65直流偏置：
+ * variance = E[x2] - E[x]2
+ */
+		float variance_raw = mean_square_raw - mean_raw * mean_raw;
+		/*
+		 * 浮点计算可能产生很小的负数，
+		 * 因此开平方前进行保护。
+		 */
+		if (variance_raw < 0.0f) {
+				variance_raw = 0.0f;
+		}
+		float rms_raw = sqrtf(variance_raw);
+		/* ADC端交流有效值 */
+		float adc_rms_v = rms_raw*VREF_ADC/(float)ADC_RESOLUTION;
+		
+		/* 换算到交流输入端 */
+		g_adc_multi.ac_vol_v = adc_rms_v / AC_DIV_RATIO * AC_RMS_CALIBRATION;
+		
+		/* 保存实测直流中点，供瞬时值换算使用 */
+		s_ac_offset_raw = mean_raw;
+		
+		/* 开始下一个RMS窗口 */
+		s_ac_raw_sum = 0;
+		s_ac_raw_square_sum = 0;
+		s_ac_sample_count = 0;
+	}
+	/* 可选：保存带正负方向的瞬时交流电压 */
+	g_adc_multi.ac_vol_inst_v = ((float)raw - s_ac_offset_raw)*VREF_ADC/(float)ADC_RESOLUTION/AC_DIV_RATIO;
 }
 
 void adc_multi_sample_aux_1khz(void)
 {
     /* 1kHz 物理量转换 */
     g_adc_multi.bus_vol_v  = adc_raw_to_voltage(g_adc_multi.bus_vol_raw, VBUS_RTOP_OHM, VBUS_RBOT_OHM);
-    g_adc_multi.ac_vol_v   = adc_raw_to_voltage(g_adc_multi.ac_vol_raw,  AC_RTOP_OHM,   AC_RBOT_OHM);
+    //g_adc_multi.ac_vol_v   = adc_raw_to_voltage(g_adc_multi.ac_vol_raw,  AC_RTOP_OHM,   AC_RBOT_OHM);
     g_adc_multi.vout_v     = adc_raw_to_voltage(g_adc_multi.vout_raw,    VOUT_RTOP_OHM, VOUT_RBOT_OHM);
     g_adc_multi.vbat_v     = adc_raw_to_voltage(g_adc_multi.vbt_raw,     VBT_RTOP_OHM,  VBT_RBOT_OHM);
     g_adc_multi.iout_a     = adc_raw_to_current(g_adc_multi.isense_raw);

@@ -43,7 +43,7 @@
 #define AC_RBOT_OHM             (5100.0f)
 
 /* 200 ms includes 10 cycles at 50 Hz and 12 cycles at 60 Hz. */
-#define AC_RMS_WINDOW_SAMPLES   (ADC_FAST_SAMPLE_HZ / 5U)
+#define AC_RMS_WINDOW_SAMPLES   (5000U / 5U)
 #define AC_RMS_CALIBRATION      (1.0f)       /* Bench calibration factor */
 
 /* VOUT: 240k + 4.7k → 分压比 1/52.06 */
@@ -249,7 +249,7 @@
 #define IRQ_PRIO_DMA_SUB            (0U)
 #define IRQ_PRIO_SYSTICK_PREEMPT    (2U)      /* SysTick 1kHz */
 #define IRQ_PRIO_SYSTICK_SUB        (0U)
-#define IRQ_PRIO_MEASURE_PREEMPT    (2U)      /* TIMER3 100us */
+#define IRQ_PRIO_MEASURE_PREEMPT    (2U)      /* TIMER3 200us */
 #define IRQ_PRIO_MEASURE_SUB        (1U)
 #define IRQ_PRIO_CAN_PREEMPT        (3U)      /* CAN RX */
 #define IRQ_PRIO_CAN_SUB            (0U)
@@ -314,11 +314,6 @@ static inline float f_clampf(float value, float low, float high)
 {
     return (value < low) ? low : ((value > high) ? high : value);
 }
-
-/* ========== 100us 快速采样 / 主循环节流 ========== */
-#define ADC_FAST_SAMPLE_HZ          (10000U)   /* 100us 采样率 = 10kHz */
-#define FAST_ADC_MAX_TICKS_PER_LOOP (10U)      /* 单次主循环最多追补的 100us tick */
-#define MAX_TICKS_PER_LOOP          (10U)      /* 单次主循环最多追补的 1ms tick */
 
 #define CC_PWM_PORT                 CUR_PWM_PORT
 #define CC_PWM_PIN                  CUR_PWM_PIN

@@ -45,7 +45,7 @@ void adc_multi_init_dma(uint32_t exttrig);
 void adc_multi_start(void);
 void adc_multi_trigger_fast(void);
 void adc_multi_copy(void);
-void adc_ac_sample_fast(void);
+void adc_ac_sample_fast(uint16_t raw);
 void adc_multi_sample_aux_1khz(void);
 
 /* 物理量转换 */
