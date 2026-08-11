@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\Objects\0824.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Objects\0824.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Mon Aug 10 16:07:56 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Tue Aug 11 09:06:08 2026
 <BR><P>
 <H3>Maximum Stack Usage =        312 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -566,7 +566,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[99]"></a>adc_calibration_enable</STRONG> (Thumb, 42 bytes, Stack size 0 bytes, gd32f30x_adc.o(i.adc_calibration_enable))
+<P><STRONG><a name="[97]"></a>adc_calibration_enable</STRONG> (Thumb, 42 bytes, Stack size 0 bytes, gd32f30x_adc.o(i.adc_calibration_enable))
 <BR><BR>[Called By]<UL><LI><a href="#[89]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_multi_init_dma
 </UL>
 
@@ -589,11 +589,11 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[89]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_multi_init_dma
 </UL>
 
-<P><STRONG><a name="[96]"></a>adc_dma_mode_enable</STRONG> (Thumb, 10 bytes, Stack size 0 bytes, gd32f30x_adc.o(i.adc_dma_mode_enable))
+<P><STRONG><a name="[99]"></a>adc_dma_mode_enable</STRONG> (Thumb, 10 bytes, Stack size 0 bytes, gd32f30x_adc.o(i.adc_dma_mode_enable))
 <BR><BR>[Called By]<UL><LI><a href="#[89]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_multi_init_dma
 </UL>
 
-<P><STRONG><a name="[97]"></a>adc_enable</STRONG> (Thumb, 18 bytes, Stack size 0 bytes, gd32f30x_adc.o(i.adc_enable))
+<P><STRONG><a name="[96]"></a>adc_enable</STRONG> (Thumb, 18 bytes, Stack size 0 bytes, gd32f30x_adc.o(i.adc_enable))
 <BR><BR>[Called By]<UL><LI><a href="#[89]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_multi_init_dma
 </UL>
 
@@ -623,22 +623,23 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[85]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_multi_copy
 </UL>
 
-<P><STRONG><a name="[89]"></a>adc_multi_init_dma</STRONG> (Thumb, 294 bytes, Stack size 72 bytes, adc_dma.o(i.adc_multi_init_dma))
+<P><STRONG><a name="[89]"></a>adc_multi_init_dma</STRONG> (Thumb, 322 bytes, Stack size 72 bytes, adc_dma.o(i.adc_multi_init_dma))
 <BR><BR>[Stack]<UL><LI>Max Depth = 104<LI>Call Chain = adc_multi_init_dma &rArr; dma_init
 </UL>
 <BR>[Calls]<UL><LI><a href="#[8c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_special_function_config
 <LI><a href="#[90]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_regular_channel_config
 <LI><a href="#[8d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_external_trigger_source_config
 <LI><a href="#[8e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_external_trigger_config
-<LI><a href="#[97]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_enable
-<LI><a href="#[96]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_dma_mode_enable
+<LI><a href="#[96]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_enable
+<LI><a href="#[99]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_dma_mode_enable
 <LI><a href="#[77]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_deinit
 <LI><a href="#[8f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_data_alignment_config
 <LI><a href="#[91]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_channel_length_config
-<LI><a href="#[99]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_calibration_enable
+<LI><a href="#[97]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_calibration_enable
 <LI><a href="#[7d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rcu_periph_clock_enable
 <LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_init
 <LI><a href="#[94]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;dma_init
+<LI><a href="#[88]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;dma_flag_clear
 <LI><a href="#[92]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;dma_deinit
 <LI><a href="#[95]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;dma_circulation_enable
 <LI><a href="#[98]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;dma_channel_enable
@@ -912,7 +913,8 @@ Global Symbols
 <P><STRONG><a name="[88]"></a>dma_flag_clear</STRONG> (Thumb, 16 bytes, Stack size 8 bytes, gd32f30x_dma.o(i.dma_flag_clear))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = dma_flag_clear
 </UL>
-<BR>[Called By]<UL><LI><a href="#[86]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_multi_copy_if_ready
+<BR>[Called By]<UL><LI><a href="#[89]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_multi_init_dma
+<LI><a href="#[86]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_multi_copy_if_ready
 </UL>
 
 <P><STRONG><a name="[87]"></a>dma_flag_get</STRONG> (Thumb, 24 bytes, Stack size 12 bytes, gd32f30x_dma.o(i.dma_flag_get))

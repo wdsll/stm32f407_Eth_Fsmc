@@ -6,7 +6,7 @@
 adc_multi_t g_adc_multi;
 
 static uint16_t s_adc0_dma_buf[ADC_CHANNEL_QTY];
-static float s_ac_square_sum;
+
 static float s_ac_raw_sum;
 static uint64_t s_ac_raw_square_sum;
 static uint32_t s_ac_sample_count;
@@ -58,13 +58,17 @@ void adc_multi_init_dma(uint32_t exttrig)
     dma.priority     = DMA_PRIORITY_HIGH;
     dma_init(DMA0, DMA_CH0, dma);
     dma_circulation_enable(DMA0, DMA_CH0);
-
-    adc_dma_mode_enable(ADC0);
+		dma_flag_clear(DMA0, DMA_CH0, DMA_FLAG_G);
+		
     adc_enable(ADC0);
-    dma_channel_enable(DMA0, DMA_CH0);
-    adc_calibration_enable(ADC0);
-		s_ac_raw_square_sum = 0ULL;
+		adc_calibration_enable(ADC0);
+    dma_channel_enable(DMA0, DMA_CH0); 
+		adc_dma_mode_enable(ADC0);
+		
+		s_ac_raw_sum = 0.0f;
+    s_ac_raw_square_sum = 0ULL;
     s_ac_sample_count = 0U;
+		s_ac_offset_raw = ADC_RESOLUTION * 0.5f;
 }
 
 void adc_multi_start(void)
