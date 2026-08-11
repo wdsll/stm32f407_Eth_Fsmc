@@ -5,7 +5,7 @@
 * 作    者：Rengar
 * 完成日期：2026年07月29日
 * 硬件参考：Honda 1.5KW Charger 260729 原理图
-* MCU 平台：GD32F303RE (Cortex-M4, 108MHz)
+* MCU 平台：GD32F303RE (Cortex-M4, 120MHz)
 * 拓扑：PFC(NCP1654 模拟控制) + LLC(专用IC 模拟控制) + 隔离CAN(ISO1050)
 * 控制方式：PFC/LLC 均为模拟芯片控制, MCU 仅做监控/使能/CV_PWM基准/CAN/充电状态机
 * MCU 角色：监控器 (非功率环控制器), 通过 CV_PWM(PA8) 调节 LLC 输出电压基准

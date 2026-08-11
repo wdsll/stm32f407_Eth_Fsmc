@@ -85,7 +85,7 @@ void power_supervisor_init(void)
 
 void power_supervisor_request(bool enable)
 {
-		s_enable_requested = ENABLE;
+		s_enable_requested = enable;
 }
 
 bool power_supervisor_requested(void)
@@ -148,6 +148,7 @@ void power_supervisor_tick_1khz(void)
 				 gpio_bit_set(LLC_EN_PORT, LLC_EN_PIN);
 				 enter_state(MAIN_STEP_CC); /* Legacy CAN state value: running. */
 			 }
+			 break;
 		}
 		case MAIN_STEP_CC:
 		{
