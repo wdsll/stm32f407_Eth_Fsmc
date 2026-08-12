@@ -91,6 +91,19 @@
 #define IOUT_OCP_A              (30.0f)      /* 过流保护 */
 #define IOUT_SOFT_START_A       (3.0f)       /* 软启电流限制 */
 
+/* Charging-stage qualification and safety limits (1 kHz supervisor). */
+#define CHARGE_CV_ENTRY_MARGIN_V        (0.5f)
+#define CHARGE_CV_ENTRY_DEBOUNCE_MS     (1000U)
+#define CHARGE_FINISH_CURRENT_A         (1.0f)
+#define CHARGE_FINISH_VOLTAGE_MARGIN_V  (0.5f)
+#define CHARGE_FINISH_DEBOUNCE_MS       (30000U)
+#if test_mode 
+#define CHARGE_CC_TIMEOUT_MS            (8U * 60U * 60U * 1000U)
+#define CHARGE_CV_TIMEOUT_MS            (3U * 60U * 60U * 1000U)
+#else 
+#define CHARGE_CC_TIMEOUT_MS            (8U * 1000U)
+#define CHARGE_CV_TIMEOUT_MS            (3U * 1000U)
+#endif
 
 /*
  * 模拟采样网络（引脚号为 U17 的 LQFP64 封装引脚号）。
@@ -284,6 +297,7 @@ typedef enum {
     FAULT_OVER_TEMP_TR,
     FAULT_OVER_TEMP_CASE,
     FAULT_CAN_TIMEOUT,
+	  FAULT_CHARGE_TIMEOUT,
     FAULT_INVALID
 } fault_type_t;
 

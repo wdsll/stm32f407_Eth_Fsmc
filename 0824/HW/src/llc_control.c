@@ -36,6 +36,8 @@ static float s_voltage_reference_v;
 static float s_current_reference_a;
 static uint32_t s_state_started_ms;
 static uint32_t s_last_status_ms;
+static uint32_t s_qualification_started_ms;
+static bool s_qualification_active;
 /*********************************************************************************************************
 *                                              函数实现
 *********************************************************************************************************/
@@ -65,10 +67,28 @@ static void outputs_off(void)
     pfc_disable();
 }
 
+static bool condition_held(bool condition,uint32_t duration_ms)
+{
+	  if (!condition) {
+        s_qualification_active = false;
+        return false;
+    }
+		
+		if (!s_qualification_active) {
+        s_qualification_active = true;
+        s_qualification_started_ms = g_ms;
+        return false;
+    }
+		
+		return elapsed_reached(s_qualification_started_ms,duration_ms);
+}
+
 static void enter_state(charger_state_t state)
 {
 	  g_charger_state = state;
     s_state_started_ms = g_ms;
+	
+		s_qualification_active = false;
 }
 /* ========== 状态机 ========== */
 void power_supervisor_init(void)
@@ -157,15 +177,60 @@ void power_supervisor_tick_1khz(void)
 				 outputs_off();
 				 enter_state(MAIN_STEP_STANDBY);
 			}
-			else if(g_adc_multi.vout_v > OUTPUT_RELAY_MIN_V)
+			else if(elapsed_reached(s_state_started_ms,CHARGE_CC_TIMEOUT_MS))
 			{
-				 gpio_bit_set(OUT_RELAY_PORT, OUT_RELAY_PIN);
-				 gpio_bit_reset(LED_RED_PORT, LED_RED_PIN);
-				 gpio_bit_set(LED_GREEN_PORT, LED_GREEN_PIN);
+				protect_set_fault(FAULT_CHARGE_TIMEOUT);
 			}
-			else if(elapsed_reached(s_state_started_ms,LLC_START_TIMEOUT_MS))
+			else if(condition_held(s_voltage_reference_v > BATTERY_PRESENT_V && g_adc_multi.vbat_v >= (s_voltage_reference_v - CHARGE_CV_ENTRY_MARGIN_V),CHARGE_CV_ENTRY_DEBOUNCE_MS))
+			{
+				enter_state(MAIN_STEP_CV);
+			}
+			else if(g_adc_multi.vout_v>OUTPUT_RELAY_MIN_V)
+			{
+				gpio_bit_set(OUT_RELAY_PORT, OUT_RELAY_PIN);
+				gpio_bit_reset(LED_RED_PORT, LED_RED_PIN);
+				gpio_bit_set(LED_GREEN_PORT, LED_GREEN_PIN);
+			}
+		  else if (elapsed_reached(s_state_started_ms, LLC_START_TIMEOUT_MS))
 			{
 				protect_set_fault(FAULT_BUS_UVP);
+			}
+			break;
+		}
+		case MAIN_STEP_CV:
+		{
+			if(!s_enable_requested)
+			{
+				outputs_off();
+				enter_state(MAIN_STEP_STANDBY);
+			}
+			else if(elapsed_reached(s_state_started_ms,CHARGE_CV_TIMEOUT_MS))
+			{
+				protect_set_fault(FAULT_CHARGE_TIMEOUT);
+			}
+			else
+			{
+			/* The analog IC owns the CV loop; the MCU only qualifies completion. */
+				gpio_bit_set(OUT_RELAY_PORT, OUT_RELAY_PIN);
+				gpio_bit_reset(LED_RED_PORT, LED_RED_PIN);
+				gpio_bit_set(LED_GREEN_PORT, LED_GREEN_PIN);
+				if(condition_held(s_voltage_reference_v>BATTERY_PRESENT_V&&g_adc_multi.vbat_v>=(s_voltage_reference_v - CHARGE_FINISH_VOLTAGE_MARGIN_V)
+					&& g_adc_multi.iout_a >= 0 && g_adc_multi.iout_a <= CHARGE_FINISH_CURRENT_A,CHARGE_FINISH_DEBOUNCE_MS))
+				{
+					outputs_off();
+					enter_state(MAIN_STEP_FINISHED);
+				}
+			}
+			break;
+		}
+		case MAIN_STEP_FINISHED:
+		{
+			outputs_off();
+			gpio_bit_reset(LED_RED_PORT,LED_RED_PIN);
+			gpio_bit_set(LED_GREEN_PORT,LED_GREEN_PIN);
+			if(!s_enable_requested)
+			{
+				enter_state(MAIN_STEP_STANDBY);
 			}
 			break;
 		}
