@@ -7,10 +7,10 @@ adc_multi_t g_adc_multi;
 
 static uint16_t s_adc0_dma_buf[ADC_CHANNEL_QTY];
 
-static float s_ac_raw_sum;
+
 static uint64_t s_ac_raw_square_sum;
 static uint32_t s_ac_sample_count;
-static float s_ac_offset_raw = ADC_RESOLUTION * 0.5f;
+
 /* ========== ADC0 多通道 DMA 初始化 ========== */
 void adc_multi_init_dma(uint32_t exttrig)
 {
@@ -65,10 +65,8 @@ void adc_multi_init_dma(uint32_t exttrig)
     dma_channel_enable(DMA0, DMA_CH0); 
 		adc_dma_mode_enable(ADC0);
 		
-		s_ac_raw_sum = 0.0f;
     s_ac_raw_square_sum = 0ULL;
     s_ac_sample_count = 0U;
-		s_ac_offset_raw = ADC_RESOLUTION * 0.5f;
 }
 
 void adc_multi_start(void)
@@ -107,57 +105,38 @@ void adc_multi_copy(void)
 }
 
 /*
- * AC_VOL_SENSE is a bipolar mains waveform centered at REF_1V65.
+ * AC_VOL_SENSE_1 is a ground-referenced, full-wave rectified mains waveform.
+ * The revised analogue front end no longer adds a mid-supply DC offset, so
+ * RMS must be calculated directly from E[x^2]; subtracting E[x]^2 would
+ * incorrectly calculate the rectified waveform's standard deviation.
  *
  * Sampling rate: 5 kHz
  * RMS window:    200 ms / 1000 samples
- *
- * The DC offset is removed using:
- * RMS = sqrt(E[x^2] - E[x]^2)
+ * RMS = sqrt(E[x^2])
  */
 void adc_ac_sample_fast(uint16_t raw)
 {
-    /* 累计原始码和原始码平方 */
-    s_ac_raw_sum += (uint64_t)raw;
-    s_ac_raw_square_sum +=
-        (uint64_t)raw * (uint64_t)raw;
+    /* Accumulate the square of the unipolar ADC sample. */
+    s_ac_raw_square_sum += (uint64_t)raw * (uint64_t)raw;
     s_ac_sample_count++;
 
 	if (s_ac_sample_count >= AC_RMS_WINDOW_SAMPLES) {
 		float count = (float)s_ac_sample_count;
-		/* ADC直流中点，正常应接近2048码 */
-		float mean_raw = (float)s_ac_raw_sum / count;
 
 		float mean_square_raw = (float)s_ac_raw_square_sum / count;
-/*
- * 去除REF_1V65直流偏置：
- * variance = E[x2] - E[x]2
- */
-		float variance_raw = mean_square_raw - mean_raw * mean_raw;
-		/*
-		 * 浮点计算可能产生很小的负数，
-		 * 因此开平方前进行保护。
-		 */
-		if (variance_raw < 0.0f) {
-				variance_raw = 0.0f;
-		}
-		float rms_raw = sqrtf(variance_raw);
+
+		float rms_raw = sqrtf(mean_square_raw);
 		/* ADC端交流有效值 */
 		float adc_rms_v = rms_raw*VREF_ADC/(float)ADC_RESOLUTION;
 		
 		/* 换算到交流输入端 */
 		g_adc_multi.ac_vol_v = adc_rms_v / AC_DIV_RATIO * AC_RMS_CALIBRATION;
 		
-		/* 保存实测直流中点，供瞬时值换算使用 */
-		s_ac_offset_raw = mean_raw;
-		
-		/* 开始下一个RMS窗口 */
-		s_ac_raw_sum = 0;
 		s_ac_raw_square_sum = 0;
 		s_ac_sample_count = 0;
 	}
 	/* 可选：保存带正负方向的瞬时交流电压 */
-	g_adc_multi.ac_vol_inst_v = ((float)raw - s_ac_offset_raw)*VREF_ADC/(float)ADC_RESOLUTION/AC_DIV_RATIO;
+	g_adc_multi.ac_vol_inst_v = (float)raw*VREF_ADC/(float)ADC_RESOLUTION/AC_DIV_RATIO;
 }
 
 void adc_multi_sample_aux_1khz(void)

@@ -13,7 +13,7 @@
 
 typedef struct {
     /* 原始 ADC 值 (索引对应扫描序列) */
-    uint16_t ac_vol_raw;     /* PA1  AC_VOL_SENSE */
+    uint16_t ac_vol_raw;     /* PA1  AC_VOL_SENSE_1 (full-wave rectified) */
     //uint16_t fan_cs_raw;     /* PA2  FAN_CS */
     uint16_t bus_vol_raw;    /* PA3  BUS_VOL_SENSE */
     //uint16_t t_case_raw;     /* PA4  T_SENSE_CASE */
@@ -26,7 +26,7 @@ typedef struct {
 
     /* 转换后的物理量 */
     float    ac_vol_v;
-	  float    ac_vol_inst_v;  /* Rectified instantaneous voltage for diagnostics */
+	  float    ac_vol_inst_v;  /* Rectified instantaneous input voltage*/
 	
     //float    fan_cs_a;
     float    bus_vol_v;

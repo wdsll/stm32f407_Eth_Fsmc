@@ -112,7 +112,7 @@
  
 #define AC_VOL_SAMPLE_PORT              GPIOA
 #define AC_VOL_SAMPLE_PIN               GPIO_PIN_1
-#define AC_VOL_SAMPLE_CH                ADC_CHANNEL_1   /* U17.15: AC_VOL_SENSE */
+#define AC_VOL_SAMPLE_CH                ADC_CHANNEL_1   /* U17.15: AC_VOL_SENSE_1 */
 
 #define FAN_CS_SAMPLE_PORT              GPIOA
 #define FAN_CS_SAMPLE_PIN               GPIO_PIN_2
