@@ -22,6 +22,10 @@
 static volatile bool s_fault_latched = false;
 static volatile bool s_clear_pulse_active = false;
 static uint32_t s_clear_pulse_started_ms = 0U;
+
+static bool s_clear_verify_pending = false;
+#define CLEAR_PULSE_MS          (10U)
+#define CLEAR_RELEASE_SETTLE_MS (5U)
 /*********************************************************************************************************
 *                                              函数实现
 *********************************************************************************************************/
@@ -49,7 +53,8 @@ bool protect_fault_latched(void) { return s_fault_latched; }
 
 void protect_clear_fault_async(void)
 {
-    if (!s_clear_pulse_active) {
+    /* CLEAR is allowed to release the external hardware latch; verify afterwards. */
+    if (!s_clear_pulse_active && !s_clear_verify_pending) {
         gpio_bit_set(HARD_FAULT_CLR_PORT, HARD_FAULT_CLR_PIN);
         s_clear_pulse_started_ms = g_ms;
         s_clear_pulse_active = true;
@@ -62,9 +67,13 @@ void protect_clear_fault(void)
 {
     /* 脉冲清除外部锁存: 拉高 -> 延时 -> 拉低 (D触发器清零需保持一定脉宽) */
     gpio_bit_set(HARD_FAULT_CLR_PORT, HARD_FAULT_CLR_PIN);
-    delay_ms(10U);
+    delay_ms(CLEAR_PULSE_MS);
     gpio_bit_reset(HARD_FAULT_CLR_PORT, HARD_FAULT_CLR_PIN);
-    s_fault_latched = false;
+    delay_ms(CLEAR_RELEASE_SETTLE_MS);
+    if (!protect_fault_active_hw()) {
+        s_fault_latched = false;
+        g_fault = FAULT_NONE;
+    }
 }
 
 void protect_set_fault(fault_type_t f)
@@ -84,12 +93,20 @@ void protect_tick_1khz(void)
     extern adc_multi_t g_adc_multi;
 	
     /* Finish a requested clear pulse without stalling the 1 kHz scheduler. */
-    if (s_clear_pulse_active && elapsed_reached(s_clear_pulse_started_ms, 10U)) {
+    if (s_clear_pulse_active && elapsed_reached(s_clear_pulse_started_ms, CLEAR_PULSE_MS)) {
         gpio_bit_reset(HARD_FAULT_CLR_PORT, HARD_FAULT_CLR_PIN);
         s_fault_latched = false;
-        s_clear_pulse_active = false;
+        s_clear_verify_pending = true;
+        s_clear_pulse_started_ms = g_ms;
     }
-
+    if (s_clear_verify_pending && elapsed_reached(s_clear_pulse_started_ms, CLEAR_RELEASE_SETTLE_MS)) 
+		{
+        s_clear_verify_pending = false;
+        if (!protect_fault_active_hw()) {
+            s_fault_latched = false;
+            g_fault = FAULT_NONE;
+				}
+		}
     if (g_charger_state == MAIN_STEP_FAULT) return;
 
     /* LLC_FAULT_CHECK (D触发器输出, 低=故障) */

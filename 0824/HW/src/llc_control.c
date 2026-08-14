@@ -27,12 +27,13 @@
 #define BATTERY_PRESENT_V       (10.0f)   // 判定"电池已接入"的最低电压
 #define OUTPUT_RELAY_MIN_V      (10.0f)   // CC 态判定输出已建起的电压门限
 #define LLC_START_TIMEOUT_MS    (1500U)   // C2：名实不符，实际用于"CC 后 1.5s 输出未建起→报 BUS_UVP"
-#define PFC_READY_TIMEOUT_MS    (3000U)
+
+//#define PFC_READY_TIMEOUT_MS    (3000U)
 //#define CAN_STATUS_PERIOD_MS    (100U)    //CAN 状态帧上报周期 100ms（10Hz）
 
 #define CV_REFERENCE_MAX_V      (80.0f)   // CV_PWM 占空比换算满量程电压（344/80V）
 
-#define CC_REFERENCE_MAX_A      (20.0f)  // CC_PWM 占空比换算满量程电流（? 全局 C3：满量程≈24.8A，OCP=30A 超量程）
+#define CC_REFERENCE_MAX_A      (20.0f)  // CC_PWM 占空比换算满量程电流（全局 C3：满量程≈24.8A，OCP=30A 超量程）
 
 /*********************************************************************************************************
 *                                              内部变量

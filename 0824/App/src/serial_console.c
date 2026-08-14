@@ -57,7 +57,7 @@ static void execute_command(char *line)
 		power_supervisor_request(false);
 		debug_printf("OK STOP\r\n");
 	}
-	else if(scanf(line,"SET %f %f",&voltage_v,&current_a) == 2)
+	else if(sscanf(line,"SET %f %f",&voltage_v,&current_a) == 2)
 	{
 		if(power_supervisor_requested())
 		{
@@ -95,10 +95,12 @@ static void execute_command(char *line)
 		{
 			debug_printf("ERR STOP before CLEAR\r\n");
 		}
-		else if(protect_fault_active_hw())
-		{
-			debug_printf("ERR hardware fault still active\r\n");
-		}
+		//允许 CLEAR 释放外部硬件锁存，采用非阻塞 10ms 清除脉冲和 5ms 释放等待；
+		//只有硬件故障输入确实解除后，才清除软件锁存和故障码，从而兼顾故障恢复与防止误复位。
+		//else if(protect_fault_active_hw())
+		//{
+		//	debug_printf("ERR hardware fault still active\r\n");
+		//}
 		else
 		{
 			protect_clear_fault_async();
@@ -107,7 +109,7 @@ static void execute_command(char *line)
 	}
 	else
 	{
-		debug_printf("ERR unknow command; type HELP\r\n");
+		debug_printf("ERR unknown command; type HELP\r\n");
 	}
 }
 

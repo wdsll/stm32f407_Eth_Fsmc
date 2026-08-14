@@ -83,13 +83,20 @@
 #define RUN_OK_LOW_V            (370.0f)
 #define RUN_OK_HIGH_V           (390.0f)
 
+#define VBUS_OVP_V              (420.0f)     /* Absolute DC-link software trip */
+#define VBUS_OVP_DEBOUNCE_MS    (20U)
+#define VBUS_UVP_DEBOUNCE_MS    (200U)
+#define PFC_READY_TIMEOUT_MS    (3000U)
+
 #define VOUT_TARGET_V           (58.0f)      /* 12S 锂电满充 4.2×12=50.4, CC/CV */
 #define VOUT_CC_V               (43.0f)      /* CC 阶段输出电压上限 */
 #define VOUT_CV_V               (58.0f)      /* CV 阶段目标电压 */
-#define VOUT_OVP_V              (80.0f)      /* 输出过压保护 */
+#define VOUT_OVP_V              (64.0f)      /* 输出过压保护 */
 #define IOUT_RATED_A            (20.0f)      /* 1.5kW/75V ≈ 20A */
-#define IOUT_OCP_A              (30.0f)      /* 过流保护 */
+#define IOUT_OCP_A              (24.0f)      /* 过流保护 */
 #define IOUT_SOFT_START_A       (3.0f)       /* 软启电流限制 */
+
+
 
 /* Charging-stage qualification and safety limits (1 kHz supervisor). */
 #define CHARGE_CV_ENTRY_MARGIN_V        (0.5f)
@@ -290,6 +297,7 @@ typedef enum {
     FAULT_OCP,
     FAULT_OVP,
     FAULT_BUS_UVP,
+	  FAULT_BUS_OVP,
     FAULT_OVER_TEMP_PFC,
     FAULT_OVER_TEMP_LLC,
     FAULT_OVER_TEMP_TR,
