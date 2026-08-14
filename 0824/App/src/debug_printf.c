@@ -38,6 +38,10 @@ void debug_printf(const char *fmt, ...)
     va_end(args);
     if (len <= 0) return;
 
+		if((size_t)len >= sizeof(line))
+		{
+			len = (int)sizeof(line) - 1;
+		}
     for (int i = 0; i < len; i++) {
         uint16_t next = (s_tx_head + 1U) % DEBUG_BUF_SIZE;
         if (next == s_tx_tail) break;  /* »º³åÇøÂú, ¶ªÆú */
@@ -48,8 +52,8 @@ void debug_printf(const char *fmt, ...)
 
 void debug_tx_task(void)
 {
-    while (s_tx_tail != s_tx_head) {
-        while (RESET == usart_flag_get(DEBUG_USART, USART_FLAG_TBE)) {}
+    while ((s_tx_tail != s_tx_head) && (SET == usart_flag_get(DEBUG_USART,USART_FLAG_TBE)))
+		{    
         usart_data_transmit(DEBUG_USART, (uint8_t)s_tx_buf[s_tx_tail]);
         s_tx_tail = (s_tx_tail + 1U) % DEBUG_BUF_SIZE;
     }
@@ -58,4 +62,13 @@ void debug_tx_task(void)
 uint32_t debug_buffer_used(void)
 {
     return (uint32_t)((s_tx_head + DEBUG_BUF_SIZE - s_tx_tail) % DEBUG_BUF_SIZE);
+}
+
+bool debug_getchar(char *ch)
+{
+	  if ((ch == NULL) || (RESET == usart_flag_get(DEBUG_USART, USART_FLAG_RBNE))) {
+        return false;
+    }
+    *ch = (char)(usart_data_receive(DEBUG_USART) & 0xFFU);
+    return true;
 }

@@ -396,6 +396,16 @@
               <FileType>5</FileType>
               <FilePath>.\App\include\debug_printf.h</FilePath>
             </File>
+            <File>
+              <FileName>serial_console.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\App\src\serial_console.c</FilePath>
+            </File>
+            <File>
+              <FileName>serial_console.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\App\include\serial_console.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

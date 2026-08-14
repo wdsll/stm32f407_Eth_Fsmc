@@ -41,6 +41,7 @@
 .\objects\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h
 .\objects\main.o: .\HW\include\RCU.h
 .\objects\main.o: .\App\include\debug_printf.h
+.\objects\main.o: .\App\include\serial_console.h
 .\objects\main.o: .\HW\include\pwm_llc.h
 .\objects\main.o: .\HW\include\adc_dma.h
 .\objects\main.o: .\HW\include\protect.h

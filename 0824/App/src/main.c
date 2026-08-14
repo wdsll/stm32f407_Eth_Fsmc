@@ -14,6 +14,7 @@
 #include "main.h"
 #include "RCU.h"
 #include "debug_printf.h"
+#include "serial_console.h"
 #include "pwm_llc.h"
 #include "adc_dma.h"
 #include "protect.h"
@@ -252,7 +253,8 @@ int main(void)
     protect_init();
 
     /* 9. CAN 通信 (ISO1050, 500kbps, PA11/PA12) */
-    can_comm_init(CAN_BAUDRATE);
+		/* CAN is intentionally left uninitialized during first bench integration. */
+    //can_comm_init(CAN_BAUDRATE);
 		
 		    /* 10. 启动自检,此时不启动TIMER3，避免自检期间积累采样节拍 */
     bool protect_ok = protect_startup_check();
@@ -270,6 +272,7 @@ int main(void)
     /* 11. Power-stage supervisory sequencing (no digital control loop). */
     pfc_init();
     power_supervisor_init();
+		serial_console_init();
     /*
      *  清除初始化阶段的1ms节拍统计，预触发第一帧ADC，最后启动5kHz TIMER3监控节拍。
      */
@@ -319,7 +322,8 @@ int main(void)
         }
 
         /* CAN 接收处理 (非阻塞轮询) */
-        can_comm_poll();
+				/* can_comm_poll(); -- reserved for the later CAN integration phase. */
+        //can_comm_poll();
 		}
 			
 }

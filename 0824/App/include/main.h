@@ -97,14 +97,12 @@
 #define CHARGE_FINISH_CURRENT_A         (1.0f)
 #define CHARGE_FINISH_VOLTAGE_MARGIN_V  (0.5f)
 #define CHARGE_FINISH_DEBOUNCE_MS       (30000U)
-#if test_mode 
+ 
 #define CHARGE_CC_TIMEOUT_MS            (8U * 60U * 60U * 1000U)
 #define CHARGE_CV_TIMEOUT_MS            (3U * 60U * 60U * 1000U)
-#else 
-#define CHARGE_CC_TIMEOUT_MS            (8U * 1000U)
-#define CHARGE_CV_TIMEOUT_MS            (3U * 1000U)
-#endif
 
+/* First bench integration uses USART2; CAN sources remain in the project. */
+#define COMMISSIONING_USE_UART          (1U)
 /*
  * 模拟采样网络（引脚号为 U17 的 LQFP64 封装引脚号）。
  * PA0、PC0~PC3 在原理图中未连接到采样网络，不能加入 ADC 扫描序列。

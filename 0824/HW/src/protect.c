@@ -20,6 +20,8 @@
 *                                              内部变量
 *********************************************************************************************************/
 static volatile bool s_fault_latched = false;
+static volatile bool s_clear_pulse_active = false;
+static uint32_t s_clear_pulse_started_ms = 0U;
 /*********************************************************************************************************
 *                                              函数实现
 *********************************************************************************************************/
@@ -45,6 +47,17 @@ bool protect_fault_active_hw(void)
 
 bool protect_fault_latched(void) { return s_fault_latched; }
 
+void protect_clear_fault_async(void)
+{
+    if (!s_clear_pulse_active) {
+        gpio_bit_set(HARD_FAULT_CLR_PORT, HARD_FAULT_CLR_PIN);
+        s_clear_pulse_started_ms = g_ms;
+        s_clear_pulse_active = true;
+    }
+}
+
+bool protect_clear_fault_busy(void) { return s_clear_pulse_active; }
+
 void protect_clear_fault(void)
 {
     /* 脉冲清除外部锁存: 拉高 -> 延时 -> 拉低 (D触发器清零需保持一定脉宽) */
@@ -69,6 +82,13 @@ void protect_set_fault(fault_type_t f)
 void protect_tick_1khz(void)
 {
     extern adc_multi_t g_adc_multi;
+	
+    /* Finish a requested clear pulse without stalling the 1 kHz scheduler. */
+    if (s_clear_pulse_active && elapsed_reached(s_clear_pulse_started_ms, 10U)) {
+        gpio_bit_reset(HARD_FAULT_CLR_PORT, HARD_FAULT_CLR_PIN);
+        s_fault_latched = false;
+        s_clear_pulse_active = false;
+    }
 
     if (g_charger_state == MAIN_STEP_FAULT) return;
 
