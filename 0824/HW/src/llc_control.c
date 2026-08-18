@@ -26,7 +26,7 @@
 *********************************************************************************************************/
 #define BATTERY_PRESENT_V       (10.0f)   // 判定"电池已接入"的最低电压
 #define OUTPUT_RELAY_MIN_V      (10.0f)   // CC 态判定输出已建起的电压门限
-#define LLC_START_TIMEOUT_MS    (1500U)   // C2：名实不符，实际用于"CC 后 1.5s 输出未建起→报 BUS_UVP"
+#define OUTPUT_START_TIMEOUT_MS     (1500U)   // C2：名实不符，实际用于"CC 后 1.5s 输出未建起→报 BUS_UVP"
 
 //#define PFC_READY_TIMEOUT_MS    (3000U)
 //#define CAN_STATUS_PERIOD_MS    (100U)    //CAN 状态帧上报周期 100ms（10Hz）
@@ -249,13 +249,16 @@ void power_supervisor_tick_1khz(void)
 		{ 
 			case MAIN_STEP_STANDBY:
 			{
-				outputs_off();  //C3：每 tick 先全关
+				//outputs_off();  //C3：每 tick 先全关
 				gpio_bit_set(LED_RED_PORT,LED_RED_PIN);
 				gpio_bit_reset(LED_GREEN_PORT,LED_GREEN_PIN);
 				if(s_enable_requested && g_adc_multi.vbat_v >= BATTERY_PRESENT_V) //使能且电池已经接入(>=10V)
 				{
 					pfc_enable(); // C3：同一 tick 又开 PFC,不能每个task都开把
 					enter_state(MAIN_STEP_PRECHARGE);
+				}
+				else{
+					outputs_off();
 				}
 				break;
 			}
@@ -270,7 +273,7 @@ void power_supervisor_tick_1khz(void)
 					 enter_state(MAIN_STEP_CC); /* Legacy CAN state value: running. */
 				 }
 					else if (elapsed_reached(s_state_started_ms, PFC_READY_TIMEOUT_MS)) {
-						protect_set_fault(FAULT_BUS_UVP);
+						protect_set_fault(FAULT_PRECHARGE_TIMEOUT);
 				 }
 					//A1：无第三个分支——pfc 永远不 ready 则永久卡死，不报错不回待机,现在新增第三个分支
 				 break;
@@ -297,9 +300,9 @@ void power_supervisor_tick_1khz(void)
 					gpio_bit_reset(LED_RED_PORT, LED_RED_PIN);
 					gpio_bit_set(LED_GREEN_PORT, LED_GREEN_PIN);
 				}
-				else if (elapsed_reached(s_state_started_ms, LLC_START_TIMEOUT_MS))
+				else if (elapsed_reached(s_state_started_ms, OUTPUT_START_TIMEOUT_MS))
 				{
-					protect_set_fault(FAULT_BUS_UVP); //C2：名实不符(报母线欠压实则查输出)
+					protect_set_fault(FAULT_OUTPUT_START_TIMEOUT); //C2：名实不符(报母线欠压实则查输出)，现在更新故障类型
 				}
 				break;
 			}

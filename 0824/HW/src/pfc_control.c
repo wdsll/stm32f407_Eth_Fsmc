@@ -61,7 +61,7 @@ void pfc_tick_1khz(void)
         }
 				else if(elapsed_reached(s_pfc_state_ms, PFC_READY_TIMEOUT_MS))
 				{
-					protect_set_fault(FAULT_BUS_UVP);
+					protect_set_fault(FAULT_PRECHARGE_TIMEOUT);
 					s_pfc_state = PFC_STATE_FAULT;
 				}
         break;
