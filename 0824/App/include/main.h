@@ -77,15 +77,16 @@
 #define TEMP_SHUTDOWN_C         (95.0f)
 
 /* ========== 控制目标 ========== */
+#define PFC_AC_INPUT_MIN_V       (180.0f)     /* First-bench acceptable AC RMS */
+#define PFC_AC_INPUT_MAX_V       (264.0f)
+
 #define VBUS_TARGET_V           (380.0f)     /* PFC 母线目标 */
 #define VBUS_MIN_START_V        (350.0f)     /* LLC 启动最小母线 */
 #define LLC_ENTRY_V             (360.0f)
-#define RUN_OK_LOW_V            (370.0f)
-#define RUN_OK_HIGH_V           (390.0f)
+
 
 #define VBUS_OVP_V              (420.0f)     /* Absolute DC-link software trip */
-#define VBUS_OVP_DEBOUNCE_MS    (20U)
-#define VBUS_UVP_DEBOUNCE_MS    (200U)
+
 #define PFC_READY_TIMEOUT_MS    (3000U)
 
 #define VOUT_TARGET_V           (58.0f)      /* 12S 锂电满充 4.2×12=50.4, CC/CV */

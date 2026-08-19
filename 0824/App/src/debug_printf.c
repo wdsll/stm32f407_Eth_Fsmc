@@ -15,7 +15,11 @@ void debug_printf_init(uint32_t baudrate)
     rcu_periph_clock_enable(DEBUG_USART_GPIO_RCU);
     rcu_periph_clock_enable(DEBUG_USART_RCU);
     rcu_periph_clock_enable(RCU_AF);
-
+	
+    /* USART2 is routed to the board connector on PB10/PB11, not PA2/PA3. 
+			ST32F303是这种USART2 对应的是PA2 PA3,GD32F303不需要重映射就是PB10,PB11*/
+   // gpio_pin_remap_config(GPIO_USART2_FULL_REMAP, ENABLE);
+	
     gpio_init(DEBUG_USART_TX_PORT, GPIO_MODE_AF_PP, GPIO_OSPEED_50MHZ, DEBUG_USART_TX_PIN);
     gpio_init(DEBUG_USART_RX_PORT, GPIO_MODE_IPU, GPIO_OSPEED_50MHZ, DEBUG_USART_RX_PIN);
 

@@ -61,8 +61,11 @@ void protect_clear_fault_async(void)
     }
 }
 
-bool protect_clear_fault_busy(void) { return s_clear_pulse_active; }
-
+//bool protect_clear_fault_busy(void) { return s_clear_pulse_active; }
+bool protect_clear_fault_busy(void)
+{
+    return s_clear_pulse_active || s_clear_verify_pending;
+}
 void protect_clear_fault(void)
 {
     /* 脉冲清除外部锁存: 拉高 -> 延时 -> 拉低 (D触发器清零需保持一定脉宽) */
@@ -95,7 +98,8 @@ void protect_tick_1khz(void)
     /* Finish a requested clear pulse without stalling the 1 kHz scheduler. */
     if (s_clear_pulse_active && elapsed_reached(s_clear_pulse_started_ms, CLEAR_PULSE_MS)) {
         gpio_bit_reset(HARD_FAULT_CLR_PORT, HARD_FAULT_CLR_PIN);
-        s_fault_latched = false;
+        //s_fault_latched = false;
+			  s_clear_pulse_active = false;
         s_clear_verify_pending = true;
         s_clear_pulse_started_ms = g_ms;
     }

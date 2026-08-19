@@ -316,6 +316,9 @@ int main(void)
 				if (run_control_tick != 0U) {
             monitor_protect_tick_1khz();
         }
+				
+				//非阻塞串口发送 软硬联调用的
+				serial_console_task();
         /* 非阻塞串口发送 */
         if (debug_buffer_used() > 0U) {
             debug_tx_task();
