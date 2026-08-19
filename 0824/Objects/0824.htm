@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\Objects\0824.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Objects\0824.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Wed Aug 19 10:43:09 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Wed Aug 19 13:57:25 2026
 <BR><P>
 <H3>Maximum Stack Usage =        496 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -103,7 +103,7 @@ Global Symbols
 <P><STRONG><a name="[48]"></a>__main</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry.o(.ARM.Collect$$$$00000000))
 <BR>[Address Reference Count : 1]<UL><LI> startup_gd32f30x_hd.o(.text)
 </UL>
-<P><STRONG><a name="[fb]"></a>_main_stk</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry2.o(.ARM.Collect$$$$00000001))
+<P><STRONG><a name="[fe]"></a>_main_stk</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry2.o(.ARM.Collect$$$$00000001))
 
 <P><STRONG><a name="[4e]"></a>_main_scatterload</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry5.o(.ARM.Collect$$$$00000004))
 <BR><BR>[Calls]<UL><LI><a href="#[4f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__scatterload
@@ -113,15 +113,15 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[4f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__scatterload
 </UL>
 
-<P><STRONG><a name="[fc]"></a>_main_clock</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry7b.o(.ARM.Collect$$$$00000008))
+<P><STRONG><a name="[ff]"></a>_main_clock</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry7b.o(.ARM.Collect$$$$00000008))
 
-<P><STRONG><a name="[fd]"></a>_main_cpp_init</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry8b.o(.ARM.Collect$$$$0000000A))
+<P><STRONG><a name="[100]"></a>_main_cpp_init</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry8b.o(.ARM.Collect$$$$0000000A))
 
-<P><STRONG><a name="[fe]"></a>_main_init</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry9a.o(.ARM.Collect$$$$0000000B))
+<P><STRONG><a name="[101]"></a>_main_init</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry9a.o(.ARM.Collect$$$$0000000B))
 
-<P><STRONG><a name="[ff]"></a>__rt_final_cpp</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry10a.o(.ARM.Collect$$$$0000000D))
+<P><STRONG><a name="[102]"></a>__rt_final_cpp</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry10a.o(.ARM.Collect$$$$0000000D))
 
-<P><STRONG><a name="[100]"></a>__rt_final_exit</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry11a.o(.ARM.Collect$$$$0000000F))
+<P><STRONG><a name="[103]"></a>__rt_final_exit</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, entry11a.o(.ARM.Collect$$$$0000000F))
 
 <P><STRONG><a name="[0]"></a>Reset_Handler</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, startup_gd32f30x_hd.o(.text))
 <BR>[Address Reference Count : 1]<UL><LI> startup_gd32f30x_hd.o(RESET)
@@ -304,13 +304,13 @@ Global Symbols
 <P><STRONG><a name="[a]"></a>WWDGT_IRQHandler</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, startup_gd32f30x_hd.o(.text))
 <BR>[Address Reference Count : 1]<UL><LI> startup_gd32f30x_hd.o(RESET)
 </UL>
-<P><STRONG><a name="[101]"></a>__aeabi_memcpy</STRONG> (Thumb, 36 bytes, Stack size 0 bytes, memcpya.o(.text), UNUSED)
+<P><STRONG><a name="[104]"></a>__aeabi_memcpy</STRONG> (Thumb, 36 bytes, Stack size 0 bytes, memcpya.o(.text), UNUSED)
 
 <P><STRONG><a name="[9f]"></a>__aeabi_memcpy4</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, memcpya.o(.text))
 <BR><BR>[Called By]<UL><LI><a href="#[95]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_multi_init_dma
 </UL>
 
-<P><STRONG><a name="[102]"></a>__aeabi_memcpy8</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, memcpya.o(.text), UNUSED)
+<P><STRONG><a name="[105]"></a>__aeabi_memcpy8</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, memcpya.o(.text), UNUSED)
 
 <P><STRONG><a name="[d2]"></a>strcmp</STRONG> (Thumb, 28 bytes, Stack size 8 bytes, strcmp.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = strcmp
@@ -351,7 +351,7 @@ Global Symbols
 <LI><a href="#[d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
 </UL>
 
-<P><STRONG><a name="[103]"></a>__aeabi_uidiv</STRONG> (Thumb, 0 bytes, Stack size 12 bytes, uidiv.o(.text), UNUSED)
+<P><STRONG><a name="[106]"></a>__aeabi_uidiv</STRONG> (Thumb, 0 bytes, Stack size 12 bytes, uidiv.o(.text), UNUSED)
 
 <P><STRONG><a name="[81]"></a>__aeabi_uidivmod</STRONG> (Thumb, 44 bytes, Stack size 12 bytes, uidiv.o(.text), UNUSED)
 <BR><BR>[Called By]<UL><LI><a href="#[7a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_printf_core
@@ -379,7 +379,7 @@ Global Symbols
 <P><STRONG><a name="[4a]"></a>_sbackspace</STRONG> (Thumb, 34 bytes, Stack size 0 bytes, _sgetc.o(.text))
 <BR>[Address Reference Count : 1]<UL><LI> __0sscanf.o(.text)
 </UL>
-<P><STRONG><a name="[104]"></a>__I$use$fp</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, iusefp.o(.text), UNUSED)
+<P><STRONG><a name="[107]"></a>__I$use$fp</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, iusefp.o(.text), UNUSED)
 
 <P><STRONG><a name="[66]"></a>_float_round</STRONG> (Thumb, 18 bytes, Stack size 0 bytes, fepilogue.o(.text), UNUSED)
 <BR><BR>[Called By]<UL><LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_d2f
@@ -453,7 +453,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[4e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_main_scatterload
 </UL>
 
-<P><STRONG><a name="[105]"></a>__scatterload_rt2</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, init.o(.text), UNUSED)
+<P><STRONG><a name="[108]"></a>__scatterload_rt2</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, init.o(.text), UNUSED)
 
 <P><STRONG><a name="[5d]"></a>__aeabi_llsl</STRONG> (Thumb, 30 bytes, Stack size 0 bytes, llshl.o(.text), UNUSED)
 <BR><BR>[Called By]<UL><LI><a href="#[61]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_double_epilogue
@@ -462,7 +462,7 @@ Global Symbols
 <LI><a href="#[65]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_d2ulz
 </UL>
 
-<P><STRONG><a name="[106]"></a>_ll_shift_l</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, llshl.o(.text), UNUSED)
+<P><STRONG><a name="[109]"></a>_ll_shift_l</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, llshl.o(.text), UNUSED)
 
 <P><STRONG><a name="[5c]"></a>__aeabi_llsr</STRONG> (Thumb, 32 bytes, Stack size 0 bytes, llushr.o(.text), UNUSED)
 <BR><BR>[Called By]<UL><LI><a href="#[61]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_double_epilogue
@@ -470,13 +470,13 @@ Global Symbols
 <LI><a href="#[65]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_d2ulz
 </UL>
 
-<P><STRONG><a name="[107]"></a>_ll_ushift_r</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, llushr.o(.text), UNUSED)
+<P><STRONG><a name="[10a]"></a>_ll_ushift_r</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, llushr.o(.text), UNUSED)
 
 <P><STRONG><a name="[60]"></a>__aeabi_lasr</STRONG> (Thumb, 36 bytes, Stack size 0 bytes, llsshr.o(.text), UNUSED)
 <BR><BR>[Called By]<UL><LI><a href="#[5f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dadd
 </UL>
 
-<P><STRONG><a name="[108]"></a>_ll_sshift_r</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, llsshr.o(.text), UNUSED)
+<P><STRONG><a name="[10b]"></a>_ll_sshift_r</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, llsshr.o(.text), UNUSED)
 
 <P><STRONG><a name="[4c]"></a>isspace</STRONG> (Thumb, 10 bytes, Stack size 0 bytes, isspace_c.o(.text))
 <BR><BR>[Calls]<UL><LI><a href="#[68]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__ctype_lookup
@@ -550,7 +550,7 @@ Global Symbols
 <P><STRONG><a name="[9]"></a>SysTick_Handler</STRONG> (Thumb, 36 bytes, Stack size 0 bytes, main.o(i.SysTick_Handler))
 <BR>[Address Reference Count : 1]<UL><LI> startup_gd32f30x_hd.o(RESET)
 </UL>
-<P><STRONG><a name="[fa]"></a>SystemCoreClockUpdate</STRONG> (Thumb, 162 bytes, Stack size 20 bytes, system_gd32f30x.o(i.SystemCoreClockUpdate))
+<P><STRONG><a name="[fd]"></a>SystemCoreClockUpdate</STRONG> (Thumb, 162 bytes, Stack size 20 bytes, system_gd32f30x.o(i.SystemCoreClockUpdate))
 <BR><BR>[Stack]<UL><LI>Max Depth = 20<LI>Call Chain = SystemCoreClockUpdate
 </UL>
 <BR>[Called By]<UL><LI><a href="#[e2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;systick_1ms_init
@@ -587,11 +587,11 @@ Global Symbols
 <BR><BR>[Calls]<UL><LI><a href="#[7a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_printf_core
 </UL>
 
-<P><STRONG><a name="[109]"></a>__1vsnprintf</STRONG> (Thumb, 0 bytes, Stack size 24 bytes, printfa.o(i.__0vsnprintf), UNUSED)
+<P><STRONG><a name="[10c]"></a>__1vsnprintf</STRONG> (Thumb, 0 bytes, Stack size 24 bytes, printfa.o(i.__0vsnprintf), UNUSED)
 
-<P><STRONG><a name="[10a]"></a>__2vsnprintf</STRONG> (Thumb, 0 bytes, Stack size 24 bytes, printfa.o(i.__0vsnprintf), UNUSED)
+<P><STRONG><a name="[10d]"></a>__2vsnprintf</STRONG> (Thumb, 0 bytes, Stack size 24 bytes, printfa.o(i.__0vsnprintf), UNUSED)
 
-<P><STRONG><a name="[10b]"></a>__c89vsnprintf</STRONG> (Thumb, 0 bytes, Stack size 24 bytes, printfa.o(i.__0vsnprintf), UNUSED)
+<P><STRONG><a name="[10e]"></a>__c89vsnprintf</STRONG> (Thumb, 0 bytes, Stack size 24 bytes, printfa.o(i.__0vsnprintf), UNUSED)
 
 <P><STRONG><a name="[c4]"></a>vsnprintf</STRONG> (Thumb, 0 bytes, Stack size 24 bytes, printfa.o(i.__0vsnprintf))
 <BR><BR>[Stack]<UL><LI>Max Depth = 24<LI>Call Chain = vsnprintf
@@ -607,11 +607,11 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[82]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_ac_sample_fast
 </UL>
 
-<P><STRONG><a name="[10c]"></a>__scatterload_copy</STRONG> (Thumb, 14 bytes, Stack size unknown bytes, handlers.o(i.__scatterload_copy), UNUSED)
+<P><STRONG><a name="[10f]"></a>__scatterload_copy</STRONG> (Thumb, 14 bytes, Stack size unknown bytes, handlers.o(i.__scatterload_copy), UNUSED)
 
-<P><STRONG><a name="[10d]"></a>__scatterload_null</STRONG> (Thumb, 2 bytes, Stack size unknown bytes, handlers.o(i.__scatterload_null), UNUSED)
+<P><STRONG><a name="[110]"></a>__scatterload_null</STRONG> (Thumb, 2 bytes, Stack size unknown bytes, handlers.o(i.__scatterload_null), UNUSED)
 
-<P><STRONG><a name="[10e]"></a>__scatterload_zeroinit</STRONG> (Thumb, 14 bytes, Stack size unknown bytes, handlers.o(i.__scatterload_zeroinit), UNUSED)
+<P><STRONG><a name="[111]"></a>__scatterload_zeroinit</STRONG> (Thumb, 14 bytes, Stack size unknown bytes, handlers.o(i.__scatterload_zeroinit), UNUSED)
 
 <P><STRONG><a name="[7c]"></a>__set_errno</STRONG> (Thumb, 6 bytes, Stack size 0 bytes, errno.o(i.__set_errno))
 <BR><BR>[Called By]<UL><LI><a href="#[7b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__hardfp_sqrtf
@@ -806,6 +806,9 @@ Global Symbols
 <LI><a href="#[b6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_clampf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[e6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_init
+<LI><a href="#[f2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_set_fault
+<LI><a href="#[f3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_off_begin
+<LI><a href="#[ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_force_off
 <LI><a href="#[ae]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;apply_references
 </UL>
 
@@ -837,6 +840,9 @@ Global Symbols
 <LI><a href="#[b6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_clampf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[e6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_init
+<LI><a href="#[f2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_set_fault
+<LI><a href="#[f3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_off_begin
+<LI><a href="#[ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_force_off
 <LI><a href="#[ae]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;apply_references
 </UL>
 
@@ -893,7 +899,7 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[ad]"></a>delay_ms</STRONG> (Thumb, 26 bytes, Stack size 0 bytes, main.o(i.delay_ms))
-<BR><BR>[Called By]<UL><LI><a href="#[f4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_clear_fault
+<BR><BR>[Called By]<UL><LI><a href="#[f7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_clear_fault
 <LI><a href="#[ac]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_startup_check
 </UL>
 
@@ -945,22 +951,25 @@ Global Symbols
 <P><STRONG><a name="[df]"></a>gpio_bit_reset</STRONG> (Thumb, 4 bytes, Stack size 0 bytes, gd32f30x_gpio.o(i.gpio_bit_reset))
 <BR><BR>[Called By]<UL><LI><a href="#[eb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_tick_1khz
 <LI><a href="#[e3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_init
-<LI><a href="#[f4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_clear_fault
+<LI><a href="#[f7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_clear_fault
 <LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_tick_1khz
 <LI><a href="#[e5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_init
 <LI><a href="#[de]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;hw_gpio_init
-<LI><a href="#[f1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_set_fault
+<LI><a href="#[f2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_set_fault
 <LI><a href="#[ef]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_disable
-<LI><a href="#[ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_off
+<LI><a href="#[f4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_off_tick
+<LI><a href="#[f3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_off_begin
+<LI><a href="#[f0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_off
+<LI><a href="#[ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_force_off
 </UL>
 
 <P><STRONG><a name="[e0]"></a>gpio_bit_set</STRONG> (Thumb, 4 bytes, Stack size 0 bytes, gd32f30x_gpio.o(i.gpio_bit_set))
 <BR><BR>[Called By]<UL><LI><a href="#[dd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_clear_fault_async
-<LI><a href="#[f4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_clear_fault
+<LI><a href="#[f7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_clear_fault
 <LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_tick_1khz
 <LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 <LI><a href="#[de]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;hw_gpio_init
-<LI><a href="#[f0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_enable
+<LI><a href="#[f1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_enable
 </UL>
 
 <P><STRONG><a name="[96]"></a>gpio_init</STRONG> (Thumb, 164 bytes, Stack size 20 bytes, gd32f30x_gpio.o(i.gpio_init))
@@ -974,7 +983,7 @@ Global Symbols
 <LI><a href="#[de]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;hw_gpio_init
 </UL>
 
-<P><STRONG><a name="[f5]"></a>gpio_input_bit_get</STRONG> (Thumb, 16 bytes, Stack size 0 bytes, gd32f30x_gpio.o(i.gpio_input_bit_get))
+<P><STRONG><a name="[f8]"></a>gpio_input_bit_get</STRONG> (Thumb, 16 bytes, Stack size 0 bytes, gd32f30x_gpio.o(i.gpio_input_bit_get))
 <BR><BR>[Called By]<UL><LI><a href="#[da]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_active_hw
 </UL>
 
@@ -1025,10 +1034,12 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_reset
 </UL>
 <BR>[Called By]<UL><LI><a href="#[ec]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_tick_1khz
-<LI><a href="#[ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_off
+<LI><a href="#[f4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_off_tick
+<LI><a href="#[f0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_off
+<LI><a href="#[ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_force_off
 </UL>
 
-<P><STRONG><a name="[f0]"></a>pfc_enable</STRONG> (Thumb, 34 bytes, Stack size 8 bytes, pfc_control.o(i.pfc_enable))
+<P><STRONG><a name="[f1]"></a>pfc_enable</STRONG> (Thumb, 34 bytes, Stack size 8 bytes, pfc_control.o(i.pfc_enable))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = pfc_enable
 </UL>
 <BR>[Calls]<UL><LI><a href="#[e0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_set
@@ -1044,14 +1055,14 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[f3]"></a>pfc_is_ready</STRONG> (Thumb, 112 bytes, Stack size 0 bytes, pfc_control.o(i.pfc_is_ready))
+<P><STRONG><a name="[f6]"></a>pfc_is_ready</STRONG> (Thumb, 112 bytes, Stack size 0 bytes, pfc_control.o(i.pfc_is_ready))
 <BR><BR>[Called By]<UL><LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_tick_1khz
 </UL>
 
 <P><STRONG><a name="[ec]"></a>pfc_tick_1khz</STRONG> (Thumb, 106 bytes, Stack size 8 bytes, pfc_control.o(i.pfc_tick_1khz))
-<BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = pfc_tick_1khz &rArr; protect_set_fault
+<BR><BR>[Stack]<UL><LI>Max Depth = 32<LI>Call Chain = pfc_tick_1khz &rArr; protect_set_fault &rArr; cv_pwm_set_duty
 </UL>
-<BR>[Calls]<UL><LI><a href="#[f1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_set_fault
+<BR>[Calls]<UL><LI><a href="#[f2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_set_fault
 <LI><a href="#[ef]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_disable
 </UL>
 <BR>[Called By]<UL><LI><a href="#[e8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;monitor_protect_tick_1khz
@@ -1063,12 +1074,12 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[e6]"></a>power_supervisor_init</STRONG> (Thumb, 56 bytes, Stack size 8 bytes, llc_control.o(i.power_supervisor_init))
-<BR><BR>[Stack]<UL><LI>Max Depth = 24<LI>Call Chain = power_supervisor_init &rArr; cv_pwm_set_duty
+<BR><BR>[Stack]<UL><LI>Max Depth = 32<LI>Call Chain = power_supervisor_init &rArr; outputs_force_off &rArr; cv_pwm_set_duty
 </UL>
 <BR>[Calls]<UL><LI><a href="#[b0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_set_duty
 <LI><a href="#[b2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cc_pwm_set_duty
-<LI><a href="#[ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_off
-<LI><a href="#[f2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;enter_state
+<LI><a href="#[ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_force_off
+<LI><a href="#[f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;enter_state
 </UL>
 <BR>[Called By]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
@@ -1093,18 +1104,21 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
 </UL>
 
-<P><STRONG><a name="[ed]"></a>power_supervisor_tick_1khz</STRONG> (Thumb, 648 bytes, Stack size 8 bytes, llc_control.o(i.power_supervisor_tick_1khz))
+<P><STRONG><a name="[ed]"></a>power_supervisor_tick_1khz</STRONG> (Thumb, 704 bytes, Stack size 8 bytes, llc_control.o(i.power_supervisor_tick_1khz))
 <BR><BR>[Stack]<UL><LI>Max Depth = 40<LI>Call Chain = power_supervisor_tick_1khz &rArr; apply_references &rArr; cv_pwm_set_duty
 </UL>
 <BR>[Calls]<UL><LI><a href="#[d9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_latched
 <LI><a href="#[da]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_active_hw
 <LI><a href="#[e0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_set
 <LI><a href="#[df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_reset
-<LI><a href="#[f1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_set_fault
-<LI><a href="#[f3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_is_ready
-<LI><a href="#[f0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_enable
-<LI><a href="#[ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_off
-<LI><a href="#[f2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;enter_state
+<LI><a href="#[f2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_set_fault
+<LI><a href="#[f6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_is_ready
+<LI><a href="#[f1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_enable
+<LI><a href="#[f4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_off_tick
+<LI><a href="#[f3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_off_begin
+<LI><a href="#[f0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_off
+<LI><a href="#[ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_force_off
+<LI><a href="#[f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;enter_state
 <LI><a href="#[bc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;elapsed_reached
 <LI><a href="#[bb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;condition_held
 <LI><a href="#[ae]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;apply_references
@@ -1117,7 +1131,7 @@ Global Symbols
 <LI><a href="#[d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
 </UL>
 
-<P><STRONG><a name="[f4]"></a>protect_clear_fault</STRONG> (Thumb, 52 bytes, Stack size 8 bytes, protect.o(i.protect_clear_fault))
+<P><STRONG><a name="[f7]"></a>protect_clear_fault</STRONG> (Thumb, 52 bytes, Stack size 8 bytes, protect.o(i.protect_clear_fault))
 <BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = protect_clear_fault &rArr; protect_fault_active_hw
 </UL>
 <BR>[Calls]<UL><LI><a href="#[da]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_active_hw
@@ -1139,11 +1153,11 @@ Global Symbols
 <P><STRONG><a name="[da]"></a>protect_fault_active_hw</STRONG> (Thumb, 22 bytes, Stack size 8 bytes, protect.o(i.protect_fault_active_hw))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = protect_fault_active_hw
 </UL>
-<BR>[Calls]<UL><LI><a href="#[f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_input_bit_get
+<BR>[Calls]<UL><LI><a href="#[f8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_input_bit_get
 </UL>
 <BR>[Called By]<UL><LI><a href="#[d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
 <LI><a href="#[eb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_tick_1khz
-<LI><a href="#[f4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_clear_fault
+<LI><a href="#[f7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_clear_fault
 <LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_tick_1khz
 <LI><a href="#[e4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_startup_check
 </UL>
@@ -1164,10 +1178,12 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[f1]"></a>protect_set_fault</STRONG> (Thumb, 52 bytes, Stack size 8 bytes, protect.o(i.protect_set_fault))
-<BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = protect_set_fault
+<P><STRONG><a name="[f2]"></a>protect_set_fault</STRONG> (Thumb, 48 bytes, Stack size 8 bytes, protect.o(i.protect_set_fault))
+<BR><BR>[Stack]<UL><LI>Max Depth = 24<LI>Call Chain = protect_set_fault &rArr; cv_pwm_set_duty
 </UL>
 <BR>[Calls]<UL><LI><a href="#[df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_reset
+<LI><a href="#[b0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_set_duty
+<LI><a href="#[b2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cc_pwm_set_duty
 </UL>
 <BR>[Called By]<UL><LI><a href="#[eb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_tick_1khz
 <LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_tick_1khz
@@ -1175,12 +1191,12 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[eb]"></a>protect_tick_1khz</STRONG> (Thumb, 174 bytes, Stack size 8 bytes, protect.o(i.protect_tick_1khz))
-<BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = protect_tick_1khz &rArr; protect_fault_active_hw
+<BR><BR>[Stack]<UL><LI>Max Depth = 32<LI>Call Chain = protect_tick_1khz &rArr; protect_set_fault &rArr; cv_pwm_set_duty
 </UL>
 <BR>[Calls]<UL><LI><a href="#[da]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_active_hw
 <LI><a href="#[df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_reset
-<LI><a href="#[f6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;elapsed_reached
-<LI><a href="#[f1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_set_fault
+<LI><a href="#[f9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;elapsed_reached
+<LI><a href="#[f2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_set_fault
 </UL>
 <BR>[Called By]<UL><LI><a href="#[e8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;monitor_protect_tick_1khz
 </UL>
@@ -1210,7 +1226,7 @@ Global Symbols
 <LI><a href="#[b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer1_clk_hz
 </UL>
 
-<P><STRONG><a name="[f7]"></a>rcu_flag_get</STRONG> (Thumb, 30 bytes, Stack size 0 bytes, gd32f30x_rcu.o(i.rcu_flag_get))
+<P><STRONG><a name="[fa]"></a>rcu_flag_get</STRONG> (Thumb, 30 bytes, Stack size 0 bytes, gd32f30x_rcu.o(i.rcu_flag_get))
 <BR><BR>[Called By]<UL><LI><a href="#[6c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rcu_osci_stab_wait
 </UL>
 
@@ -1221,7 +1237,7 @@ Global Symbols
 <P><STRONG><a name="[6c]"></a>rcu_osci_stab_wait</STRONG> (Thumb, 266 bytes, Stack size 20 bytes, gd32f30x_rcu.o(i.rcu_osci_stab_wait))
 <BR><BR>[Stack]<UL><LI>Max Depth = 20<LI>Call Chain = rcu_osci_stab_wait
 </UL>
-<BR>[Calls]<UL><LI><a href="#[f7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rcu_flag_get
+<BR>[Calls]<UL><LI><a href="#[fa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rcu_flag_get
 </UL>
 <BR>[Called By]<UL><LI><a href="#[6a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;InitRCU
 </UL>
@@ -1276,7 +1292,7 @@ Global Symbols
 <LI><a href="#[d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_request
 <LI><a href="#[d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;print_status
 <LI><a href="#[d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
-<LI><a href="#[f8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;elapsed_reached
+<LI><a href="#[fb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;elapsed_reached
 <LI><a href="#[c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_getchar
 <LI><a href="#[c3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf
 </UL>
@@ -1483,7 +1499,7 @@ Local Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[d9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_latched
 <LI><a href="#[da]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_active_hw
-<LI><a href="#[f4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_clear_fault
+<LI><a href="#[f7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_clear_fault
 </UL>
 <BR>[Called By]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
@@ -1491,13 +1507,13 @@ Local Symbols
 <P><STRONG><a name="[e2]"></a>systick_1ms_init</STRONG> (Thumb, 100 bytes, Stack size 16 bytes, main.o(i.systick_1ms_init))
 <BR><BR>[Stack]<UL><LI>Max Depth = 36<LI>Call Chain = systick_1ms_init &rArr; SystemCoreClockUpdate
 </UL>
-<BR>[Calls]<UL><LI><a href="#[fa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SystemCoreClockUpdate
+<BR>[Calls]<UL><LI><a href="#[fd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SystemCoreClockUpdate
 <LI><a href="#[8e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;irq_priority_encode
 </UL>
 <BR>[Called By]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[f8]"></a>elapsed_reached</STRONG> (Thumb, 22 bytes, Stack size 0 bytes, serial_console.o(i.elapsed_reached))
+<P><STRONG><a name="[fb]"></a>elapsed_reached</STRONG> (Thumb, 22 bytes, Stack size 0 bytes, serial_console.o(i.elapsed_reached))
 <BR><BR>[Called By]<UL><LI><a href="#[e9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;serial_console_task
 </UL>
 
@@ -1581,10 +1597,11 @@ Local Symbols
 
 <P><STRONG><a name="[bc]"></a>elapsed_reached</STRONG> (Thumb, 22 bytes, Stack size 0 bytes, llc_control.o(i.elapsed_reached))
 <BR><BR>[Called By]<UL><LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_tick_1khz
+<LI><a href="#[f4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_off_tick
 <LI><a href="#[bb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;condition_held
 </UL>
 
-<P><STRONG><a name="[f2]"></a>enter_state</STRONG> (Thumb, 20 bytes, Stack size 0 bytes, llc_control.o(i.enter_state))
+<P><STRONG><a name="[f5]"></a>enter_state</STRONG> (Thumb, 20 bytes, Stack size 0 bytes, llc_control.o(i.enter_state))
 <BR><BR>[Called By]<UL><LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_tick_1khz
 <LI><a href="#[e6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_init
 </UL>
@@ -1595,14 +1612,45 @@ Local Symbols
 <LI><a href="#[b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;current_to_duty
 </UL>
 
-<P><STRONG><a name="[ee]"></a>outputs_off</STRONG> (Thumb, 28 bytes, Stack size 8 bytes, llc_control.o(i.outputs_off))
+<P><STRONG><a name="[ee]"></a>outputs_force_off</STRONG> (Thumb, 56 bytes, Stack size 8 bytes, llc_control.o(i.outputs_force_off))
+<BR><BR>[Stack]<UL><LI>Max Depth = 24<LI>Call Chain = outputs_force_off &rArr; cv_pwm_set_duty
+</UL>
+<BR>[Calls]<UL><LI><a href="#[df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_reset
+<LI><a href="#[ef]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_disable
+<LI><a href="#[b0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_set_duty
+<LI><a href="#[b2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cc_pwm_set_duty
+</UL>
+<BR>[Called By]<UL><LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_tick_1khz
+<LI><a href="#[e6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_init
+</UL>
+
+<P><STRONG><a name="[f0]"></a>outputs_off</STRONG> (Thumb, 28 bytes, Stack size 8 bytes, llc_control.o(i.outputs_off))
 <BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = outputs_off &rArr; pfc_disable
 </UL>
 <BR>[Calls]<UL><LI><a href="#[df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_reset
 <LI><a href="#[ef]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_disable
 </UL>
 <BR>[Called By]<UL><LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_tick_1khz
-<LI><a href="#[e6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_init
+</UL>
+
+<P><STRONG><a name="[f3]"></a>power_off_begin</STRONG> (Thumb, 62 bytes, Stack size 8 bytes, llc_control.o(i.power_off_begin))
+<BR><BR>[Stack]<UL><LI>Max Depth = 24<LI>Call Chain = power_off_begin &rArr; cv_pwm_set_duty
+</UL>
+<BR>[Calls]<UL><LI><a href="#[df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_reset
+<LI><a href="#[b0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_set_duty
+<LI><a href="#[b2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cc_pwm_set_duty
+</UL>
+<BR>[Called By]<UL><LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_tick_1khz
+</UL>
+
+<P><STRONG><a name="[f4]"></a>power_off_tick</STRONG> (Thumb, 56 bytes, Stack size 8 bytes, llc_control.o(i.power_off_tick))
+<BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = power_off_tick &rArr; pfc_disable
+</UL>
+<BR>[Calls]<UL><LI><a href="#[df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_reset
+<LI><a href="#[ef]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_disable
+<LI><a href="#[bc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;elapsed_reached
+</UL>
+<BR>[Called By]<UL><LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_tick_1khz
 </UL>
 
 <P><STRONG><a name="[af]"></a>voltage_to_duty</STRONG> (Thumb, 44 bytes, Stack size 16 bytes, llc_control.o(i.voltage_to_duty))
@@ -1613,7 +1661,7 @@ Local Symbols
 <BR>[Called By]<UL><LI><a href="#[ae]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;apply_references
 </UL>
 
-<P><STRONG><a name="[f6]"></a>elapsed_reached</STRONG> (Thumb, 22 bytes, Stack size 0 bytes, protect.o(i.elapsed_reached))
+<P><STRONG><a name="[f9]"></a>elapsed_reached</STRONG> (Thumb, 22 bytes, Stack size 0 bytes, protect.o(i.elapsed_reached))
 <BR><BR>[Called By]<UL><LI><a href="#[eb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_tick_1khz
 </UL>
 
@@ -1632,14 +1680,14 @@ Local Symbols
 <BR>[Called By]<UL><LI><a href="#[b3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cc_pwm_init
 </UL>
 
-<P><STRONG><a name="[f9]"></a>system_clock_120m_hxtal</STRONG> (Thumb, 256 bytes, Stack size 0 bytes, system_gd32f30x.o(i.system_clock_120m_hxtal))
+<P><STRONG><a name="[fc]"></a>system_clock_120m_hxtal</STRONG> (Thumb, 256 bytes, Stack size 0 bytes, system_gd32f30x.o(i.system_clock_120m_hxtal))
 <BR><BR>[Called By]<UL><LI><a href="#[73]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;system_clock_config
 </UL>
 
 <P><STRONG><a name="[73]"></a>system_clock_config</STRONG> (Thumb, 8 bytes, Stack size 8 bytes, system_gd32f30x.o(i.system_clock_config))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = system_clock_config
 </UL>
-<BR>[Calls]<UL><LI><a href="#[f9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;system_clock_120m_hxtal
+<BR>[Calls]<UL><LI><a href="#[fc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;system_clock_120m_hxtal
 </UL>
 <BR>[Called By]<UL><LI><a href="#[47]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SystemInit
 </UL>

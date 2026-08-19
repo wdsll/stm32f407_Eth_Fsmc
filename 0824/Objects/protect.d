@@ -41,3 +41,4 @@
 .\objects\protect.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
 .\objects\protect.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h
 .\objects\protect.o: .\HW\include\adc_dma.h
+.\objects\protect.o: .\HW\include\pwm_llc.h

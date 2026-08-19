@@ -12,6 +12,7 @@
 *********************************************************************************************************/
 #include "protect.h"
 #include "adc_dma.h"
+#include "pwm_llc.h"
 /*********************************************************************************************************
 *                                              ∫Í∂®“Â
 *********************************************************************************************************/
@@ -82,9 +83,11 @@ void protect_clear_fault(void)
 void protect_set_fault(fault_type_t f)
 {
 	  /* Fail safe immediately; do not wait for the next supervisor tick. */
-    gpio_bit_reset(OUT_RELAY_PORT, OUT_RELAY_PIN);
-    gpio_bit_reset(LLC_EN_PORT, LLC_EN_PIN);
+    //gpio_bit_reset(OUT_RELAY_PORT, OUT_RELAY_PIN);
+    //gpio_bit_reset(LLC_EN_PORT, LLC_EN_PIN);
     gpio_bit_reset(PFC_RELAY_PORT, PFC_RELAY_PIN);
+	  cv_pwm_set_duty(PWM_DUTY_SAFE);
+    cc_pwm_set_duty(PWM_DUTY_SAFE);
     s_fault_latched = true;
     g_fault = f;
     g_charger_state = MAIN_STEP_FAULT;

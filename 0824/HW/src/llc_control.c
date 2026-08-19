@@ -52,6 +52,12 @@ static uint32_t s_qualification_started_ms; // 去抖计时起点（condition_held 用）
 
 static bool s_qualification_active; // 去抖是否已激活（首次满足标记）
 
+/* Non-blocking power-off sub-state. */
+static bool s_power_off_active;
+static bool s_power_off_complete;
+static uint32_t s_power_off_started_ms;
+static charger_state_t s_power_off_target;
+
 /*********************************************************************************************************
 *                                              函数实现
 *********************************************************************************************************/
@@ -116,6 +122,45 @@ static void outputs_off(void)
     gpio_bit_reset(LLC_EN_PORT, LLC_EN_PIN);
     pfc_disable();
 }
+
+static void outputs_force_off(void)
+{
+	gpio_bit_reset(LLC_EN_PORT, LLC_EN_PIN);
+	cv_pwm_set_duty(PWM_DUTY_SAFE);
+  cc_pwm_set_duty(PWM_DUTY_SAFE);
+	gpio_bit_reset(OUT_RELAY_PORT, OUT_RELAY_PIN);
+	pfc_disable();
+	s_power_off_active = false;
+	s_power_off_complete = true;
+}
+
+/* Start by removing LLC drive and both PWM references.  Relays remain
+ * closed during the bleed interval so their contacts never break load current. */
+static void power_off_begin(charger_state_t target)
+{
+    if (!s_power_off_active) {
+        gpio_bit_reset(LLC_EN_PORT, LLC_EN_PIN);
+        cv_pwm_set_duty(PWM_DUTY_SAFE);
+        cc_pwm_set_duty(PWM_DUTY_SAFE);
+        s_power_off_started_ms = g_ms;
+        s_power_off_target = target;
+        s_power_off_active = true;
+        s_power_off_complete = false;
+    }
+}
+static bool power_off_tick(void)
+{
+    if (!s_power_off_active ||
+        !elapsed_reached(s_power_off_started_ms, POWER_OFF_BLEED_DELAY_MS)) {
+        return false;
+    }
+
+    gpio_bit_reset(OUT_RELAY_PORT, OUT_RELAY_PIN);
+    pfc_disable();
+    s_power_off_active = false;
+    s_power_off_complete = true;
+    return true;
+}
 /*********************************************************************************************************
 * 函数名称：condition_held
 * 函数功能：祛抖函数
@@ -174,7 +219,8 @@ void power_supervisor_init(void)
     //s_last_status_ms = g_ms;
 	  cv_pwm_set_duty(CV_PWM_DUTY_INIT);  //初始安全占空比
     cc_pwm_set_duty(CC_PWM_DUTY_INIT);
-    outputs_off();  //默认所有都安全关闭
+    //outputs_off();  //默认所有都安全关闭
+		outputs_force_off();
     enter_state(MAIN_STEP_STANDBY); //初始化进待机
 }
 /*********************************************************************************************************
@@ -235,10 +281,15 @@ void power_supervisor_tick_1khz(void)
 {
 	/* Commands arrive through the transport-independent supervisor API. */
 	if (g_charger_state == MAIN_STEP_FAULT) {
-		outputs_off();
+		//outputs_off();
+		if (!s_power_off_active && !s_power_off_complete) {
+				power_off_begin(MAIN_STEP_FAULT);
+		}
+		(void)power_off_tick();
 		gpio_bit_set(LED_RED_PORT,LED_RED_PIN);
 		gpio_bit_reset(LED_GREEN_PORT,LED_GREEN_PIN);
-		if(!s_enable_requested&&!protect_fault_latched()&&!protect_fault_active_hw())
+		//if(!s_enable_requested&&!protect_fault_latched()&&!protect_fault_active_hw())
+		if(s_power_off_complete && !s_enable_requested &&!protect_fault_latched() && !protect_fault_active_hw())
 		{
 			g_fault = FAULT_NONE;
 			enter_state(MAIN_STEP_STANDBY);
@@ -254,19 +305,23 @@ void power_supervisor_tick_1khz(void)
 				gpio_bit_reset(LED_GREEN_PORT,LED_GREEN_PIN);
 				if(s_enable_requested && g_adc_multi.vbat_v >= BATTERY_PRESENT_V) //使能且电池已经接入(>=10V)
 				{
+					s_power_off_complete = false;
 					pfc_enable(); // C3：同一 tick 又开 PFC,不能每个task都开把
 					enter_state(MAIN_STEP_PRECHARGE);
 				}
 				else{
-					outputs_off();
+					//outputs_off();
+					outputs_force_off();
 				}
 				break;
 			}
 			case MAIN_STEP_PRECHARGE:
 			{
 				if (!s_enable_requested) {  //使能撤销->待机
-					 outputs_off();
-					 enter_state(MAIN_STEP_STANDBY);
+					 power_off_begin(MAIN_STEP_STANDBY);
+           enter_state(MAIN_STEP_SHUTDOWN);
+					 //outputs_off();
+					 //enter_state(MAIN_STEP_STANDBY);
 				 } else if (pfc_is_ready()) { //母线挂起（360V）-->CC
 					 apply_references(); // // 仅此处下发一次基准（见 A2）
 					 gpio_bit_set(LLC_EN_PORT, LLC_EN_PIN);
@@ -310,8 +365,10 @@ void power_supervisor_tick_1khz(void)
 			{
 				if(!s_enable_requested) // 使能撤销→待机
 				{
-					outputs_off();
-					enter_state(MAIN_STEP_STANDBY);
+					//outputs_off();
+					//enter_state(MAIN_STEP_STANDBY);
+					power_off_begin(MAIN_STEP_STANDBY);
+					enter_state(MAIN_STEP_SHUTDOWN);
 				}
 				else if(elapsed_reached(s_state_started_ms,CHARGE_CV_TIMEOUT_MS))
 				{
@@ -326,20 +383,30 @@ void power_supervisor_tick_1khz(void)
 					if(condition_held(s_voltage_reference_v>BATTERY_PRESENT_V&&g_adc_multi.vbat_v>=(s_voltage_reference_v - CHARGE_FINISH_VOLTAGE_MARGIN_V)
 						&& g_adc_multi.iout_a >= 0 && g_adc_multi.iout_a <= CHARGE_FINISH_CURRENT_A,CHARGE_FINISH_DEBOUNCE_MS))
 					{
-						outputs_off();
-						enter_state(MAIN_STEP_FINISHED);
+						//outputs_off();
+						//enter_state(MAIN_STEP_FINISHED);
+						power_off_begin(MAIN_STEP_FINISHED);
+						enter_state(MAIN_STEP_SHUTDOWN);
 					}
 				}
 				break;
 			}
 			case MAIN_STEP_FINISHED:
 			{
-				outputs_off();  // 保持断开输出
+				//outputs_off();  // 保持断开输出
+				outputs_force_off(); 
 				gpio_bit_reset(LED_RED_PORT,LED_RED_PIN);
 				gpio_bit_set(LED_GREEN_PORT,LED_GREEN_PIN);
 				if(!s_enable_requested)
 				{
 					enter_state(MAIN_STEP_STANDBY); // 撤销使能→回待机
+				}
+				break;
+			}
+			case MAIN_STEP_SHUTDOWN:
+			{
+				if (power_off_tick()) {
+						enter_state(s_power_off_target);
 				}
 				break;
 			}

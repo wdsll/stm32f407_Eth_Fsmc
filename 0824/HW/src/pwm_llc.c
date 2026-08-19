@@ -80,7 +80,8 @@ void cv_pwm_init(uint32_t freq_hz, float duty)
 
 void cv_pwm_set_duty(float duty)
 {
-    s_cv_duty = f_clampf(duty, CV_PWM_DUTY_MIN, CV_PWM_DUTY_MAX);
+    //s_cv_duty = f_clampf(duty, CV_PWM_DUTY_MIN, CV_PWM_DUTY_MAX);
+	  s_cv_duty = f_clampf(duty, PWM_DUTY_SAFE, CV_PWM_DUTY_MAX);
     uint32_t period = TIMER_CAR(CV_PWM_TIMER);
     timer_channel_output_pulse_value_config(CV_PWM_TIMER, CV_PWM_CH,
         (uint16_t)((float)period * s_cv_duty));
@@ -127,7 +128,9 @@ void cc_pwm_init(uint32_t freq_hz, float duty)
 
 void cc_pwm_set_duty(float duty)
 {
-    s_cc_duty = f_clampf(duty, CC_PWM_DUTY_MIN, CC_PWM_DUTY_MAX);
+    //s_cc_duty = f_clampf(duty, CC_PWM_DUTY_MIN, CC_PWM_DUTY_MAX);
+	  /* Zero is reserved for the safe power-off sequence. */
+    s_cc_duty = f_clampf(duty, PWM_DUTY_SAFE, CC_PWM_DUTY_MAX);
     uint32_t period = TIMER_CAR(CC_PWM_TIMER);
     timer_channel_output_pulse_value_config(CC_PWM_TIMER, CC_PWM_CH,
         (uint16_t)((float)period * s_cc_duty));
