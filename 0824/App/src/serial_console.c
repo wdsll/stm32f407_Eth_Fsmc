@@ -103,8 +103,8 @@ static void execute_command(char *line)
 		//}
 		else
 		{
-			protect_clear_fault_async();
-			debug_printf("OK CLEAR requested\r\n");
+			protect_clear_fault();
+			debug_printf("OK CLEAR\r\n");
 		}
 	}
 	else

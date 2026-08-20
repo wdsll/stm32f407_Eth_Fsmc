@@ -21,12 +21,31 @@
 *                                              内部变量
 *********************************************************************************************************/
 static volatile bool s_fault_latched = false;
-static volatile bool s_clear_pulse_active = false;
-static uint32_t s_clear_pulse_started_ms = 0U;
+static bool s_ovp_qualification_active = false;
+static bool s_ocp_qualification_active = false;
+static uint32_t s_ovp_qualification_started_ms = 0U;
+static uint32_t s_ocp_qualification_started_ms = 0U;
 
-static bool s_clear_verify_pending = false;
 #define CLEAR_PULSE_MS          (10U)
 #define CLEAR_RELEASE_SETTLE_MS (5U)
+
+#define PROTECT_DEBOUNCE_MS     (30U)
+
+static bool condition_held(bool condition, bool *active, uint32_t *started_ms)
+{
+    if (!condition) {
+        *active = false;
+        return false;
+    }
+
+    if (!*active) {
+        *active = true;
+        *started_ms = g_ms;
+        return false;
+    }
+
+    return elapsed_reached(*started_ms, PROTECT_DEBOUNCE_MS);
+}
 /*********************************************************************************************************
 *                                              函数实现
 *********************************************************************************************************/
@@ -52,21 +71,6 @@ bool protect_fault_active_hw(void)
 
 bool protect_fault_latched(void) { return s_fault_latched; }
 
-void protect_clear_fault_async(void)
-{
-    /* CLEAR is allowed to release the external hardware latch; verify afterwards. */
-    if (!s_clear_pulse_active && !s_clear_verify_pending) {
-        gpio_bit_set(HARD_FAULT_CLR_PORT, HARD_FAULT_CLR_PIN);
-        s_clear_pulse_started_ms = g_ms;
-        s_clear_pulse_active = true;
-    }
-}
-
-//bool protect_clear_fault_busy(void) { return s_clear_pulse_active; }
-bool protect_clear_fault_busy(void)
-{
-    return s_clear_pulse_active || s_clear_verify_pending;
-}
 void protect_clear_fault(void)
 {
     /* 脉冲清除外部锁存: 拉高 -> 延时 -> 拉低 (D触发器清零需保持一定脉宽) */
@@ -92,23 +96,11 @@ void protect_tick_1khz(void)
 {
     extern adc_multi_t g_adc_multi;
 	
-    /* Finish a requested clear pulse without stalling the 1 kHz scheduler. */
-    if (s_clear_pulse_active && elapsed_reached(s_clear_pulse_started_ms, CLEAR_PULSE_MS)) {
-        gpio_bit_reset(HARD_FAULT_CLR_PORT, HARD_FAULT_CLR_PIN);
-        //s_fault_latched = false;
-			  s_clear_pulse_active = false;
-        s_clear_verify_pending = true;
-        s_clear_pulse_started_ms = g_ms;
-    }
-    if (s_clear_verify_pending && elapsed_reached(s_clear_pulse_started_ms, CLEAR_RELEASE_SETTLE_MS)) 
-		{
-        s_clear_verify_pending = false;
-        if (!protect_fault_active_hw()) {
-            s_fault_latched = false;
-            g_fault = FAULT_NONE;
-				}
+    if (g_charger_state == MAIN_STEP_FAULT) {
+        s_ovp_qualification_active = false;
+        s_ocp_qualification_active = false;
+        return;
 		}
-    if (g_charger_state == MAIN_STEP_FAULT) return;
 
     /* LLC_FAULT_CHECK (D触发器输出, 低=故障) */
     if (protect_fault_active_hw()) {
@@ -117,13 +109,13 @@ void protect_tick_1khz(void)
     }
 
     /* OVP: 输出过压 */
-    if (g_adc_multi.vout_v > VOUT_OVP_V) {
+    if (condition_held(g_adc_multi.vout_v > VOUT_OVP_V,&s_ovp_qualification_active,&s_ovp_qualification_started_ms)) {
         protect_set_fault(FAULT_OVP);
         return;
     }
 
     /* OCP: 输出过流 (主限流由模拟硬件, 此为软件后备) */
-    if (g_adc_multi.iout_a > IOUT_OCP_A) {
+    if (condition_held(g_adc_multi.iout_a > IOUT_OCP_A,&s_ocp_qualification_active,&s_ocp_qualification_started_ms)) {
         protect_set_fault(FAULT_OCP);
         return;
     }

@@ -10,11 +10,8 @@ void protect_init(void);             /* 配置 LLC_FAULT_CHECK 输入 + HARD_FAULT_C
 bool protect_fault_active_hw(void);  /* LLC_FAULT_CHECK 当前状态 (低=故障) */
 bool protect_fault_latched(void);    /* 软件锁存标志 */
 
-//void protect_clear_fault(void);      /* 清除外部锁存 + 软件标志 */
-
-void protect_clear_fault(void);       /* Startup-only blocking clear pulse. */
-void protect_clear_fault_async(void); /* Runtime non-blocking clear request. */
-bool protect_clear_fault_busy(void); /* True while the 10ms pulse is active. */  
+void protect_clear_fault(void);      /* 清除外部锁存 + 软件标志 */
+ 
 void protect_tick_1khz(void);        /* 软件保护检查 (轮询) */
 void protect_set_fault(fault_type_t f);
 

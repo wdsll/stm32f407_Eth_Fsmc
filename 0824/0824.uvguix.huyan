@@ -1864,9 +1864,9 @@
       </Doc>
       <Doc>
         <Name>.\App\src\serial_console.c</Name>
-        <ColumnNumber>7</ColumnNumber>
-        <TopLine>92</TopLine>
-        <CurrentLine>103</CurrentLine>
+        <ColumnNumber>35</ColumnNumber>
+        <TopLine>86</TopLine>
+        <CurrentLine>107</CurrentLine>
         <Folding>1</Folding>
         <ContractedFolders></ContractedFolders>
         <PaneID>0</PaneID>
@@ -1892,17 +1892,17 @@
       <Doc>
         <Name>.\HW\src\llc_control.c</Name>
         <ColumnNumber>0</ColumnNumber>
-        <TopLine>206</TopLine>
-        <CurrentLine>216</CurrentLine>
+        <TopLine>127</TopLine>
+        <CurrentLine>137</CurrentLine>
         <Folding>1</Folding>
         <ContractedFolders></ContractedFolders>
         <PaneID>0</PaneID>
       </Doc>
       <Doc>
         <Name>.\HW\src\protect.c</Name>
-        <ColumnNumber>21</ColumnNumber>
-        <TopLine>10</TopLine>
-        <CurrentLine>15</CurrentLine>
+        <ColumnNumber>5</ColumnNumber>
+        <TopLine>98</TopLine>
+        <CurrentLine>109</CurrentLine>
         <Folding>1</Folding>
         <ContractedFolders></ContractedFolders>
         <PaneID>0</PaneID>
