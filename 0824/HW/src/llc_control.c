@@ -52,12 +52,6 @@ static uint32_t s_qualification_started_ms; // 去抖计时起点（condition_held 用）
 
 static bool s_qualification_active; // 去抖是否已激活（首次满足标记）
 
-/* Non-blocking power-off sub-state. */
-static bool s_power_off_active;
-static bool s_power_off_complete;
-static uint32_t s_power_off_started_ms;
-static charger_state_t s_power_off_target;
-
 /*********************************************************************************************************
 *                                              函数实现
 *********************************************************************************************************/
@@ -107,7 +101,7 @@ static void apply_references(void)
 	  
 }
 /*********************************************************************************************************
-* 函数名称：outputs_off
+* 函数名称：outputs_force_off
 * 函数功能：断输出继电器，关LLC使能，断LLC
 * 输入参数：void
 * 输出参数：void
@@ -116,13 +110,6 @@ static void apply_references(void)
 * 注    意：B1：三路同 tick 同步断开，无"先关 LLC→放电→再断继电器"时序
 						C5：未复位 CV_PWM/CC_PWM 占空比，重新充电可能带旧值
 *********************************************************************************************************/
-static void outputs_off(void)
-{
-	  gpio_bit_reset(OUT_RELAY_PORT, OUT_RELAY_PIN);
-    gpio_bit_reset(LLC_EN_PORT, LLC_EN_PIN);
-    pfc_disable();
-}
-
 static void outputs_force_off(void)
 {
 	gpio_bit_reset(LLC_EN_PORT, LLC_EN_PIN);
@@ -130,36 +117,13 @@ static void outputs_force_off(void)
   cc_pwm_set_duty(PWM_DUTY_SAFE);
 	gpio_bit_reset(OUT_RELAY_PORT, OUT_RELAY_PIN);
 	pfc_disable();
-	s_power_off_active = false;
-	s_power_off_complete = true;
 }
 
-/* Start by removing LLC drive and both PWM references.  Relays remain
- * closed during the bleed interval so their contacts never break load current. */
-static void power_off_begin(charger_state_t target)
+static void outputs_on(void)
 {
-    if (!s_power_off_active) {
-        gpio_bit_reset(LLC_EN_PORT, LLC_EN_PIN);
-        cv_pwm_set_duty(PWM_DUTY_SAFE);
-        cc_pwm_set_duty(PWM_DUTY_SAFE);
-        s_power_off_started_ms = g_ms;
-        s_power_off_target = target;
-        s_power_off_active = true;
-        s_power_off_complete = false;
-    }
-}
-static bool power_off_tick(void)
-{
-    if (!s_power_off_active ||
-        !elapsed_reached(s_power_off_started_ms, POWER_OFF_BLEED_DELAY_MS)) {
-        return false;
-    }
-
-    gpio_bit_reset(OUT_RELAY_PORT, OUT_RELAY_PIN);
-    pfc_disable();
-    s_power_off_active = false;
-    s_power_off_complete = true;
-    return true;
+	  gpio_bit_set(OUT_RELAY_PORT, OUT_RELAY_PIN);
+    gpio_bit_reset(LED_RED_PORT, LED_RED_PIN);
+    gpio_bit_set(LED_GREEN_PORT, LED_GREEN_PIN);
 }
 /*********************************************************************************************************
 * 函数名称：condition_held
@@ -196,11 +160,64 @@ static bool condition_held(bool condition,uint32_t duration_ms)
 *********************************************************************************************************/
 static void enter_state(charger_state_t state)
 {
+	  if (g_charger_state == state) {
+        return;
+    }
+
 	  g_charger_state = state;
     s_state_started_ms = g_ms;
-	
 		s_qualification_active = false;
+		
+		switch(state)
+		{
+			case MAIN_STEP_STANDBY:
+			{
+				outputs_force_off();
+				gpio_bit_set(LED_RED_PORT, LED_RED_PIN);
+				gpio_bit_reset(LED_GREEN_PORT, LED_GREEN_PIN);
+				break;
+			}
+			case MAIN_STEP_PRECHARGE:
+			{
+				pfc_enable();
+				break;
+			}
+			case MAIN_STEP_CC:
+			{
+				apply_references();
+				gpio_bit_set(LLC_EN_PORT, LLC_EN_PIN);
+				outputs_on();
+				break;
+			}
+			case MAIN_STEP_CV:
+			{
+				outputs_on();
+				break;
+			}
+			case MAIN_STEP_FINISHED:
+			{
+				outputs_force_off();
+				gpio_bit_reset(LED_RED_PORT, LED_RED_PIN);
+        gpio_bit_set(LED_GREEN_PORT, LED_GREEN_PIN);
+				break;
+			}
+			case MAIN_STEP_FAULT:
+			{
+				outputs_force_off();
+				gpio_bit_set(LED_RED_PORT, LED_RED_PIN);
+				gpio_bit_reset(LED_GREEN_PORT, LED_GREEN_PIN);
+				break;	
+			}
+			default:
+				break;
+		}
 }
+
+void power_supervisor_enter_fault(void)
+{
+    enter_state(MAIN_STEP_FAULT);
+}
+
 /* ========== 状态机 ========== */
 /*********************************************************************************************************
 * 函数名称：power_supervisor_init
@@ -219,8 +236,7 @@ void power_supervisor_init(void)
     //s_last_status_ms = g_ms;
 	  cv_pwm_set_duty(CV_PWM_DUTY_INIT);  //初始安全占空比
     cc_pwm_set_duty(CC_PWM_DUTY_INIT);
-    //outputs_off();  //默认所有都安全关闭
-		outputs_force_off();
+		//outputs_force_off();
     enter_state(MAIN_STEP_STANDBY); //初始化进待机
 }
 /*********************************************************************************************************
@@ -281,15 +297,9 @@ void power_supervisor_tick_1khz(void)
 {
 	/* Commands arrive through the transport-independent supervisor API. */
 	if (g_charger_state == MAIN_STEP_FAULT) {
-		//outputs_off();
-		if (!s_power_off_active && !s_power_off_complete) {
-				power_off_begin(MAIN_STEP_FAULT);
-		}
-		(void)power_off_tick();
-		gpio_bit_set(LED_RED_PORT,LED_RED_PIN);
-		gpio_bit_reset(LED_GREEN_PORT,LED_GREEN_PIN);
-		//if(!s_enable_requested&&!protect_fault_latched()&&!protect_fault_active_hw())
-		if(s_power_off_complete && !s_enable_requested &&!protect_fault_latched() && !protect_fault_active_hw())
+		outputs_force_off();
+
+		if(!s_enable_requested&&!protect_fault_latched()&&!protect_fault_active_hw())
 		{
 			g_fault = FAULT_NONE;
 			enter_state(MAIN_STEP_STANDBY);
@@ -300,31 +310,17 @@ void power_supervisor_tick_1khz(void)
 		{ 
 			case MAIN_STEP_STANDBY:
 			{
-				//outputs_off();  //C3：每 tick 先全关
-				gpio_bit_set(LED_RED_PORT,LED_RED_PIN);
-				gpio_bit_reset(LED_GREEN_PORT,LED_GREEN_PIN);
 				if(s_enable_requested && g_adc_multi.vbat_v >= BATTERY_PRESENT_V) //使能且电池已经接入(>=10V)
 				{
-					s_power_off_complete = false;
-					pfc_enable(); // C3：同一 tick 又开 PFC,不能每个task都开把
 					enter_state(MAIN_STEP_PRECHARGE);
-				}
-				else{
-					//outputs_off();
-					outputs_force_off();
 				}
 				break;
 			}
 			case MAIN_STEP_PRECHARGE:
 			{
 				if (!s_enable_requested) {  //使能撤销->待机
-					 power_off_begin(MAIN_STEP_STANDBY);
-           enter_state(MAIN_STEP_SHUTDOWN);
-					 //outputs_off();
-					 //enter_state(MAIN_STEP_STANDBY);
+					 enter_state(MAIN_STEP_STANDBY);
 				 } else if (pfc_is_ready()) { //母线挂起（360V）-->CC
-					 apply_references(); // // 仅此处下发一次基准（见 A2）
-					 gpio_bit_set(LLC_EN_PORT, LLC_EN_PIN);
 					 enter_state(MAIN_STEP_CC); /* Legacy CAN state value: running. */
 				 }
 					else if (elapsed_reached(s_state_started_ms, PFC_READY_TIMEOUT_MS)) {
@@ -337,7 +333,6 @@ void power_supervisor_tick_1khz(void)
 			{
 				if(!s_enable_requested) // 使能撤销→待机
 				{
-					 outputs_off();
 					 enter_state(MAIN_STEP_STANDBY);
 				}
 				else if(elapsed_reached(s_state_started_ms,CHARGE_CC_TIMEOUT_MS))
@@ -349,13 +344,7 @@ void power_supervisor_tick_1khz(void)
 				{
 					enter_state(MAIN_STEP_CV); // 电压到达→进 CV
 				}
-				else if(g_adc_multi.vout_v>OUTPUT_RELAY_MIN_V) //输出已经挂起
-				{
-					gpio_bit_set(OUT_RELAY_PORT, OUT_RELAY_PIN); //闭合输出继电器
-					gpio_bit_reset(LED_RED_PORT, LED_RED_PIN);
-					gpio_bit_set(LED_GREEN_PORT, LED_GREEN_PIN);
-				}
-				else if (elapsed_reached(s_state_started_ms, OUTPUT_START_TIMEOUT_MS))
+				else if (g_adc_multi.vout_v <= OUTPUT_RELAY_MIN_V && elapsed_reached(s_state_started_ms, OUTPUT_START_TIMEOUT_MS))
 				{
 					protect_set_fault(FAULT_OUTPUT_START_TIMEOUT); //C2：名实不符(报母线欠压实则查输出)，现在更新故障类型
 				}
@@ -365,10 +354,7 @@ void power_supervisor_tick_1khz(void)
 			{
 				if(!s_enable_requested) // 使能撤销→待机
 				{
-					//outputs_off();
-					//enter_state(MAIN_STEP_STANDBY);
-					power_off_begin(MAIN_STEP_STANDBY);
-					enter_state(MAIN_STEP_SHUTDOWN);
+					enter_state(MAIN_STEP_STANDBY);
 				}
 				else if(elapsed_reached(s_state_started_ms,CHARGE_CV_TIMEOUT_MS))
 				{
@@ -376,166 +362,24 @@ void power_supervisor_tick_1khz(void)
 				}
 				else
 				{
-				/* The analog IC owns the CV loop; the MCU only qualifies completion. */
-					gpio_bit_set(OUT_RELAY_PORT, OUT_RELAY_PIN);
-					gpio_bit_reset(LED_RED_PORT, LED_RED_PIN);
-					gpio_bit_set(LED_GREEN_PORT, LED_GREEN_PIN);
 					if(condition_held(s_voltage_reference_v>BATTERY_PRESENT_V&&g_adc_multi.vbat_v>=(s_voltage_reference_v - CHARGE_FINISH_VOLTAGE_MARGIN_V)
 						&& g_adc_multi.iout_a >= 0 && g_adc_multi.iout_a <= CHARGE_FINISH_CURRENT_A,CHARGE_FINISH_DEBOUNCE_MS))
 					{
-						//outputs_off();
-						//enter_state(MAIN_STEP_FINISHED);
-						power_off_begin(MAIN_STEP_FINISHED);
-						enter_state(MAIN_STEP_SHUTDOWN);
+						enter_state(MAIN_STEP_FINISHED);
 					}
 				}
 				break;
 			}
 			case MAIN_STEP_FINISHED:
 			{
-				//outputs_off();  // 保持断开输出
-				outputs_force_off(); 
-				gpio_bit_reset(LED_RED_PORT,LED_RED_PIN);
-				gpio_bit_set(LED_GREEN_PORT,LED_GREEN_PIN);
 				if(!s_enable_requested)
 				{
 					enter_state(MAIN_STEP_STANDBY); // 撤销使能→回待机
 				}
 				break;
 			}
-			case MAIN_STEP_SHUTDOWN:
-			{
-				if (power_off_tick()) {
-						enter_state(s_power_off_target);
-				}
-				break;
-			}
 			default:
-				outputs_off();
 				enter_state(MAIN_STEP_STANDBY);  //C6：TRICKLE/INVALID 全靠此处兜底
 				break;
 		}
 }
-
-#if 0
-void power_supervisor_tick_1khz_can(void)
-{
-	can_rx_data_t command;
-	if (can_comm_get_cmd(&command)) {  //收到can的命令
-		power_supervisor_set_references((float)command.vout_set_x10 * 0.1f,
-                                        (float)command.iout_set_x10 * 0.1f);
-		power_supervisor_request(command.enable != 0U);
-	}
-	if (elapsed_reached(s_last_status_ms, CAN_STATUS_PERIOD_MS)) {
-		s_last_status_ms = g_ms;
-		can_comm_tx_status();  //周期上报状态
-  }
-	if (s_enable_requested && can_comm_timeout()) {
-		protect_set_fault(FAULT_CAN_TIMEOUT); //can 超时->锁故障
-	}
-	if (g_charger_state == MAIN_STEP_FAULT) { //B2：FAULT 在 CAN 处理后才判
-		outputs_off();
-		gpio_bit_set(LED_RED_PORT, LED_RED_PIN);
-		gpio_bit_reset(LED_GREEN_PORT, LED_GREEN_PIN);
-		return;  //B2：return 后不再收 CAN，无法远程清故障
-	}
-	switch(g_charger_state)
-	{ 
-		case MAIN_STEP_STANDBY:
-		{
-			outputs_off();  //C3：每 tick 先全关
-			gpio_bit_set(LED_RED_PORT,LED_RED_PIN);
-			gpio_bit_reset(LED_GREEN_PORT,LED_GREEN_PIN);
-			if(s_enable_requested && g_adc_multi.vbat_v >= BATTERY_PRESENT_V) //使能且电池已经接入(>=10V)
-			{
-				pfc_enable(); // C3：同一 tick 又开 PFC,不能每个task都开把
-				enter_state(MAIN_STEP_PRECHARGE);
-			}
-			break;
-		}
-		case MAIN_STEP_PRECHARGE:
-		{
-			if (!s_enable_requested) {  //使能撤销->待机
-         outputs_off();
-         enter_state(MAIN_STEP_STANDBY);
-       } else if (pfc_is_ready()) { //母线挂起（360V）-->CC
-				 apply_references(); // // 仅此处下发一次基准（见 A2）
-				 gpio_bit_set(LLC_EN_PORT, LLC_EN_PIN);
-				 enter_state(MAIN_STEP_CC); /* Legacy CAN state value: running. */
-			 }
-			  //A1：无第三个分支——pfc 永远不 ready 则永久卡死，不报错不回待机
-			 break;
-		}
-		case MAIN_STEP_CC:
-		{
-			if(!s_enable_requested) // 使能撤销→待机
-			{
-				 outputs_off();
-				 enter_state(MAIN_STEP_STANDBY);
-			}
-			else if(elapsed_reached(s_state_started_ms,CHARGE_CC_TIMEOUT_MS))
-			{
-				protect_set_fault(FAULT_CHARGE_TIMEOUT);   //B3：CC 超时=8s(调试值)，正常应 8h
-			}
-			//C4：判据用 vbat 非 vout
-			else if(condition_held(s_voltage_reference_v > BATTERY_PRESENT_V && g_adc_multi.vbat_v >= (s_voltage_reference_v - CHARGE_CV_ENTRY_MARGIN_V),CHARGE_CV_ENTRY_DEBOUNCE_MS))
-			{
-				enter_state(MAIN_STEP_CV); // 电压到达→进 CV
-			}
-			else if(g_adc_multi.vout_v>OUTPUT_RELAY_MIN_V) //输出已经挂起
-			{
-				gpio_bit_set(OUT_RELAY_PORT, OUT_RELAY_PIN); //闭合输出继电器
-				gpio_bit_reset(LED_RED_PORT, LED_RED_PIN);
-				gpio_bit_set(LED_GREEN_PORT, LED_GREEN_PIN);
-			}
-		  else if (elapsed_reached(s_state_started_ms, LLC_START_TIMEOUT_MS))
-			{
-				protect_set_fault(FAULT_BUS_UVP); //C2：名实不符(报母线欠压实则查输出)
-			}
-			break;
-		}
-		case MAIN_STEP_CV:
-		{
-			if(!s_enable_requested) // 使能撤销→待机
-			{
-				outputs_off();
-				enter_state(MAIN_STEP_STANDBY);
-			}
-			else if(elapsed_reached(s_state_started_ms,CHARGE_CV_TIMEOUT_MS))
-			{
-				protect_set_fault(FAULT_CHARGE_TIMEOUT); //B3：CV 超时=3s(调试值)，正常应 3h
-			}
-			else
-			{
-			/* The analog IC owns the CV loop; the MCU only qualifies completion. */
-				gpio_bit_set(OUT_RELAY_PORT, OUT_RELAY_PIN);
-				gpio_bit_reset(LED_RED_PORT, LED_RED_PIN);
-				gpio_bit_set(LED_GREEN_PORT, LED_GREEN_PIN);
-				if(condition_held(s_voltage_reference_v>BATTERY_PRESENT_V&&g_adc_multi.vbat_v>=(s_voltage_reference_v - CHARGE_FINISH_VOLTAGE_MARGIN_V)
-					&& g_adc_multi.iout_a >= 0 && g_adc_multi.iout_a <= CHARGE_FINISH_CURRENT_A,CHARGE_FINISH_DEBOUNCE_MS))
-				{
-					outputs_off();
-					enter_state(MAIN_STEP_FINISHED);
-				}
-			}
-			break;
-		}
-		case MAIN_STEP_FINISHED:
-		{
-			outputs_off();  // 保持断开输出
-			gpio_bit_reset(LED_RED_PORT,LED_RED_PIN);
-			gpio_bit_set(LED_GREEN_PORT,LED_GREEN_PIN);
-			if(!s_enable_requested)
-			{
-				enter_state(MAIN_STEP_STANDBY); // 撤销使能→回待机
-			}
-			break;
-		}
-		default:
-			outputs_off();
-		  enter_state(MAIN_STEP_STANDBY);  //C6：TRICKLE/INVALID 全靠此处兜底
-			break;
-	}
-	
-}
-#endif

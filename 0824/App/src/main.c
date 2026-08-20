@@ -262,9 +262,10 @@ int main(void)
 
     if (!protect_ok || !adc_ok) {
         debug_printf("[STARTUP] Preflight FAIL: protect=%d adc=%d\r\n", protect_ok, adc_ok);
-        g_charger_state = MAIN_STEP_FAULT;
-        g_fault = FAULT_HARDWARE_PRO;
-        gpio_bit_set(LED_RED_PORT, LED_RED_PIN);
+				protect_set_fault(FAULT_HARDWARE_PRO);
+       // g_charger_state = MAIN_STEP_FAULT;
+       // g_fault = FAULT_HARDWARE_PRO;
+       // gpio_bit_set(LED_RED_PORT, LED_RED_PIN);
         while (1) { __NOP(); }  /* 安全停机 */
     }
     debug_printf("[STARTUP] Preflight OK\r\n");

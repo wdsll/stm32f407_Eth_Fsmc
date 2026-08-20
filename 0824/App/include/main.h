@@ -89,9 +89,6 @@
 
 #define PFC_READY_TIMEOUT_MS    (3000U)
 
-/* Delay between stopping LLC power transfer and opening the relays. */
-#define POWER_OFF_BLEED_DELAY_MS        (300U)
-
 #define VOUT_TARGET_V           (58.0f)      /* 12S 锂电满充 4.2×12=50.4, CC/CV */
 #define VOUT_CC_V               (43.0f)      /* CC 阶段输出电压上限 */
 #define VOUT_CV_V               (58.0f)      /* CV 阶段目标电压 */
@@ -291,7 +288,6 @@ typedef enum {
     MAIN_STEP_TRICKLE,
     MAIN_STEP_FINISHED,
     MAIN_STEP_FAULT,
-	  MAIN_STEP_SHUTDOWN,
     MAIN_STEP_INVALID
 } charger_state_t;
 

@@ -8,6 +8,7 @@
 /* External analog ICs own the closed loops; these APIs only set PWM references. */
 void power_supervisor_init(void);
 void power_supervisor_tick_1khz(void);
+void power_supervisor_enter_fault(void);
 void power_supervisor_request(bool enable);
 bool power_supervisor_requested(void);
 void power_supervisor_set_references(float voltage_v, float current_a);
