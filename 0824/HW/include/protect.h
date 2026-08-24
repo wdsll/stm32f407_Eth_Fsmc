@@ -13,6 +13,6 @@ bool protect_fault_latched(void);    /* 软件锁存标志 */
 void protect_clear_fault(void);      /* 清除外部锁存 + 软件标志 */
  
 void protect_tick_1khz(void);        /* 软件保护检查 (轮询) */
-void protect_set_fault(fault_type_t f);
-
+void protect_set_fault(fault_type_t f); //置故障（写 g_fault + 进 FAULT 态）
+ 
 #endif /* _PROTECT_H_ */

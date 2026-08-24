@@ -12,6 +12,7 @@
 *********************************************************************************************************/
 #include "protect.h"
 #include "adc_dma.h"
+#include "condition_held.h"
 #include "llc_control.h"
 /*********************************************************************************************************
 *                                              宏定义
@@ -20,32 +21,15 @@
 /*********************************************************************************************************
 *                                              内部变量
 *********************************************************************************************************/
-static volatile bool s_fault_latched = false;
-static bool s_ovp_qualification_active = false;
-static bool s_ocp_qualification_active = false;
-static uint32_t s_ovp_qualification_started_ms = 0U;
-static uint32_t s_ocp_qualification_started_ms = 0U;
+static volatile bool s_fault_latched = false;  //软件锁存标志
+static condition_qualification_t s_ovp_qualification;
+static condition_qualification_t s_ocp_qualification;
 
 #define CLEAR_PULSE_MS          (10U)
 #define CLEAR_RELEASE_SETTLE_MS (5U)
 
 #define PROTECT_DEBOUNCE_MS     (30U)
 
-static bool condition_held(bool condition, bool *active, uint32_t *started_ms)
-{
-    if (!condition) {
-        *active = false;
-        return false;
-    }
-
-    if (!*active) {
-        *active = true;
-        *started_ms = g_ms;
-        return false;
-    }
-
-    return elapsed_reached(*started_ms, PROTECT_DEBOUNCE_MS);
-}
 /*********************************************************************************************************
 *                                              函数实现
 *********************************************************************************************************/
@@ -53,6 +37,9 @@ static bool condition_held(bool condition, bool *active, uint32_t *started_ms)
 /* ========== 初始化 ========== */
 void protect_init(void)
 {
+	  condition_qualification_reset(&s_ovp_qualification);
+    condition_qualification_reset(&s_ocp_qualification);
+	
     rcu_periph_clock_enable(LLC_FAULT_CHECK_RCU);
     rcu_periph_clock_enable(HARD_FAULT_CLR_RCU);
 
@@ -97,8 +84,8 @@ void protect_tick_1khz(void)
     extern adc_multi_t g_adc_multi;
 	
     if (g_charger_state == MAIN_STEP_FAULT) {
-        s_ovp_qualification_active = false;
-        s_ocp_qualification_active = false;
+        condition_qualification_reset(&s_ovp_qualification);
+        condition_qualification_reset(&s_ocp_qualification);
         return;
 		}
 
@@ -109,13 +96,13 @@ void protect_tick_1khz(void)
     }
 
     /* OVP: 输出过压 */
-    if (condition_held(g_adc_multi.vout_v > VOUT_OVP_V,&s_ovp_qualification_active,&s_ovp_qualification_started_ms)) {
+    if (condition_held(&s_ovp_qualification, g_adc_multi.vout_v > VOUT_OVP_V, PROTECT_DEBOUNCE_MS)) {
         protect_set_fault(FAULT_OVP);
         return;
     }
 
     /* OCP: 输出过流 (主限流由模拟硬件, 此为软件后备) */
-    if (condition_held(g_adc_multi.iout_a > IOUT_OCP_A,&s_ocp_qualification_active,&s_ocp_qualification_started_ms)) {
+    if (condition_held(&s_ocp_qualification, g_adc_multi.iout_a > IOUT_OCP_A, PROTECT_DEBOUNCE_MS)) {
         protect_set_fault(FAULT_OCP);
         return;
     }

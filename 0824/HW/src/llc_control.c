@@ -17,6 +17,7 @@
 *********************************************************************************************************/
 #include "llc_control.h"
 #include "adc_dma.h"
+#include "condition_held.h"
 //#include "can_comm.h"
 #include "pfc_control.h"
 #include "protect.h"
@@ -46,11 +47,7 @@ static float s_current_reference_a; // 当前电流基准(A)，来自 CAN 命令
 
 static uint32_t s_state_started_ms; // 进入当前状态的时间戳（状态内超时用）
 
-//static uint32_t s_last_status_ms; // 上次 CAN 状态上报时间戳
-
-static uint32_t s_qualification_started_ms; // 去抖计时起点（condition_held 用）
-
-static bool s_qualification_active; // 去抖是否已激活（首次满足标记）
+static condition_qualification_t s_qualification;
 
 /*********************************************************************************************************
 *                                              函数实现
@@ -125,30 +122,7 @@ static void outputs_on(void)
     gpio_bit_reset(LED_RED_PORT, LED_RED_PIN);
     gpio_bit_set(LED_GREEN_PORT, LED_GREEN_PIN);
 }
-/*********************************************************************************************************
-* 函数名称：condition_held
-* 函数功能：祛抖函数
-* 输入参数：void
-* 输出参数：void
-* 返 回 值：void
-* 创建日期：2026年08月12日
-* 注    意：
-*********************************************************************************************************/
-static bool condition_held(bool condition,uint32_t duration_ms)
-{
-	  if (!condition) {  //条件不满足避免误触发
-        s_qualification_active = false;
-        return false;
-    }
-		
-		if (!s_qualification_active) {  //首次满足-->记录起点本次返回假
-        s_qualification_active = true;
-        s_qualification_started_ms = g_ms;
-        return false;
-    }
-		
-		return elapsed_reached(s_qualification_started_ms,duration_ms); //必须持续一段时间才为真
-}
+
 /*********************************************************************************************************
 * 函数名称：enter_state
 * 函数功能：
@@ -166,7 +140,7 @@ static void enter_state(charger_state_t state)
 
 	  g_charger_state = state;
     s_state_started_ms = g_ms;
-		s_qualification_active = false;
+		condition_qualification_reset(&s_qualification);
 		
 		switch(state)
 		{
@@ -340,7 +314,7 @@ void power_supervisor_tick_1khz(void)
 					protect_set_fault(FAULT_CHARGE_TIMEOUT);   //B3：CC 超时=8s(调试值)，正常应 8h
 				}
 				//C4：判据用 vbat 非 vout
-				else if(condition_held(s_voltage_reference_v > BATTERY_PRESENT_V && g_adc_multi.vbat_v >= (s_voltage_reference_v - CHARGE_CV_ENTRY_MARGIN_V),CHARGE_CV_ENTRY_DEBOUNCE_MS))
+				else if(condition_held(&s_qualification,s_voltage_reference_v > BATTERY_PRESENT_V && g_adc_multi.vbat_v >= (s_voltage_reference_v - CHARGE_CV_ENTRY_MARGIN_V),CHARGE_CV_ENTRY_DEBOUNCE_MS))
 				{
 					enter_state(MAIN_STEP_CV); // 电压到达→进 CV
 				}
@@ -362,7 +336,7 @@ void power_supervisor_tick_1khz(void)
 				}
 				else
 				{
-					if(condition_held(s_voltage_reference_v>BATTERY_PRESENT_V&&g_adc_multi.vbat_v>=(s_voltage_reference_v - CHARGE_FINISH_VOLTAGE_MARGIN_V)
+					if(condition_held(&s_qualification,s_voltage_reference_v>BATTERY_PRESENT_V&&g_adc_multi.vbat_v>=(s_voltage_reference_v - CHARGE_FINISH_VOLTAGE_MARGIN_V)
 						&& g_adc_multi.iout_a >= 0 && g_adc_multi.iout_a <= CHARGE_FINISH_CURRENT_A,CHARGE_FINISH_DEBOUNCE_MS))
 					{
 						enter_state(MAIN_STEP_FINISHED);
