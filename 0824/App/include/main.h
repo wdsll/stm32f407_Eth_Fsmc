@@ -169,8 +169,20 @@
 #define CUR_PWM_RCU                     RCU_GPIOA
 #define CUR_PWM_TIMER                   TIMER1
 #define CUR_PWM_CH                      TIMER_CH_0
+
+/* U17.20 / PA6: BUS_VOL_ADJ, TIMER2_CH0 (default mapping). */
+#define BUS_VOL_ADJ_PORT                GPIOA
+#define BUS_VOL_ADJ_PIN                 GPIO_PIN_6
+#define BUS_VOL_ADJ_RCU                 RCU_GPIOA
+#define BUS_VOL_ADJ_TIMER               TIMER2
+#define BUS_VOL_ADJ_CH                  TIMER_CH_0
 #define CC_CV_PWM_REQUIRE_INDEPENDENT   (1U)
 #define CC_CV_PWM_PIN_CONFLICT          (1U)
+
+
+/* Dedicated low-voltage PWM-to-analog calibration firmware.
+ * Keep enabled for phase 1; set to 0 only after the measured calibration review passes. */
+#define PWM_ANALOG_CALIBRATION_MODE     (0U)
 
 #define PWM_BASE_HZ                     (20000U)
 #define PWM_DUTY_SAFE                   (0.0f)

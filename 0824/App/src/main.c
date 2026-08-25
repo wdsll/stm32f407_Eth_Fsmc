@@ -149,8 +149,11 @@ static void monitor_protect_tick_1khz(void)
     /* PFC 状态机 (NCP1654 外置, MCU 监控+继电器控制) */
     pfc_tick_1khz();
 
-    /*模拟IC闭环；MCU只更新参考值并管理功率时序. */
-    power_supervisor_tick_1khz();
+    /* PFC standalone test owns the PFC relay and must never advance into LLC. */
+    if (!serial_console_pfc_test_active()) {
+        /*模拟IC闭环；MCU只更新参考值并管理功率时序. */
+        power_supervisor_tick_1khz();
+    }
 }
 /* ========== 启动自检 ========== */
 static bool adc_startup_check(void)
@@ -237,6 +240,23 @@ int main(void)
     /* 4. SysTick 1ms */
     systick_1ms_init();
 	
+#if PWM_ANALOG_CALIBRATION_MODE
+    /* Phase 1: initialize all three references at 0%; no power-stage module runs. */
+    cv_pwm_init(PWM_BASE_HZ, PWM_DUTY_SAFE);
+    cc_pwm_init(PWM_BASE_HZ, PWM_DUTY_SAFE);
+    bus_vol_adj_pwm_init(PWM_BASE_HZ, PWM_DUTY_SAFE);
+    serial_console_init();
+    debug_printf("[CAL] Power stage disabled; references default to 0%%\r\n");
+
+    while (1) {
+        /* Reassert OFF in every pass; console only changes reference PWM. */
+        gpio_bit_reset(LLC_EN_PORT, LLC_EN_PIN);
+        gpio_bit_reset(PFC_RELAY_PORT, PFC_RELAY_PIN);
+        gpio_bit_reset(OUT_RELAY_PORT, OUT_RELAY_PIN);
+        serial_console_task();
+        if (debug_buffer_used() > 0U) debug_tx_task();
+    }
+#else
     /* 5. PWM-to-DC references. Analog ICs close the CC/CV loops. */
     cv_pwm_init(PWM_BASE_HZ, CV_PWM_DUTY_INIT);
     cc_pwm_init(PWM_BASE_HZ, CC_PWM_DUTY_INIT);
@@ -329,5 +349,6 @@ int main(void)
 				/* can_comm_poll(); -- reserved for the later CAN integration phase. */
         //can_comm_poll();
 		}
-			
+	#endif		
 }
+

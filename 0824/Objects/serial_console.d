@@ -42,6 +42,7 @@
 .\objects\serial_console.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h
 .\objects\serial_console.o: .\App\include\debug_printf.h
 .\objects\serial_console.o: .\HW\include\llc_control.h
+.\objects\serial_console.o: .\HW\include\pfc_control.h
 .\objects\serial_console.o: .\HW\include\adc_dma.h
 .\objects\serial_console.o: .\HW\include\protect.h
 .\objects\serial_console.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h

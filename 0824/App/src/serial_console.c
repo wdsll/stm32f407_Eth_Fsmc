@@ -1,7 +1,113 @@
 /* USART2 commissioning console for the first software/hardware bench test. */
 #include "serial_console.h"
+#if PWM_ANALOG_CALIBRATION_MODE
+/* Phase-1 console: PWM references only. Power-stage commands do not exist. */
+
+#include "debug_printf.h"
+#include "pwm_llc.h"
+#include <stdio.h>
+#include <string.h>
+
+#define CAL_LINE_SIZE (64U)
+static char s_cal_line[CAL_LINE_SIZE];
+static uint32_t s_cal_length;
+
+static void calibration_force_power_off(void)
+{
+	  gpio_bit_reset(LLC_EN_PORT, LLC_EN_PIN);
+    gpio_bit_reset(PFC_RELAY_PORT, PFC_RELAY_PIN);
+    gpio_bit_reset(OUT_RELAY_PORT, OUT_RELAY_PIN);
+}
+
+static void calibration_status(void)
+{
+    debug_printf("PWM CV=%.1f%% CUR=%.1f%% BUS=%.1f%%; POWER LOCKED OFF\r\n",
+                 cv_pwm_get_duty() * 100.0f,
+                 cc_pwm_get_duty() * 100.0f,
+                 bus_vol_adj_pwm_get_duty() * 100.0f);
+}
+
+static void calibration_help(void)
+{
+    debug_printf("Commands: PWM CV <0..100> | PWM CUR <0..100> | "
+                 "PWM BUS <0..100> | PWM ALL 0 | STATUS | HELP\r\n");
+    debug_printf("PFC, LLC_EN and relays are hard-locked OFF in this firmware.\r\n");
+}
+
+static void calibration_execute(char *line)
+{
+    char channel[8];
+    float percent;
+
+    if ((strcmp(line, "HELP") == 0) || (strcmp(line, "?") == 0)) {
+        calibration_help();
+    } else if (strcmp(line, "STATUS") == 0) {
+        calibration_status();
+    } else if (strcmp(line, "PWM ALL 0") == 0) {
+        cv_pwm_set_duty(0.0f);
+        cc_pwm_set_duty(0.0f);
+        bus_vol_adj_pwm_set_duty(0.0f);
+        debug_printf("OK PWM ALL 0.0%%\r\n");
+    } else if (sscanf(line, "PWM %7s %f", channel, &percent) == 2) {
+        if ((percent < 0.0f) || (percent > 100.0f)) {
+            debug_printf("ERR duty range is 0..100 percent\r\n");
+        } else if (strcmp(channel, "CV") == 0) {
+            cv_pwm_set_duty(percent / 100.0f);
+            debug_printf("OK PWM CV %.1f%%\r\n", percent);
+        } else if (strcmp(channel, "CUR") == 0) {
+            cc_pwm_set_duty(percent / 100.0f);
+            debug_printf("OK PWM CUR %.1f%%\r\n", percent);
+        } else if (strcmp(channel, "BUS") == 0) {
+            bus_vol_adj_pwm_set_duty(percent / 100.0f);
+            debug_printf("OK PWM BUS %.1f%%\r\n", percent);
+        } else {
+            debug_printf("ERR channel must be CV, CUR or BUS\r\n");
+        }
+    } else {
+        debug_printf("ERR unknown command; type HELP\r\n");
+    }
+    calibration_force_power_off();
+}
+
+void serial_console_init(void)
+{
+    s_cal_length = 0U;
+    calibration_force_power_off();
+    debug_printf("[CAL] PWM-to-analog calibration mode\r\n");
+    calibration_help();
+    calibration_status();
+}
+
+void serial_console_task(void)
+{
+    char ch;
+    calibration_force_power_off();
+    while (debug_getchar(&ch)) {
+        if ((ch == '\r') || (ch == '\n')) {
+            if (s_cal_length > 0U) {
+                s_cal_line[s_cal_length] = '\0';
+                calibration_execute(s_cal_line);
+                s_cal_length = 0U;
+            }
+        } else if ((ch == '\b') || ((unsigned char)ch == 0x7FU)) {
+            if (s_cal_length > 0U) s_cal_length--;
+        } else if ((ch >= 'a') && (ch <= 'z')) {
+            if (s_cal_length < (CAL_LINE_SIZE - 1U))
+                s_cal_line[s_cal_length++] = (char)(ch - 'a' + 'A');
+        } else if (s_cal_length < (CAL_LINE_SIZE - 1U)) {
+            s_cal_line[s_cal_length++] = ch;
+        }
+    }
+}
+bool serial_console_pfc_test_active(void)
+{
+    return false;
+}
+
+#else
 #include "debug_printf.h"
 #include "llc_control.h"
+#include "pfc_control.h"
 #include "adc_dma.h"
 #include "protect.h"
 #include <stdio.h>
@@ -16,9 +122,25 @@ static uint32_t s_line_length;
 static uint32_t s_last_status_ms;
 static uint32_t s_last_command_ms;
 
+static bool s_pfc_test_active;
+
+static void pfc_test_force_load_off(void)
+{
+    gpio_bit_reset(LLC_EN_PORT, LLC_EN_PIN);
+    gpio_bit_reset(OUT_RELAY_PORT, OUT_RELAY_PIN);
+}
+
+static void pfc_test_stop(void)
+{
+    pfc_disable();
+    pfc_test_force_load_off();
+    s_pfc_test_active = false;
+}
+
 static void print_help(void) //	帮助函数
 {
     debug_printf("Commands: HELP | STATUS | SET <volt> <amp> | START | STOP | CLEAR | PING\r\n"); //命令清单。
+	  debug_printf("PFC standalone: PFC ON | PFC OFF (LLC_EN and OUT_RELAY stay OFF)\r\n");
     debug_printf("Safety: SET/START/CLEAR only while stopped; enabled output needs PING within 5s.\r\n"); //安全提示，清楚。
 }
 
@@ -43,10 +165,11 @@ static void print_status_test(void) //	状态打印。
 }
 static void print_status(bool include_raw)
 {
-    debug_printf("STAT ms=%lu state=%u fault=%u en=%u ref=%.1fV/%.1fA "
+    debug_printf("STAT ms=%lu state=%u fault=%u en=%u pfc_test=%u pfc_state=%u ref=%.1fV/%.1fA "
                  "ac=%.1fV bus=%.1fV out=%.1fV bat=%.1fV i=%.1fA\r\n",
                  (unsigned long)g_ms, (unsigned int)g_charger_state,
                  (unsigned int)g_fault, power_supervisor_requested() ? 1U : 0U,
+								 s_pfc_test_active ? 1U : 0U, (unsigned int)pfc_get_state(),
                  power_supervisor_voltage_reference(),
                  power_supervisor_current_reference(), g_adc_multi.ac_vol_v,
                  g_adc_multi.bus_vol_v, g_adc_multi.vout_v, g_adc_multi.vbat_v,
@@ -81,14 +204,33 @@ static void execute_command(char *line) //	命令分发
 	}
 	else if(strcmp(line,"STOP") == 0)
 	{
+		pfc_test_stop();
 		power_supervisor_request(false);
 		debug_printf("OK STOP\r\n");
 	}
+	else if(strcmp(line,"PFC ON") == 0)
+	{
+		if (power_supervisor_requested() || (g_charger_state != MAIN_STEP_STANDBY)) {
+			debug_printf("ERR STOP before PFC ON\r\n");
+		} else if (protect_fault_latched() || protect_fault_active_hw()) {
+			debug_printf("ERR fault active; PFC remains OFF\r\n");
+		} else {
+			pfc_test_force_load_off();
+			s_pfc_test_active = true;
+			pfc_enable();
+			debug_printf("OK PFC ON; LLC_EN and OUT_RELAY locked OFF\r\n");
+		}
+	}
+	else if(strcmp(line,"PFC OFF") == 0)
+	{
+		pfc_test_stop();
+		debug_printf("OK PFC OFF\r\n");
+	}
 	else if(sscanf(line,"SET %f %f",&voltage_v,&current_a) == 2) //	用 sscanf 解析字符串（不是 scanf 从 stdin 读），正确；要求恰好 2 个浮点才匹配。
 	{
-		if(power_supervisor_requested())
+		if(power_supervisor_requested() || s_pfc_test_active)
 		{
-			debug_printf("ERR stop before SET\r\n"); 	//运行中禁止改设定值，合理。
+			debug_printf("ERR STOP/PFC OFF before SET\r\n"); 	//运行中禁止改设定值，合理。
 		}
 		//设定值范围校验。注意上限 80V 与保护侧 OVP(64V) 不一致（见 P2）：设 80V 会让 VOUT 目标冲过 OVP 阈值而触发故障。建议上限收到 ≤60V。
 		else if((voltage_v < 10.0f)||(voltage_v > 80.0f)||(current_a <= 0.0f)||(current_a > 20.0f)) 
@@ -103,6 +245,10 @@ static void execute_command(char *line) //	命令分发
 	}
 	else if(strcmp(line,"START") == 0) //启动分支。
 	{
+		if (s_pfc_test_active)
+		{
+			debug_printf("ERR PFC OFF before START\r\n");
+		}
 		//故障态/硬件故障未解除时拒绝启动，这是关键安全门，正确
 		if((g_charger_state == MAIN_STEP_FAULT)||protect_fault_latched()||protect_fault_active_hw())
 		{
@@ -122,9 +268,9 @@ static void execute_command(char *line) //	命令分发
 	else if(strcmp(line,"CLEAR") == 0)
 	{
 		//	运行中禁止清故障，合理。
-		if(power_supervisor_requested())
+		if(power_supervisor_requested() || s_pfc_test_active)
 		{
-			debug_printf("ERR STOP before CLEAR\r\n");
+			debug_printf("ERR STOP/PFC OFF before CLEAR\r\n");
 		}
 		//允许 CLEAR 释放外部硬件锁存，采用非阻塞 10ms 清除脉冲和 5ms 释放等待；
 		//只有硬件故障输入确实解除后，才清除软件锁存和故障码，从而兼顾故障恢复与防止误复位。
@@ -149,6 +295,7 @@ void serial_console_init(void)
     s_line_length = 0U;
     s_last_status_ms = g_ms;
     s_last_command_ms = g_ms;
+	  s_pfc_test_active = false;
     debug_printf("[COMM] USART2 commissioning mode, CAN disabled\r\n");
     print_help(); //上电即打印帮助，联调方便
 }
@@ -176,8 +323,9 @@ void serial_console_task(void) //每轮主循环调用
     }
 //控制台看门狗：使能后 5s 无命令自动停功率。安全问题见下（P2 设计考量）：自动状态打印(150行)不刷新 s_last_command_ms，
 //所以「START 后只看自动状态、5s 不敲键」会被自停；联调长充电时需周期性 PING/STATUS 或放宽超时。
-    if (power_supervisor_requested() &&
+    if ((power_supervisor_requested() || s_pfc_test_active) &&
         elapsed_reached(s_last_command_ms, CONSOLE_WATCHDOG_MS)) {
+				pfc_test_stop();
         power_supervisor_request(false);
         debug_printf("WARN command watchdog: STOP\r\n");
     }
@@ -187,3 +335,9 @@ void serial_console_task(void) //每轮主循环调用
         print_status(false);
     }
 }
+
+bool serial_console_pfc_test_active(void)
+{
+    return s_pfc_test_active;
+}
+#endif

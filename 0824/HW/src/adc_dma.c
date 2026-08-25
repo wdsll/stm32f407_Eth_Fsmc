@@ -5,16 +5,16 @@
     (5100.0f / (4.0f * 330000.0f + 5100.0f))
 adc_multi_t g_adc_multi;
 
-static uint16_t s_adc0_dma_buf[ADC_CHANNEL_QTY];
+static uint16_t s_adc0_dma_buf[ADC_CHANNEL_QTY]; // DMA 缓冲 5 字，与通道数一致
 
 
-static uint64_t s_ac_raw_square_sum;
+static uint64_t s_ac_raw_square_sum; // AC RMS 累加器
 static uint32_t s_ac_sample_count;
 
 /* ========== ADC0 多通道 DMA 初始化 ========== */
 void adc_multi_init_dma(uint32_t exttrig)
 {
-    rcu_periph_clock_enable(RCU_GPIOA);
+    rcu_periph_clock_enable(RCU_GPIOA); //开时钟
     rcu_periph_clock_enable(RCU_GPIOC);
     rcu_periph_clock_enable(RCU_ADC0);
     rcu_periph_clock_enable(RCU_DMA0);
@@ -24,9 +24,9 @@ void adc_multi_init_dma(uint32_t exttrig)
               GPIO_PIN_1 | GPIO_PIN_3 | GPIO_PIN_5 | GPIO_PIN_6);
     gpio_init(GPIOC, GPIO_MODE_AIN, GPIO_OSPEED_MAX, GPIO_PIN_5);
 	
-    rcu_adc_clock_config(RCU_CKADC_CKAPB2_DIV8);
+    rcu_adc_clock_config(RCU_CKADC_CKAPB2_DIV8); //APB2(≤120MHz)/8 ≤ 15MHz，GD32F30x ADC 上限 40MH
 
-    adc_deinit(ADC0);
+    adc_deinit(ADC0); //continuous 关 + exttrig=NONE 意味着每次转换必须**软件触发**
     adc_special_function_config(ADC0, ADC_SCAN_MODE, ENABLE);
     adc_special_function_config(ADC0, ADC_CONTINUOUS_MODE, DISABLE);
     adc_external_trigger_source_config(ADC0, ADC_REGULAR_CHANNEL, exttrig);
@@ -57,8 +57,8 @@ void adc_multi_init_dma(uint32_t exttrig)
     dma.direction    = DMA_PERIPHERAL_TO_MEMORY;
     dma.priority     = DMA_PRIORITY_HIGH;
     dma_init(DMA0, DMA_CH0, dma);
-    dma_circulation_enable(DMA0, DMA_CH0);
-		dma_flag_clear(DMA0, DMA_CH0, DMA_FLAG_G);
+    dma_circulation_enable(DMA0, DMA_CH0); //循环模式 （持续刷新最新 5 通道）
+		dma_flag_clear(DMA0, DMA_CH0, DMA_FLAG_G); //清全局标志，多余但无害；建议明确用 `DMA_FLAG_FTF`
 		
     adc_enable(ADC0);
 		adc_calibration_enable(ADC0);

@@ -13,4 +13,8 @@ void cc_pwm_init(uint32_t freq_hz, float duty);
 void cc_pwm_set_duty(float duty);
 float cc_pwm_get_duty(void);
 
+void bus_vol_adj_pwm_init(uint32_t freq_hz, float duty);
+void bus_vol_adj_pwm_set_duty(float duty);
+float bus_vol_adj_pwm_get_duty(void);
+
 #endif
