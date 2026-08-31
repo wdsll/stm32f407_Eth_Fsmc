@@ -46,9 +46,9 @@ fault_type_t    g_fault = FAULT_NONE;
  * 0 = 无任务；1 = 有一个最新任务待执行。
  * 主循环繁忙时不累计历史任务，只统计被丢弃的节拍。
  */
-static volatile uint32_t s_control_tick_pending = 0U;
-static volatile uint32_t s_adc_monitor_tick_pending  = 0U;
-static volatile uint32_t s_tick_drop_count = 0U;
+static volatile uint32_t s_control_tick_pending = 0U;  // 1kHz 任务标志（只存 0/1）
+static volatile uint32_t s_adc_monitor_tick_pending  = 0U;  // 5kHz 采样标志
+static volatile uint32_t s_tick_drop_count = 0U; // 1kHz 丢节拍计数
 static volatile uint32_t s_adc_monitor_tick_drop_count  = 0U;
 /*********************************************************************************************************
 *                                              函数实现
@@ -63,6 +63,7 @@ void delay_ms(uint32_t duration_ms)
     }
 }
 /* ========== SysTick 1ms 中断 ========== */
+//轻量、正确。注意 SysTick 和 TIMER3 都在中断里只置标志，真正的重活在任务级，所以中断本身极短，不会阻塞其他中断
 static void systick_1ms_init(void)
 {
     SystemCoreClockUpdate();
@@ -174,20 +175,21 @@ static bool adc_startup_check(void)
     if (g_adc_multi.vbt_raw     >= ADC_RESOLUTION) return false;
     return true;
 }
-
+//逻辑正确：硬件故障持续则启动失败；软锁存可清。
 static bool protect_startup_check(void)
 {
-    if (protect_fault_active_hw()) 
+    if (protect_fault_active_hw())  // 硬件故障→失败
 		{
 			return false;
 		}
-    if (protect_fault_latched()) 
+    if (protect_fault_latched())  // 锁存→先清
 		{
 			protect_clear_fault();
 		}
     return !protect_fault_active_hw();
 }
 /* ========== 硬件初始化 ========== */
+//GPIO 初始化（191-223）★ 全部初始复位（关），这是正确的安全默认
 static void hw_gpio_init(void)
 {
     /* PFC 继电器 */
@@ -283,9 +285,9 @@ int main(void)
     if (!protect_ok || !adc_ok) {
         debug_printf("[STARTUP] Preflight FAIL: protect=%d adc=%d\r\n", protect_ok, adc_ok);
 				protect_set_fault(FAULT_HARDWARE_PRO);
-       // g_charger_state = MAIN_STEP_FAULT;
-       // g_fault = FAULT_HARDWARE_PRO;
-       // gpio_bit_set(LED_RED_PORT, LED_RED_PIN);
+        g_charger_state = MAIN_STEP_FAULT;
+        g_fault = FAULT_HARDWARE_PRO;
+        gpio_bit_set(LED_RED_PORT, LED_RED_PIN);
         while (1) { __NOP(); }  /* 安全停机 */
     }
     debug_printf("[STARTUP] Preflight OK\r\n");
@@ -329,9 +331,9 @@ int main(void)
 				 * 读取上一节拍启动并已完成的DMA帧，累计AC RMS样本，
 				 * 随后启动下一帧转换。遗漏节拍不会在这里补采。
 				 */
-					adc_multi_copy();
-					adc_ac_sample_fast(g_adc_multi.ac_vol_raw);
-					adc_multi_trigger_fast();
+					adc_multi_copy();  // ← 丢弃是否成功
+					adc_ac_sample_fast(g_adc_multi.ac_vol_raw); // 累加 AC RMS
+					adc_multi_trigger_fast(); // 触发下一帧
 				}
 				
 				if (run_control_tick != 0U) {

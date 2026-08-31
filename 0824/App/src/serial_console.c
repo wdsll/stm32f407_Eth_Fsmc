@@ -115,7 +115,7 @@ bool serial_console_pfc_test_active(void)
 
 #define CONSOLE_LINE_SIZE   (64U)  //命令行缓冲 64B，命令都很短，够用。
 #define CONSOLE_STATUS_PERIOD_MS   (1000U)
-#define CONSOLE_WATCHDOG_MS        (5000U) //	控制台看门狗 5s：使能输出后若 5s 无命令则自动 STOP（终端失联保护）。
+#define CONSOLE_WATCHDOG_MS        (10000U) //	控制台看门狗 10s：使能输出后若 5s 无命令则自动 STOP（终端失联保护）。
  
 static char s_line[CONSOLE_LINE_SIZE];
 static uint32_t s_line_length;
@@ -329,7 +329,7 @@ void serial_console_task(void) //每轮主循环调用
         power_supervisor_request(false);
         debug_printf("WARN command watchdog: STOP\r\n");
     }
-		//每 500ms 自动打状态，联调友好
+		//每 1000ms 自动打状态，联调友好
     if (elapsed_reached(s_last_status_ms, CONSOLE_STATUS_PERIOD_MS)) {
         s_last_status_ms = g_ms;
         print_status(false);

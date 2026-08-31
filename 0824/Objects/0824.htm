@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\Objects\0824.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Objects\0824.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Tue Aug 25 13:28:33 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Fri Aug 28 15:22:46 2026
 <BR><P>
 <H3>Maximum Stack Usage =        512 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -959,6 +959,7 @@ Global Symbols
 <P><STRONG><a name="[d5]"></a>gpio_bit_set</STRONG> (Thumb, 4 bytes, Stack size 0 bytes, gd32f30x_gpio.o(i.gpio_bit_set))
 <BR><BR>[Called By]<UL><LI><a href="#[d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_enable
 <LI><a href="#[e7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_clear_fault
+<LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 <LI><a href="#[e8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;hw_gpio_init
 <LI><a href="#[d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_on
 <LI><a href="#[d3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;enter_state
@@ -979,7 +980,7 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[e1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_active_hw
 </UL>
 
-<P><STRONG><a name="[46]"></a>main</STRONG> (Thumb, 242 bytes, Stack size 0 bytes, main.o(i.main))
+<P><STRONG><a name="[46]"></a>main</STRONG> (Thumb, 262 bytes, Stack size 0 bytes, main.o(i.main))
 <BR><BR>[Stack]<UL><LI>Max Depth = 512<LI>Call Chain = main &rArr; serial_console_task &rArr; execute_command &rArr; print_status &rArr; debug_printf &rArr; vsnprintf
 </UL>
 <BR>[Calls]<UL><LI><a href="#[f2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;serial_console_task
@@ -989,6 +990,7 @@ Global Symbols
 <LI><a href="#[ef]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_init
 <LI><a href="#[ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_init
 <LI><a href="#[e9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;nvic_priority_group_set
+<LI><a href="#[d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_set
 <LI><a href="#[d0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_tx_task
 <LI><a href="#[c7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf_init
 <LI><a href="#[c5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf
