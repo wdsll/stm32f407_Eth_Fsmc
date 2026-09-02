@@ -86,16 +86,11 @@
 
 
 #define VBUS_OVP_V              (420.0f)     /* Absolute DC-link software trip */
-
 #define PFC_READY_TIMEOUT_MS    (3000U)
 
-#define VOUT_TARGET_V           (58.0f)      /* 12S 锂电满充 4.2×12=50.4, CC/CV */
-#define VOUT_CC_V               (43.0f)      /* CC 阶段输出电压上限 */
-#define VOUT_CV_V               (58.0f)      /* CV 阶段目标电压 */
-#define VOUT_OVP_V              (64.0f)      /* 输出过压保护 */
-#define IOUT_RATED_A            (20.0f)      /* 1.5kW/75V ≈ 20A */
+#define VOUT_OVP_V              (94.0f)      /* 输出过压保护 */
 #define IOUT_OCP_A              (24.0f)      /* 过流保护 */
-#define IOUT_SOFT_START_A       (3.0f)       /* 软启电流限制 */
+
 
 
 

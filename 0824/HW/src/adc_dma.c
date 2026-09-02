@@ -3,6 +3,12 @@
 
 #define AC_DIV_RATIO \
     (5100.0f / (4.0f * 330000.0f + 5100.0f))
+
+/* ADC / 前端共模失调 (counts)，台架标定值。
+ * 注意：raw - offset 必须先饱和再使用；raw < offset 时 uint16_t 会下溢成
+ * 65463 量级的假值，进而算出 ~8149V 的假母线并污染 AC RMS。 */
+#define ADC_OFFSET_COUNTS       (73U)
+
 adc_multi_t g_adc_multi;
 
 static uint16_t s_adc0_dma_buf[ADC_CHANNEL_QTY]; // DMA 缓冲 5 字，与通道数一致
@@ -10,6 +16,12 @@ static uint16_t s_adc0_dma_buf[ADC_CHANNEL_QTY]; // DMA 缓冲 5 字，与通道数一致
 
 static uint64_t s_ac_raw_square_sum; // AC RMS 累加器
 static uint32_t s_ac_sample_count;
+
+/* 饱和减法：raw <= offset 时钳到 0，避免 uint16_t 下溢 */
+static uint16_t adc_sub_offset_sat(uint16_t raw, uint16_t offset)
+{
+    return (raw > offset) ? (uint16_t)(raw - offset) : 0U;
+}
 
 /* ========== ADC0 多通道 DMA 初始化 ========== */
 void adc_multi_init_dma(uint32_t exttrig)
@@ -90,7 +102,8 @@ bool adc_multi_copy_if_ready(void)
         return false;
     }
 
-    g_adc_multi.ac_vol_raw  = s_adc0_dma_buf[0];
+    g_adc_multi.ac_vol_raw  = adc_sub_offset_sat(s_adc0_dma_buf[0], ADC_OFFSET_COUNTS);
+		//Vbus加偏置0V准 但是上高压不行还是取消偏置
     g_adc_multi.bus_vol_raw = s_adc0_dma_buf[1];
     g_adc_multi.vout_raw    = s_adc0_dma_buf[2];
     g_adc_multi.isense_raw  = s_adc0_dma_buf[3];

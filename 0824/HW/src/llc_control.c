@@ -109,7 +109,7 @@ static void apply_references(void)
 *********************************************************************************************************/
 static void outputs_force_off(void)
 {
-	gpio_bit_reset(LLC_EN_PORT, LLC_EN_PIN); // 关 LLC 使能
+	gpio_bit_set(LLC_EN_PORT, LLC_EN_PIN); // 关 LLC 使能
 	cv_pwm_set_duty(PWM_DUTY_SAFE);  // C5 已修：PWM 复位到安全占空比(=0)
   cc_pwm_set_duty(PWM_DUTY_SAFE);
 	gpio_bit_reset(OUT_RELAY_PORT, OUT_RELAY_PIN); // 断输出继电器
@@ -159,7 +159,7 @@ static void enter_state(charger_state_t state)
 			case MAIN_STEP_CC:
 			{
 				apply_references(); //仅此处下发一次基准
-				gpio_bit_set(LLC_EN_PORT, LLC_EN_PIN); //开LLC
+				gpio_bit_reset(LLC_EN_PORT, LLC_EN_PIN); //开LLC
 				outputs_on();// N1：此处立即闭合继电器（行为变化，见 N1）
 				break;
 			}

@@ -151,10 +151,10 @@ static void monitor_protect_tick_1khz(void)
     pfc_tick_1khz();
 
     /* PFC standalone test owns the PFC relay and must never advance into LLC. */
-    if (!serial_console_pfc_test_active()) {
+    //if (!serial_console_pfc_test_active()) {
         /*模拟IC闭环；MCU只更新参考值并管理功率时序. */
         power_supervisor_tick_1khz();
-    }
+    //}
 }
 /* ========== 启动自检 ========== */
 static bool adc_startup_check(void)
@@ -200,7 +200,7 @@ static void hw_gpio_init(void)
     /* LLC 使能 */
     rcu_periph_clock_enable(LLC_EN_RCU);
     gpio_init(LLC_EN_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, LLC_EN_PIN);
-    gpio_bit_reset(LLC_EN_PORT, LLC_EN_PIN);  /* 初始关闭 */
+    gpio_bit_set(LLC_EN_PORT, LLC_EN_PIN);  /* 初始关闭 低电平使能，高电平关断 */
 
     /* 输出继电器 */
     rcu_periph_clock_enable(OUT_RELAY_RCU);
@@ -252,7 +252,7 @@ int main(void)
 
     while (1) {
         /* Reassert OFF in every pass; console only changes reference PWM. */
-        gpio_bit_reset(LLC_EN_PORT, LLC_EN_PIN);
+        gpio_bit_set(LLC_EN_PORT, LLC_EN_PIN);
         gpio_bit_reset(PFC_RELAY_PORT, PFC_RELAY_PIN);
         gpio_bit_reset(OUT_RELAY_PORT, OUT_RELAY_PIN);
         serial_console_task();

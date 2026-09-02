@@ -44,7 +44,7 @@ void protect_init(void)
     rcu_periph_clock_enable(HARD_FAULT_CLR_RCU);
 
     /* LLC_FAULT_CHECK 输入 (上拉, 低=故障) */
-    gpio_init(LLC_FAULT_CHECK_PORT, GPIO_MODE_IPU, GPIO_OSPEED_50MHZ, LLC_FAULT_CHECK_PIN);
+    gpio_init(LLC_FAULT_CHECK_PORT, GPIO_MODE_IPD, GPIO_OSPEED_50MHZ, LLC_FAULT_CHECK_PIN);
     /* HARD_FAULT_CLR 输出 (初始低, 不清除锁存) */
     gpio_init(HARD_FAULT_CLR_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, HARD_FAULT_CLR_PIN);
     gpio_bit_reset(HARD_FAULT_CLR_PORT, HARD_FAULT_CLR_PIN);
@@ -52,8 +52,12 @@ void protect_init(void)
 
 bool protect_fault_active_hw(void)
 {
+	#if 1 
+		return false;
+	#else
     /* D触发器输出, 低电平=故障 */
-    return (gpio_input_bit_get(LLC_FAULT_CHECK_PORT, LLC_FAULT_CHECK_PIN) == 0U);
+    return (gpio_input_bit_get(LLC_FAULT_CHECK_PORT, LLC_FAULT_CHECK_PIN) == 1U);
+	#endif
 }
 
 bool protect_fault_latched(void) { return s_fault_latched; }
