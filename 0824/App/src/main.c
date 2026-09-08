@@ -200,7 +200,7 @@ static void hw_gpio_init(void)
     /* LLC 使能 */
     rcu_periph_clock_enable(LLC_EN_RCU);
     gpio_init(LLC_EN_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, LLC_EN_PIN);
-    gpio_bit_set(LLC_EN_PORT, LLC_EN_PIN);  /* 初始关闭 低电平使能，高电平关断 */
+    llc_disable();  /* 初始关闭 低电平使能，高电平关断 */
 
     /* 输出继电器 */
     rcu_periph_clock_enable(OUT_RELAY_RCU);
@@ -252,7 +252,7 @@ int main(void)
 
     while (1) {
         /* Reassert OFF in every pass; console only changes reference PWM. */
-        gpio_bit_set(LLC_EN_PORT, LLC_EN_PIN);
+        llc_disable();
         gpio_bit_reset(PFC_RELAY_PORT, PFC_RELAY_PIN);
         gpio_bit_reset(OUT_RELAY_PORT, OUT_RELAY_PIN);
         serial_console_task();

@@ -77,15 +77,18 @@
 #define TEMP_SHUTDOWN_C         (95.0f)
 
 /* ========== 控制目标 ========== */
-#define PFC_AC_INPUT_MIN_V       (180.0f)     /* First-bench acceptable AC RMS */
+#define PFC_AC_INPUT_MIN_V       (165.0f)     /* First-bench acceptable AC RMS */
 #define PFC_AC_INPUT_MAX_V       (264.0f)
 
 #define VBUS_TARGET_V           (380.0f)     /* PFC 母线目标 */
 #define VBUS_MIN_START_V        (350.0f)     /* LLC 启动最小母线 */
-#define LLC_ENTRY_V             (360.0f)
+#define LLC_ENTRY_V             (VBUS_MIN_START_V)
 
 
 #define VBUS_OVP_V              (420.0f)     /* Absolute DC-link software trip */
+#define VBUS_UVP_V              (VBUS_TARGET_V * 0.8f)
+#define VBUS_OVP_DEBOUNCE_MS    (20U)
+#define VBUS_UVP_DEBOUNCE_MS    (200U)
 #define PFC_READY_TIMEOUT_MS    (3000U)
 
 #define VOUT_OVP_V              (94.0f)      /* 输出过压保护 */
@@ -314,6 +317,7 @@ typedef enum {
 	  FAULT_CHARGE_TIMEOUT,
 	  FAULT_PRECHARGE_TIMEOUT,
     FAULT_OUTPUT_START_TIMEOUT,
+	  FAULT_AC_INPUT_RANGE,
     FAULT_INVALID
 } fault_type_t;
 

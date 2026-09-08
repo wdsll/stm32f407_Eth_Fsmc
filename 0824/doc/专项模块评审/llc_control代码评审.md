@@ -1,304 +1,234 @@
-# llc_control.c 专项评审（更新版）
+# llc_control.c 专项评审（v3 更新版）
 
-> 文件: `HW/src/llc_control.c` (359 行) + `HW/include/llc_control.h` + 依赖宏见 `App/include/main.h`  
-> 初版评审: 2026-08-12　|　本更新: 2026-08-24  
-> 范围: 仅 `llc_control` 模块（充电功率时序状态机）  
-> 对比基准: `doc/专项模块评审/llc_control代码评审.md`（08-12 初版）
+> 文件: `HW/src/llc_control.c`（当前 370 行）+ `HW/include/llc_control.h` + 依赖宏见 `App/include/main.h`（354 行）
+> 修订记录：
+> - 2026-08-12 v1 初版评审
+> - 2026-08-24 v2 更新（A1~C6 处置状态、N1~N4 新发现、第七节验证分级）
+> - 2026-09-03 v3（本版）：① **B2 结论再次修正**——FAULT 恢复分支含恒真条件，纯"自动恢复"仍是死代码，实际恢复语义是"CLEAR 后自动回 STANDBY"（承接 09-02 状态机 v2 复审）；② C1 结论修正——`iout_a>=0` 不是"恒真无害"，iout 未标定时完成判据可能提前误触发 FINISHED；③ 新增 `llc_enable()/llc_disable()` 封装与 **LLC_EN 低有效极性反转**的核对；④ CV_REFERENCE_MAX_V 80→85；⑤ 行号全部按 370 行当前版重对；⑥ 过时注释清单更新。
+> 范围: 仅 `llc_control` 模块（充电功率时序状态机）
 
 ---
 
-## 〇、模块定位（更新）
+## 〇、模块定位（v3）
 
 本文件是充电状态机核心：STANDBY → PRECHARGE → CC → CV → FINISHED，FAULT 在 `tick` 顶部统一收敛。MCU 仅通过 `CV_PWM` / `CC_PWM` 给模拟 LLC IC 设定**开环电压/电流基准**，模拟 IC 内部完成双环闭环；MCU 不做 PI。
 
-**与 08-12 初版最大的架构变化：**
-1. `enter_state()` 增加了**同态幂等守卫** + **按状态的一次性动作**（apply_references / LLC_EN / 继电器 / LED 全收进 enter），符合我们此前评审建议的「一次性动作进 enter」范式。
-2. `can_comm.h` 被注释，CAN 命令**不再在 tick 内处理**——改由外部（串口 console）通过「transport-independent 的 supervisor API」(`power_supervisor_request/set_references`) 注入。CAN 整体在 `main.c` 里被禁用（`can_comm_init` / `can_comm_poll` 注释），**这是为初版串口联调有意预留的「CAN 集成阶段」**，不是 bug。
-3. FAULT 增加了**远程恢复路径**（需 `!enable && 锁存已清 && 硬件无故障`）。
+**v2 之后代码的三个实质变化：**
+1. **`llc_enable()/llc_disable()` 封装新增（:55-65），LLC_EN 极性反转为低有效**：`llc_enable()`=拉低（使能，注释 "LLC_EN is active low"）、`llc_disable()`=拉高（关断）。旧版裸 GPIO 的 `set=开/reset=关` 已全部替换。与 `main.c:203` `hw_gpio_init` 里的 `llc_disable()`（初始关断）核对一致 ✅。这是好重构：极性收口到两个函数，消除散布的裸 GPIO 极性。
+2. `CV_REFERENCE_MAX_V` 80→**85**（:35）。
+3. `main.c` 侧 standalone PFC 测试门控被注释（`serial_console_pfc_test_active` 已随 PFC ON/OFF 命令移除），`power_supervisor_tick_1khz()` 无条件执行。
 
 ---
 
-## 一、相比 08-12 初版：问题处置状态
+## 一、问题处置状态总表（v3 刷新）
 
-| 编号 | 原严重级 | 描述 | 现状 |
+| 编号 | 原严重级 | 描述 | v3 状态 |
 | -- | -- | -- | -- |
-| A1 | 🔴 | PRECHARGE 无超时永久卡死 | ✅ **已修** — `:300-302` 新增 `PFC_READY_TIMEOUT_MS`(3s) 超时 → `FAULT_PRECHARGE_TIMEOUT` |
-| A2 | 🔴 | CV 不切基准、头注释与实现矛盾 | ✅ **已修（注释侧）** — 头注释第 9 行已加 `// A2：此注释与实现矛盾`，明确 MCU 仅下发固定 setpoint；实现未改（仍由模拟 IC 自动 CC/CV，符合设计意图） |
-| B1 | 🟠 | 安全断电无时序，继电器带载分断 | ❌ **仍开放** — `outputs_force_off()`(`:110-117`) 仍同 tick 齐断 LLC_EN/继电器/PFC，无「先关 LLC→泄放→再断继电器」缓冲（见下 N-B1） |
-| B2 | 🟠 | FAULT 后无法恢复 | ✅ **已修** — `:273-282` 新增 FAULT 态恢复：满足 `!enable && !protect_fault_latched() && !protect_fault_active_hw()` 即回 STANDBY |
-| B3 | 🟠 | CC/CV 超时误用 8s/3s 调试值 | ✅ **已修** — `main.h:109-110` 已为 `8h / 3h`（量产值） |
-| C1 | 🟡 | 完成判据 `iout_a>=0` 恒真冗余 | ❌ **仍开放** — `:340` 仍保留 `g_adc_multi.iout_a >= 0` |
-| C2 | 🟡 | `LLC_START_TIMEOUT_MS` 名实不符 | ✅ **已修（命名+故障码）** — 改名 `OUTPUT_START_TIMEOUT_MS`(`:30`)、报错 `FAULT_OUTPUT_START_TIMEOUT`(`:309`)，并改用 `vout` 判定(`:321`) |
-| C3 | 🟡 | STANDBY 同 tick PFC off→on | ✅ **已修** — STANDBY 不再每 tick 调 `outputs_off/pfc_enable`；`pfc_enable()` 移入 `enter_state(PRECHARGE)`(`:156`) |
-| C4 | 🟡 | CV 进入判据用 vbat 非 vout | 🟡 **部分修** — 输出建起超时(`:321`)已改用 `vout`；但 CV 进入(`:317/:339`)仍用 `vbat` |
-| C5 | 🟡 | outputs_off 不复位 PWM 占空比 | ✅ **已修** — `outputs_force_off()`(`:113-114`) 先把 `CV/CC_PWM` 置 `PWM_DUTY_SAFE`(=0) |
-| C6 | 🟡 | TRICKLE/INVALID 靠 default 兜底 | 🟡 维持 — `:356` default→STANDBY，可接受（TRICKLE 本就空壳） |
+| A1 | 🔴 | PRECHARGE 无超时永久卡死 | ✅ **已修** — `:311-313` 3s 超时 → `FAULT_PRECHARGE_TIMEOUT`；且 `pfc_control.c:62-66` RELAY_ON 态也有同款 3s 超时（双层，pfc 层先触发，见 N5） |
+| A2 | 🔴 | CV 不切基准、头注释矛盾 | ✅ **已修（注释侧）** — 头注释 `:9` 已注明矛盾，MCU 仅下发固定 setpoint，符合设计意图 |
+| B1 | 🟠 | 安全断电无时序，继电器带载分断 | ❌ **仍开放** — `outputs_force_off()`(`:121-128`) 仍同 tick 齐断（见 N-B1，最高剩余风险） |
+| B2 | 🟠 | FAULT 后无法恢复 | 🟡 **结论再次修正（见第二节 B2 专节）**：恢复链路实际为"STOP→CLEAR→下一 tick 自动回 STANDBY"；分支里的 `!protect_fault_active_hw()` 因 protect.c `#if 1` 恒真，**纯无人干预的"自动恢复"仍是死代码** |
+| B3 | 🟠 | CC/CV 超时误用调试值 | ✅ **已修** — `main.h:104-105` 已为 8h/3h。**但 `:324/:345` 代码注释仍写"8s(调试值)/3s(调试值)"，过时未更新** |
+| C1 | 🟡 | 完成判据 `iout_a>=0` 冗余 | 🟡 **结论修正**：冗余本身无害（负值已被钳 0，恒真），**真正风险在 `iout_a<=1A` 这半句**——iout 未标定时可能恒 0 → 充电中提前误判 FINISHED 断输出（见第二节 C1 专节） |
+| C2 | 🟡 | 启动超时名实不符 | ✅ **已修** — `OUTPUT_START_TIMEOUT_MS`(`:30`)、`FAULT_OUTPUT_START_TIMEOUT`(`:333`)、vout 判定(`:331`)。`:333` 行内注释"名实不符(报母线欠压实则查输出)"已过时，可删 |
+| C3 | 🟡 | STANDBY 同 tick PFC off→on | ✅ **已修** — `pfc_enable()` 在 `enter_state(PRECHARGE)`(`:167`) |
+| C4 | 🟡 | CV 进入判据用 vbat 非 vout | 🟡 维持 — `:327/:349` 仍用 `vbat_v`（初版可接受，长线损场景后续优化） |
+| C5 | 🟡 | outputs_off 不复位 PWM | ✅ **已修** — `:124-125` 置 `PWM_DUTY_SAFE`。**函数头注释 `:119` "C5：未复位…"已过时，应删** |
+| C6 | 🟡 | TRICKLE/INVALID 兜底 | 🟡 维持 — `:366` default→STANDBY，可接受 |
+| N1 | 🟡 | CC 进入即闭合输出继电器 | ❌ **仍开放（P1-A）** — `:174` CC 进入瞬间 `llc_enable()+outputs_on()`，先建输出再接电池的软起保护缺失（修法见第二节） |
+| N2 | 🟡 | CAN 整体禁用（设计意图） | 🟡 维持 — `:21` `can_comm.h` 注释、main.c `can_comm_init/poll` 注释；进 CAN 集成阶段需恢复并喂命令给 supervisor API |
+| N3 | 🟡 | 死注释 `#define PFC_READY_TIMEOUT_MS` | ❌ 仍在 `:32`，建议删除 |
+| N4 | 🟢 | `g_fault` 与锁存自洽 | 🟢 正确 — `:289` 清 `g_fault` 与 protect.c 一致（active_hw 恒真后此语义更简单） |
+| N5 | 🆕 | PRECHARGE 双层 3s 超时并存 | 🆕 pfc 层（RELAY_ON 等 bus≥350V）与 llc 层（PRECHARGE 等 pfc_is_ready）同为 3s、计时起点相同；pfc_tick 先于 supervisor_tick 执行 → pfc 层先报，llc 层超时实际不可达。功能上无冲突（都报 `FAULT_PRECHARGE_TIMEOUT`），但双层冗余建议择一保留，且 pfc 层触发后故障码"超时"可能掩盖真实原因（见 N6） |
+| N6 | 🆕 | 预充故障码无诊断性 | 🆕 `pfc_is_ready()` 三重门（RUN ∧ AC∈[180,264] ∧ bus∈[360,420]）任一不满足 + 3s 超时，都报 `FAULT_PRECHARGE_TIMEOUT`：AC 越限、母线建不起、母线过压（>420V 反而使 vbus_ok=false）三种不同故障共用一个码。建议超时分支内按 `ac_vol_v`/`bus_vol_v` 实际值分流故障码（方案见第四节补丁 B） |
 
 ---
 
-## 二、本次新发现的问题
+## 二、v3 三个结论修正（详细）
 
-### 🟠 N-B1 — 安全断电仍无时序（B1 未落实，最高剩余风险）
-`outputs_force_off()`(`:110-117`) 顺序是：关 `LLC_EN` → PWM 置安全 → 断 `OUT_RELAY` → `pfc_disable()`，**全部同一 tick 完成**。对 1.5kW 感性输出，继电器在仍有电流时断开会产生拉弧、触点粘连。模拟 PFC/LLC 架构下 MCU 是停功率的**唯一软件路径**（除非原理图有 BKIN 硬件直断，需核对）。建议改成：立刻关 `LLC_EN` → 延时 ~20–50ms 或等 `iout_a` 降到阈值 → 再断 `OUT_RELAY` → 最后 `pfc_disable()`。可加一个 `off_sequence` 子状态机实现。
+### B2 专节 — FAULT 恢复的真实语义（承接 09-02 状态机 v2 复审）
 
-### 🟡 N1 — CC 进入即闭合输出继电器（行为变化，需验证）
-08-12 初版：CC 内 `vout>10V` 后才闭合继电器（先让 LLC 输出建立再接电池）。**现版**：`enter_state(MAIN_STEP_CC)`(`:159-164`) 在 CC 进入瞬间同时 `apply_references + 置 LLC_EN + outputs_on`（继电器立即闭合）。意味 LLC 刚使能、输出尚在爬升时就把电池（≥10V）接上。
-- 由于模拟 IC 有 40A CC 限流，电池反向给输出电容充电的浪涌被限流钳住，**初版联调大概率可接受**；
-- 但相比「先建输出再接电池」少了一次软起保护。建议：接真电池/大电流前，在 bench 上确认无异常冲击电流；或恢复「`vout` 建起后再闭合继电器」的守卫。
+当前代码（`:284-293`）：
+```c
+if (g_charger_state == MAIN_STEP_FAULT) {
+    outputs_force_off();
+    if(!s_enable_requested && !protect_fault_latched() && !protect_fault_active_hw())
+    {
+        g_fault = FAULT_NONE;
+        enter_state(MAIN_STEP_STANDBY);
+    }
+    return;
+}
+```
+- `protect_fault_active_hw()` 当前 `#if 1 return false`（protect.c:55-56）**恒假** → `!...` 恒真，此条件形同虚设；
+- `protect_fault_latched()` 进 FAULT 必为 true（`protect_set_fault` 置位），只有串口 `CLEAR` → `protect_clear_fault()` 能清它；
+- 因此该分支的**实际语义**："用户 STOP（清 `s_enable_requested`）→ CLEAR（清锁存）→ 下一 tick 自动回 STANDBY"。恢复链路是**通的**，v1"永久锁死"的旧结论不成立；
+- 但它**不是**"无人干预的自动恢复"：只要没人 CLEAR，`latched` 恒 true，分支永远走不到。若设计意图含"过流/过压类软故障延时自恢复"，当前实现是死代码。
+- **修法（二选一）**：
+  A. 明确"人工确认"语义——保持现状，把注释写清楚"FAULT 需 STOP+CLEAR 才能恢复"，删除恒真的 `!protect_fault_active_hw()` 或在 protect.c 恢复引脚读取后它才有意义；
+  B. 增加 `protect_clear_latch()` 接口并区分故障类别——对 OVP/OCP/LCC_CHECK 等硬故障保持人工确认，对 PRECHARGE_TIMEOUT 等时序类故障允许 tick 内延时自恢复。
+- ⚠ 关联风险：`protect_clear_fault()` 内 `if (!protect_fault_active_hw())` 守卫因 active_hw 恒真而**无条件清锁存**——将来 protect.c 恢复读引脚后，CLEAR 才重新具备"硬件故障未解除则拒绝清"的语义（见保护模块评审 v3）。
 
-### 🟡 N2 — CAN 被整体禁用（设计意图，需记备忘）
-`can_comm_init`(`main.c:257`) 与 `can_comm_poll`(`main.c:329-330`) 均注释，`llc_control.c:21` 的 `can_comm.h` 也注释。当前**唯一控制入口是串口 console**（`serial_console.c` 调 `power_supervisor_request/set_references`）。**这是为初版联调有意预留 CAN 阶段，不是缺陷**。但进入 CAN 集成阶段时，需恢复 `can_comm_poll` 并在其中把命令喂给 supervisor API（否则 CAN 无法控制/上报）。建议在代码或文档标注此 TODO。
+### C1 专节 — 完成判据的真实风险（v2"恒真冗余无害"结论修正）
 
-### 🟡 N3 — 死注释 `#define PFC_READY_TIMEOUT_MS`(`:32`)
-本文件第 32 行把该宏注释掉了，但实际定义在 `main.h:90`。属冗余死代码，不影响编译，建议删除本行以免误导「宏未定义」。
+`:349-350`：
+```c
+if(condition_held(&s_qualification, s_voltage_reference_v>BATTERY_PRESENT_V
+    && g_adc_multi.vbat_v>=(s_voltage_reference_v - CHARGE_FINISH_VOLTAGE_MARGIN_V)
+    && g_adc_multi.iout_a >= 0 && g_adc_multi.iout_a <= CHARGE_FINISH_CURRENT_A, ...))
+```
+- `iout_a >= 0`：`adc_raw_to_current()` 对负值钳 0，此条件恒真，冗余（删不删均可）；
+- **真风险**：`iout_a <= CHARGE_FINISH_CURRENT_A(1A)`。电流通道未标定时（NSI1312 V_offset=1.65V 是假设值），`iout_a` 可能恒 0 或严重偏低 → CV 态进入后 30s 去抖一过就误判"充满"→ `FINISHED` 断输出，**充电提前终止且无报错**。
+- **要求**：接真电池前必须完成电流点校（ADC 评审 P1-②）；联调阶段若标定未完成，建议临时把 `CHARGE_FINISH_CURRENT_A` 判据旁路或打印 iout 原始值人工确认。
 
-### 🟢 N4 — `g_fault` 与锁存自洽（已正确）
-`:278` FAULT 恢复里 `g_fault = FAULT_NONE`，与 `protect.c` 的 `protect_set_fault`(写 `g_fault`+锁存) / `protect_clear_fault`(清锁存+`g_fault`) 一致。`g_fault` 是统一全局量(`main.h:322`)，且恢复前置条件含 `!protect_fault_latched()`，不会与硬件锁存冲突。**正确**。
+### N1/P1-A 专节 — CC 进入即闭合输出继电器（延后合闸方案）
+
+`:170-175` CC 进入同时 `apply_references + llc_enable + outputs_on`。LLC 刚使能、输出尚未建立就把电池接上，靠模拟 IC 的 CC 限流兜底浪涌。
+**建议修法（最小改动）**：enter 里只 `apply_references() + llc_enable()`，把 `outputs_on()` 挪到 tick 内输出建起守卫之后：
+```c
+case MAIN_STEP_CC:
+    if (!outputs_closed &&
+        g_adc_multi.vout_v >= OUTPUT_RELAY_MIN_V) {   /* 输出已建立 */
+        outputs_on();
+        outputs_closed = true;
+    }
+    ...
+```
+（`outputs_closed` 随状态 reset；`enter_state` 离开 CC 时复位。）接真电池前 bench 验证一次浪涌波形，二选一：接受现状（CC 限流兜底）或落地延后合闸。
 
 ---
 
-## 三、逐行中文注释（当前 359 行）
+## 三、逐行中文注释（当前 370 行，v3 重对）
 
-> 行号对应 `HW/src/llc_control.c` 当前版本。标记：`✅` 亮点 / `⚠` 问题(编号见上) / `🟢` 确认正确 / `🆕` 本次新发现。
+> 标记：`✅` 亮点 / `⚠` 问题 / `🟢` 确认正确 / `🆕` v3 新发现。
 
 ```c
-   1  /*****************************************************************/   // 文件头横幅
-   2  * 模块名称：llc_control.c
-   3  * 摘    要：
-   4  * 作    者：Rengar
-   5  * 内    容：llc_control.c - LLC 模拟控制状态机 (CV_PWM + CC_PWM 双基准)
-   6  *           MCU 仅设定 CV_PWM(电压基准) + CC_PWM(电流基准), 模拟IC 内部闭环
-   7  *           CC 模式: CC_PWM=目标电流, CV_PWM=电压上限
-   8  *           CV 模式: CV_PWM=目标电压, CC_PWM=电流上限
-   9  *           // ⚠ A2：此注释与实现矛盾——CV 状态并没切换基准，已加注说明
-  10  * 注    意：需在 Options->Target 勾选 Use MicroLIB，否则 printf 不会输出
-  11  *****************************************************************/
-
-  15  /***************** 包含头文件 *****************/
   18  #include "llc_control.h"      // 本模块接口/枚举/宏
-  19  #include "adc_dma.h"          // g_adc_multi（电压/电流采样值）
-  20  #include "condition_held.h"   // 🆕 condition_qualification_t / condition_held / reset（去抖重构）
-  21  //#include "can_comm.h"       // 🆕 CAN 类型已不用；命令改由外部 supervisor API 注入
-  22  #include "pfc_control.h"      // pfc_enable()/pfc_disable()/pfc_is_ready()
-  23  #include "protect.h"          // protect_set_fault()/protect_fault_latched()/protect_fault_active_hw()
-  24  #include "pwm_llc.h"          // cv_pwm_set_duty()/cc_pwm_set_duty()
+  19  #include "adc_dma.h"          // g_adc_multi
+  20  #include "condition_held.h"   // 去抖重构（condition_qualification_t）
+  21  //#include "can_comm.h"       // N2：CAN 命令改由外部 supervisor API 注入
+  22  #include "pfc_control.h"      // pfc_enable/disable/is_ready
+  23  #include "protect.h"          // protect_set_fault/latched/active_hw
+  24  #include "pwm_llc.h"          // cv/cc_pwm_set_duty
 
-  28  #define BATTERY_PRESENT_V       (10.0f)   // 判定"电池已接入"的最低电压
-  29  #define OUTPUT_RELAY_MIN_V      (10.0f)   // CC 态判定输出建起的电压门限（亦用于输出启动超时）
-  30  #define OUTPUT_START_TIMEOUT_MS (1500U)   // ✅ C2 已改名：CC 后 1.5s 输出未建起→FAULT_OUTPUT_START_TIMEOUT
-  32  //#define PFC_READY_TIMEOUT_MS (3000U)     // 🟡 N3 死注释：真实定义在 main.h:90，建议删除本行
-  33  //#define CAN_STATUS_PERIOD_MS (100U)      // CAN 周期上报已随 CAN 禁用一并注释
-  35  #define CV_REFERENCE_MAX_V      (80.0f)   // CV_PWM 占空比换算满量程电压
-  37  #define CC_REFERENCE_MAX_A      (20.0f)   // CC_PWM 满量程电流（注意 OCP 真实~24.8A，见全局 C3）
+  28  #define BATTERY_PRESENT_V     (10.0f)   // 电池已接入最低电压
+  29  #define OUTPUT_RELAY_MIN_V    (10.0f)   // 输出建起门限（兼输出启动超时判据）
+  30  #define OUTPUT_START_TIMEOUT_MS (1500U) // ✅ C2 已改名
+  32  //#define PFC_READY_TIMEOUT_MS (3000U) // ⚠ N3 死注释：真实定义 main.h:89，建议删
+  35  #define CV_REFERENCE_MAX_V    (85.0f)   // 🆕 80→85；注释"344/80V"与 85 不一致，建议重写
+  37  #define CC_REFERENCE_MAX_A    (20.0f)   // ⚠ 行尾注释"OCP=30A 超量程"过时（现 OCP=24A 且在量程内）
 
-  42  static bool s_enable_requested;        // 充电使能请求
-  44  static float s_voltage_reference_v;    // 当前电压基准(V)，来自外部 set_references
-  46  static float s_current_reference_a;    // 当前电流基准(A)
-  48  static uint32_t s_state_started_ms;    // 进入当前状态时间戳（状态内超时用）
-  50  static condition_qualification_t s_qualification;  // 🆕 去抖状态（CC→CV / 完成判据共用，按状态 reset）
+  55  void llc_enable(void)  { gpio_bit_reset(...); }  // 🆕 低有效：拉低=使能
+  61  void llc_disable(void) { gpio_bit_set(...);   }  // 🆕 拉高=关断（fail-safe 极性）
+        // ✅ 极性收口到封装；与 main.c:203 初始 llc_disable() 一致
 
-  64  static float voltage_to_duty(float voltage_v)
-  66      return f_clampf(voltage_v / CV_REFERENCE_MAX_V, CV_PWM_DUTY_MIN, CV_PWM_DUTY_MAX); // 电压→占空比，钳合法区间
+  75  voltage_to_duty()  // 电压→占空比，钳 [CV_MIN, CV_MAX]
+  90  current_to_duty()  // 电流→占空比，钳 [CC_MIN, CC_MAX]
+ 104  apply_references() // 开环设定点：cv/cc_pwm_set_duty 各一次 ✅
 
-  79  static float current_to_duty(float current_a)
-  81      return f_clampf(current_a / CC_REFERENCE_MAX_A, CC_PWM_DUTY_MIN, CC_PWM_DUTY_MAX); // 电流→占空比
+ 121  static void outputs_force_off(void)
+ 123     llc_disable();                    // 🆕 封装调用（拉高关 LLC）
+ 124     cv_pwm_set_duty(PWM_DUTY_SAFE);   // ✅ C5 已修
+ 125     cc_pwm_set_duty(PWM_DUTY_SAFE);
+ 126     gpio_bit_reset(OUT_RELAY...);     // 断输出继电器
+ 127     pfc_disable();                    // 断 PFC
+        // ⚠ B1/N-B1：同 tick 齐断，无"先关 LLC→泄放→再断继电器"缓冲
+        // ⚠ 函数头注释 :119 "C5：未复位占空比"过时应删
+ 130  outputs_on()   // 闭继电器+绿亮红灭
 
-  93  static void apply_references(void)
-  95      /* Open-loop set-point conversion only; ADC feedback is not used here. */
-  96      cv_pwm_set_duty(voltage_to_duty(s_voltage_reference_v)); // 设电压基准
-  97      cc_pwm_set_duty(current_to_duty(s_current_reference_a)); // 设电流基准
-        // ✅ 注释诚实：开环设定点，反馈在模拟 IC 内；MCU 不读 ADC 修正
+ 146  static void enter_state(charger_state_t state)
+ 148     同态幂等守卫 ✅
+ 152-154  切状态/重置计时/condition_qualification_reset ✅ 防跨状态去抖残留
+ 158  STANDBY:   outputs_force_off + 红亮绿灭
+ 165  PRECHARGE: pfc_enable()                      // ✅ C3 已修
+ 170  CC:        apply_references + llc_enable + outputs_on   // ⚠ N1/P1-A 立即合继电器
+ 177  CV:        outputs_on()
+ 182  FINISHED:  outputs_force_off + 绿亮
+ 189  FAULT:     outputs_force_off + 红亮          // ✅ fail-safe 收敛点
 
- 110  static void outputs_force_off(void)    // ❌ B1/N-B1：同 tick 齐断，无缓冲时序
- 112     gpio_bit_reset(LLC_EN_PORT, LLC_EN_PIN);   // 关 LLC 使能
- 113     cv_pwm_set_duty(PWM_DUTY_SAFE);            // ✅ C5 已修：PWM 复位到安全占空比(=0)
- 114     cc_pwm_set_duty(PWM_DUTY_SAFE);
- 115     gpio_bit_reset(OUT_RELAY_PORT, OUT_RELAY_PIN); // 断输出继电器
- 116     pfc_disable();                             // 断 PFC
-        // ⚠ B1：LLC_EN 关与 OUT_RELAY 断无延时，继电器带载分断风险
+ 216  power_supervisor_init()  // 清基准/PWM 置初值/enter(STANDBY)
+ 236  power_supervisor_request(bool)   // 外部置使能
+ 262  power_supervisor_set_references(v, a)
+ 264     f_clampf(0, CV_REFERENCE_MAX_V) / f_clampf(0, CC_REFERENCE_MAX_A)  // 限幅 ✅
+ 266     apply_references()  // 立即下发（CC 中在线改 setpoint）✅
 
- 119  static void outputs_on(void)           // 🆕 CC/CV/FINISHED 共用：闭合继电器+绿亮红灭
- 121     gpio_bit_set(OUT_RELAY_PORT, OUT_RELAY_PIN);
- 122     gpio_bit_reset(LED_RED_PORT, LED_RED_PIN);
- 123     gpio_bit_set(LED_GREEN_PORT, LED_GREEN_PIN);
-
- 135  static void enter_state(charger_state_t state)
- 137     if (g_charger_state == state) { return; }   // ✅ 同态幂等守卫：重复进入不重复执行一次性动作
- 141     g_charger_state = state;                    // 切换全局状态
- 142     s_state_started_ms = g_ms;                 // 重置状态计时
- 143     condition_qualification_reset(&s_qualification); // ✅ 重置去抖，防跨状态残留
- 145     switch(state) {                            // ✅ 一次性动作集中在此（enter 范式）
- 147         case MAIN_STEP_STANDBY: outputs_force_off(); 红灯; 绿灯灭; break;
- 154         case MAIN_STEP_PRECHARGE: pfc_enable(); break;   // ✅ C3 已修：PFC 使能挪到此处一次性
- 159         case MAIN_STEP_CC:
- 161             apply_references();                // 仅此处下发一次基准
- 162             gpio_bit_set(LLC_EN_PORT, LLC_EN_PIN); // 开 LLC
- 163             outputs_on();                      // 🟡 N1：此处立即闭合继电器（行为变化，见 N1）
- 164             break;
- 166         case MAIN_STEP_CV:  outputs_on(); break;  // CV 已闭合，保持即可
- 171         case MAIN_STEP_FINISHED: outputs_force_off(); 红灯灭; 绿灯亮; break;
- 178         case MAIN_STEP_FAULT: outputs_force_off(); 红灯; 绿灯灭; break;  // ✅ fail-safe 收敛点
- 185         default: break;
- 188  }
-
- 190  void power_supervisor_enter_fault(void) { enter_state(MAIN_STEP_FAULT); } // protect 调此进 FAULT
-
- 205  void power_supervisor_init(void)
- 207     s_enable_requested = false;
- 208     s_voltage_reference_v = 0.0f;
- 209     s_current_reference_a = 0.0f;
- 211     cv_pwm_set_duty(CV_PWM_DUTY_INIT);   // 初始安全占空比
- 212     cc_pwm_set_duty(CC_PWM_DUTY_INIT);
- 214     enter_state(MAIN_STEP_STANDBY);      // 初始进待机（enter 内已 force_off + LED）
-
- 225  void power_supervisor_request(bool enable) { s_enable_requested = enable; }  // 外部置使能
- 238  bool power_supervisor_requested(void) { return s_enable_requested; }        // 供查询
- 251  void power_supervisor_set_references(float voltage_v, float current_a)
- 253     s_voltage_reference_v = f_clampf(voltage_v, 0.0f, CV_REFERENCE_MAX_V);
- 254     s_current_reference_a = f_clampf(current_a, 0.0f, CC_REFERENCE_MAX_A);
- 255     apply_references();   // 立即下发新基准（CC 中调此即可在线改 setpoint）
- 258  float power_supervisor_voltage_reference(void) { return s_voltage_reference_v; }
- 259  float power_supervisor_current_reference(void) { return s_current_reference_a; }
-
- 270  void power_supervisor_tick_1khz(void)   // 1kHz 主节拍（来自 systick）
- 272     /* Commands arrive through the transport-independent supervisor API. */
- 273     if (g_charger_state == MAIN_STEP_FAULT) {        // ✅ B2 已修：FAULT 顶部优先处理
- 274         outputs_force_off();                        // 持续强制断电
- 276         if (!s_enable_requested && !protect_fault_latched() && !protect_fault_active_hw()) {
- 278             g_fault = FAULT_NONE;                    // 🟢 N4 与锁存自洽
- 279             enter_state(MAIN_STEP_STANDBY);          // 满足恢复条件→回待机
- 281         return;                                      // FAULT 态不再跑下方 switch
- 282     }
- 283     switch(g_charger_state) {
- 285         case MAIN_STEP_STANDBY:
- 287             if (s_enable_requested && g_adc_multi.vbat_v >= BATTERY_PRESENT_V) // 使能且电池已接入(≥10V)
- 289                 enter_state(MAIN_STEP_PRECHARGE);    // → PRECHARGE（pfc_enable 在 enter 内）
- 291             break;
- 293         case MAIN_STEP_PRECHARGE:
- 295             if (!s_enable_requested) enter_state(MAIN_STEP_STANDBY);  // 使能撤销→待机
- 297             else if (pfc_is_ready()) enter_state(MAIN_STEP_CC);       // 母线≥360V→CC
- 300             else if (elapsed_reached(s_state_started_ms, PFC_READY_TIMEOUT_MS))  // ✅ A1 已修：3s 超时
- 301                 protect_set_fault(FAULT_PRECHARGE_TIMEOUT);          // 母线建不起→故障，不再永久卡死
- 304             break;
- 306         case MAIN_STEP_CC:
- 308             if (!s_enable_requested) enter_state(MAIN_STEP_STANDBY); // 使能撤销→待机
- 312             else if (elapsed_reached(s_state_started_ms, CHARGE_CC_TIMEOUT_MS))  // ✅ B3 已修：8h
- 314                 protect_set_fault(FAULT_CHARGE_TIMEOUT);
- 317             else if (condition_held(&s_qualification,
-                       s_voltage_reference_v > BATTERY_PRESENT_V
-                       && g_adc_multi.vbat_v >= (s_voltage_reference_v - CHARGE_CV_ENTRY_MARGIN_V),
-                       CHARGE_CV_ENTRY_DEBOUNCE_MS))   // 🟡 C4 仍用 vbat 判 CV 进入（非 vout）
- 319                 enter_state(MAIN_STEP_CV);          // 电压到达→进 CV
- 321             else if (g_adc_multi.vout_v <= OUTPUT_RELAY_MIN_V
-                       && elapsed_reached(s_state_started_ms, OUTPUT_START_TIMEOUT_MS))  // ✅ C2 已用 vout
- 323                 protect_set_fault(FAULT_OUTPUT_START_TIMEOUT);  // 1.5s 内输出未建起→故障
- 325             break;
- 327         case MAIN_STEP_CV:
- 329             if (!s_enable_requested) enter_state(MAIN_STEP_STANDBY);
- 333             else if (elapsed_reached(s_state_started_ms, CHARGE_CV_TIMEOUT_MS))  // ✅ B3 已修：3h
- 335                 protect_set_fault(FAULT_CHARGE_TIMEOUT);
- 339             else if (condition_held(&s_qualification,
-                       s_voltage_reference_v > BATTERY_PRESENT_V
-                       && g_adc_multi.vbat_v >= (s_voltage_reference_v - CHARGE_FINISH_VOLTAGE_MARGIN_V)
-                       && g_adc_multi.iout_a >= 0                    // ❌ C1 仍冗余：adc 已将负值钳 0
-                       && g_adc_multi.iout_a <= CHARGE_FINISH_CURRENT_A,  // 电流≤1A
-                       CHARGE_FINISH_DEBOUNCE_MS))   // 30s 持续
- 342                 enter_state(MAIN_STEP_FINISHED);  // 充满→断输出
- 345             break;
- 347         case MAIN_STEP_FINISHED:
- 349             if (!s_enable_requested) enter_state(MAIN_STEP_STANDBY);  // 撤销使能→回待机
- 353             break;
- 355         default: enter_state(MAIN_STEP_STANDBY);   // 🟡 C6：TRICKLE/INVALID 兜底
- 358     }
- 359  }
+ 281  void power_supervisor_tick_1khz(void)
+ 284  FAULT 顶部收敛 ✅（B2 专节见上）
+ 294  switch(g_charger_state):
+ 296  STANDBY:   en && vbat≥10V → PRECHARGE
+ 304  PRECHARGE: !en→STANDBY | pfc_is_ready→CC | 3s 超时→FAULT_PRECHARGE_TIMEOUT ✅A1
+        // N5：pfc 层同款 3s 超时先触发；N6：故障码无诊断性
+ 316  CC:  !en→STANDBY | 8h 超时→FAULT_CHARGE_TIMEOUT ✅B3（注释"8s"过时）
+        | vbat≥vref−0.5V 去抖 1s→CV（C4 用 vbat）
+        | vout≤10V 持续到 1.5s→FAULT_OUTPUT_START_TIMEOUT ✅C2（行尾注释过时）
+ 337  CV:  !en→STANDBY | 3h 超时→FAULT_CHARGE_TIMEOUT ✅B3（注释"3s"过时）
+        | vbat≥vref−0.5V && iout∈[0,1A] 去抖 30s→FINISHED  // ⚠ C1 专节：iout 未标定时风险
+ 357  FINISHED: !en→STANDBY
+ 365  default:  →STANDBY  // C6 兜底
 ```
 
 ---
 
-## 四、本文件问题清单（含状态）
+## 四、补丁建议（v3 收敛为两条）
 
-| 编号 | 严重级 | 描述 | 位置 | 状态 |
-| -- | -- | -- | -- | -- |
-| A1 | 🔴 | PRECHARGE 无超时永久卡死 | `:300-302` | ✅ 已修 |
-| A2 | 🔴 | CV 不切基准、注释矛盾 | `:9` | ✅ 已修(注释) |
-| B1/N-B1 | 🟠 | 安全断电无时序，继电器带载分断 | `:110-117` | ❌ 仍开放（最高剩余） |
-| B2 | 🟠 | FAULT 后无法恢复 | `:273-282` | ✅ 已修 |
-| B3 | 🟠 | CC/CV 超时误用 8s/3s | `main.h:109-110` | ✅ 已修 |
-| C1 | 🟡 | 完成判据 `iout_a>=0` 恒真冗余 | `:340` | ❌ 仍开放 |
-| C2 | 🟡 | 启动超时名实不符 | `:30/:321` | ✅ 已修 |
-| C3 | 🟡 | STANDBY 同 tick PFC off→on | `:154` | ✅ 已修 |
-| C4 | 🟡 | CV 进入判据用 vbat 非 vout | `:317/:339` | 🟡 部分修 |
-| C5 | 🟡 | outputs_off 不复位 PWM | `:113-114` | ✅ 已修 |
-| C6 | 🟡 | TRICKLE/INVALID 兜底 | `:355` | 🟡 维持 |
-| N1 | 🟡 | CC 进入即闭合继电器（行为变化） | `:163` | 🆕 需验证 |
-| N2 | 🟡 | CAN 整体禁用（设计意图） | `main.c:257/329` | 🆕 记备忘 |
-| N3 | 🟡 | 死注释 `#define PFC_READY_TIMEOUT_MS` | `:32` | 🆕 清垃圾 |
-| N4 | 🟢 | `g_fault` 与锁存自洽 | `:278` | 🟢 已正确 |
+### 补丁 A（N-B1，安全断电时序）——最高剩余风险
+`outputs_force_off()` 改为子状态机：立即 `llc_disable()` + PWM 置安全 → 延时 20–50ms 或 `iout_a` 降阈值 → 断 `OUT_RELAY` → `pfc_disable()`。模拟架构下 MCU 是停功率的唯一软件路径，1.5kW 感性负载下继电器带载分断会拉弧/粘连。
 
----
-
-## 五、修改优先级建议
-
+### 补丁 B（N6，预充故障细分）——提高联调诊断效率
+PRECHARGE 超时分支内按实测值分流：
+```c
+else if (elapsed_reached(s_state_started_ms, PFC_READY_TIMEOUT_MS)) {
+    if (g_adc_multi.ac_vol_v < PFC_AC_INPUT_MIN_V || g_adc_multi.ac_vol_v > PFC_AC_INPUT_MAX_V)
+        protect_set_fault(FAULT_AC_RANGE);        /* 建议新增故障码 */
+    else if (g_adc_multi.bus_vol_v > VBUS_OVP_V)
+        protect_set_fault(FAULT_BUS_OVP);
+    else
+        protect_set_fault(FAULT_PRECHARGE_TIMEOUT); /* 真超时 */
+}
 ```
-1. N-B1  安全断电时序        —— 继电器寿命/安全，最高剩余风险（纯逻辑加子状态机）
-2. N1    CC 进入即闭继电器    —— 接真电池前 bench 验证浪涌；或恢复"vout 建起后闭继电器"
-3. C4    CV 进入判据改用 vout —— 长线损时判据更准确
-4. C1    删 iout_a>=0 冗余    —— 一行清理
-5. N3    删死注释 #define     —— 一行清理
-6. N2    标注 CAN 阶段 TODO   —— 进 CAN 集成时恢复 can_comm_poll 喂命令
-```
+pfc 层同款超时建议删除（保留 llc 层一处即可，消除 N5 双层冗余）。
+
+> 旧 v2 的"补丁 1（B1 撤回后不再有 main.c 侧改动）"已不适用；其余 C4/C1/N3 均为小改，随版本节奏清理。
 
 ---
 
-## 六、亮点（做对的地方）
+## 五、v3 过时注释清单（一次清理）
 
-1. **`enter_state` 同态幂等守卫 + 一次性动作集中**（`:137/:145-188`）：状态切换干净，避免重复动作与跨状态残留，是我们此前「enter 范式」建议的落地。
-2. **FAULT 顶部优先收敛 + 远程恢复**（`:273-282`）：fail-safe 到位，且允许「STOP + CLEAR」后自动回待机，不再只能断电复位（B2 修复）。
-3. **PWM 安全复位进 `outputs_force_off`**（`:113-114`）：重新充电必从 `PWM_DUTY_SAFE` 起步，消除旧占空比浪涌（C5 修复）。
-4. **去抖重构为 `condition_qualification_t`**（`:50/:317/:339`）：CC→CV 与完成判据共用、按状态 reset，封装干净。
-5. **CAN 与 supervisor 解耦**：`can_comm.h` 注释 + 外部 API 注入，为初版串口联调扫清依赖，且便于后续接 CAN/其他 transport。
-6. **`g_fault` 与保护锁存自洽**（N4）：恢复逻辑不会与硬件锁存冲突。
-
----
-
-> 总结：相对 08-12 初版，本模块已解决 7 项（A1/A2/B2/B3/C2/C3/C5），架构明显更健壮。**初版软硬联调可用**：状态机逻辑闭合、FAULT 可恢复、超时防卡死均已具备。剩余最高风险是 **N-B1 断电无缓冲时序**（接真电池/大电流前建议补），以及 **N1 的继电器闭合时机**需在 bench 上确认无冲击。CAN 禁用是设计意图，记得在 CAN 集成阶段恢复。
-
----
-
-## 七、初版 CC/CV 验证分级（2026-08-24 补）
-
-> 结论先行：**状态机结构上必须保留 CC/CV（代码已分，别删）；但初版联调不必以"完整跑完 CV 并判定 FINISHED"作为成功标准**，分阶段验证即可。
-
-### 1. 为什么必须分 CC/CV
-
-本拓扑是**模拟 LLC（NCP4390 内部闭环）**，MCU 只给开环设定点：CC 下发电流参考、CV 下发电压参考（见 `:93-110` `apply_references`）。分段对 MCU 只是一行切换，边际成本极低，但**不分有真隐患**：
-
-- 若一直停在 CC 不进 CV → 电池电压持续冲高 → 触发 OVP 64V 保护进 FAULT。等于"只要充电就必故障"，联调反而更乱。
-- `STANDBY→PRECHARGE→CC→CV→FINISHED` 骨架已齐全，**保留即可**，删除反而是倒退。
-
-### 2. 两个初版就必须通的红线的（否则变"假故障循环"）
-
-| 红线 | 对应代码 | 失败后果 |
+| 行 | 现状 | 应改为 |
 | -- | -- | -- |
-| **CC 硬限流** | CC 进入 `:159-164` 下发 `s_current_reference_a`（40A 钳位） | 电池低压/短路时灌爆；需确认进入 CC 时给的是电流参考而非电压参考 |
-| **CV 进入判据能通** | `:317-319` `vbat_v ≥ v_ref − CHARGE_CV_ENTRY_MARGIN_V`（去抖后切 CV） | 不进 CV → 电压一路冲到 OVP → 必然 FAULT |
+| `:32` | 死注释 `#define PFC_READY_TIMEOUT_MS` | 删除 |
+| `:35` | 注释"344/80V"与 85.0 不一致 | 写明当前标定依据 |
+| `:37` | "OCP=30A 超量程" | OCP 现 24A 且在量程内，删除或更新 |
+| `:119` | 函数头"C5：未复位 CV/CC PWM" | 删除（:124-125 已复位） |
+| `:324` | "8s(调试值)" | 8h（main.h:104） |
+| `:333` | "C2：名实不符…" | 已修复，删除 |
+| `:345` | "3s(调试值)" | 3h（main.h:105） |
 
-> 注：C4（CV 进入用 `vbat` 而非 `vout`）初版可接受，长线损场景后续再优化。
+---
 
-### 3. 验证分级（按优先级，不必一次到位）
+## 六、亮点（v3 保留）
 
-| 阶段 | 验证目标 | 负载/源配置（稳压源+电子负载模拟） | 通过标准 |
+1. **`llc_enable/llc_disable` 极性封装（🆕）**：低有效语义收口到两个函数，main.c 初始关断、CAL 固件强制关断、状态机全部走封装，消除裸 GPIO 极性散布。
+2. **`enter_state` 同态幂等守卫 + 一次性动作集中**：enter 范式落地，condition_qualification_reset 防跨状态残留。
+3. **FAULT 顶部优先收敛**：fail-safe 到位，配合 STOP+CLEAR 可恢复待机。
+4. **PWM 安全复位进 outputs_force_off**（C5）。
+5. **去抖重构为 condition_qualification_t**：CC→CV 与完成判据共用、按状态 reset。
+6. **CAN 与 supervisor 解耦**：transport-independent API，为 CAN 集成阶段留好接口。
+
+---
+
+## 七、CC/CV 验证分级（v2 内容，v3 更新数值）
+
+> 结论不变：**状态机结构上必须保留 CC/CV；初版联调先跑通 CC + 验证 CV 进入钳位，FINISHED 可暂缓**。数值按 0824 更新：OVP=94V、OCP=24A、CV_REFERENCE_MAX=85V。
+
+| 阶段 | 验证目标 | 配置 | 通过标准 |
 | -- | -- | -- | -- |
-| **① 先 CC** | 功率链路 / PFC 建压 / 保护 / 采样标定 | 输出端子接 ≥10V 稳压源（满足 `BATTERY_PRESENT_V`），电子负载吸流（恒流或定阻） | 母线 ≥360V、CC 进入、输出能建起、串口电压/电流读数跟万用表对得上 |
-| **② 再 CV** | 电压钳位 + CV 进入判据 | 电子负载减小电流，让 vout 顶到 `v_ref`(≈58.4V) | 自动切到 CV 且电压钳住（不再上涨），无 OVP 误触发 |
-| **③ FINISHED（可暂缓）** | 充满判定（电流衰减到阈值） | 电子负载电流调到 ≤`CHARGE_FINISH_CURRENT_A`(1A) | 30s 去抖后进入 FINISHED 并断输出 |
+| ① 先 CC | 功率链路/PFC 建压/保护/采样标定 | 输出接 ≥10V 稳压源，电子负载吸流 | 母线 ≥360V（且 AC∈[180,264]，见 ADC 评审 165V 备注）、CC 进入、输出建起、串口读数与万用表对上 |
+| ② 再 CV | 电压钳位 + CV 进入判据 | 负载减流让 vout 顶到 v_ref | 自动切 CV 且钳住，无 OVP 误触发 |
+| ③ FINISHED（可暂缓） | 充满判定 | 负载电流 ≤1A | 30s 去抖后 FINISHED 断输出。**前置：电流点校必须完成（C1 专节）** |
 
-### 4. 初版可放宽 / 临时处置点
+**两条红线不变**：CC 硬限流（进入 CC 时给的是电流参考而非电压参考）、CV 进入判据能通（否则电压冲到 94V OVP → 假故障循环）。
 
-- **FINISHED 自动停机判定（③）初版可放宽或手动 STOP**：避免"充不满自动停不了"干扰联调。手动 `STOP` 命令（串口 console）即可安全回 STANDBY（`:347-353`）。
-- **标定没把握时临时调宽保护门槛**：OCP 24A、OVP 64V 在采样标定未稳前，若因读数偏差误触发，调试阶段可临时放宽，联调通过再收紧。
-- **无电池进不了预充是设计意图**：端子完全开路（vbat < 10V）卡在 STANDBY 是充电器有意的安全拦截，不是 bug；接 ≥10V 稳压源即可解锁（见 N1 之前的 STANDBY 出口 `:287`）。
+---
 
-### 5. 一句话
-
-CC/CV **结构上要分（已有，留着）**，初版联调**先跑通 CC + 验证 CV 进入钳位**即可，FINISHED 自动停机初版可放宽或手动停。核心红线：**CC 限流 + CV 能进**，否则退化为"过充触发保护"的假故障循环。
+> v3 总结：模块已解决 A1/A2/B3/C2/C3/C5 共 6 项，极性封装与状态机骨架健壮。**剩余最高风险是 N-B1 断电无缓冲时序**；**接真电池前两个必须项是电流点校（C1/ADC P1-②③）与 N1 浪涌确认**。FAULT 恢复按"STOP→CLEAR→自动回 STANDBY"语义使用，不要期待无人干预自恢复（B2 专节）。

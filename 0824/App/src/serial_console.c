@@ -1,5 +1,6 @@
 /* USART2 commissioning console for the first software/hardware bench test. */
 #include "serial_console.h"
+#include "llc_control.h"
 #if PWM_ANALOG_CALIBRATION_MODE
 /* Phase-1 console: PWM references only. Power-stage commands do not exist. */
 
@@ -14,7 +15,7 @@ static uint32_t s_cal_length;
 
 static void calibration_force_power_off(void)
 {
-	  gpio_bit_set(LLC_EN_PORT, LLC_EN_PIN); //高电平 关llc
+	  llc_disable(); //高电平 关llc
     gpio_bit_reset(PFC_RELAY_PORT, PFC_RELAY_PIN);
     gpio_bit_reset(OUT_RELAY_PORT, OUT_RELAY_PIN);
 }
@@ -124,7 +125,7 @@ static void print_help(void) //	帮助函数
 	  debug_printf("START runs the complete PFC-to-LLC state-machine sequence.\r\n");
     debug_printf("Safety: SET/START/CLEAR only while stopped; enabled output needs PING within 10s.\r\n"); //安全提示，清楚。
 }
-
+#if 0
 static void print_status_test(void) //	状态打印。
 {
 	//一帧把关键量全打出来，联调非常实用。g_ms→%lu、g_charger_state/g_fault→%u 的强转正确。但 %f 浮点打印需要 printf 浮点支持（见下方 P1）。
@@ -134,7 +135,7 @@ static void print_status_test(void) //	状态打印。
 	
                  (unsigned long)g_ms, (unsigned int)g_charger_state,
                  (unsigned int)g_fault, power_supervisor_requested() ? 1U : 0U,
-                 power_supervisor_voltage_reference(),
+                 power_supervisor_voltage_reference0(),
                  power_supervisor_current_reference(), g_adc_multi.ac_vol_v,
                  g_adc_multi.bus_vol_v, g_adc_multi.vout_v, g_adc_multi.vbat_v,
                  g_adc_multi.iout_a,
@@ -144,6 +145,7 @@ static void print_status_test(void) //	状态打印。
                  (unsigned int)g_adc_multi.vbt_raw,
                  (unsigned int)g_adc_multi.isense_raw);
 }
+#endif
 static void print_status(bool include_raw)
 {
     debug_printf("STAT ms=%lu state=%u fault=%u en=%u pfc_state=%u ref=%.1fV/%.1fA "

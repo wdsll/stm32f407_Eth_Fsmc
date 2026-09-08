@@ -28,12 +28,10 @@
 #define BATTERY_PRESENT_V       (10.0f)   // ÅÐ¶¨"µç³ØÒÑ½ÓÈë"µÄ×îµÍµçÑ¹
 #define OUTPUT_RELAY_MIN_V      (10.0f)   // CC Ì¬ÅÐ¶¨Êä³öÒÑ½¨ÆðµÄµçÑ¹ÃÅÏÞÒ²ÓÃÓÚÊä³öÆô¶¯³¬Ê±
 #define OUTPUT_START_TIMEOUT_MS     (1500U)   //C2 ÒÑ¸ÄÃû£ºCC ºó 1.5s Êä³öÎ´½¨Æð¡úFAULT_OUTPUT_START_TIMEOUT
-
 //#define PFC_READY_TIMEOUT_MS    (3000U)
 //#define CAN_STATUS_PERIOD_MS    (100U)    //CAN ×´Ì¬Ö¡ÉÏ±¨ÖÜÆÚ 100ms£¨10Hz£©
 
-#define CV_REFERENCE_MAX_V      (80.0f)   // CV_PWM Õ¼¿Õ±È»»ËãÂúÁ¿³ÌµçÑ¹£¨344/80V£©
-
+#define CV_REFERENCE_MAX_V      (85.0f)   // 80¡ú85£»×¢ÊÍ"344/80V"Óë 85 ²»Ò»ÖÂ£¬½¨ÒéÖØÐ´
 #define CC_REFERENCE_MAX_A      (20.0f)  // CC_PWM Õ¼¿Õ±È»»ËãÂúÁ¿³ÌµçÁ÷£¨È«¾Ö C3£ºÂúÁ¿³Ì¡Ö24.8A£¬OCP=30A ³¬Á¿³Ì£©
 
 /*********************************************************************************************************
@@ -52,6 +50,17 @@ static condition_qualification_t s_qualification; //È¥¶¶×´Ì¬£¨CC¡úCV / Íê³ÉÅÐ¾Ý¹
 /*********************************************************************************************************
 *                                              º¯ÊýÊµÏÖ
 *********************************************************************************************************/
+void llc_enable(void)
+{
+    /* LLC_EN is active low. */
+    gpio_bit_reset(LLC_EN_PORT, LLC_EN_PIN);
+}
+
+void llc_disable(void)
+{
+    /* Drive the inactive level explicitly for fail-safe shutdown. */
+    gpio_bit_set(LLC_EN_PORT, LLC_EN_PIN);
+}
 /*********************************************************************************************************
 * º¯ÊýÃû³Æ£ºvoltage_to_duty
 * º¯Êý¹¦ÄÜ£ºµçÑ¹¡úÕ¼¿Õ±ÈÏßÐÔÓ³Éä
@@ -109,7 +118,7 @@ static void apply_references(void)
 *********************************************************************************************************/
 static void outputs_force_off(void)
 {
-	gpio_bit_set(LLC_EN_PORT, LLC_EN_PIN); // ¹Ø LLC Ê¹ÄÜ
+	llc_disable(); // ¹Ø LLC Ê¹ÄÜ
 	cv_pwm_set_duty(PWM_DUTY_SAFE);  // C5 ÒÑÐÞ£ºPWM ¸´Î»µ½°²È«Õ¼¿Õ±È(=0)
   cc_pwm_set_duty(PWM_DUTY_SAFE);
 	gpio_bit_reset(OUT_RELAY_PORT, OUT_RELAY_PIN); // ¶ÏÊä³ö¼ÌµçÆ÷
@@ -159,7 +168,7 @@ static void enter_state(charger_state_t state)
 			case MAIN_STEP_CC:
 			{
 				apply_references(); //½ö´Ë´¦ÏÂ·¢Ò»´Î»ù×¼
-				gpio_bit_reset(LLC_EN_PORT, LLC_EN_PIN); //¿ªLLC
+        llc_enable(); //¿ªLLC
 				outputs_on();// N1£º´Ë´¦Á¢¼´±ÕºÏ¼ÌµçÆ÷£¨ÐÐÎª±ä»¯£¬¼û N1£©
 				break;
 			}
@@ -195,7 +204,7 @@ void power_supervisor_enter_fault(void) // protect µ÷´Ë½ø FAULT
 /* ========== ×´Ì¬»ú ========== */
 /*********************************************************************************************************
 * º¯ÊýÃû³Æ£ºpower_supervisor_init
-* º¯Êý¹¦ÄÜ£º
+* º¯Êý¹¦ÄÜ£ºÇå»ù×¼/PWM ÖÃ³õÖµ/enter(STANDBY)
 * ÊäÈë²ÎÊý£ºvoid
 * Êä³ö²ÎÊý£ºvoid
 * ·µ »Ø Öµ£ºvoid
@@ -272,12 +281,13 @@ void power_supervisor_tick_1khz(void)
 	/* Commands arrive through the transport-independent supervisor API. */
 	if (g_charger_state == MAIN_STEP_FAULT) {
 		outputs_force_off();
-
+#if 0   // `!protect_fault_active_hw()` Òò protect.c `#if 1` ºãÕæ£¬**´¿ÎÞÈË¸ÉÔ¤µÄ"×Ô¶¯»Ö¸´"ÈÔÊÇËÀ´úÂë** |
 		if(!s_enable_requested&&!protect_fault_latched()&&!protect_fault_active_hw())
 		{
 			g_fault = FAULT_NONE;
 			enter_state(MAIN_STEP_STANDBY);
 		}
+#endif
 		return;
 	}
 	switch(g_charger_state)

@@ -6,6 +6,9 @@
 #include "main.h"
 
 /* External analog ICs own the closed loops; these APIs only set PWM references. */
+void llc_enable(void);
+void llc_disable(void);
+
 void power_supervisor_init(void);
 void power_supervisor_tick_1khz(void);
 void power_supervisor_enter_fault(void);
