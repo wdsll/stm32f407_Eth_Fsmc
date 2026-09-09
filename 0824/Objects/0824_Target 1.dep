@@ -1057,7 +1057,7 @@ I (C:\Keil_v5\ARM\ARMCC\include\math.h)(0x599ECD2E)
 I (.\HW\include\adc_dma.h)(0x6A8CE2BE)
 I (C:\Keil_v5\ARM\ARMCC\include\string.h)(0x599ECD2C)
 F (.\HW\include\can_comm.h)(0x6A6AEDFC)()
-F (.\HW\src\llc_control.c)(0x6A990789)(--c99 --gnu -c --cpu Cortex-M4.fp -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I .\App\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\GD32_SYSTEM\Firmware\CMSIS -I .\HW\include -I .\App\include-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\llc_control.o --omf_browse .\objects\llc_control.crf --depend .\objects\llc_control.d)
+F (.\HW\src\llc_control.c)(0x6AA0ACF5)(--c99 --gnu -c --cpu Cortex-M4.fp -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I .\App\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\GD32_SYSTEM\Firmware\CMSIS -I .\HW\include -I .\App\include-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\llc_control.o --omf_browse .\objects\llc_control.crf --depend .\objects\llc_control.d)
 I (.\HW\include\llc_control.h)(0x6A98DC2C)
 I (.\App\include\main.h)(0x6A9E0FE0)
 I (.\ARM\include\gd32f30x_conf.h)(0x691D9C10)
@@ -1104,7 +1104,7 @@ I (.\HW\include\protect.h)(0x6A8B95D5)
 I (.\HW\include\pwm_llc.h)(0x6A8BEAAF)
 F (.\HW\include\llc_control.h)(0x6A98DC2C)()
 F (.\HW\include\pfc_control.h)(0x6A700179)()
-F (.\HW\src\pfc_control.c)(0x6A9E18F2)(--c99 --gnu -c --cpu Cortex-M4.fp -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I .\App\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\GD32_SYSTEM\Firmware\CMSIS -I .\HW\include -I .\App\include-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\pfc_control.o --omf_browse .\objects\pfc_control.crf --depend .\objects\pfc_control.d)
+F (.\HW\src\pfc_control.c)(0x6A9FAE51)(--c99 --gnu -c --cpu Cortex-M4.fp -D__MICROLIB -g -O0 --apcs=interwork --split_sections -I .\App\include -I .\ARM\include -I .\GD32_SYSTEM\Firmware\GD32F30x_standard_peripheral\Include -I .\GD32_SYSTEM\Firmware\CMSIS\GD\GD32F30x\Include -I .\GD32_SYSTEM\Firmware\CMSIS -I .\HW\include -I .\App\include-I.\RTE\_Target_1-IC:\Users\huyan\AppData\Local\Arm\Packs\ARM\CMSIS\5.9.0\CMSIS\Core\Include-IC:\Users\huyan\AppData\Local\Arm\Packs\GigaDevice\GD32F30x_DFP\2.2.1\Device\Include-D__UVISION_VERSION="525" -D_RTE_ -DGD32F30X_HD -DUSE_STDPERIPH_DRIVER -DGD32F30X_HD -D__FPU_PRESENT-o .\objects\pfc_control.o --omf_browse .\objects\pfc_control.crf --depend .\objects\pfc_control.d)
 I (.\HW\include\pfc_control.h)(0x6A700179)
 I (.\App\include\main.h)(0x6A9E0FE0)
 I (.\ARM\include\gd32f30x_conf.h)(0x691D9C10)

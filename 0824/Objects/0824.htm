@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\Objects\0824.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Objects\0824.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Tue Sep 08 14:17:14 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Wed Sep 09 08:48:58 2026
 <BR><P>
 <H3>Maximum Stack Usage =        504 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -12,7 +12,7 @@ main &rArr; serial_console_task &rArr; execute_command &rArr; print_status &rArr
 <H3>
 Mutually Recursive functions
 </H3> <LI><a href="#[1c]">ADC0_1_IRQHandler</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[1c]">ADC0_1_IRQHandler</a><BR>
- <LI><a href="#[d8]">pfc_enable</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[ee]">protect_set_fault</a><BR>
+ <LI><a href="#[d9]">pfc_enable</a>&nbsp;&nbsp;&nbsp;&rArr;&nbsp;&nbsp;&nbsp;<a href="#[ee]">protect_set_fault</a><BR>
 </UL>
 <P>
 <H3>
@@ -313,10 +313,10 @@ Global Symbols
 
 <P><STRONG><a name="[107]"></a>__aeabi_memcpy8</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, memcpya.o(.text), UNUSED)
 
-<P><STRONG><a name="[dc]"></a>strcmp</STRONG> (Thumb, 28 bytes, Stack size 8 bytes, strcmp.o(.text))
+<P><STRONG><a name="[dd]"></a>strcmp</STRONG> (Thumb, 28 bytes, Stack size 8 bytes, strcmp.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = strcmp
 </UL>
-<BR>[Called By]<UL><LI><a href="#[db]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
+<BR>[Called By]<UL><LI><a href="#[dc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
 </UL>
 
 <P><STRONG><a name="[50]"></a>__0sscanf</STRONG> (Thumb, 48 bytes, Stack size 72 bytes, __0sscanf.o(.text))
@@ -324,13 +324,13 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__vfscanf_char
 </UL>
-<BR>[Called By]<UL><LI><a href="#[db]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
+<BR>[Called By]<UL><LI><a href="#[dc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
 </UL>
 
 <P><STRONG><a name="[69]"></a>_scanf_real</STRONG> (Thumb, 0 bytes, Stack size 104 bytes, scanf_fp.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 104<LI>Call Chain = _scanf_real
 </UL>
-<BR>[Called By]<UL><LI><a href="#[5e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__vfscanf
+<BR>[Called By]<UL><LI><a href="#[60]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__vfscanf
 </UL>
 
 <P><STRONG><a name="[56]"></a>_scanf_really_real</STRONG> (Thumb, 556 bytes, Stack size 104 bytes, scanf_fp.o(.text), UNUSED)
@@ -339,17 +339,37 @@ Global Symbols
 <LI><a href="#[52]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_fp_value
 </UL>
 
-<P><STRONG><a name="[59]"></a>__aeabi_ul2f</STRONG> (Thumb, 28 bytes, Stack size 8 bytes, ffltul.o(.text))
+<P><STRONG><a name="[55]"></a>__aeabi_ddiv</STRONG> (Thumb, 222 bytes, Stack size 32 bytes, ddiv.o(.text))
+<BR><BR>[Stack]<UL><LI>Max Depth = 40<LI>Call Chain = __aeabi_ddiv &rArr; _double_round
+</UL>
+<BR>[Calls]<UL><LI><a href="#[59]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_double_round
+</UL>
+<BR>[Called By]<UL><LI><a href="#[b2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;current_to_duty
+<LI><a href="#[52]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_fp_value
+<LI><a href="#[7d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_fp_digits
+</UL>
+
+<P><STRONG><a name="[5a]"></a>__aeabi_ul2f</STRONG> (Thumb, 28 bytes, Stack size 8 bytes, ffltul.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 12<LI>Call Chain = __aeabi_ul2f &rArr; _float_epilogue
 </UL>
-<BR>[Calls]<UL><LI><a href="#[5a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_float_epilogue
+<BR>[Calls]<UL><LI><a href="#[5b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_float_epilogue
 </UL>
 <BR>[Called By]<UL><LI><a href="#[82]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_ac_sample_fast
 </UL>
 
-<P><STRONG><a name="[e2]"></a>__aeabi_f2d</STRONG> (Thumb, 38 bytes, Stack size 0 bytes, f2d.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[de]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;print_status
-<LI><a href="#[db]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
+<P><STRONG><a name="[c0]"></a>__aeabi_f2d</STRONG> (Thumb, 38 bytes, Stack size 0 bytes, f2d.o(.text))
+<BR><BR>[Called By]<UL><LI><a href="#[df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;print_status
+<LI><a href="#[dc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
+<LI><a href="#[b2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;current_to_duty
+</UL>
+
+<P><STRONG><a name="[58]"></a>__aeabi_d2f</STRONG> (Thumb, 56 bytes, Stack size 8 bytes, d2f.o(.text))
+<BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = __aeabi_d2f
+</UL>
+<BR>[Calls]<UL><LI><a href="#[5c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_float_round
+</UL>
+<BR>[Called By]<UL><LI><a href="#[b2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;current_to_duty
+<LI><a href="#[56]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_scanf_really_real
 </UL>
 
 <P><STRONG><a name="[108]"></a>__aeabi_uidiv</STRONG> (Thumb, 0 bytes, Stack size 12 bytes, uidiv.o(.text), UNUSED)
@@ -358,9 +378,9 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[7a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_printf_core
 </UL>
 
-<P><STRONG><a name="[5b]"></a>__aeabi_uldivmod</STRONG> (Thumb, 98 bytes, Stack size 40 bytes, uldiv.o(.text), UNUSED)
-<BR><BR>[Calls]<UL><LI><a href="#[5c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_llsr
-<LI><a href="#[5d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_llsl
+<P><STRONG><a name="[5d]"></a>__aeabi_uldivmod</STRONG> (Thumb, 98 bytes, Stack size 40 bytes, uldiv.o(.text), UNUSED)
+<BR><BR>[Calls]<UL><LI><a href="#[5e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_llsr
+<LI><a href="#[5f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_llsl
 </UL>
 <BR>[Called By]<UL><LI><a href="#[7a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_printf_core
 <LI><a href="#[7d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_fp_digits
@@ -369,7 +389,7 @@ Global Symbols
 <P><STRONG><a name="[51]"></a>__vfscanf_char</STRONG> (Thumb, 20 bytes, Stack size 0 bytes, scanf_char.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 192<LI>Call Chain = __vfscanf_char &rArr; __vfscanf &rArr; _scanf_real
 </UL>
-<BR>[Calls]<UL><LI><a href="#[5e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__vfscanf
+<BR>[Calls]<UL><LI><a href="#[60]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__vfscanf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[50]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__0sscanf
 </UL>
@@ -382,44 +402,55 @@ Global Symbols
 </UL>
 <P><STRONG><a name="[109]"></a>__I$use$fp</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, iusefp.o(.text), UNUSED)
 
-<P><STRONG><a name="[66]"></a>_float_round</STRONG> (Thumb, 18 bytes, Stack size 0 bytes, fepilogue.o(.text), UNUSED)
+<P><STRONG><a name="[5c]"></a>_float_round</STRONG> (Thumb, 18 bytes, Stack size 0 bytes, fepilogue.o(.text))
 <BR><BR>[Called By]<UL><LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_d2f
 </UL>
 
-<P><STRONG><a name="[5a]"></a>_float_epilogue</STRONG> (Thumb, 92 bytes, Stack size 4 bytes, fepilogue.o(.text))
+<P><STRONG><a name="[5b]"></a>_float_epilogue</STRONG> (Thumb, 92 bytes, Stack size 4 bytes, fepilogue.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 4<LI>Call Chain = _float_epilogue
 </UL>
-<BR>[Called By]<UL><LI><a href="#[59]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_ul2f
+<BR>[Called By]<UL><LI><a href="#[5a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_ul2f
 </UL>
 
-<P><STRONG><a name="[5f]"></a>__aeabi_dadd</STRONG> (Thumb, 322 bytes, Stack size 48 bytes, dadd.o(.text), UNUSED)
-<BR><BR>[Calls]<UL><LI><a href="#[60]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_lasr
-<LI><a href="#[5d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_llsl
-<LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_double_round
-<LI><a href="#[61]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_double_epilogue
+<P><STRONG><a name="[59]"></a>_double_round</STRONG> (Thumb, 30 bytes, Stack size 8 bytes, depilogue.o(.text))
+<BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = _double_round
 </UL>
-<BR>[Called By]<UL><LI><a href="#[64]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_drsub
-<LI><a href="#[63]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dsub
+<BR>[Called By]<UL><LI><a href="#[55]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_ddiv
+<LI><a href="#[61]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_double_epilogue
+<LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dadd
+</UL>
+
+<P><STRONG><a name="[61]"></a>_double_epilogue</STRONG> (Thumb, 156 bytes, Stack size 32 bytes, depilogue.o(.text), UNUSED)
+<BR><BR>[Calls]<UL><LI><a href="#[5e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_llsr
+<LI><a href="#[5f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_llsl
+<LI><a href="#[59]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_double_round
+</UL>
+<BR>[Called By]<UL><LI><a href="#[53]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_ul2d
+<LI><a href="#[54]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dmul
+<LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dadd
+</UL>
+
+<P><STRONG><a name="[62]"></a>__aeabi_dadd</STRONG> (Thumb, 322 bytes, Stack size 48 bytes, dadd.o(.text), UNUSED)
+<BR><BR>[Calls]<UL><LI><a href="#[63]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_lasr
+<LI><a href="#[5f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_llsl
+<LI><a href="#[61]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_double_epilogue
+<LI><a href="#[59]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_double_round
+</UL>
+<BR>[Called By]<UL><LI><a href="#[65]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_drsub
+<LI><a href="#[64]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dsub
 <LI><a href="#[7d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_fp_digits
 </UL>
 
-<P><STRONG><a name="[63]"></a>__aeabi_dsub</STRONG> (Thumb, 6 bytes, Stack size 0 bytes, dadd.o(.text), UNUSED)
-<BR><BR>[Calls]<UL><LI><a href="#[5f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dadd
+<P><STRONG><a name="[64]"></a>__aeabi_dsub</STRONG> (Thumb, 6 bytes, Stack size 0 bytes, dadd.o(.text), UNUSED)
+<BR><BR>[Calls]<UL><LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dadd
 </UL>
 
-<P><STRONG><a name="[64]"></a>__aeabi_drsub</STRONG> (Thumb, 6 bytes, Stack size 0 bytes, dadd.o(.text), UNUSED)
-<BR><BR>[Calls]<UL><LI><a href="#[5f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dadd
+<P><STRONG><a name="[65]"></a>__aeabi_drsub</STRONG> (Thumb, 6 bytes, Stack size 0 bytes, dadd.o(.text), UNUSED)
+<BR><BR>[Calls]<UL><LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dadd
 </UL>
 
 <P><STRONG><a name="[54]"></a>__aeabi_dmul</STRONG> (Thumb, 228 bytes, Stack size 48 bytes, dmul.o(.text), UNUSED)
 <BR><BR>[Calls]<UL><LI><a href="#[61]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_double_epilogue
-</UL>
-<BR>[Called By]<UL><LI><a href="#[52]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_fp_value
-<LI><a href="#[7d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_fp_digits
-</UL>
-
-<P><STRONG><a name="[55]"></a>__aeabi_ddiv</STRONG> (Thumb, 222 bytes, Stack size 32 bytes, ddiv.o(.text), UNUSED)
-<BR><BR>[Calls]<UL><LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_double_round
 </UL>
 <BR>[Called By]<UL><LI><a href="#[52]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_fp_value
 <LI><a href="#[7d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_fp_digits
@@ -431,21 +462,15 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[52]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_fp_value
 </UL>
 
-<P><STRONG><a name="[65]"></a>__aeabi_d2ulz</STRONG> (Thumb, 48 bytes, Stack size 0 bytes, dfixul.o(.text), UNUSED)
-<BR><BR>[Calls]<UL><LI><a href="#[5c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_llsr
-<LI><a href="#[5d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_llsl
+<P><STRONG><a name="[66]"></a>__aeabi_d2ulz</STRONG> (Thumb, 48 bytes, Stack size 0 bytes, dfixul.o(.text), UNUSED)
+<BR><BR>[Calls]<UL><LI><a href="#[5e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_llsr
+<LI><a href="#[5f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_llsl
 </UL>
 <BR>[Called By]<UL><LI><a href="#[7d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_fp_digits
 </UL>
 
 <P><STRONG><a name="[7e]"></a>__aeabi_cdrcmple</STRONG> (Thumb, 48 bytes, Stack size 0 bytes, cdrcmple.o(.text), UNUSED)
 <BR><BR>[Called By]<UL><LI><a href="#[7d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_fp_digits
-</UL>
-
-<P><STRONG><a name="[58]"></a>__aeabi_d2f</STRONG> (Thumb, 56 bytes, Stack size 8 bytes, d2f.o(.text), UNUSED)
-<BR><BR>[Calls]<UL><LI><a href="#[66]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_float_round
-</UL>
-<BR>[Called By]<UL><LI><a href="#[56]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_scanf_really_real
 </UL>
 
 <P><STRONG><a name="[4f]"></a>__scatterload</STRONG> (Thumb, 28 bytes, Stack size 0 bytes, init.o(.text))
@@ -456,25 +481,25 @@ Global Symbols
 
 <P><STRONG><a name="[10a]"></a>__scatterload_rt2</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, init.o(.text), UNUSED)
 
-<P><STRONG><a name="[5d]"></a>__aeabi_llsl</STRONG> (Thumb, 30 bytes, Stack size 0 bytes, llshl.o(.text), UNUSED)
+<P><STRONG><a name="[5f]"></a>__aeabi_llsl</STRONG> (Thumb, 30 bytes, Stack size 0 bytes, llshl.o(.text), UNUSED)
 <BR><BR>[Called By]<UL><LI><a href="#[61]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_double_epilogue
-<LI><a href="#[5b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uldivmod
-<LI><a href="#[5f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dadd
-<LI><a href="#[65]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_d2ulz
+<LI><a href="#[5d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uldivmod
+<LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dadd
+<LI><a href="#[66]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_d2ulz
 </UL>
 
 <P><STRONG><a name="[10b]"></a>_ll_shift_l</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, llshl.o(.text), UNUSED)
 
-<P><STRONG><a name="[5c]"></a>__aeabi_llsr</STRONG> (Thumb, 32 bytes, Stack size 0 bytes, llushr.o(.text), UNUSED)
+<P><STRONG><a name="[5e]"></a>__aeabi_llsr</STRONG> (Thumb, 32 bytes, Stack size 0 bytes, llushr.o(.text), UNUSED)
 <BR><BR>[Called By]<UL><LI><a href="#[61]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_double_epilogue
-<LI><a href="#[5b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uldivmod
-<LI><a href="#[65]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_d2ulz
+<LI><a href="#[5d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uldivmod
+<LI><a href="#[66]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_d2ulz
 </UL>
 
 <P><STRONG><a name="[10c]"></a>_ll_ushift_r</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, llushr.o(.text), UNUSED)
 
-<P><STRONG><a name="[60]"></a>__aeabi_lasr</STRONG> (Thumb, 36 bytes, Stack size 0 bytes, llsshr.o(.text), UNUSED)
-<BR><BR>[Called By]<UL><LI><a href="#[5f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dadd
+<P><STRONG><a name="[63]"></a>__aeabi_lasr</STRONG> (Thumb, 36 bytes, Stack size 0 bytes, llsshr.o(.text), UNUSED)
+<BR><BR>[Called By]<UL><LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dadd
 </UL>
 
 <P><STRONG><a name="[10d]"></a>_ll_sshift_r</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, llsshr.o(.text), UNUSED)
@@ -484,28 +509,12 @@ Global Symbols
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> scanf_char.o(.text)
 </UL>
-<P><STRONG><a name="[5e]"></a>__vfscanf</STRONG> (Thumb, 808 bytes, Stack size 88 bytes, _scanf.o(.text))
+<P><STRONG><a name="[60]"></a>__vfscanf</STRONG> (Thumb, 808 bytes, Stack size 88 bytes, _scanf.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 192<LI>Call Chain = __vfscanf &rArr; _scanf_real
 </UL>
 <BR>[Calls]<UL><LI><a href="#[69]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_scanf_real
 </UL>
 <BR>[Called By]<UL><LI><a href="#[51]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__vfscanf_char
-</UL>
-
-<P><STRONG><a name="[62]"></a>_double_round</STRONG> (Thumb, 30 bytes, Stack size 8 bytes, depilogue.o(.text), UNUSED)
-<BR><BR>[Called By]<UL><LI><a href="#[61]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_double_epilogue
-<LI><a href="#[55]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_ddiv
-<LI><a href="#[5f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dadd
-</UL>
-
-<P><STRONG><a name="[61]"></a>_double_epilogue</STRONG> (Thumb, 156 bytes, Stack size 32 bytes, depilogue.o(.text), UNUSED)
-<BR><BR>[Calls]<UL><LI><a href="#[5c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_llsr
-<LI><a href="#[5d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_llsl
-<LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_double_round
-</UL>
-<BR>[Called By]<UL><LI><a href="#[53]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_ul2d
-<LI><a href="#[54]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dmul
-<LI><a href="#[5f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dadd
 </UL>
 
 <P><STRONG><a name="[68]"></a>__ctype_lookup</STRONG> (Thumb, 34 bytes, Stack size 0 bytes, ctype_c.o(.text))
@@ -594,10 +603,10 @@ Global Symbols
 
 <P><STRONG><a name="[110]"></a>__c89vsnprintf</STRONG> (Thumb, 0 bytes, Stack size 24 bytes, printfa.o(i.__0vsnprintf), UNUSED)
 
-<P><STRONG><a name="[c7]"></a>vsnprintf</STRONG> (Thumb, 0 bytes, Stack size 24 bytes, printfa.o(i.__0vsnprintf))
+<P><STRONG><a name="[c8]"></a>vsnprintf</STRONG> (Thumb, 0 bytes, Stack size 24 bytes, printfa.o(i.__0vsnprintf))
 <BR><BR>[Stack]<UL><LI>Max Depth = 24<LI>Call Chain = vsnprintf
 </UL>
-<BR>[Called By]<UL><LI><a href="#[c6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf
+<BR>[Called By]<UL><LI><a href="#[c7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf
 </UL>
 
 <P><STRONG><a name="[7b]"></a>__hardfp_sqrtf</STRONG> (Thumb, 58 bytes, Stack size 16 bytes, sqrtf.o(i.__hardfp_sqrtf))
@@ -625,7 +634,7 @@ Global Symbols
 <P><STRONG><a name="[82]"></a>adc_ac_sample_fast</STRONG> (Thumb, 194 bytes, Stack size 24 bytes, adc_dma.o(i.adc_ac_sample_fast))
 <BR><BR>[Stack]<UL><LI>Max Depth = 40<LI>Call Chain = adc_ac_sample_fast &rArr; __hardfp_sqrtf
 </UL>
-<BR>[Calls]<UL><LI><a href="#[59]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_ul2f
+<BR>[Calls]<UL><LI><a href="#[5a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_ul2f
 <LI><a href="#[7b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__hardfp_sqrtf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
@@ -808,11 +817,11 @@ Global Symbols
 <LI><a href="#[b7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_clampf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[f0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_init
-<LI><a href="#[d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_force_off
+<LI><a href="#[d6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_force_off
 <LI><a href="#[af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;apply_references
 </UL>
 
-<P><STRONG><a name="[c1]"></a>cv_pwm_init</STRONG> (Thumb, 258 bytes, Stack size 56 bytes, pwm_llc.o(i.cv_pwm_init))
+<P><STRONG><a name="[c2]"></a>cv_pwm_init</STRONG> (Thumb, 258 bytes, Stack size 56 bytes, pwm_llc.o(i.cv_pwm_init))
 <BR><BR>[Stack]<UL><LI>Max Depth = 140<LI>Call Chain = cv_pwm_init &rArr; rcu_clock_freq_get
 </UL>
 <BR>[Calls]<UL><LI><a href="#[8b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_struct_para_init
@@ -822,7 +831,7 @@ Global Symbols
 <LI><a href="#[89]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rcu_periph_clock_enable
 <LI><a href="#[87]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rcu_clock_freq_get
 <LI><a href="#[97]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_init
-<LI><a href="#[c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_primary_output_config
+<LI><a href="#[c3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_primary_output_config
 <LI><a href="#[ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_shadow_config
 <LI><a href="#[b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_pulse_value_config
 <LI><a href="#[b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_channel_output_mode_config
@@ -840,7 +849,7 @@ Global Symbols
 <LI><a href="#[b7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_clampf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[f0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_init
-<LI><a href="#[d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_force_off
+<LI><a href="#[d6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_force_off
 <LI><a href="#[af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;apply_references
 </UL>
 
@@ -848,50 +857,50 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[c3]"></a>debug_getchar</STRONG> (Thumb, 32 bytes, Stack size 8 bytes, debug_printf.o(i.debug_getchar))
+<P><STRONG><a name="[c4]"></a>debug_getchar</STRONG> (Thumb, 32 bytes, Stack size 8 bytes, debug_printf.o(i.debug_getchar))
 <BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = debug_getchar &rArr; usart_flag_get
 </UL>
-<BR>[Calls]<UL><LI><a href="#[c4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;usart_flag_get
-<LI><a href="#[c5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;usart_data_receive
+<BR>[Calls]<UL><LI><a href="#[c5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;usart_flag_get
+<LI><a href="#[c6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;usart_data_receive
 </UL>
 <BR>[Called By]<UL><LI><a href="#[f3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;serial_console_task
 </UL>
 
-<P><STRONG><a name="[c6]"></a>debug_printf</STRONG> (Thumb, 100 bytes, Stack size 288 bytes, debug_printf.o(i.debug_printf))
+<P><STRONG><a name="[c7]"></a>debug_printf</STRONG> (Thumb, 100 bytes, Stack size 288 bytes, debug_printf.o(i.debug_printf))
 <BR><BR>[Stack]<UL><LI>Max Depth = 312<LI>Call Chain = debug_printf &rArr; vsnprintf
 </UL>
-<BR>[Calls]<UL><LI><a href="#[c7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vsnprintf
+<BR>[Calls]<UL><LI><a href="#[c8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vsnprintf
 </UL>
-<BR>[Called By]<UL><LI><a href="#[de]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;print_status
-<LI><a href="#[dd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;print_help
-<LI><a href="#[db]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
+<BR>[Called By]<UL><LI><a href="#[df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;print_status
+<LI><a href="#[de]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;print_help
+<LI><a href="#[dc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
 <LI><a href="#[f3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;serial_console_task
 <LI><a href="#[f1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;serial_console_init
 <LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[c8]"></a>debug_printf_init</STRONG> (Thumb, 118 bytes, Stack size 8 bytes, debug_printf.o(i.debug_printf_init))
+<P><STRONG><a name="[c9]"></a>debug_printf_init</STRONG> (Thumb, 118 bytes, Stack size 8 bytes, debug_printf.o(i.debug_printf_init))
 <BR><BR>[Stack]<UL><LI>Max Depth = 124<LI>Call Chain = debug_printf_init &rArr; usart_baudrate_set &rArr; rcu_clock_freq_get
 </UL>
-<BR>[Calls]<UL><LI><a href="#[cb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;usart_word_length_set
-<LI><a href="#[cf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;usart_transmit_config
-<LI><a href="#[cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;usart_stop_bit_set
-<LI><a href="#[ce]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;usart_receive_config
-<LI><a href="#[cd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;usart_parity_config
-<LI><a href="#[d0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;usart_enable
-<LI><a href="#[c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;usart_deinit
-<LI><a href="#[ca]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;usart_baudrate_set
+<BR>[Calls]<UL><LI><a href="#[cc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;usart_word_length_set
+<LI><a href="#[d0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;usart_transmit_config
+<LI><a href="#[cd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;usart_stop_bit_set
+<LI><a href="#[cf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;usart_receive_config
+<LI><a href="#[ce]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;usart_parity_config
+<LI><a href="#[d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;usart_enable
+<LI><a href="#[ca]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;usart_deinit
+<LI><a href="#[cb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;usart_baudrate_set
 <LI><a href="#[89]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rcu_periph_clock_enable
 <LI><a href="#[97]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_init
 </UL>
 <BR>[Called By]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[d1]"></a>debug_tx_task</STRONG> (Thumb, 58 bytes, Stack size 8 bytes, debug_printf.o(i.debug_tx_task))
+<P><STRONG><a name="[d2]"></a>debug_tx_task</STRONG> (Thumb, 58 bytes, Stack size 8 bytes, debug_printf.o(i.debug_tx_task))
 <BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = debug_tx_task &rArr; usart_flag_get
 </UL>
-<BR>[Calls]<UL><LI><a href="#[c4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;usart_flag_get
-<LI><a href="#[d2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;usart_data_transmit
+<BR>[Calls]<UL><LI><a href="#[c5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;usart_flag_get
+<LI><a href="#[d3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;usart_data_transmit
 </UL>
 <BR>[Called By]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
@@ -904,7 +913,7 @@ Global Symbols
 <P><STRONG><a name="[a5]"></a>dma_channel_enable</STRONG> (Thumb, 50 bytes, Stack size 16 bytes, gd32f30x_dma.o(i.dma_channel_enable))
 <BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = dma_channel_enable
 </UL>
-<BR>[Calls]<UL><LI><a href="#[d3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;dma_periph_and_channel_check
+<BR>[Calls]<UL><LI><a href="#[d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;dma_periph_and_channel_check
 </UL>
 <BR>[Called By]<UL><LI><a href="#[96]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_multi_init_dma
 </UL>
@@ -912,7 +921,7 @@ Global Symbols
 <P><STRONG><a name="[a2]"></a>dma_circulation_enable</STRONG> (Thumb, 50 bytes, Stack size 16 bytes, gd32f30x_dma.o(i.dma_circulation_enable))
 <BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = dma_circulation_enable
 </UL>
-<BR>[Calls]<UL><LI><a href="#[d3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;dma_periph_and_channel_check
+<BR>[Calls]<UL><LI><a href="#[d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;dma_periph_and_channel_check
 </UL>
 <BR>[Called By]<UL><LI><a href="#[96]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_multi_init_dma
 </UL>
@@ -920,7 +929,7 @@ Global Symbols
 <P><STRONG><a name="[9f]"></a>dma_deinit</STRONG> (Thumb, 112 bytes, Stack size 16 bytes, gd32f30x_dma.o(i.dma_deinit))
 <BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = dma_deinit
 </UL>
-<BR>[Calls]<UL><LI><a href="#[d3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;dma_periph_and_channel_check
+<BR>[Calls]<UL><LI><a href="#[d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;dma_periph_and_channel_check
 </UL>
 <BR>[Called By]<UL><LI><a href="#[96]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_multi_init_dma
 </UL>
@@ -941,39 +950,39 @@ Global Symbols
 <P><STRONG><a name="[a1]"></a>dma_init</STRONG> (Thumb, 308 bytes, Stack size 32 bytes, gd32f30x_dma.o(i.dma_init))
 <BR><BR>[Stack]<UL><LI>Max Depth = 32<LI>Call Chain = dma_init
 </UL>
-<BR>[Calls]<UL><LI><a href="#[d3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;dma_periph_and_channel_check
+<BR>[Calls]<UL><LI><a href="#[d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;dma_periph_and_channel_check
 </UL>
 <BR>[Called By]<UL><LI><a href="#[96]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_multi_init_dma
 </UL>
 
-<P><STRONG><a name="[d7]"></a>gpio_bit_reset</STRONG> (Thumb, 4 bytes, Stack size 0 bytes, gd32f30x_gpio.o(i.gpio_bit_reset))
+<P><STRONG><a name="[d8]"></a>gpio_bit_reset</STRONG> (Thumb, 4 bytes, Stack size 0 bytes, gd32f30x_gpio.o(i.gpio_bit_reset))
 <BR><BR>[Called By]<UL><LI><a href="#[ec]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_init
 <LI><a href="#[e7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_clear_fault
 <LI><a href="#[ef]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_init
 <LI><a href="#[e8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;hw_gpio_init
 <LI><a href="#[f8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_disable
-<LI><a href="#[d9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_enable
-<LI><a href="#[da]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_on
-<LI><a href="#[d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_force_off
-<LI><a href="#[d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;enter_state
+<LI><a href="#[da]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_enable
+<LI><a href="#[db]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_on
+<LI><a href="#[d6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_force_off
+<LI><a href="#[d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;enter_state
 </UL>
 
-<P><STRONG><a name="[d6]"></a>gpio_bit_set</STRONG> (Thumb, 4 bytes, Stack size 0 bytes, gd32f30x_gpio.o(i.gpio_bit_set))
+<P><STRONG><a name="[d7]"></a>gpio_bit_set</STRONG> (Thumb, 4 bytes, Stack size 0 bytes, gd32f30x_gpio.o(i.gpio_bit_set))
 <BR><BR>[Called By]<UL><LI><a href="#[e7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_clear_fault
 <LI><a href="#[e9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_disable
 <LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 <LI><a href="#[e8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;hw_gpio_init
-<LI><a href="#[d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_enable
-<LI><a href="#[da]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_on
-<LI><a href="#[d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;enter_state
+<LI><a href="#[d9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_enable
+<LI><a href="#[db]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_on
+<LI><a href="#[d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;enter_state
 </UL>
 
 <P><STRONG><a name="[97]"></a>gpio_init</STRONG> (Thumb, 164 bytes, Stack size 20 bytes, gd32f30x_gpio.o(i.gpio_init))
 <BR><BR>[Stack]<UL><LI>Max Depth = 20<LI>Call Chain = gpio_init
 </UL>
 <BR>[Called By]<UL><LI><a href="#[ec]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_init
-<LI><a href="#[c8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf_init
-<LI><a href="#[c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_init
+<LI><a href="#[c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf_init
+<LI><a href="#[c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_init
 <LI><a href="#[b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cc_pwm_init
 <LI><a href="#[96]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_multi_init_dma
 <LI><a href="#[e8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;hw_gpio_init
@@ -982,18 +991,18 @@ Global Symbols
 <P><STRONG><a name="[e9]"></a>llc_disable</STRONG> (Thumb, 14 bytes, Stack size 8 bytes, llc_control.o(i.llc_disable))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = llc_disable
 </UL>
-<BR>[Calls]<UL><LI><a href="#[d6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_set
+<BR>[Calls]<UL><LI><a href="#[d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_set
 </UL>
 <BR>[Called By]<UL><LI><a href="#[e8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;hw_gpio_init
-<LI><a href="#[d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_force_off
+<LI><a href="#[d6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_force_off
 </UL>
 
-<P><STRONG><a name="[d9]"></a>llc_enable</STRONG> (Thumb, 14 bytes, Stack size 8 bytes, llc_control.o(i.llc_enable))
+<P><STRONG><a name="[da]"></a>llc_enable</STRONG> (Thumb, 14 bytes, Stack size 8 bytes, llc_control.o(i.llc_enable))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = llc_enable
 </UL>
-<BR>[Calls]<UL><LI><a href="#[d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_reset
+<BR>[Calls]<UL><LI><a href="#[d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_reset
 </UL>
-<BR>[Called By]<UL><LI><a href="#[d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;enter_state
+<BR>[Called By]<UL><LI><a href="#[d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;enter_state
 </UL>
 
 <P><STRONG><a name="[46]"></a>main</STRONG> (Thumb, 262 bytes, Stack size 0 bytes, main.o(i.main))
@@ -1006,12 +1015,12 @@ Global Symbols
 <LI><a href="#[f0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_init
 <LI><a href="#[ef]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_init
 <LI><a href="#[ea]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;nvic_priority_group_set
-<LI><a href="#[d6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_set
-<LI><a href="#[d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_tx_task
-<LI><a href="#[c8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf_init
-<LI><a href="#[c6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf
+<LI><a href="#[d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_set
+<LI><a href="#[d2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_tx_task
+<LI><a href="#[c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf_init
+<LI><a href="#[c7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf
 <LI><a href="#[f4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_buffer_used
-<LI><a href="#[c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_init
+<LI><a href="#[c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_init
 <LI><a href="#[b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cc_pwm_init
 <LI><a href="#[ac]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_multi_trigger_fast
 <LI><a href="#[aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_multi_start
@@ -1041,30 +1050,30 @@ Global Symbols
 <P><STRONG><a name="[f8]"></a>pfc_disable</STRONG> (Thumb, 20 bytes, Stack size 8 bytes, pfc_control.o(i.pfc_disable))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = pfc_disable
 </UL>
-<BR>[Calls]<UL><LI><a href="#[d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_reset
+<BR>[Calls]<UL><LI><a href="#[d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_reset
 </UL>
 <BR>[Called By]<UL><LI><a href="#[f6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_tick_1khz
-<LI><a href="#[d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_force_off
+<LI><a href="#[d6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_force_off
 </UL>
 
-<P><STRONG><a name="[d8]"></a>pfc_enable</STRONG> (Thumb, 84 bytes, Stack size 8 bytes, pfc_control.o(i.pfc_enable))
+<P><STRONG><a name="[d9]"></a>pfc_enable</STRONG> (Thumb, 84 bytes, Stack size 8 bytes, pfc_control.o(i.pfc_enable))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8 + In Cycle
 <LI>Call Chain = pfc_enable &rArr;  protect_set_fault (Cycle)
 </UL>
 <BR>[Calls]<UL><LI><a href="#[ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_set_fault
-<LI><a href="#[d6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_set
+<LI><a href="#[d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_set
 </UL>
-<BR>[Called By]<UL><LI><a href="#[d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;enter_state
+<BR>[Called By]<UL><LI><a href="#[d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;enter_state
 </UL>
 
 <P><STRONG><a name="[fb]"></a>pfc_get_state</STRONG> (Thumb, 6 bytes, Stack size 0 bytes, pfc_control.o(i.pfc_get_state))
-<BR><BR>[Called By]<UL><LI><a href="#[de]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;print_status
+<BR><BR>[Called By]<UL><LI><a href="#[df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;print_status
 </UL>
 
 <P><STRONG><a name="[ef]"></a>pfc_init</STRONG> (Thumb, 20 bytes, Stack size 8 bytes, pfc_control.o(i.pfc_init))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = pfc_init
 </UL>
-<BR>[Calls]<UL><LI><a href="#[d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_reset
+<BR>[Calls]<UL><LI><a href="#[d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_reset
 </UL>
 <BR>[Called By]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
@@ -1074,7 +1083,7 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[f6]"></a>pfc_tick_1khz</STRONG> (Thumb, 180 bytes, Stack size 8 bytes, pfc_control.o(i.pfc_tick_1khz))
-<BR><BR>[Stack]<UL><LI>Max Depth = 64<LI>Call Chain = pfc_tick_1khz &rArr; protect_set_fault &rArr; power_supervisor_enter_fault &rArr; enter_state &rArr; apply_references &rArr; cv_pwm_set_duty
+<BR><BR>[Stack]<UL><LI>Max Depth = 120<LI>Call Chain = pfc_tick_1khz &rArr; protect_set_fault &rArr; power_supervisor_enter_fault &rArr; enter_state &rArr; apply_references &rArr; current_to_duty &rArr; __aeabi_ddiv &rArr; _double_round
 </UL>
 <BR>[Calls]<UL><LI><a href="#[ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_set_fault
 <LI><a href="#[f8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_disable
@@ -1083,55 +1092,55 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[e6]"></a>power_supervisor_current_reference</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, llc_control.o(i.power_supervisor_current_reference))
-<BR><BR>[Called By]<UL><LI><a href="#[de]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;print_status
-<LI><a href="#[db]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
+<BR><BR>[Called By]<UL><LI><a href="#[df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;print_status
+<LI><a href="#[dc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
 </UL>
 
 <P><STRONG><a name="[f9]"></a>power_supervisor_enter_fault</STRONG> (Thumb, 10 bytes, Stack size 8 bytes, llc_control.o(i.power_supervisor_enter_fault))
-<BR><BR>[Stack]<UL><LI>Max Depth = 48<LI>Call Chain = power_supervisor_enter_fault &rArr; enter_state &rArr; apply_references &rArr; cv_pwm_set_duty
+<BR><BR>[Stack]<UL><LI>Max Depth = 104<LI>Call Chain = power_supervisor_enter_fault &rArr; enter_state &rArr; apply_references &rArr; current_to_duty &rArr; __aeabi_ddiv &rArr; _double_round
 </UL>
-<BR>[Calls]<UL><LI><a href="#[d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;enter_state
+<BR>[Calls]<UL><LI><a href="#[d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;enter_state
 </UL>
 <BR>[Called By]<UL><LI><a href="#[ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_set_fault
 </UL>
 
 <P><STRONG><a name="[f0]"></a>power_supervisor_init</STRONG> (Thumb, 52 bytes, Stack size 8 bytes, llc_control.o(i.power_supervisor_init))
-<BR><BR>[Stack]<UL><LI>Max Depth = 48<LI>Call Chain = power_supervisor_init &rArr; enter_state &rArr; apply_references &rArr; cv_pwm_set_duty
+<BR><BR>[Stack]<UL><LI>Max Depth = 104<LI>Call Chain = power_supervisor_init &rArr; enter_state &rArr; apply_references &rArr; current_to_duty &rArr; __aeabi_ddiv &rArr; _double_round
 </UL>
 <BR>[Calls]<UL><LI><a href="#[b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_set_duty
 <LI><a href="#[b3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cc_pwm_set_duty
-<LI><a href="#[d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;enter_state
+<LI><a href="#[d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;enter_state
 </UL>
 <BR>[Called By]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[df]"></a>power_supervisor_request</STRONG> (Thumb, 6 bytes, Stack size 0 bytes, llc_control.o(i.power_supervisor_request))
-<BR><BR>[Called By]<UL><LI><a href="#[db]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
+<P><STRONG><a name="[e0]"></a>power_supervisor_request</STRONG> (Thumb, 6 bytes, Stack size 0 bytes, llc_control.o(i.power_supervisor_request))
+<BR><BR>[Called By]<UL><LI><a href="#[dc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
 <LI><a href="#[f3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;serial_console_task
 </UL>
 
-<P><STRONG><a name="[e0]"></a>power_supervisor_requested</STRONG> (Thumb, 6 bytes, Stack size 0 bytes, llc_control.o(i.power_supervisor_requested))
-<BR><BR>[Called By]<UL><LI><a href="#[de]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;print_status
-<LI><a href="#[db]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
+<P><STRONG><a name="[e1]"></a>power_supervisor_requested</STRONG> (Thumb, 6 bytes, Stack size 0 bytes, llc_control.o(i.power_supervisor_requested))
+<BR><BR>[Called By]<UL><LI><a href="#[df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;print_status
+<LI><a href="#[dc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
 <LI><a href="#[f3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;serial_console_task
 </UL>
 
-<P><STRONG><a name="[e1]"></a>power_supervisor_set_references</STRONG> (Thumb, 68 bytes, Stack size 16 bytes, llc_control.o(i.power_supervisor_set_references))
-<BR><BR>[Stack]<UL><LI>Max Depth = 48<LI>Call Chain = power_supervisor_set_references &rArr; apply_references &rArr; cv_pwm_set_duty
+<P><STRONG><a name="[e2]"></a>power_supervisor_set_references</STRONG> (Thumb, 68 bytes, Stack size 16 bytes, llc_control.o(i.power_supervisor_set_references))
+<BR><BR>[Stack]<UL><LI>Max Depth = 104<LI>Call Chain = power_supervisor_set_references &rArr; apply_references &rArr; current_to_duty &rArr; __aeabi_ddiv &rArr; _double_round
 </UL>
-<BR>[Calls]<UL><LI><a href="#[c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_clampf
+<BR>[Calls]<UL><LI><a href="#[c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_clampf
 <LI><a href="#[af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;apply_references
 </UL>
-<BR>[Called By]<UL><LI><a href="#[db]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
+<BR>[Called By]<UL><LI><a href="#[dc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
 </UL>
 
 <P><STRONG><a name="[f7]"></a>power_supervisor_tick_1khz</STRONG> (Thumb, 450 bytes, Stack size 8 bytes, llc_control.o(i.power_supervisor_tick_1khz))
-<BR><BR>[Stack]<UL><LI>Max Depth = 64<LI>Call Chain = power_supervisor_tick_1khz &rArr; protect_set_fault &rArr; power_supervisor_enter_fault &rArr; enter_state &rArr; apply_references &rArr; cv_pwm_set_duty
+<BR><BR>[Stack]<UL><LI>Max Depth = 120<LI>Call Chain = power_supervisor_tick_1khz &rArr; protect_set_fault &rArr; power_supervisor_enter_fault &rArr; enter_state &rArr; apply_references &rArr; current_to_duty &rArr; __aeabi_ddiv &rArr; _double_round
 </UL>
 <BR>[Calls]<UL><LI><a href="#[ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_set_fault
 <LI><a href="#[fa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_is_ready
-<LI><a href="#[d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_force_off
-<LI><a href="#[d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;enter_state
+<LI><a href="#[d6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_force_off
+<LI><a href="#[d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;enter_state
 <LI><a href="#[bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;elapsed_reached
 <LI><a href="#[bc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;condition_held
 </UL>
@@ -1139,31 +1148,31 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[e5]"></a>power_supervisor_voltage_reference</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, llc_control.o(i.power_supervisor_voltage_reference))
-<BR><BR>[Called By]<UL><LI><a href="#[de]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;print_status
-<LI><a href="#[db]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
+<BR><BR>[Called By]<UL><LI><a href="#[df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;print_status
+<LI><a href="#[dc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
 </UL>
 
 <P><STRONG><a name="[e7]"></a>protect_clear_fault</STRONG> (Thumb, 52 bytes, Stack size 8 bytes, protect.o(i.protect_clear_fault))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = protect_clear_fault
 </UL>
 <BR>[Calls]<UL><LI><a href="#[e4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_active_hw
-<LI><a href="#[d6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_set
-<LI><a href="#[d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_reset
+<LI><a href="#[d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_set
+<LI><a href="#[d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_reset
 <LI><a href="#[ae]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
 </UL>
-<BR>[Called By]<UL><LI><a href="#[db]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
+<BR>[Called By]<UL><LI><a href="#[dc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
 <LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_startup_check
 </UL>
 
 <P><STRONG><a name="[e4]"></a>protect_fault_active_hw</STRONG> (Thumb, 4 bytes, Stack size 0 bytes, protect.o(i.protect_fault_active_hw))
-<BR><BR>[Called By]<UL><LI><a href="#[db]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
+<BR><BR>[Called By]<UL><LI><a href="#[dc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
 <LI><a href="#[f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_tick_1khz
 <LI><a href="#[e7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_clear_fault
 <LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_startup_check
 </UL>
 
 <P><STRONG><a name="[e3]"></a>protect_fault_latched</STRONG> (Thumb, 6 bytes, Stack size 0 bytes, protect.o(i.protect_fault_latched))
-<BR><BR>[Called By]<UL><LI><a href="#[db]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
+<BR><BR>[Called By]<UL><LI><a href="#[dc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
 <LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_startup_check
 </UL>
 
@@ -1172,14 +1181,14 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[89]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rcu_periph_clock_enable
 <LI><a href="#[97]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_init
-<LI><a href="#[d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_reset
+<LI><a href="#[d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_reset
 <LI><a href="#[bf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;condition_qualification_reset
 </UL>
 <BR>[Called By]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
 <P><STRONG><a name="[ee]"></a>protect_set_fault</STRONG> (Thumb, 20 bytes, Stack size 8 bytes, protect.o(i.protect_set_fault))
-<BR><BR>[Stack]<UL><LI>Max Depth = 56<LI>Call Chain = protect_set_fault &rArr; power_supervisor_enter_fault &rArr; enter_state &rArr; apply_references &rArr; cv_pwm_set_duty
+<BR><BR>[Stack]<UL><LI>Max Depth = 112<LI>Call Chain = protect_set_fault &rArr; power_supervisor_enter_fault &rArr; enter_state &rArr; apply_references &rArr; current_to_duty &rArr; __aeabi_ddiv &rArr; _double_round
 </UL>
 <BR>[Calls]<UL><LI><a href="#[f9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_enter_fault
 </UL>
@@ -1187,11 +1196,11 @@ Global Symbols
 <LI><a href="#[f7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_tick_1khz
 <LI><a href="#[f6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_tick_1khz
 <LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
-<LI><a href="#[d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_enable
+<LI><a href="#[d9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_enable
 </UL>
 
 <P><STRONG><a name="[f5]"></a>protect_tick_1khz</STRONG> (Thumb, 134 bytes, Stack size 8 bytes, protect.o(i.protect_tick_1khz))
-<BR><BR>[Stack]<UL><LI>Max Depth = 64<LI>Call Chain = protect_tick_1khz &rArr; protect_set_fault &rArr; power_supervisor_enter_fault &rArr; enter_state &rArr; apply_references &rArr; cv_pwm_set_duty
+<BR><BR>[Stack]<UL><LI>Max Depth = 120<LI>Call Chain = protect_tick_1khz &rArr; protect_set_fault &rArr; power_supervisor_enter_fault &rArr; enter_state &rArr; apply_references &rArr; current_to_duty &rArr; __aeabi_ddiv &rArr; _double_round
 </UL>
 <BR>[Calls]<UL><LI><a href="#[ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_set_fault
 <LI><a href="#[e4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_active_hw
@@ -1220,8 +1229,8 @@ Global Symbols
 <P><STRONG><a name="[87]"></a>rcu_clock_freq_get</STRONG> (Thumb, 310 bytes, Stack size 84 bytes, gd32f30x_rcu.o(i.rcu_clock_freq_get))
 <BR><BR>[Stack]<UL><LI>Max Depth = 84<LI>Call Chain = rcu_clock_freq_get
 </UL>
-<BR>[Called By]<UL><LI><a href="#[ca]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;usart_baudrate_set
-<LI><a href="#[c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_init
+<BR>[Called By]<UL><LI><a href="#[cb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;usart_baudrate_set
+<LI><a href="#[c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_init
 <LI><a href="#[86]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_monitor_timer_clk_hz
 <LI><a href="#[b5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer1_clk_hz
 </UL>
@@ -1244,8 +1253,8 @@ Global Symbols
 
 <P><STRONG><a name="[89]"></a>rcu_periph_clock_enable</STRONG> (Thumb, 28 bytes, Stack size 0 bytes, gd32f30x_rcu.o(i.rcu_periph_clock_enable))
 <BR><BR>[Called By]<UL><LI><a href="#[ec]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_init
-<LI><a href="#[c8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf_init
-<LI><a href="#[c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_init
+<LI><a href="#[c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf_init
+<LI><a href="#[c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_init
 <LI><a href="#[b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cc_pwm_init
 <LI><a href="#[96]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_multi_init_dma
 <LI><a href="#[e8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;hw_gpio_init
@@ -1254,13 +1263,13 @@ Global Symbols
 
 <P><STRONG><a name="[85]"></a>rcu_periph_reset_disable</STRONG> (Thumb, 28 bytes, Stack size 0 bytes, gd32f30x_rcu.o(i.rcu_periph_reset_disable))
 <BR><BR>[Called By]<UL><LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_deinit
-<LI><a href="#[c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;usart_deinit
+<LI><a href="#[ca]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;usart_deinit
 <LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_deinit
 </UL>
 
 <P><STRONG><a name="[84]"></a>rcu_periph_reset_enable</STRONG> (Thumb, 28 bytes, Stack size 0 bytes, gd32f30x_rcu.o(i.rcu_periph_reset_enable))
 <BR><BR>[Called By]<UL><LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_deinit
-<LI><a href="#[c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;usart_deinit
+<LI><a href="#[ca]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;usart_deinit
 <LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;timer_deinit
 </UL>
 
@@ -1279,8 +1288,8 @@ Global Symbols
 <P><STRONG><a name="[f1]"></a>serial_console_init</STRONG> (Thumb, 36 bytes, Stack size 8 bytes, serial_console.o(i.serial_console_init))
 <BR><BR>[Stack]<UL><LI>Max Depth = 328<LI>Call Chain = serial_console_init &rArr; print_help &rArr; debug_printf &rArr; vsnprintf
 </UL>
-<BR>[Calls]<UL><LI><a href="#[dd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;print_help
-<LI><a href="#[c6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf
+<BR>[Calls]<UL><LI><a href="#[de]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;print_help
+<LI><a href="#[c7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
@@ -1288,43 +1297,43 @@ Global Symbols
 <P><STRONG><a name="[f3]"></a>serial_console_task</STRONG> (Thumb, 236 bytes, Stack size 8 bytes, serial_console.o(i.serial_console_task))
 <BR><BR>[Stack]<UL><LI>Max Depth = 504<LI>Call Chain = serial_console_task &rArr; execute_command &rArr; print_status &rArr; debug_printf &rArr; vsnprintf
 </UL>
-<BR>[Calls]<UL><LI><a href="#[e0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_requested
-<LI><a href="#[df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_request
-<LI><a href="#[de]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;print_status
-<LI><a href="#[db]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
+<BR>[Calls]<UL><LI><a href="#[e1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_requested
+<LI><a href="#[e0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_request
+<LI><a href="#[df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;print_status
+<LI><a href="#[dc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
 <LI><a href="#[fd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;elapsed_reached
-<LI><a href="#[c3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_getchar
-<LI><a href="#[c6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf
+<LI><a href="#[c4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_getchar
+<LI><a href="#[c7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
 <P><STRONG><a name="[bb]"></a>timer_auto_reload_shadow_enable</STRONG> (Thumb, 10 bytes, Stack size 0 bytes, gd32f30x_timer.o(i.timer_auto_reload_shadow_enable))
-<BR><BR>[Called By]<UL><LI><a href="#[c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_init
+<BR><BR>[Called By]<UL><LI><a href="#[c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_init
 <LI><a href="#[b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cc_pwm_init
 </UL>
 
 <P><STRONG><a name="[b6]"></a>timer_channel_output_config</STRONG> (Thumb, 484 bytes, Stack size 8 bytes, gd32f30x_timer.o(i.timer_channel_output_config))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = timer_channel_output_config
 </UL>
-<BR>[Called By]<UL><LI><a href="#[c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_init
+<BR>[Called By]<UL><LI><a href="#[c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_init
 <LI><a href="#[b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cc_pwm_init
 </UL>
 
 <P><STRONG><a name="[b9]"></a>timer_channel_output_mode_config</STRONG> (Thumb, 90 bytes, Stack size 0 bytes, gd32f30x_timer.o(i.timer_channel_output_mode_config))
-<BR><BR>[Called By]<UL><LI><a href="#[c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_init
+<BR><BR>[Called By]<UL><LI><a href="#[c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_init
 <LI><a href="#[b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cc_pwm_init
 </UL>
 
 <P><STRONG><a name="[b8]"></a>timer_channel_output_pulse_value_config</STRONG> (Thumb, 38 bytes, Stack size 0 bytes, gd32f30x_timer.o(i.timer_channel_output_pulse_value_config))
-<BR><BR>[Called By]<UL><LI><a href="#[c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_init
+<BR><BR>[Called By]<UL><LI><a href="#[c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_init
 <LI><a href="#[b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cc_pwm_init
 <LI><a href="#[b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_set_duty
 <LI><a href="#[b3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cc_pwm_set_duty
 </UL>
 
 <P><STRONG><a name="[ba]"></a>timer_channel_output_shadow_config</STRONG> (Thumb, 90 bytes, Stack size 0 bytes, gd32f30x_timer.o(i.timer_channel_output_shadow_config))
-<BR><BR>[Called By]<UL><LI><a href="#[c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_init
+<BR><BR>[Called By]<UL><LI><a href="#[c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_init
 <LI><a href="#[b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cc_pwm_init
 </UL>
 
@@ -1334,19 +1343,19 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rcu_periph_reset_enable
 <LI><a href="#[85]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rcu_periph_reset_disable
 </UL>
-<BR>[Called By]<UL><LI><a href="#[c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_init
+<BR>[Called By]<UL><LI><a href="#[c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_init
 <LI><a href="#[b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cc_pwm_init
 <LI><a href="#[88]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_monitor_timer_init
 </UL>
 
 <P><STRONG><a name="[90]"></a>timer_enable</STRONG> (Thumb, 10 bytes, Stack size 0 bytes, gd32f30x_timer.o(i.timer_enable))
-<BR><BR>[Called By]<UL><LI><a href="#[c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_init
+<BR><BR>[Called By]<UL><LI><a href="#[c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_init
 <LI><a href="#[b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cc_pwm_init
 <LI><a href="#[88]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_monitor_timer_init
 </UL>
 
 <P><STRONG><a name="[8c]"></a>timer_init</STRONG> (Thumb, 122 bytes, Stack size 0 bytes, gd32f30x_timer.o(i.timer_init))
-<BR><BR>[Called By]<UL><LI><a href="#[c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_init
+<BR><BR>[Called By]<UL><LI><a href="#[c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_init
 <LI><a href="#[b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cc_pwm_init
 <LI><a href="#[88]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_monitor_timer_init
 </UL>
@@ -1363,70 +1372,70 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TIMER3_IRQHandler
 </UL>
 
-<P><STRONG><a name="[c2]"></a>timer_primary_output_config</STRONG> (Thumb, 24 bytes, Stack size 0 bytes, gd32f30x_timer.o(i.timer_primary_output_config))
-<BR><BR>[Called By]<UL><LI><a href="#[c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_init
+<P><STRONG><a name="[c3]"></a>timer_primary_output_config</STRONG> (Thumb, 24 bytes, Stack size 0 bytes, gd32f30x_timer.o(i.timer_primary_output_config))
+<BR><BR>[Called By]<UL><LI><a href="#[c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_init
 </UL>
 
 <P><STRONG><a name="[8b]"></a>timer_struct_para_init</STRONG> (Thumb, 22 bytes, Stack size 0 bytes, gd32f30x_timer.o(i.timer_struct_para_init))
-<BR><BR>[Called By]<UL><LI><a href="#[c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_init
+<BR><BR>[Called By]<UL><LI><a href="#[c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_init
 <LI><a href="#[b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cc_pwm_init
 <LI><a href="#[88]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;adc_monitor_timer_init
 </UL>
 
-<P><STRONG><a name="[ca]"></a>usart_baudrate_set</STRONG> (Thumb, 140 bytes, Stack size 32 bytes, gd32f30x_usart.o(i.usart_baudrate_set))
+<P><STRONG><a name="[cb]"></a>usart_baudrate_set</STRONG> (Thumb, 140 bytes, Stack size 32 bytes, gd32f30x_usart.o(i.usart_baudrate_set))
 <BR><BR>[Stack]<UL><LI>Max Depth = 116<LI>Call Chain = usart_baudrate_set &rArr; rcu_clock_freq_get
 </UL>
 <BR>[Calls]<UL><LI><a href="#[87]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rcu_clock_freq_get
 </UL>
-<BR>[Called By]<UL><LI><a href="#[c8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf_init
+<BR>[Called By]<UL><LI><a href="#[c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf_init
 </UL>
 
-<P><STRONG><a name="[c5]"></a>usart_data_receive</STRONG> (Thumb, 10 bytes, Stack size 0 bytes, gd32f30x_usart.o(i.usart_data_receive))
-<BR><BR>[Called By]<UL><LI><a href="#[c3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_getchar
+<P><STRONG><a name="[c6]"></a>usart_data_receive</STRONG> (Thumb, 10 bytes, Stack size 0 bytes, gd32f30x_usart.o(i.usart_data_receive))
+<BR><BR>[Called By]<UL><LI><a href="#[c4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_getchar
 </UL>
 
-<P><STRONG><a name="[d2]"></a>usart_data_transmit</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, gd32f30x_usart.o(i.usart_data_transmit))
-<BR><BR>[Called By]<UL><LI><a href="#[d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_tx_task
+<P><STRONG><a name="[d3]"></a>usart_data_transmit</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, gd32f30x_usart.o(i.usart_data_transmit))
+<BR><BR>[Called By]<UL><LI><a href="#[d2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_tx_task
 </UL>
 
-<P><STRONG><a name="[c9]"></a>usart_deinit</STRONG> (Thumb, 136 bytes, Stack size 8 bytes, gd32f30x_usart.o(i.usart_deinit))
+<P><STRONG><a name="[ca]"></a>usart_deinit</STRONG> (Thumb, 136 bytes, Stack size 8 bytes, gd32f30x_usart.o(i.usart_deinit))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = usart_deinit
 </UL>
 <BR>[Calls]<UL><LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rcu_periph_reset_enable
 <LI><a href="#[85]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rcu_periph_reset_disable
 </UL>
-<BR>[Called By]<UL><LI><a href="#[c8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf_init
+<BR>[Called By]<UL><LI><a href="#[c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf_init
 </UL>
 
-<P><STRONG><a name="[d0]"></a>usart_enable</STRONG> (Thumb, 10 bytes, Stack size 0 bytes, gd32f30x_usart.o(i.usart_enable))
-<BR><BR>[Called By]<UL><LI><a href="#[c8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf_init
+<P><STRONG><a name="[d1]"></a>usart_enable</STRONG> (Thumb, 10 bytes, Stack size 0 bytes, gd32f30x_usart.o(i.usart_enable))
+<BR><BR>[Called By]<UL><LI><a href="#[c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf_init
 </UL>
 
-<P><STRONG><a name="[c4]"></a>usart_flag_get</STRONG> (Thumb, 30 bytes, Stack size 8 bytes, gd32f30x_usart.o(i.usart_flag_get))
+<P><STRONG><a name="[c5]"></a>usart_flag_get</STRONG> (Thumb, 30 bytes, Stack size 8 bytes, gd32f30x_usart.o(i.usart_flag_get))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = usart_flag_get
 </UL>
-<BR>[Called By]<UL><LI><a href="#[c3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_getchar
-<LI><a href="#[d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_tx_task
+<BR>[Called By]<UL><LI><a href="#[c4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_getchar
+<LI><a href="#[d2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_tx_task
 </UL>
 
-<P><STRONG><a name="[cd]"></a>usart_parity_config</STRONG> (Thumb, 16 bytes, Stack size 0 bytes, gd32f30x_usart.o(i.usart_parity_config))
-<BR><BR>[Called By]<UL><LI><a href="#[c8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf_init
+<P><STRONG><a name="[ce]"></a>usart_parity_config</STRONG> (Thumb, 16 bytes, Stack size 0 bytes, gd32f30x_usart.o(i.usart_parity_config))
+<BR><BR>[Called By]<UL><LI><a href="#[c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf_init
 </UL>
 
-<P><STRONG><a name="[ce]"></a>usart_receive_config</STRONG> (Thumb, 16 bytes, Stack size 0 bytes, gd32f30x_usart.o(i.usart_receive_config))
-<BR><BR>[Called By]<UL><LI><a href="#[c8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf_init
+<P><STRONG><a name="[cf]"></a>usart_receive_config</STRONG> (Thumb, 16 bytes, Stack size 0 bytes, gd32f30x_usart.o(i.usart_receive_config))
+<BR><BR>[Called By]<UL><LI><a href="#[c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf_init
 </UL>
 
-<P><STRONG><a name="[cc]"></a>usart_stop_bit_set</STRONG> (Thumb, 16 bytes, Stack size 0 bytes, gd32f30x_usart.o(i.usart_stop_bit_set))
-<BR><BR>[Called By]<UL><LI><a href="#[c8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf_init
+<P><STRONG><a name="[cd]"></a>usart_stop_bit_set</STRONG> (Thumb, 16 bytes, Stack size 0 bytes, gd32f30x_usart.o(i.usart_stop_bit_set))
+<BR><BR>[Called By]<UL><LI><a href="#[c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf_init
 </UL>
 
-<P><STRONG><a name="[cf]"></a>usart_transmit_config</STRONG> (Thumb, 16 bytes, Stack size 0 bytes, gd32f30x_usart.o(i.usart_transmit_config))
-<BR><BR>[Called By]<UL><LI><a href="#[c8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf_init
+<P><STRONG><a name="[d0]"></a>usart_transmit_config</STRONG> (Thumb, 16 bytes, Stack size 0 bytes, gd32f30x_usart.o(i.usart_transmit_config))
+<BR><BR>[Called By]<UL><LI><a href="#[c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf_init
 </UL>
 
-<P><STRONG><a name="[cb]"></a>usart_word_length_set</STRONG> (Thumb, 16 bytes, Stack size 0 bytes, gd32f30x_usart.o(i.usart_word_length_set))
-<BR><BR>[Called By]<UL><LI><a href="#[c8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf_init
+<P><STRONG><a name="[cc]"></a>usart_word_length_set</STRONG> (Thumb, 16 bytes, Stack size 0 bytes, gd32f30x_usart.o(i.usart_word_length_set))
+<BR><BR>[Called By]<UL><LI><a href="#[c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf_init
 </UL>
 <P>
 <H3>
@@ -1473,8 +1482,8 @@ Local Symbols
 <BR>[Calls]<UL><LI><a href="#[89]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rcu_periph_clock_enable
 <LI><a href="#[e9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_disable
 <LI><a href="#[97]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_init
-<LI><a href="#[d6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_set
-<LI><a href="#[d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_reset
+<LI><a href="#[d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_set
+<LI><a href="#[d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_reset
 </UL>
 <BR>[Called By]<UL><LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
@@ -1485,7 +1494,7 @@ Local Symbols
 </UL>
 
 <P><STRONG><a name="[f2]"></a>monitor_protect_tick_1khz</STRONG> (Thumb, 20 bytes, Stack size 8 bytes, main.o(i.monitor_protect_tick_1khz))
-<BR><BR>[Stack]<UL><LI>Max Depth = 72<LI>Call Chain = monitor_protect_tick_1khz &rArr; protect_tick_1khz &rArr; protect_set_fault &rArr; power_supervisor_enter_fault &rArr; enter_state &rArr; apply_references &rArr; cv_pwm_set_duty
+<BR><BR>[Stack]<UL><LI>Max Depth = 128<LI>Call Chain = monitor_protect_tick_1khz &rArr; protect_tick_1khz &rArr; protect_set_fault &rArr; power_supervisor_enter_fault &rArr; enter_state &rArr; apply_references &rArr; current_to_duty &rArr; __aeabi_ddiv &rArr; _double_round
 </UL>
 <BR>[Calls]<UL><LI><a href="#[f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_tick_1khz
 <LI><a href="#[f7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_tick_1khz
@@ -1518,51 +1527,51 @@ Local Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[f3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;serial_console_task
 </UL>
 
-<P><STRONG><a name="[db]"></a>execute_command</STRONG> (Thumb, 400 bytes, Stack size 40 bytes, serial_console.o(i.execute_command))
+<P><STRONG><a name="[dc]"></a>execute_command</STRONG> (Thumb, 400 bytes, Stack size 40 bytes, serial_console.o(i.execute_command))
 <BR><BR>[Stack]<UL><LI>Max Depth = 496<LI>Call Chain = execute_command &rArr; print_status &rArr; debug_printf &rArr; vsnprintf
 </UL>
 <BR>[Calls]<UL><LI><a href="#[e5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_voltage_reference
-<LI><a href="#[e1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_set_references
-<LI><a href="#[e0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_requested
-<LI><a href="#[df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_request
+<LI><a href="#[e2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_set_references
+<LI><a href="#[e1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_requested
+<LI><a href="#[e0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_request
 <LI><a href="#[e6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_current_reference
-<LI><a href="#[e2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_f2d
-<LI><a href="#[de]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;print_status
-<LI><a href="#[dd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;print_help
+<LI><a href="#[c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_f2d
+<LI><a href="#[df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;print_status
+<LI><a href="#[de]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;print_help
 <LI><a href="#[e3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_latched
 <LI><a href="#[e4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_fault_active_hw
 <LI><a href="#[e7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;protect_clear_fault
-<LI><a href="#[c6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf
+<LI><a href="#[c7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf
 <LI><a href="#[50]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__0sscanf
-<LI><a href="#[dc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strcmp
+<LI><a href="#[dd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strcmp
 </UL>
 <BR>[Called By]<UL><LI><a href="#[f3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;serial_console_task
 </UL>
 
-<P><STRONG><a name="[dd]"></a>print_help</STRONG> (Thumb, 22 bytes, Stack size 8 bytes, serial_console.o(i.print_help))
+<P><STRONG><a name="[de]"></a>print_help</STRONG> (Thumb, 22 bytes, Stack size 8 bytes, serial_console.o(i.print_help))
 <BR><BR>[Stack]<UL><LI>Max Depth = 320<LI>Call Chain = print_help &rArr; debug_printf &rArr; vsnprintf
 </UL>
-<BR>[Calls]<UL><LI><a href="#[c6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf
+<BR>[Calls]<UL><LI><a href="#[c7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf
 </UL>
-<BR>[Called By]<UL><LI><a href="#[db]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
+<BR>[Called By]<UL><LI><a href="#[dc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
 <LI><a href="#[f1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;serial_console_init
 </UL>
 
-<P><STRONG><a name="[de]"></a>print_status</STRONG> (Thumb, 244 bytes, Stack size 144 bytes, serial_console.o(i.print_status))
+<P><STRONG><a name="[df]"></a>print_status</STRONG> (Thumb, 244 bytes, Stack size 144 bytes, serial_console.o(i.print_status))
 <BR><BR>[Stack]<UL><LI>Max Depth = 456<LI>Call Chain = print_status &rArr; debug_printf &rArr; vsnprintf
 </UL>
 <BR>[Calls]<UL><LI><a href="#[e5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_voltage_reference
-<LI><a href="#[e0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_requested
+<LI><a href="#[e1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_requested
 <LI><a href="#[e6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_current_reference
 <LI><a href="#[fb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_get_state
-<LI><a href="#[e2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_f2d
-<LI><a href="#[c6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf
+<LI><a href="#[c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_f2d
+<LI><a href="#[c7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;debug_printf
 </UL>
-<BR>[Called By]<UL><LI><a href="#[db]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
+<BR>[Called By]<UL><LI><a href="#[dc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
 <LI><a href="#[f3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;serial_console_task
 </UL>
 
-<P><STRONG><a name="[d3]"></a>dma_periph_and_channel_check</STRONG> (Thumb, 18 bytes, Stack size 0 bytes, gd32f30x_dma.o(i.dma_periph_and_channel_check))
+<P><STRONG><a name="[d4]"></a>dma_periph_and_channel_check</STRONG> (Thumb, 18 bytes, Stack size 0 bytes, gd32f30x_dma.o(i.dma_periph_and_channel_check))
 <BR><BR>[Called By]<UL><LI><a href="#[a1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;dma_init
 <LI><a href="#[9f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;dma_deinit
 <LI><a href="#[a2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;dma_circulation_enable
@@ -1574,15 +1583,15 @@ Local Symbols
 </UL>
 
 <P><STRONG><a name="[af]"></a>apply_references</STRONG> (Thumb, 48 bytes, Stack size 16 bytes, llc_control.o(i.apply_references))
-<BR><BR>[Stack]<UL><LI>Max Depth = 32<LI>Call Chain = apply_references &rArr; cv_pwm_set_duty
+<BR><BR>[Stack]<UL><LI>Max Depth = 88<LI>Call Chain = apply_references &rArr; current_to_duty &rArr; __aeabi_ddiv &rArr; _double_round
 </UL>
 <BR>[Calls]<UL><LI><a href="#[b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_set_duty
 <LI><a href="#[b3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cc_pwm_set_duty
 <LI><a href="#[b0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;voltage_to_duty
 <LI><a href="#[b2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;current_to_duty
 </UL>
-<BR>[Called By]<UL><LI><a href="#[e1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_set_references
-<LI><a href="#[d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;enter_state
+<BR>[Called By]<UL><LI><a href="#[e2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_set_references
+<LI><a href="#[d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;enter_state
 </UL>
 
 <P><STRONG><a name="[bc]"></a>condition_held</STRONG> (Thumb, 48 bytes, Stack size 16 bytes, llc_control.o(i.condition_held))
@@ -1593,10 +1602,13 @@ Local Symbols
 <BR>[Called By]<UL><LI><a href="#[f7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_tick_1khz
 </UL>
 
-<P><STRONG><a name="[b2]"></a>current_to_duty</STRONG> (Thumb, 44 bytes, Stack size 16 bytes, llc_control.o(i.current_to_duty))
-<BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = current_to_duty
+<P><STRONG><a name="[b2]"></a>current_to_duty</STRONG> (Thumb, 82 bytes, Stack size 32 bytes, llc_control.o(i.current_to_duty))
+<BR><BR>[Stack]<UL><LI>Max Depth = 72<LI>Call Chain = current_to_duty &rArr; __aeabi_ddiv &rArr; _double_round
 </UL>
-<BR>[Calls]<UL><LI><a href="#[c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_clampf
+<BR>[Calls]<UL><LI><a href="#[c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_f2d
+<LI><a href="#[55]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_ddiv
+<LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_d2f
+<LI><a href="#[c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_clampf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;apply_references
 </UL>
@@ -1606,15 +1618,15 @@ Local Symbols
 <LI><a href="#[bc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;condition_held
 </UL>
 
-<P><STRONG><a name="[d4]"></a>enter_state</STRONG> (Thumb, 164 bytes, Stack size 8 bytes, llc_control.o(i.enter_state))
-<BR><BR>[Stack]<UL><LI>Max Depth = 40<LI>Call Chain = enter_state &rArr; apply_references &rArr; cv_pwm_set_duty
+<P><STRONG><a name="[d5]"></a>enter_state</STRONG> (Thumb, 164 bytes, Stack size 8 bytes, llc_control.o(i.enter_state))
+<BR><BR>[Stack]<UL><LI>Max Depth = 96<LI>Call Chain = enter_state &rArr; apply_references &rArr; current_to_duty &rArr; __aeabi_ddiv &rArr; _double_round
 </UL>
-<BR>[Calls]<UL><LI><a href="#[d6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_set
-<LI><a href="#[d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_reset
-<LI><a href="#[d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_enable
-<LI><a href="#[d9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_enable
-<LI><a href="#[da]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_on
-<LI><a href="#[d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_force_off
+<BR>[Calls]<UL><LI><a href="#[d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_set
+<LI><a href="#[d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_reset
+<LI><a href="#[d9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_enable
+<LI><a href="#[da]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_enable
+<LI><a href="#[db]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_on
+<LI><a href="#[d6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;outputs_force_off
 <LI><a href="#[af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;apply_references
 </UL>
 <BR>[Called By]<UL><LI><a href="#[f7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_tick_1khz
@@ -1622,38 +1634,38 @@ Local Symbols
 <LI><a href="#[f9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_enter_fault
 </UL>
 
-<P><STRONG><a name="[c0]"></a>f_clampf</STRONG> (Thumb, 42 bytes, Stack size 0 bytes, llc_control.o(i.f_clampf))
-<BR><BR>[Called By]<UL><LI><a href="#[e1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_set_references
+<P><STRONG><a name="[c1]"></a>f_clampf</STRONG> (Thumb, 42 bytes, Stack size 0 bytes, llc_control.o(i.f_clampf))
+<BR><BR>[Called By]<UL><LI><a href="#[e2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_set_references
 <LI><a href="#[b0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;voltage_to_duty
 <LI><a href="#[b2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;current_to_duty
 </UL>
 
-<P><STRONG><a name="[d5]"></a>outputs_force_off</STRONG> (Thumb, 38 bytes, Stack size 8 bytes, llc_control.o(i.outputs_force_off))
+<P><STRONG><a name="[d6]"></a>outputs_force_off</STRONG> (Thumb, 38 bytes, Stack size 8 bytes, llc_control.o(i.outputs_force_off))
 <BR><BR>[Stack]<UL><LI>Max Depth = 24<LI>Call Chain = outputs_force_off &rArr; cv_pwm_set_duty
 </UL>
 <BR>[Calls]<UL><LI><a href="#[e9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;llc_disable
-<LI><a href="#[d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_reset
+<LI><a href="#[d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_reset
 <LI><a href="#[f8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pfc_disable
 <LI><a href="#[b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_set_duty
 <LI><a href="#[b3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cc_pwm_set_duty
 </UL>
 <BR>[Called By]<UL><LI><a href="#[f7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_tick_1khz
-<LI><a href="#[d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;enter_state
+<LI><a href="#[d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;enter_state
 </UL>
 
-<P><STRONG><a name="[da]"></a>outputs_on</STRONG> (Thumb, 34 bytes, Stack size 8 bytes, llc_control.o(i.outputs_on))
+<P><STRONG><a name="[db]"></a>outputs_on</STRONG> (Thumb, 34 bytes, Stack size 8 bytes, llc_control.o(i.outputs_on))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = outputs_on
 </UL>
-<BR>[Calls]<UL><LI><a href="#[d6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_set
-<LI><a href="#[d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_reset
+<BR>[Calls]<UL><LI><a href="#[d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_set
+<LI><a href="#[d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;gpio_bit_reset
 </UL>
-<BR>[Called By]<UL><LI><a href="#[d4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;enter_state
+<BR>[Called By]<UL><LI><a href="#[d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;enter_state
 </UL>
 
-<P><STRONG><a name="[b0]"></a>voltage_to_duty</STRONG> (Thumb, 44 bytes, Stack size 16 bytes, llc_control.o(i.voltage_to_duty))
-<BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = voltage_to_duty
+<P><STRONG><a name="[b0]"></a>voltage_to_duty</STRONG> (Thumb, 72 bytes, Stack size 24 bytes, llc_control.o(i.voltage_to_duty))
+<BR><BR>[Stack]<UL><LI>Max Depth = 24<LI>Call Chain = voltage_to_duty
 </UL>
-<BR>[Calls]<UL><LI><a href="#[c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_clampf
+<BR>[Calls]<UL><LI><a href="#[c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_clampf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;apply_references
 </UL>
@@ -1673,7 +1685,7 @@ Local Symbols
 </UL>
 
 <P><STRONG><a name="[b7]"></a>f_clampf</STRONG> (Thumb, 42 bytes, Stack size 0 bytes, pwm_llc.o(i.f_clampf))
-<BR><BR>[Called By]<UL><LI><a href="#[c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_init
+<BR><BR>[Called By]<UL><LI><a href="#[c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_init
 <LI><a href="#[b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cc_pwm_init
 <LI><a href="#[b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cv_pwm_set_duty
 <LI><a href="#[b3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;cc_pwm_set_duty
@@ -1700,18 +1712,18 @@ Local Symbols
 </UL>
 
 <P><STRONG><a name="[7d]"></a>_fp_digits</STRONG> (Thumb, 366 bytes, Stack size 64 bytes, printfa.o(i._fp_digits), UNUSED)
-<BR><BR>[Calls]<UL><LI><a href="#[5b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uldivmod
+<BR><BR>[Calls]<UL><LI><a href="#[55]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_ddiv
+<LI><a href="#[5d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uldivmod
 <LI><a href="#[54]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dmul
-<LI><a href="#[55]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_ddiv
-<LI><a href="#[5f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dadd
-<LI><a href="#[65]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_d2ulz
+<LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dadd
+<LI><a href="#[66]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_d2ulz
 <LI><a href="#[7e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_cdrcmple
 </UL>
 <BR>[Called By]<UL><LI><a href="#[7a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_printf_core
 </UL>
 
 <P><STRONG><a name="[7a]"></a>_printf_core</STRONG> (Thumb, 1744 bytes, Stack size 136 bytes, printfa.o(i._printf_core), UNUSED)
-<BR><BR>[Calls]<UL><LI><a href="#[5b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uldivmod
+<BR><BR>[Calls]<UL><LI><a href="#[5d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uldivmod
 <LI><a href="#[81]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uidivmod
 <LI><a href="#[7f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_printf_pre_padding
 <LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_printf_post_padding
@@ -1732,9 +1744,9 @@ Local Symbols
 <BR>[Address Reference Count : 1]<UL><LI> printfa.o(i.__0vsnprintf)
 </UL>
 <P><STRONG><a name="[52]"></a>_fp_value</STRONG> (Thumb, 296 bytes, Stack size 64 bytes, scanf_fp.o(.text), UNUSED)
-<BR><BR>[Calls]<UL><LI><a href="#[53]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_ul2d
+<BR><BR>[Calls]<UL><LI><a href="#[55]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_ddiv
+<LI><a href="#[53]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_ul2d
 <LI><a href="#[54]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dmul
-<LI><a href="#[55]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_ddiv
 </UL>
 <BR>[Called By]<UL><LI><a href="#[56]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_scanf_really_real
 </UL>

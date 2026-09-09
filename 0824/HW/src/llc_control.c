@@ -34,6 +34,10 @@
 #define CV_REFERENCE_MAX_V      (85.0f)   // 80→85；注释"344/80V"与 85 不一致，建议重写
 #define CC_REFERENCE_MAX_A      (20.0f)  // CC_PWM 占空比换算满量程电流（全局 C3：满量程≈24.8A，OCP=30A 超量程）
 
+/* CV calibration: Vout = 89.096 - 4.985 * Vin, Vin = 12 * (1 - Duty). */
+#define CV_VOUT_INTERCEPT_V     (89.096f)
+#define CV_VIN_GAIN             (4.985f)
+#define CV_VIN_FULL_SCALE_V     (12.0f)
 /*********************************************************************************************************
 *                                              内部变量
 *********************************************************************************************************/
@@ -72,8 +76,10 @@ void llc_disable(void)
 *********************************************************************************************************/
 static float voltage_to_duty(float voltage_v)
 {
-    return f_clampf(voltage_v / CV_REFERENCE_MAX_V,
-                    CV_PWM_DUTY_MIN, CV_PWM_DUTY_MAX);
+    const float vin_v = (CV_VOUT_INTERCEPT_V - voltage_v) / CV_VIN_GAIN;
+    const float duty = 1.0f - (vin_v / CV_VIN_FULL_SCALE_V);
+
+    return f_clampf(duty, CV_PWM_DUTY_MIN, CV_PWM_DUTY_MAX);
 }
 
 /*********************************************************************************************************
@@ -87,8 +93,9 @@ static float voltage_to_duty(float voltage_v)
 *********************************************************************************************************/
 static float current_to_duty(float current_a)
 {
-    return f_clampf(current_a / CC_REFERENCE_MAX_A,
-                    CC_PWM_DUTY_MIN, CC_PWM_DUTY_MAX);
+	//Vin = (0.127 × I + 0.326) / 0.999333777
+	 float duty = (0.127f * current_a + 0.326f)/3.3;
+   return f_clampf(duty,CC_PWM_DUTY_MIN, CC_PWM_DUTY_MAX);
 }
 /*********************************************************************************************************
 * 函数名称：apply_references
