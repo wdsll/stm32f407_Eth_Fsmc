@@ -28,11 +28,6 @@
 #define BATTERY_PRESENT_V       (10.0f)   // 判定"电池已接入"的最低电压
 #define OUTPUT_RELAY_MIN_V      (10.0f)   // CC 态判定输出已建起的电压门限也用于输出启动超时
 #define OUTPUT_START_TIMEOUT_MS     (1500U)   //C2 已改名：CC 后 1.5s 输出未建起→FAULT_OUTPUT_START_TIMEOUT
-//#define PFC_READY_TIMEOUT_MS    (3000U)
-//#define CAN_STATUS_PERIOD_MS    (100U)    //CAN 状态帧上报周期 100ms（10Hz）
-
-#define CV_REFERENCE_MAX_V      (85.0f)   // 80→85；注释"344/80V"与 85 不一致，建议重写
-#define CC_REFERENCE_MAX_A      (20.0f)  // CC_PWM 占空比换算满量程电流（全局 C3：满量程≈24.8A，OCP=30A 超量程）
 
 /* CV calibration: Vout = 89.096 - 4.985 * Vin, Vin = 12 * (1 - Duty). */
 #define CV_VOUT_INTERCEPT_V     (89.096f)
@@ -264,11 +259,19 @@ bool power_supervisor_requested(void)
 * 创建日期：2026年08月12日
 * 注    意：
 *********************************************************************************************************/
-void power_supervisor_set_references(float voltage_v, float current_a)
+bool power_supervisor_set_references(float voltage_v, float current_a)
 {
-    s_voltage_reference_v = f_clampf(voltage_v, 0.0f, CV_REFERENCE_MAX_V);
-    s_current_reference_a = f_clampf(current_a, 0.0f, CC_REFERENCE_MAX_A);
-    apply_references();  // 立即下发新基准
+    if (!(voltage_v == voltage_v) || !(current_a == current_a) ||
+        voltage_v < LLC_CV_REFERENCE_MIN_V ||
+        voltage_v > LLC_CV_REFERENCE_MAX_V ||
+        current_a <= LLC_CC_REFERENCE_MIN_A ||
+        current_a > LLC_CC_REFERENCE_MAX_A) {
+        return false;
+    }
+	  s_voltage_reference_v = voltage_v;
+    s_current_reference_a = current_a;
+    apply_references();  // ·??
+    return true;
 }
 
 float power_supervisor_voltage_reference(void) { return s_voltage_reference_v; }

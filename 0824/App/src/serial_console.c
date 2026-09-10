@@ -121,7 +121,7 @@ static uint32_t s_last_command_ms;
 
 static void print_help(void) //	帮助函数
 {
-    debug_printf("Commands: HELP | STATUS | SET <volt> <amp> | START | STOP | CLEAR | PING\r\n"); //命令清单。
+    debug_printf("Commands: HELP | STATUS | SET <32.3..85V> <above-0..20A> | START | STOP | CLEAR | PING\r\n"); //命令清单。
 	  debug_printf("START runs the complete PFC-to-LLC state-machine sequence.\r\n");
     debug_printf("Safety: SET/START/CLEAR only while stopped; enabled output needs PING within 10s.\r\n"); //安全提示，清楚。
 }
@@ -196,14 +196,12 @@ static void execute_command(char *line) //	命令分发
 		{
 			debug_printf("ERR STOP before SET\r\n"); 	//运行中禁止改设定值，合理。
 		}
-		//设定值范围校验。注意上限 80V 与保护侧 OVP(64V) 不一致（见 P2）：设 80V 会让 VOUT 目标冲过 OVP 阈值而触发故障。建议上限收到 ≤60V。
-		else if((voltage_v < 10.0f)||(voltage_v > 80.0f)||(current_a <= 0.0f)||(current_a > 20.0f)) 
+		else if(!power_supervisor_set_references(voltage_v, current_a))
 		{
-			debug_printf("ERR range: voltage=10..80V current=0..20A\r\n");
+			debug_printf("ERR range: voltage=32.3..85V current=above-0..20A\r\n");
 		}
 		else
 		{
-			power_supervisor_set_references(voltage_v,current_a);
 			debug_printf("OK SET %.1fV %.1fA\r\n", voltage_v, current_a);
 		}	
 	}

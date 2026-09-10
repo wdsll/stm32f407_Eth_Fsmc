@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\Objects\0824.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Objects\0824.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Wed Sep 09 08:48:58 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Wed Sep 09 19:24:46 2026
 <BR><P>
 <H3>Maximum Stack Usage =        504 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -1125,11 +1125,10 @@ Global Symbols
 <LI><a href="#[f3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;serial_console_task
 </UL>
 
-<P><STRONG><a name="[e2]"></a>power_supervisor_set_references</STRONG> (Thumb, 68 bytes, Stack size 16 bytes, llc_control.o(i.power_supervisor_set_references))
+<P><STRONG><a name="[e2]"></a>power_supervisor_set_references</STRONG> (Thumb, 114 bytes, Stack size 16 bytes, llc_control.o(i.power_supervisor_set_references))
 <BR><BR>[Stack]<UL><LI>Max Depth = 104<LI>Call Chain = power_supervisor_set_references &rArr; apply_references &rArr; current_to_duty &rArr; __aeabi_ddiv &rArr; _double_round
 </UL>
-<BR>[Calls]<UL><LI><a href="#[c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;f_clampf
-<LI><a href="#[af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;apply_references
+<BR>[Calls]<UL><LI><a href="#[af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;apply_references
 </UL>
 <BR>[Called By]<UL><LI><a href="#[dc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;execute_command
 </UL>
@@ -1527,7 +1526,7 @@ Local Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[f3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;serial_console_task
 </UL>
 
-<P><STRONG><a name="[dc]"></a>execute_command</STRONG> (Thumb, 400 bytes, Stack size 40 bytes, serial_console.o(i.execute_command))
+<P><STRONG><a name="[dc]"></a>execute_command</STRONG> (Thumb, 336 bytes, Stack size 40 bytes, serial_console.o(i.execute_command))
 <BR><BR>[Stack]<UL><LI>Max Depth = 496<LI>Call Chain = execute_command &rArr; print_status &rArr; debug_printf &rArr; vsnprintf
 </UL>
 <BR>[Calls]<UL><LI><a href="#[e5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_voltage_reference
@@ -1635,8 +1634,7 @@ Local Symbols
 </UL>
 
 <P><STRONG><a name="[c1]"></a>f_clampf</STRONG> (Thumb, 42 bytes, Stack size 0 bytes, llc_control.o(i.f_clampf))
-<BR><BR>[Called By]<UL><LI><a href="#[e2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;power_supervisor_set_references
-<LI><a href="#[b0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;voltage_to_duty
+<BR><BR>[Called By]<UL><LI><a href="#[b0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;voltage_to_duty
 <LI><a href="#[b2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;current_to_duty
 </UL>
 
