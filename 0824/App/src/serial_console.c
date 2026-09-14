@@ -112,7 +112,7 @@ void serial_console_task(void)
 
 #define CONSOLE_LINE_SIZE   (64U)  //命令行缓冲 64B，命令都很短，够用。
 #define CONSOLE_STATUS_PERIOD_MS   (1000U)
-#define CONSOLE_WATCHDOG_MS        (10000U) //	控制台看门狗 10s：使能输出后若 5s 无命令则自动 STOP（终端失联保护）。
+#define CONSOLE_WATCHDOG_MS        (60000U) //	控制台看门狗 60s：使能输出后若 60s 无命令则自动 STOP（终端失联保护）。
  
 static char s_line[CONSOLE_LINE_SIZE];
 static uint32_t s_line_length;
@@ -213,7 +213,7 @@ static void execute_command(char *line) //	命令分发
 			debug_printf("ERR fault active; STOP then CLEAR\r\n");
 		}
 		//未设参考值拒绝启动，正确。
-		else if((power_supervisor_voltage_reference() < 10.0f)||(power_supervisor_current_reference() <= 0))
+		else if((power_supervisor_voltage_reference() <  LLC_CV_REFERENCE_MIN_V)||(power_supervisor_current_reference() <= LLC_CC_REFERENCE_MIN_A))
 		{
 			debug_printf("ERR SET reference first\r\n");
 		}

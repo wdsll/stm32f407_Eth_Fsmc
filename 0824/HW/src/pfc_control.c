@@ -87,7 +87,7 @@ void pfc_tick_1khz(void)
         /* 监控母线电压: NCP1654 外置控制, MCU 只做保护监控 加入OVP UVP的保护*/
 				if(g_adc_multi.bus_vol_v > VBUS_OVP_V)
 				{
-					s_vbus_ovp_ms = 0U;
+					s_vbus_uvp_ms = 0U;
 					if (++s_vbus_ovp_ms >= VBUS_OVP_DEBOUNCE_MS) {
 							protect_set_fault(FAULT_BUS_OVP);
 							s_pfc_state = PFC_STATE_FAULT;

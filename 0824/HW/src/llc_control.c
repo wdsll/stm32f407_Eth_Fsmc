@@ -277,6 +277,16 @@ bool power_supervisor_set_references(float voltage_v, float current_a)
 float power_supervisor_voltage_reference(void) { return s_voltage_reference_v; }
 float power_supervisor_current_reference(void) { return s_current_reference_a; }
 
+
+/* 电池接入判据：台架模式下恒真（联调允许空载启停） */
+static inline bool battery_present(void)
+{
+#if BENCH_NO_BATTERY_MODE
+    return true;
+#else
+    return (g_adc_multi.vbat_v >= BATTERY_PRESENT_V);
+#endif
+}
 /*********************************************************************************************************
 * 函数名称：power_supervisor_tick_1khz
 * 函数功能：基于systick 1ms更新
@@ -291,6 +301,10 @@ void power_supervisor_tick_1khz(void)
 	/* Commands arrive through the transport-independent supervisor API. */
 	if (g_charger_state == MAIN_STEP_FAULT) {
 		outputs_force_off();
+		if(!s_enable_requested&&(g_fault == FAULT_NONE))
+		{
+			enter_state(MAIN_STEP_STANDBY);
+		}
 #if 0   // `!protect_fault_active_hw()` 因 protect.c `#if 1` 恒真，**纯无人干预的"自动恢复"仍是死代码** |
 		if(!s_enable_requested&&!protect_fault_latched()&&!protect_fault_active_hw())
 		{
@@ -304,7 +318,11 @@ void power_supervisor_tick_1khz(void)
 		{ 
 			case MAIN_STEP_STANDBY:
 			{
-				if(s_enable_requested && g_adc_multi.vbat_v >= BATTERY_PRESENT_V) //使能且电池已经接入(>=10V)
+				#if BENCH_NO_BATTERY_MODE
+				if(s_enable_requested) 
+				#else
+				if (s_enable_requested && battery_present())
+				#endif
 				{
 					enter_state(MAIN_STEP_PRECHARGE); // → PRECHARGE（pfc_enable 在 enter 内）
 				}
@@ -330,13 +348,20 @@ void power_supervisor_tick_1khz(void)
 				}
 				else if(elapsed_reached(s_state_started_ms,CHARGE_CC_TIMEOUT_MS))
 				{
-					protect_set_fault(FAULT_CHARGE_TIMEOUT);   //B3：CC 超时=8s(调试值)，正常应 8h
+					protect_set_fault(FAULT_CHARGE_TIMEOUT);   //B3：CC 超时=8s(调试值)，正常应 8h CC超时时间
 				}
-				//C4：判据用 vbat 非 vout
-				else if(condition_held(&s_qualification,s_voltage_reference_v > BATTERY_PRESENT_V && g_adc_multi.vbat_v >= (s_voltage_reference_v - CHARGE_CV_ENTRY_MARGIN_V),CHARGE_CV_ENTRY_DEBOUNCE_MS))
+				//C4：台架模式判据用vout带电池模式判决用vbat
+				else if(condition_held(&s_qualification,s_voltage_reference_v > BATTERY_PRESENT_V && 
+				#if BENCH_NO_BATTERY_MODE	
+					g_adc_multi.vout_v >= (s_voltage_reference_v - CHARGE_CV_ENTRY_MARGIN_V),
+				#else
+					g_adc_multi.vbat_v >= (s_voltage_reference_v - CHARGE_CV_ENTRY_MARGIN_V),
+				#endif
+				CHARGE_CV_ENTRY_DEBOUNCE_MS))
 				{
 					enter_state(MAIN_STEP_CV); // 电压到达→进 CV
 				}
+				//输出欠压
 				else if (g_adc_multi.vout_v <= OUTPUT_RELAY_MIN_V && elapsed_reached(s_state_started_ms, OUTPUT_START_TIMEOUT_MS))
 				{
 					protect_set_fault(FAULT_OUTPUT_START_TIMEOUT); //C2：名实不符(报母线欠压实则查输出)，现在更新故障类型
@@ -355,11 +380,19 @@ void power_supervisor_tick_1khz(void)
 				}
 				else
 				{
+					#if BENCH_NO_BATTERY_MODE
+					/* 台架：无电池。vbat≈0 恒假；且 iout_a 被钳 0 → iout<=1A 恒真，
+					 * 一旦旁路 vbat 判据就会"空载假完成"。故台架下直接屏蔽
+					 * 完成判据，保持 CV 态至超时/STOP，避免误跳 FINISHED
+					 * 而切断继电器、清掉输出电压。 */
+					(void)s_qualification;
+					#else
 					if(condition_held(&s_qualification,s_voltage_reference_v>BATTERY_PRESENT_V&&g_adc_multi.vbat_v>=(s_voltage_reference_v - CHARGE_FINISH_VOLTAGE_MARGIN_V)
-						&& g_adc_multi.iout_a >= 0 && g_adc_multi.iout_a <= CHARGE_FINISH_CURRENT_A,CHARGE_FINISH_DEBOUNCE_MS))
+						&& g_adc_multi.iout_a <= CHARGE_FINISH_CURRENT_A,CHARGE_FINISH_DEBOUNCE_MS))
 					{
 						enter_state(MAIN_STEP_FINISHED);
 					}
+					#endif
 				}
 				break;
 			}

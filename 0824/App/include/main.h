@@ -19,6 +19,14 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <math.h>
+/* ========================================================================
+ * 台架联调模式（无电池 / 假负载）
+ *   1 = 旁路 vbat 接入判据，允许 START 后直接进 PRECHARGE→CC，
+ *       用于不接电池验证 PFC 建压(320V→390V)、LLC 起振、继电器时序、LED。
+ *   0 = 量产行为，必须有电池(vbat>=10V)才放行。
+ * 量产固件必须为 0！
+ * ======================================================================== */
+#define BENCH_NO_BATTERY_MODE   (1U)
 
 /* ========== 系统时钟 ========== */
 #define SYSTEM_CLOCK_HZ         (120000000U)
@@ -82,7 +90,7 @@
 
 #define VBUS_TARGET_V           (380.0f)     /* PFC 母线目标 */
 #define VBUS_MIN_START_V        (350.0f)     /* LLC 启动最小母线 */
-#define LLC_ENTRY_V             (VBUS_MIN_START_V)
+#define LLC_ENTRY_V             (VBUS_TARGET_V*0.98f)
 
 
 #define VBUS_OVP_V              (420.0f)     /* Absolute DC-link software trip */
@@ -104,9 +112,10 @@
 #define CHARGE_FINISH_VOLTAGE_MARGIN_V  (0.5f)
 #define CHARGE_FINISH_DEBOUNCE_MS       (30000U)
  
-#define CHARGE_CC_TIMEOUT_MS            (8U * 60U * 60U * 1000U)
-#define CHARGE_CV_TIMEOUT_MS            (3U * 60U * 60U * 1000U)
-
+//#define CHARGE_CC_TIMEOUT_MS            (8U * 60U * 60U * 1000U)
+//#define CHARGE_CV_TIMEOUT_MS            (3U * 60U * 60U * 1000U)
+#define CHARGE_CC_TIMEOUT_MS            (8U * 1000U)
+#define CHARGE_CV_TIMEOUT_MS            (3U * 1000U)
 /* First bench integration uses USART2; CAN sources remain in the project. */
 #define COMMISSIONING_USE_UART          (1U)
 /*
