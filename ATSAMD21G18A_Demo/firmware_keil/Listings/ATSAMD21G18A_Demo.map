@@ -1,0 +1,629 @@
+Component: ARM Compiler 6.9 Tool: armlink [5ced1b00]
+
+==============================================================================
+
+Section Cross References
+
+    main.o(.text.main) refers to initialization.o(.text.SYS_Initialize) for SYS_Initialize
+    main.o(.text.main) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_Write) for SERCOM0_USART_Write
+    main.o(.text.main) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_WriteIsBusy) for SERCOM0_USART_WriteIsBusy
+    main.o(.text.main) refers to main.o(.data.s_tx_message) for [Anonymous Symbol]
+    main.o(.text.main) refers to main.o(.bss.g_uart_started) for g_uart_started
+    main.o(.text.main) refers to main.o(.bss.g_uart_done) for g_uart_done
+    main.o(.ARM.exidx.text.main) refers to main.o(.text.main) for [Anonymous Symbol]
+    exceptions.o(.ARM.exidx.text.NonMaskableInt_Handler) refers to exceptions.o(.text.NonMaskableInt_Handler) for [Anonymous Symbol]
+    exceptions.o(.ARM.exidx.text.HardFault_Handler) refers to exceptions.o(.text.HardFault_Handler) for [Anonymous Symbol]
+    initialization.o(.text.SYS_Initialize) refers to plib_port.o(.text.PORT_Initialize) for PORT_Initialize
+    initialization.o(.text.SYS_Initialize) refers to plib_clock.o(.text.CLOCK_Initialize) for CLOCK_Initialize
+    initialization.o(.text.SYS_Initialize) refers to plib_nvmctrl.o(.text.NVMCTRL_Initialize) for NVMCTRL_Initialize
+    initialization.o(.text.SYS_Initialize) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_Initialize) for SERCOM0_USART_Initialize
+    initialization.o(.text.SYS_Initialize) refers to plib_nvic.o(.text.NVIC_Initialize) for NVIC_Initialize
+    initialization.o(.ARM.exidx.text.SYS_Initialize) refers to initialization.o(.text.SYS_Initialize) for [Anonymous Symbol]
+    interrupts.o(.ARM.exidx.text.Dummy_Handler) refers to interrupts.o(.text.Dummy_Handler) for [Anonymous Symbol]
+    interrupts.o(.vectors) refers to startup_samd21_keil.o(.bss.__initial_sp) for __initial_sp
+    interrupts.o(.vectors) refers to startup_samd21_keil.o(.text.Reset_Handler) for Reset_Handler
+    interrupts.o(.vectors) refers to exceptions.o(.text.NonMaskableInt_Handler) for NonMaskableInt_Handler
+    interrupts.o(.vectors) refers to exceptions.o(.text.HardFault_Handler) for HardFault_Handler
+    interrupts.o(.vectors) refers to interrupts.o(.text.Dummy_Handler) for SVCall_Handler
+    interrupts.o(.vectors) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_InterruptHandler) for SERCOM0_USART_InterruptHandler
+    plib_clock.o(.text.CLOCK_Initialize) refers to plib_clock.o(.text.SYSCTRL_Initialize) for SYSCTRL_Initialize
+    plib_clock.o(.text.CLOCK_Initialize) refers to plib_clock.o(.text.DFLL_Initialize) for DFLL_Initialize
+    plib_clock.o(.text.CLOCK_Initialize) refers to plib_clock.o(.text.GCLK0_Initialize) for GCLK0_Initialize
+    plib_clock.o(.ARM.exidx.text.CLOCK_Initialize) refers to plib_clock.o(.text.CLOCK_Initialize) for [Anonymous Symbol]
+    plib_clock.o(.ARM.exidx.text.SYSCTRL_Initialize) refers to plib_clock.o(.text.SYSCTRL_Initialize) for [Anonymous Symbol]
+    plib_clock.o(.ARM.exidx.text.DFLL_Initialize) refers to plib_clock.o(.text.DFLL_Initialize) for [Anonymous Symbol]
+    plib_clock.o(.ARM.exidx.text.GCLK0_Initialize) refers to plib_clock.o(.text.GCLK0_Initialize) for [Anonymous Symbol]
+    plib_evsys.o(.ARM.exidx.text.EVSYS_Initialize) refers to plib_evsys.o(.text.EVSYS_Initialize) for [Anonymous Symbol]
+    plib_nvic.o(.text.NVIC_Initialize) refers to plib_nvic.o(.text.__NVIC_SetPriority) for __NVIC_SetPriority
+    plib_nvic.o(.text.NVIC_Initialize) refers to plib_nvic.o(.text.__NVIC_EnableIRQ) for __NVIC_EnableIRQ
+    plib_nvic.o(.ARM.exidx.text.NVIC_Initialize) refers to plib_nvic.o(.text.NVIC_Initialize) for [Anonymous Symbol]
+    plib_nvic.o(.ARM.exidx.text.__NVIC_SetPriority) refers to plib_nvic.o(.text.__NVIC_SetPriority) for [Anonymous Symbol]
+    plib_nvic.o(.ARM.exidx.text.__NVIC_EnableIRQ) refers to plib_nvic.o(.text.__NVIC_EnableIRQ) for [Anonymous Symbol]
+    plib_nvic.o(.ARM.exidx.text.NVIC_INT_Enable) refers to plib_nvic.o(.text.NVIC_INT_Enable) for [Anonymous Symbol]
+    plib_nvic.o(.ARM.exidx.text.NVIC_INT_Disable) refers to plib_nvic.o(.text.NVIC_INT_Disable) for [Anonymous Symbol]
+    plib_nvic.o(.ARM.exidx.text.NVIC_INT_Restore) refers to plib_nvic.o(.text.NVIC_INT_Restore) for [Anonymous Symbol]
+    plib_nvic.o(.text.NVIC_INT_SourceDisable) refers to plib_nvic.o(.text.NVIC_INT_Disable) for NVIC_INT_Disable
+    plib_nvic.o(.text.NVIC_INT_SourceDisable) refers to plib_nvic.o(.text.__NVIC_GetEnableIRQ) for __NVIC_GetEnableIRQ
+    plib_nvic.o(.text.NVIC_INT_SourceDisable) refers to plib_nvic.o(.text.__NVIC_DisableIRQ) for __NVIC_DisableIRQ
+    plib_nvic.o(.text.NVIC_INT_SourceDisable) refers to plib_nvic.o(.text.NVIC_INT_Restore) for NVIC_INT_Restore
+    plib_nvic.o(.ARM.exidx.text.NVIC_INT_SourceDisable) refers to plib_nvic.o(.text.NVIC_INT_SourceDisable) for [Anonymous Symbol]
+    plib_nvic.o(.ARM.exidx.text.__NVIC_GetEnableIRQ) refers to plib_nvic.o(.text.__NVIC_GetEnableIRQ) for [Anonymous Symbol]
+    plib_nvic.o(.ARM.exidx.text.__NVIC_DisableIRQ) refers to plib_nvic.o(.text.__NVIC_DisableIRQ) for [Anonymous Symbol]
+    plib_nvic.o(.text.NVIC_INT_SourceRestore) refers to plib_nvic.o(.text.__NVIC_EnableIRQ) for __NVIC_EnableIRQ
+    plib_nvic.o(.ARM.exidx.text.NVIC_INT_SourceRestore) refers to plib_nvic.o(.text.NVIC_INT_SourceRestore) for [Anonymous Symbol]
+    plib_nvmctrl.o(.ARM.exidx.text.NVMCTRL_Initialize) refers to plib_nvmctrl.o(.text.NVMCTRL_Initialize) for [Anonymous Symbol]
+    plib_nvmctrl.o(.ARM.exidx.text.NVMCTRL_CacheInvalidate) refers to plib_nvmctrl.o(.text.NVMCTRL_CacheInvalidate) for [Anonymous Symbol]
+    plib_nvmctrl.o(.text.NVMCTRL_Read) refers to memcpya.o(.text) for __aeabi_memcpy4
+    plib_nvmctrl.o(.ARM.exidx.text.NVMCTRL_Read) refers to plib_nvmctrl.o(.text.NVMCTRL_Read) for [Anonymous Symbol]
+    plib_nvmctrl.o(.ARM.exidx.text.NVMCTRL_PageBufferWrite) refers to plib_nvmctrl.o(.text.NVMCTRL_PageBufferWrite) for [Anonymous Symbol]
+    plib_nvmctrl.o(.ARM.exidx.text.NVMCTRL_PageBufferCommit) refers to plib_nvmctrl.o(.text.NVMCTRL_PageBufferCommit) for [Anonymous Symbol]
+    plib_nvmctrl.o(.ARM.exidx.text.NVMCTRL_PageWrite) refers to plib_nvmctrl.o(.text.NVMCTRL_PageWrite) for [Anonymous Symbol]
+    plib_nvmctrl.o(.ARM.exidx.text.NVMCTRL_RowErase) refers to plib_nvmctrl.o(.text.NVMCTRL_RowErase) for [Anonymous Symbol]
+    plib_nvmctrl.o(.ARM.exidx.text.NVMCTRL_USER_ROW_PageWrite) refers to plib_nvmctrl.o(.text.NVMCTRL_USER_ROW_PageWrite) for [Anonymous Symbol]
+    plib_nvmctrl.o(.ARM.exidx.text.NVMCTRL_USER_ROW_RowErase) refers to plib_nvmctrl.o(.text.NVMCTRL_USER_ROW_RowErase) for [Anonymous Symbol]
+    plib_nvmctrl.o(.ARM.exidx.text.NVMCTRL_ErrorGet) refers to plib_nvmctrl.o(.text.NVMCTRL_ErrorGet) for [Anonymous Symbol]
+    plib_nvmctrl.o(.ARM.exidx.text.NVMCTRL_IsBusy) refers to plib_nvmctrl.o(.text.NVMCTRL_IsBusy) for [Anonymous Symbol]
+    plib_nvmctrl.o(.ARM.exidx.text.NVMCTRL_RegionLock) refers to plib_nvmctrl.o(.text.NVMCTRL_RegionLock) for [Anonymous Symbol]
+    plib_nvmctrl.o(.ARM.exidx.text.NVMCTRL_RegionUnlock) refers to plib_nvmctrl.o(.text.NVMCTRL_RegionUnlock) for [Anonymous Symbol]
+    plib_nvmctrl.o(.ARM.exidx.text.NVMCTRL_SecurityBitSet) refers to plib_nvmctrl.o(.text.NVMCTRL_SecurityBitSet) for [Anonymous Symbol]
+    plib_port.o(.ARM.exidx.text.PORT_Initialize) refers to plib_port.o(.text.PORT_Initialize) for [Anonymous Symbol]
+    plib_port.o(.ARM.exidx.text.PORT_GroupRead) refers to plib_port.o(.text.PORT_GroupRead) for [Anonymous Symbol]
+    plib_port.o(.ARM.exidx.text.PORT_GroupWrite) refers to plib_port.o(.text.PORT_GroupWrite) for [Anonymous Symbol]
+    plib_port.o(.ARM.exidx.text.PORT_GroupLatchRead) refers to plib_port.o(.text.PORT_GroupLatchRead) for [Anonymous Symbol]
+    plib_port.o(.ARM.exidx.text.PORT_GroupSet) refers to plib_port.o(.text.PORT_GroupSet) for [Anonymous Symbol]
+    plib_port.o(.ARM.exidx.text.PORT_GroupClear) refers to plib_port.o(.text.PORT_GroupClear) for [Anonymous Symbol]
+    plib_port.o(.ARM.exidx.text.PORT_GroupToggle) refers to plib_port.o(.text.PORT_GroupToggle) for [Anonymous Symbol]
+    plib_port.o(.ARM.exidx.text.PORT_GroupInputEnable) refers to plib_port.o(.text.PORT_GroupInputEnable) for [Anonymous Symbol]
+    plib_port.o(.ARM.exidx.text.PORT_GroupOutputEnable) refers to plib_port.o(.text.PORT_GroupOutputEnable) for [Anonymous Symbol]
+    plib_port.o(.ARM.exidx.text.PORT_PinPeripheralFunctionConfig) refers to plib_port.o(.text.PORT_PinPeripheralFunctionConfig) for [Anonymous Symbol]
+    plib_port.o(.ARM.exidx.text.PORT_PinGPIOConfig) refers to plib_port.o(.text.PORT_PinGPIOConfig) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.text.SERCOM0_USART_Initialize) refers to plib_sercom0_usart.o(.bss.sercom0USARTObj) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_Initialize) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_Initialize) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_FrequencyGet) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_FrequencyGet) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.text.SERCOM0_USART_SerialSetup) refers to llmul.o(.text) for __aeabi_lmul
+    plib_sercom0_usart.o(.text.SERCOM0_USART_SerialSetup) refers to uldiv.o(.text) for __aeabi_uldivmod
+    plib_sercom0_usart.o(.text.SERCOM0_USART_SerialSetup) refers to plib_sercom0_usart.o(.bss.sercom0USARTObj) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_SerialSetup) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_SerialSetup) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.text.SERCOM0_USART_ErrorGet) refers to plib_sercom0_usart.o(.bss.sercom0USARTObj) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_ErrorGet) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_ErrorGet) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_Enable) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_Enable) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_Disable) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_Disable) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_TransmitterEnable) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_TransmitterEnable) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_TransmitterDisable) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_TransmitterDisable) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.text.SERCOM0_USART_Write) refers to plib_sercom0_usart.o(.bss.sercom0USARTObj) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_Write) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_Write) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.text.SERCOM0_USART_WriteIsBusy) refers to plib_sercom0_usart.o(.bss.sercom0USARTObj) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_WriteIsBusy) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_WriteIsBusy) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.text.SERCOM0_USART_WriteCountGet) refers to plib_sercom0_usart.o(.bss.sercom0USARTObj) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_WriteCountGet) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_WriteCountGet) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.text.SERCOM0_USART_WriteCallbackRegister) refers to plib_sercom0_usart.o(.bss.sercom0USARTObj) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_WriteCallbackRegister) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_WriteCallbackRegister) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_TransmitComplete) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_TransmitComplete) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_ReceiverEnable) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_ReceiverEnable) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_ReceiverDisable) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_ReceiverDisable) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.text.SERCOM0_USART_Read) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_ErrorClear) for SERCOM0_USART_ErrorClear
+    plib_sercom0_usart.o(.text.SERCOM0_USART_Read) refers to plib_sercom0_usart.o(.bss.sercom0USARTObj) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_Read) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_Read) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_ErrorClear) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_ErrorClear) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.text.SERCOM0_USART_ReadIsBusy) refers to plib_sercom0_usart.o(.bss.sercom0USARTObj) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_ReadIsBusy) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_ReadIsBusy) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.text.SERCOM0_USART_ReadCountGet) refers to plib_sercom0_usart.o(.bss.sercom0USARTObj) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_ReadCountGet) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_ReadCountGet) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.text.SERCOM0_USART_ReadAbort) refers to plib_sercom0_usart.o(.bss.sercom0USARTObj) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_ReadAbort) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_ReadAbort) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.text.SERCOM0_USART_ReadCallbackRegister) refers to plib_sercom0_usart.o(.bss.sercom0USARTObj) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_ReadCallbackRegister) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_ReadCallbackRegister) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.text.SERCOM0_USART_ISR_ERR_Handler) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_ErrorClear) for SERCOM0_USART_ErrorClear
+    plib_sercom0_usart.o(.text.SERCOM0_USART_ISR_ERR_Handler) refers to plib_sercom0_usart.o(.bss.sercom0USARTObj) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_ISR_ERR_Handler) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_ISR_ERR_Handler) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.text.SERCOM0_USART_ISR_RX_Handler) refers to plib_sercom0_usart.o(.bss.sercom0USARTObj) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_ISR_RX_Handler) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_ISR_RX_Handler) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.text.SERCOM0_USART_ISR_TX_Handler) refers to plib_sercom0_usart.o(.bss.sercom0USARTObj) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_ISR_TX_Handler) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_ISR_TX_Handler) for [Anonymous Symbol]
+    plib_sercom0_usart.o(.text.SERCOM0_USART_InterruptHandler) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_ISR_ERR_Handler) for SERCOM0_USART_ISR_ERR_Handler
+    plib_sercom0_usart.o(.text.SERCOM0_USART_InterruptHandler) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_ISR_TX_Handler) for SERCOM0_USART_ISR_TX_Handler
+    plib_sercom0_usart.o(.text.SERCOM0_USART_InterruptHandler) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_ISR_RX_Handler) for SERCOM0_USART_ISR_RX_Handler
+    plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_InterruptHandler) refers to plib_sercom0_usart.o(.text.SERCOM0_USART_InterruptHandler) for [Anonymous Symbol]
+    startup_samd21_keil.o(.text.Reset_Handler) refers to entry.o(.ARM.Collect$$$$00000000) for __main
+    startup_samd21_keil.o(.text.Reset_Handler) refers to interrupts.o(.vectors) for exception_table
+    startup_samd21_keil.o(.ARM.exidx.text.Reset_Handler) refers to startup_samd21_keil.o(.text.Reset_Handler) for [Anonymous Symbol]
+    entry.o(.ARM.Collect$$$$00000000) refers (Special) to entry10a.o(.ARM.Collect$$$$0000000D) for __rt_final_cpp
+    entry.o(.ARM.Collect$$$$00000000) refers (Special) to entry11a.o(.ARM.Collect$$$$0000000F) for __rt_final_exit
+    entry.o(.ARM.Collect$$$$00000000) refers (Special) to entry7b.o(.ARM.Collect$$$$00000008) for _main_clock
+    entry.o(.ARM.Collect$$$$00000000) refers (Special) to entry8b.o(.ARM.Collect$$$$0000000A) for _main_cpp_init
+    entry.o(.ARM.Collect$$$$00000000) refers (Special) to entry9a.o(.ARM.Collect$$$$0000000B) for _main_init
+    entry.o(.ARM.Collect$$$$00000000) refers (Special) to entry5.o(.ARM.Collect$$$$00000004) for _main_scatterload
+    entry.o(.ARM.Collect$$$$00000000) refers (Special) to entry2.o(.ARM.Collect$$$$00000001) for _main_stk
+    uldiv.o(.text) refers to llushr.o(.text) for __aeabi_llsr
+    uldiv.o(.text) refers to llshl.o(.text) for __aeabi_llsl
+    llmul.o(.text) refers to llshl.o(.text) for __aeabi_llsl
+    entry2.o(.ARM.Collect$$$$00000001) refers to entry2.o(.ARM.Collect$$$$00002712) for __lit__00000000
+    entry2.o(.ARM.Collect$$$$00002712) refers to startup_samd21_keil.o(.bss.__initial_sp) for __initial_sp
+    entry2.o(__vectab_stack_and_reset_area) refers to startup_samd21_keil.o(.bss.__initial_sp) for __initial_sp
+    entry2.o(__vectab_stack_and_reset_area) refers to entry.o(.ARM.Collect$$$$00000000) for __main
+    entry5.o(.ARM.Collect$$$$00000004) refers to init.o(.text) for __scatterload
+    entry9a.o(.ARM.Collect$$$$0000000B) refers to main.o(.text.main) for main
+    entry9b.o(.ARM.Collect$$$$0000000C) refers to main.o(.text.main) for main
+    init.o(.text) refers to entry5.o(.ARM.Collect$$$$00000004) for __main_after_scatterload
+
+
+==============================================================================
+
+Removing Unused input sections from the image.
+
+    Removing main.o(.text), (0 bytes).
+    Removing main.o(.ARM.exidx.text.main), (8 bytes).
+    Removing main.o(.bss.g_uptime_ms), (4 bytes).
+    Removing main.o(.bss.g_heartbeat), (4 bytes).
+    Removing main.o(.ARM.use_no_argv), (4 bytes).
+    Removing exceptions.o(.text), (0 bytes).
+    Removing exceptions.o(.ARM.exidx.text.NonMaskableInt_Handler), (8 bytes).
+    Removing exceptions.o(.ARM.exidx.text.HardFault_Handler), (8 bytes).
+    Removing initialization.o(.text), (0 bytes).
+    Removing initialization.o(.ARM.exidx.text.SYS_Initialize), (8 bytes).
+    Removing interrupts.o(.text), (0 bytes).
+    Removing interrupts.o(.ARM.exidx.text.Dummy_Handler), (8 bytes).
+    Removing plib_clock.o(.text), (0 bytes).
+    Removing plib_clock.o(.ARM.exidx.text.CLOCK_Initialize), (8 bytes).
+    Removing plib_clock.o(.ARM.exidx.text.SYSCTRL_Initialize), (8 bytes).
+    Removing plib_clock.o(.ARM.exidx.text.DFLL_Initialize), (8 bytes).
+    Removing plib_clock.o(.ARM.exidx.text.GCLK0_Initialize), (8 bytes).
+    Removing plib_evsys.o(.text), (0 bytes).
+    Removing plib_evsys.o(.text.EVSYS_Initialize), (2 bytes).
+    Removing plib_evsys.o(.ARM.exidx.text.EVSYS_Initialize), (8 bytes).
+    Removing plib_nvic.o(.text), (0 bytes).
+    Removing plib_nvic.o(.ARM.exidx.text.NVIC_Initialize), (8 bytes).
+    Removing plib_nvic.o(.ARM.exidx.text.__NVIC_SetPriority), (8 bytes).
+    Removing plib_nvic.o(.ARM.exidx.text.__NVIC_EnableIRQ), (8 bytes).
+    Removing plib_nvic.o(.text.NVIC_INT_Enable), (8 bytes).
+    Removing plib_nvic.o(.ARM.exidx.text.NVIC_INT_Enable), (8 bytes).
+    Removing plib_nvic.o(.text.NVIC_INT_Disable), (18 bytes).
+    Removing plib_nvic.o(.ARM.exidx.text.NVIC_INT_Disable), (8 bytes).
+    Removing plib_nvic.o(.text.NVIC_INT_Restore), (20 bytes).
+    Removing plib_nvic.o(.ARM.exidx.text.NVIC_INT_Restore), (8 bytes).
+    Removing plib_nvic.o(.text.NVIC_INT_SourceDisable), (40 bytes).
+    Removing plib_nvic.o(.ARM.exidx.text.NVIC_INT_SourceDisable), (8 bytes).
+    Removing plib_nvic.o(.text.__NVIC_GetEnableIRQ), (36 bytes).
+    Removing plib_nvic.o(.ARM.exidx.text.__NVIC_GetEnableIRQ), (8 bytes).
+    Removing plib_nvic.o(.text.__NVIC_DisableIRQ), (32 bytes).
+    Removing plib_nvic.o(.ARM.exidx.text.__NVIC_DisableIRQ), (8 bytes).
+    Removing plib_nvic.o(.text.NVIC_INT_SourceRestore), (12 bytes).
+    Removing plib_nvic.o(.ARM.exidx.text.NVIC_INT_SourceRestore), (8 bytes).
+    Removing plib_nvmctrl.o(.text), (0 bytes).
+    Removing plib_nvmctrl.o(.ARM.exidx.text.NVMCTRL_Initialize), (8 bytes).
+    Removing plib_nvmctrl.o(.text.NVMCTRL_CacheInvalidate), (16 bytes).
+    Removing plib_nvmctrl.o(.ARM.exidx.text.NVMCTRL_CacheInvalidate), (8 bytes).
+    Removing plib_nvmctrl.o(.text.NVMCTRL_Read), (16 bytes).
+    Removing plib_nvmctrl.o(.ARM.exidx.text.NVMCTRL_Read), (8 bytes).
+    Removing plib_nvmctrl.o(.text.NVMCTRL_PageBufferWrite), (16 bytes).
+    Removing plib_nvmctrl.o(.ARM.exidx.text.NVMCTRL_PageBufferWrite), (8 bytes).
+    Removing plib_nvmctrl.o(.text.NVMCTRL_PageBufferCommit), (24 bytes).
+    Removing plib_nvmctrl.o(.ARM.exidx.text.NVMCTRL_PageBufferCommit), (8 bytes).
+    Removing plib_nvmctrl.o(.text.NVMCTRL_PageWrite), (36 bytes).
+    Removing plib_nvmctrl.o(.ARM.exidx.text.NVMCTRL_PageWrite), (8 bytes).
+    Removing plib_nvmctrl.o(.text.NVMCTRL_RowErase), (24 bytes).
+    Removing plib_nvmctrl.o(.ARM.exidx.text.NVMCTRL_RowErase), (8 bytes).
+    Removing plib_nvmctrl.o(.text.NVMCTRL_USER_ROW_PageWrite), (52 bytes).
+    Removing plib_nvmctrl.o(.ARM.exidx.text.NVMCTRL_USER_ROW_PageWrite), (8 bytes).
+    Removing plib_nvmctrl.o(.text.NVMCTRL_USER_ROW_RowErase), (44 bytes).
+    Removing plib_nvmctrl.o(.ARM.exidx.text.NVMCTRL_USER_ROW_RowErase), (8 bytes).
+    Removing plib_nvmctrl.o(.text.NVMCTRL_ErrorGet), (28 bytes).
+    Removing plib_nvmctrl.o(.ARM.exidx.text.NVMCTRL_ErrorGet), (8 bytes).
+    Removing plib_nvmctrl.o(.text.NVMCTRL_IsBusy), (20 bytes).
+    Removing plib_nvmctrl.o(.ARM.exidx.text.NVMCTRL_IsBusy), (8 bytes).
+    Removing plib_nvmctrl.o(.text.NVMCTRL_RegionLock), (20 bytes).
+    Removing plib_nvmctrl.o(.ARM.exidx.text.NVMCTRL_RegionLock), (8 bytes).
+    Removing plib_nvmctrl.o(.text.NVMCTRL_RegionUnlock), (20 bytes).
+    Removing plib_nvmctrl.o(.ARM.exidx.text.NVMCTRL_RegionUnlock), (8 bytes).
+    Removing plib_nvmctrl.o(.text.NVMCTRL_SecurityBitSet), (16 bytes).
+    Removing plib_nvmctrl.o(.ARM.exidx.text.NVMCTRL_SecurityBitSet), (8 bytes).
+    Removing plib_port.o(.text), (0 bytes).
+    Removing plib_port.o(.ARM.exidx.text.PORT_Initialize), (8 bytes).
+    Removing plib_port.o(.text.PORT_GroupRead), (4 bytes).
+    Removing plib_port.o(.ARM.exidx.text.PORT_GroupRead), (8 bytes).
+    Removing plib_port.o(.text.PORT_GroupWrite), (12 bytes).
+    Removing plib_port.o(.ARM.exidx.text.PORT_GroupWrite), (8 bytes).
+    Removing plib_port.o(.text.PORT_GroupLatchRead), (4 bytes).
+    Removing plib_port.o(.ARM.exidx.text.PORT_GroupLatchRead), (8 bytes).
+    Removing plib_port.o(.text.PORT_GroupSet), (4 bytes).
+    Removing plib_port.o(.ARM.exidx.text.PORT_GroupSet), (8 bytes).
+    Removing plib_port.o(.text.PORT_GroupClear), (4 bytes).
+    Removing plib_port.o(.ARM.exidx.text.PORT_GroupClear), (8 bytes).
+    Removing plib_port.o(.text.PORT_GroupToggle), (4 bytes).
+    Removing plib_port.o(.ARM.exidx.text.PORT_GroupToggle), (8 bytes).
+    Removing plib_port.o(.text.PORT_GroupInputEnable), (34 bytes).
+    Removing plib_port.o(.ARM.exidx.text.PORT_GroupInputEnable), (8 bytes).
+    Removing plib_port.o(.text.PORT_GroupOutputEnable), (4 bytes).
+    Removing plib_port.o(.ARM.exidx.text.PORT_GroupOutputEnable), (8 bytes).
+    Removing plib_port.o(.text.PORT_PinPeripheralFunctionConfig), (72 bytes).
+    Removing plib_port.o(.ARM.exidx.text.PORT_PinPeripheralFunctionConfig), (8 bytes).
+    Removing plib_port.o(.text.PORT_PinGPIOConfig), (32 bytes).
+    Removing plib_port.o(.ARM.exidx.text.PORT_PinGPIOConfig), (8 bytes).
+    Removing plib_sercom0_usart.o(.text), (0 bytes).
+    Removing plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_Initialize), (8 bytes).
+    Removing plib_sercom0_usart.o(.text.SERCOM0_USART_FrequencyGet), (8 bytes).
+    Removing plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_FrequencyGet), (8 bytes).
+    Removing plib_sercom0_usart.o(.text.SERCOM0_USART_SerialSetup), (240 bytes).
+    Removing plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_SerialSetup), (8 bytes).
+    Removing plib_sercom0_usart.o(.text.SERCOM0_USART_ErrorGet), (16 bytes).
+    Removing plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_ErrorGet), (8 bytes).
+    Removing plib_sercom0_usart.o(.text.SERCOM0_USART_Enable), (28 bytes).
+    Removing plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_Enable), (8 bytes).
+    Removing plib_sercom0_usart.o(.text.SERCOM0_USART_Disable), (28 bytes).
+    Removing plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_Disable), (8 bytes).
+    Removing plib_sercom0_usart.o(.text.SERCOM0_USART_TransmitterEnable), (24 bytes).
+    Removing plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_TransmitterEnable), (8 bytes).
+    Removing plib_sercom0_usart.o(.text.SERCOM0_USART_TransmitterDisable), (24 bytes).
+    Removing plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_TransmitterDisable), (8 bytes).
+    Removing plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_Write), (8 bytes).
+    Removing plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_WriteIsBusy), (8 bytes).
+    Removing plib_sercom0_usart.o(.text.SERCOM0_USART_WriteCountGet), (12 bytes).
+    Removing plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_WriteCountGet), (8 bytes).
+    Removing plib_sercom0_usart.o(.text.SERCOM0_USART_WriteCallbackRegister), (12 bytes).
+    Removing plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_WriteCallbackRegister), (8 bytes).
+    Removing plib_sercom0_usart.o(.text.SERCOM0_USART_TransmitComplete), (16 bytes).
+    Removing plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_TransmitComplete), (8 bytes).
+    Removing plib_sercom0_usart.o(.text.SERCOM0_USART_ReceiverEnable), (24 bytes).
+    Removing plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_ReceiverEnable), (8 bytes).
+    Removing plib_sercom0_usart.o(.text.SERCOM0_USART_ReceiverDisable), (24 bytes).
+    Removing plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_ReceiverDisable), (8 bytes).
+    Removing plib_sercom0_usart.o(.text.SERCOM0_USART_Read), (64 bytes).
+    Removing plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_Read), (8 bytes).
+    Removing plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_ErrorClear), (8 bytes).
+    Removing plib_sercom0_usart.o(.text.SERCOM0_USART_ReadIsBusy), (12 bytes).
+    Removing plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_ReadIsBusy), (8 bytes).
+    Removing plib_sercom0_usart.o(.text.SERCOM0_USART_ReadCountGet), (12 bytes).
+    Removing plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_ReadCountGet), (8 bytes).
+    Removing plib_sercom0_usart.o(.text.SERCOM0_USART_ReadAbort), (36 bytes).
+    Removing plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_ReadAbort), (8 bytes).
+    Removing plib_sercom0_usart.o(.text.SERCOM0_USART_ReadCallbackRegister), (12 bytes).
+    Removing plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_ReadCallbackRegister), (8 bytes).
+    Removing plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_ISR_ERR_Handler), (8 bytes).
+    Removing plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_ISR_RX_Handler), (8 bytes).
+    Removing plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_ISR_TX_Handler), (8 bytes).
+    Removing plib_sercom0_usart.o(.ARM.exidx.text.SERCOM0_USART_InterruptHandler), (8 bytes).
+    Removing startup_samd21_keil.o(.text), (0 bytes).
+    Removing startup_samd21_keil.o(.ARM.exidx.text.Reset_Handler), (8 bytes).
+
+133 unused section(s) (total 1846 bytes) removed from the image.
+
+==============================================================================
+
+Image Symbol Table
+
+    Local Symbols
+
+    Symbol Name                              Value     Ov Type        Size  Object(Section)
+
+    ../clib/microlib/division.c              0x00000000   Number         0  uldiv.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry10a.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry9a.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry2.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry9b.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry10b.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry11a.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry5.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry11b.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry7a.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry7b.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry8a.o ABSOLUTE
+    ../clib/microlib/init/entry.s            0x00000000   Number         0  entry8b.o ABSOLUTE
+    ../clib/microlib/longlong.c              0x00000000   Number         0  llushr.o ABSOLUTE
+    ../clib/microlib/longlong.c              0x00000000   Number         0  llshl.o ABSOLUTE
+    ../clib/microlib/longlong.c              0x00000000   Number         0  llmul.o ABSOLUTE
+    ../clib/microlib/string/memcpy.c         0x00000000   Number         0  memcpyb.o ABSOLUTE
+    ../clib/microlib/string/memcpy.c         0x00000000   Number         0  memcpya.o ABSOLUTE
+    dc.s                                     0x00000000   Number         0  dc.o ABSOLUTE
+    exceptions.c                             0x00000000   Number         0  exceptions.o ABSOLUTE
+    handlers.s                               0x00000000   Number         0  handlers.o ABSOLUTE
+    init.s                                   0x00000000   Number         0  init.o ABSOLUTE
+    initialization.c                         0x00000000   Number         0  initialization.o ABSOLUTE
+    interrupts.c                             0x00000000   Number         0  interrupts.o ABSOLUTE
+    main.c                                   0x00000000   Number         0  main.o ABSOLUTE
+    plib_clock.c                             0x00000000   Number         0  plib_clock.o ABSOLUTE
+    plib_evsys.c                             0x00000000   Number         0  plib_evsys.o ABSOLUTE
+    plib_nvic.c                              0x00000000   Number         0  plib_nvic.o ABSOLUTE
+    plib_nvmctrl.c                           0x00000000   Number         0  plib_nvmctrl.o ABSOLUTE
+    plib_port.c                              0x00000000   Number         0  plib_port.o ABSOLUTE
+    plib_sercom0_usart.c                     0x00000000   Number         0  plib_sercom0_usart.o ABSOLUTE
+    startup_samd21_keil.c                    0x00000000   Number         0  startup_samd21_keil.o ABSOLUTE
+    .ARM.Collect$$$$00000000                 0x000000b0   Section        0  entry.o(.ARM.Collect$$$$00000000)
+    .ARM.Collect$$$$00000001                 0x000000b0   Section        4  entry2.o(.ARM.Collect$$$$00000001)
+    .ARM.Collect$$$$00000004                 0x000000b4   Section        4  entry5.o(.ARM.Collect$$$$00000004)
+    .ARM.Collect$$$$00000008                 0x000000b8   Section        0  entry7b.o(.ARM.Collect$$$$00000008)
+    .ARM.Collect$$$$0000000A                 0x000000b8   Section        0  entry8b.o(.ARM.Collect$$$$0000000A)
+    .ARM.Collect$$$$0000000B                 0x000000b8   Section        8  entry9a.o(.ARM.Collect$$$$0000000B)
+    .ARM.Collect$$$$0000000D                 0x000000c0   Section        0  entry10a.o(.ARM.Collect$$$$0000000D)
+    .ARM.Collect$$$$0000000F                 0x000000c0   Section        0  entry11a.o(.ARM.Collect$$$$0000000F)
+    .ARM.Collect$$$$00002712                 0x000000c0   Section        4  entry2.o(.ARM.Collect$$$$00002712)
+    __lit__00000000                          0x000000c0   Data           4  entry2.o(.ARM.Collect$$$$00002712)
+    .text                                    0x000000c4   Section       36  init.o(.text)
+    [Anonymous Symbol]                       0x000000e8   Section        0  plib_clock.o(.text.CLOCK_Initialize)
+    __arm_cp.0_0                             0x0000010c   Number         4  plib_clock.o(.text.CLOCK_Initialize)
+    __arm_cp.0_1                             0x00000110   Number         4  plib_clock.o(.text.CLOCK_Initialize)
+    __arm_cp.0_2                             0x00000114   Number         4  plib_clock.o(.text.CLOCK_Initialize)
+    __arm_cp.0_3                             0x00000118   Number         4  plib_clock.o(.text.CLOCK_Initialize)
+    __arm_cp.0_4                             0x0000011c   Number         4  plib_clock.o(.text.CLOCK_Initialize)
+    [Anonymous Symbol]                       0x00000120   Section        0  plib_clock.o(.text.DFLL_Initialize)
+    DFLL_Initialize                          0x00000121   Thumb Code    76  plib_clock.o(.text.DFLL_Initialize)
+    __arm_cp.2_0                             0x00000160   Number         4  plib_clock.o(.text.DFLL_Initialize)
+    __arm_cp.2_1                             0x00000164   Number         4  plib_clock.o(.text.DFLL_Initialize)
+    __arm_cp.2_2                             0x00000168   Number         4  plib_clock.o(.text.DFLL_Initialize)
+    [Anonymous Symbol]                       0x0000016c   Section        0  interrupts.o(.text.Dummy_Handler)
+    [Anonymous Symbol]                       0x00000170   Section        0  plib_clock.o(.text.GCLK0_Initialize)
+    GCLK0_Initialize                         0x00000171   Thumb Code    28  plib_clock.o(.text.GCLK0_Initialize)
+    __arm_cp.3_0                             0x00000184   Number         4  plib_clock.o(.text.GCLK0_Initialize)
+    __arm_cp.3_1                             0x00000188   Number         4  plib_clock.o(.text.GCLK0_Initialize)
+    [Anonymous Symbol]                       0x0000018c   Section        0  exceptions.o(.text.HardFault_Handler)
+    [Anonymous Symbol]                       0x0000018e   Section        0  plib_nvic.o(.text.NVIC_Initialize)
+    [Anonymous Symbol]                       0x000001a4   Section        0  plib_nvmctrl.o(.text.NVMCTRL_Initialize)
+    [Anonymous Symbol]                       0x000001ac   Section        0  exceptions.o(.text.NonMaskableInt_Handler)
+    [Anonymous Symbol]                       0x000001b0   Section        0  plib_port.o(.text.PORT_Initialize)
+    __arm_cp.0_0                             0x000001c0   Number         4  plib_port.o(.text.PORT_Initialize)
+    [Anonymous Symbol]                       0x000001c4   Section        0  startup_samd21_keil.o(.text.Reset_Handler)
+    __arm_cp.0_0                             0x000001d4   Number         4  startup_samd21_keil.o(.text.Reset_Handler)
+    __arm_cp.0_1                             0x000001d8   Number         4  startup_samd21_keil.o(.text.Reset_Handler)
+    [Anonymous Symbol]                       0x000001dc   Section        0  plib_sercom0_usart.o(.text.SERCOM0_USART_ErrorClear)
+    SERCOM0_USART_ErrorClear                 0x000001dd   Thumb Code    40  plib_sercom0_usart.o(.text.SERCOM0_USART_ErrorClear)
+    [Anonymous Symbol]                       0x00000200   Section        0  plib_sercom0_usart.o(.text.SERCOM0_USART_ISR_ERR_Handler)
+    __arm_cp.21_0                            0x00000230   Number         4  plib_sercom0_usart.o(.text.SERCOM0_USART_ISR_ERR_Handler)
+    [Anonymous Symbol]                       0x00000234   Section        0  plib_sercom0_usart.o(.text.SERCOM0_USART_ISR_RX_Handler)
+    __arm_cp.22_1                            0x0000028c   Number         4  plib_sercom0_usart.o(.text.SERCOM0_USART_ISR_RX_Handler)
+    [Anonymous Symbol]                       0x00000290   Section        0  plib_sercom0_usart.o(.text.SERCOM0_USART_ISR_TX_Handler)
+    [Anonymous Symbol]                       0x000002fc   Section        0  plib_sercom0_usart.o(.text.SERCOM0_USART_Initialize)
+    __arm_cp.0_0                             0x00000340   Number         4  plib_sercom0_usart.o(.text.SERCOM0_USART_Initialize)
+    __arm_cp.0_1                             0x00000344   Number         4  plib_sercom0_usart.o(.text.SERCOM0_USART_Initialize)
+    __arm_cp.0_2                             0x00000348   Number         4  plib_sercom0_usart.o(.text.SERCOM0_USART_Initialize)
+    [Anonymous Symbol]                       0x0000034c   Section        0  plib_sercom0_usart.o(.text.SERCOM0_USART_InterruptHandler)
+    __arm_cp.24_0                            0x00000384   Number         4  plib_sercom0_usart.o(.text.SERCOM0_USART_InterruptHandler)
+    [Anonymous Symbol]                       0x00000388   Section        0  plib_sercom0_usart.o(.text.SERCOM0_USART_Write)
+    __arm_cp.8_1                             0x000003ec   Number         4  plib_sercom0_usart.o(.text.SERCOM0_USART_Write)
+    [Anonymous Symbol]                       0x000003f0   Section        0  plib_sercom0_usart.o(.text.SERCOM0_USART_WriteIsBusy)
+    __arm_cp.9_0                             0x000003f8   Number         4  plib_sercom0_usart.o(.text.SERCOM0_USART_WriteIsBusy)
+    [Anonymous Symbol]                       0x000003fc   Section        0  plib_clock.o(.text.SYSCTRL_Initialize)
+    SYSCTRL_Initialize                       0x000003fd   Thumb Code    12  plib_clock.o(.text.SYSCTRL_Initialize)
+    __arm_cp.1_0                             0x00000404   Number         4  plib_clock.o(.text.SYSCTRL_Initialize)
+    [Anonymous Symbol]                       0x00000408   Section        0  initialization.o(.text.SYS_Initialize)
+    __arm_cp.0_0                             0x00000428   Number         4  initialization.o(.text.SYS_Initialize)
+    [Anonymous Symbol]                       0x0000042c   Section        0  plib_nvic.o(.text.__NVIC_EnableIRQ)
+    __NVIC_EnableIRQ                         0x0000042d   Thumb Code    24  plib_nvic.o(.text.__NVIC_EnableIRQ)
+    __arm_cp.2_0                             0x00000440   Number         4  plib_nvic.o(.text.__NVIC_EnableIRQ)
+    [Anonymous Symbol]                       0x00000444   Section        0  plib_nvic.o(.text.__NVIC_SetPriority)
+    __NVIC_SetPriority                       0x00000445   Thumb Code    24  plib_nvic.o(.text.__NVIC_SetPriority)
+    __arm_cp.1_0                             0x00000458   Number         4  plib_nvic.o(.text.__NVIC_SetPriority)
+    [Anonymous Symbol]                       0x0000045c   Section        0  main.o(.text.main)
+    __arm_cp.0_0                             0x00000488   Number         4  main.o(.text.main)
+    __arm_cp.0_1                             0x0000048c   Number         4  main.o(.text.main)
+    __arm_cp.0_2                             0x00000490   Number         4  main.o(.text.main)
+    i.__scatterload_copy                     0x00000494   Section       14  handlers.o(i.__scatterload_copy)
+    i.__scatterload_null                     0x000004a2   Section        2  handlers.o(i.__scatterload_null)
+    i.__scatterload_zeroinit                 0x000004a4   Section       14  handlers.o(i.__scatterload_zeroinit)
+    [Anonymous Symbol]                       0x20000000   Section        0  main.o(.data.s_tx_message)
+    s_tx_message                             0x20000000   Data          23  main.o(.data.s_tx_message)
+    [Anonymous Symbol]                       0x2000001c   Section        0  plib_sercom0_usart.o(.bss.sercom0USARTObj)
+    sercom0USARTObj                          0x2000001c   Data          48  plib_sercom0_usart.o(.bss.sercom0USARTObj)
+
+    Global Symbols
+
+    Symbol Name                              Value     Ov Type        Size  Object(Section)
+
+    BuildAttributes$$THM_ISAv3M$S$PE$A:L22$X:L11$S22$IEEE1$IW$USESV6$~STKCKD$USESV7$~SHL$OTIME$MICROLIB$REQ8$PRES8$EABIv2 0x00000000   Number         0  anon$$obj.o ABSOLUTE
+    exception_table                          0x00000000   Data         176  interrupts.o(.vectors)
+    __cpp_initialize__aeabi_                  - Undefined Weak Reference
+    __cxa_finalize                            - Undefined Weak Reference
+    __decompress                              - Undefined Weak Reference
+    _clock_init                               - Undefined Weak Reference
+    _microlib_exit                            - Undefined Weak Reference
+    __main                                   0x000000b1   Thumb Code     0  entry.o(.ARM.Collect$$$$00000000)
+    _main_stk                                0x000000b1   Thumb Code     0  entry2.o(.ARM.Collect$$$$00000001)
+    _main_scatterload                        0x000000b5   Thumb Code     0  entry5.o(.ARM.Collect$$$$00000004)
+    __main_after_scatterload                 0x000000b9   Thumb Code     0  entry5.o(.ARM.Collect$$$$00000004)
+    _main_clock                              0x000000b9   Thumb Code     0  entry7b.o(.ARM.Collect$$$$00000008)
+    _main_cpp_init                           0x000000b9   Thumb Code     0  entry8b.o(.ARM.Collect$$$$0000000A)
+    _main_init                               0x000000b9   Thumb Code     0  entry9a.o(.ARM.Collect$$$$0000000B)
+    __rt_final_cpp                           0x000000c1   Thumb Code     0  entry10a.o(.ARM.Collect$$$$0000000D)
+    __rt_final_exit                          0x000000c1   Thumb Code     0  entry11a.o(.ARM.Collect$$$$0000000F)
+    __scatterload                            0x000000c5   Thumb Code    28  init.o(.text)
+    __scatterload_rt2                        0x000000c5   Thumb Code     0  init.o(.text)
+    CLOCK_Initialize                         0x000000e9   Thumb Code    56  plib_clock.o(.text.CLOCK_Initialize)
+    AC_Handler                               0x0000016d   Thumb Code     2  interrupts.o(.text.Dummy_Handler)
+    ADC_Handler                              0x0000016d   Thumb Code     2  interrupts.o(.text.Dummy_Handler)
+    DAC_Handler                              0x0000016d   Thumb Code     2  interrupts.o(.text.Dummy_Handler)
+    DMAC_Handler                             0x0000016d   Thumb Code     2  interrupts.o(.text.Dummy_Handler)
+    Dummy_Handler                            0x0000016d   Thumb Code     2  interrupts.o(.text.Dummy_Handler)
+    EIC_Handler                              0x0000016d   Thumb Code     2  interrupts.o(.text.Dummy_Handler)
+    EVSYS_Handler                            0x0000016d   Thumb Code     2  interrupts.o(.text.Dummy_Handler)
+    I2S_Handler                              0x0000016d   Thumb Code     2  interrupts.o(.text.Dummy_Handler)
+    NVMCTRL_Handler                          0x0000016d   Thumb Code     2  interrupts.o(.text.Dummy_Handler)
+    PM_Handler                               0x0000016d   Thumb Code     2  interrupts.o(.text.Dummy_Handler)
+    PTC_Handler                              0x0000016d   Thumb Code     2  interrupts.o(.text.Dummy_Handler)
+    PendSV_Handler                           0x0000016d   Thumb Code     2  interrupts.o(.text.Dummy_Handler)
+    RTC_Handler                              0x0000016d   Thumb Code     2  interrupts.o(.text.Dummy_Handler)
+    SERCOM1_Handler                          0x0000016d   Thumb Code     2  interrupts.o(.text.Dummy_Handler)
+    SERCOM2_Handler                          0x0000016d   Thumb Code     2  interrupts.o(.text.Dummy_Handler)
+    SERCOM3_Handler                          0x0000016d   Thumb Code     2  interrupts.o(.text.Dummy_Handler)
+    SERCOM4_Handler                          0x0000016d   Thumb Code     2  interrupts.o(.text.Dummy_Handler)
+    SERCOM5_Handler                          0x0000016d   Thumb Code     2  interrupts.o(.text.Dummy_Handler)
+    SVCall_Handler                           0x0000016d   Thumb Code     2  interrupts.o(.text.Dummy_Handler)
+    SYSCTRL_Handler                          0x0000016d   Thumb Code     2  interrupts.o(.text.Dummy_Handler)
+    SysTick_Handler                          0x0000016d   Thumb Code     2  interrupts.o(.text.Dummy_Handler)
+    TC3_Handler                              0x0000016d   Thumb Code     2  interrupts.o(.text.Dummy_Handler)
+    TC4_Handler                              0x0000016d   Thumb Code     2  interrupts.o(.text.Dummy_Handler)
+    TC5_Handler                              0x0000016d   Thumb Code     2  interrupts.o(.text.Dummy_Handler)
+    TCC0_Handler                             0x0000016d   Thumb Code     2  interrupts.o(.text.Dummy_Handler)
+    TCC1_Handler                             0x0000016d   Thumb Code     2  interrupts.o(.text.Dummy_Handler)
+    TCC2_Handler                             0x0000016d   Thumb Code     2  interrupts.o(.text.Dummy_Handler)
+    USB_Handler                              0x0000016d   Thumb Code     2  interrupts.o(.text.Dummy_Handler)
+    WDT_Handler                              0x0000016d   Thumb Code     2  interrupts.o(.text.Dummy_Handler)
+    HardFault_Handler                        0x0000018d   Thumb Code     2  exceptions.o(.text.HardFault_Handler)
+    NVIC_Initialize                          0x0000018f   Thumb Code    20  plib_nvic.o(.text.NVIC_Initialize)
+    NVMCTRL_Initialize                       0x000001a5   Thumb Code    12  plib_nvmctrl.o(.text.NVMCTRL_Initialize)
+    NonMaskableInt_Handler                   0x000001ad   Thumb Code     2  exceptions.o(.text.NonMaskableInt_Handler)
+    PORT_Initialize                          0x000001b1   Thumb Code    20  plib_port.o(.text.PORT_Initialize)
+    Reset_Handler                            0x000001c5   Thumb Code    24  startup_samd21_keil.o(.text.Reset_Handler)
+    SERCOM0_USART_ISR_ERR_Handler            0x00000201   Thumb Code    56  plib_sercom0_usart.o(.text.SERCOM0_USART_ISR_ERR_Handler)
+    SERCOM0_USART_ISR_RX_Handler             0x00000235   Thumb Code    96  plib_sercom0_usart.o(.text.SERCOM0_USART_ISR_RX_Handler)
+    SERCOM0_USART_ISR_TX_Handler             0x00000291   Thumb Code   116  plib_sercom0_usart.o(.text.SERCOM0_USART_ISR_TX_Handler)
+    SERCOM0_USART_Initialize                 0x000002fd   Thumb Code    84  plib_sercom0_usart.o(.text.SERCOM0_USART_Initialize)
+    SERCOM0_USART_InterruptHandler           0x0000034d   Thumb Code    60  plib_sercom0_usart.o(.text.SERCOM0_USART_InterruptHandler)
+    SERCOM0_USART_Write                      0x00000389   Thumb Code   108  plib_sercom0_usart.o(.text.SERCOM0_USART_Write)
+    SERCOM0_USART_WriteIsBusy                0x000003f1   Thumb Code    12  plib_sercom0_usart.o(.text.SERCOM0_USART_WriteIsBusy)
+    SYS_Initialize                           0x00000409   Thumb Code    36  initialization.o(.text.SYS_Initialize)
+    main                                     0x0000045d   Thumb Code    56  main.o(.text.main)
+    __scatterload_copy                       0x00000495   Thumb Code    14  handlers.o(i.__scatterload_copy)
+    __scatterload_null                       0x000004a3   Thumb Code     2  handlers.o(i.__scatterload_null)
+    __scatterload_zeroinit                   0x000004a5   Thumb Code    14  handlers.o(i.__scatterload_zeroinit)
+    Region$$Table$$Base                      0x000004b4   Number         0  anon$$obj.o(Region$$Table)
+    Region$$Table$$Limit                     0x000004e4   Number         0  anon$$obj.o(Region$$Table)
+    g_uart_done                              0x20000018   Data           1  main.o(.bss.g_uart_done)
+    g_uart_started                           0x20000019   Data           1  main.o(.bss.g_uart_started)
+    __initial_sp                             0x20008000   Data           4  startup_samd21_keil.o(.bss.__initial_sp)
+
+
+
+==============================================================================
+
+Memory Map of the image
+
+  Image Entry point : 0x000000b1
+
+  Load Region LR_IROM1 (Base: 0x00000000, Size: 0x000004fc, Max: 0x00040000, ABSOLUTE)
+
+    Execution Region ER_IROM1 (Exec base: 0x00000000, Load base: 0x00000000, Size: 0x000004e4, Max: 0x00040000, ABSOLUTE)
+
+    Exec Addr    Load Addr    Size         Type   Attr      Idx    E Section Name        Object
+
+    0x00000000   0x00000000   0x000000b0   Data   RO           49    .vectors            interrupts.o
+    0x000000b0   0x000000b0   0x00000000   Code   RO          268  * .ARM.Collect$$$$00000000  mc_p.l(entry.o)
+    0x000000b0   0x000000b0   0x00000004   Code   RO          279    .ARM.Collect$$$$00000001  mc_p.l(entry2.o)
+    0x000000b4   0x000000b4   0x00000004   Code   RO          282    .ARM.Collect$$$$00000004  mc_p.l(entry5.o)
+    0x000000b8   0x000000b8   0x00000000   Code   RO          284    .ARM.Collect$$$$00000008  mc_p.l(entry7b.o)
+    0x000000b8   0x000000b8   0x00000000   Code   RO          286    .ARM.Collect$$$$0000000A  mc_p.l(entry8b.o)
+    0x000000b8   0x000000b8   0x00000008   Code   RO          287    .ARM.Collect$$$$0000000B  mc_p.l(entry9a.o)
+    0x000000c0   0x000000c0   0x00000000   Code   RO          289    .ARM.Collect$$$$0000000D  mc_p.l(entry10a.o)
+    0x000000c0   0x000000c0   0x00000000   Code   RO          291    .ARM.Collect$$$$0000000F  mc_p.l(entry11a.o)
+    0x000000c0   0x000000c0   0x00000004   Code   RO          280    .ARM.Collect$$$$00002712  mc_p.l(entry2.o)
+    0x000000c4   0x000000c4   0x00000024   Code   RO          297    .text               mc_p.l(init.o)
+    0x000000e8   0x000000e8   0x00000038   Code   RO           60    .text.CLOCK_Initialize  plib_clock.o
+    0x00000120   0x00000120   0x0000004c   Code   RO           64    .text.DFLL_Initialize  plib_clock.o
+    0x0000016c   0x0000016c   0x00000002   Code   RO           47    .text.Dummy_Handler  interrupts.o
+    0x0000016e   0x0000016e   0x00000002   PAD
+    0x00000170   0x00000170   0x0000001c   Code   RO           66    .text.GCLK0_Initialize  plib_clock.o
+    0x0000018c   0x0000018c   0x00000002   Code   RO           22    .text.HardFault_Handler  exceptions.o
+    0x0000018e   0x0000018e   0x00000014   Code   RO           91    .text.NVIC_Initialize  plib_nvic.o
+    0x000001a2   0x000001a2   0x00000002   PAD
+    0x000001a4   0x000001a4   0x00000008   Code   RO          122    .text.NVMCTRL_Initialize  plib_nvmctrl.o
+    0x000001ac   0x000001ac   0x00000002   Code   RO           20    .text.NonMaskableInt_Handler  exceptions.o
+    0x000001ae   0x000001ae   0x00000002   PAD
+    0x000001b0   0x000001b0   0x00000014   Code   RO          161    .text.PORT_Initialize  plib_port.o
+    0x000001c4   0x000001c4   0x00000018   Code   RO          256    .text.Reset_Handler  startup_samd21_keil.o
+    0x000001dc   0x000001dc   0x00000024   Code   RO          226    .text.SERCOM0_USART_ErrorClear  plib_sercom0_usart.o
+    0x00000200   0x00000200   0x00000034   Code   RO          236    .text.SERCOM0_USART_ISR_ERR_Handler  plib_sercom0_usart.o
+    0x00000234   0x00000234   0x0000005c   Code   RO          238    .text.SERCOM0_USART_ISR_RX_Handler  plib_sercom0_usart.o
+    0x00000290   0x00000290   0x0000006c   Code   RO          240    .text.SERCOM0_USART_ISR_TX_Handler  plib_sercom0_usart.o
+    0x000002fc   0x000002fc   0x00000050   Code   RO          194    .text.SERCOM0_USART_Initialize  plib_sercom0_usart.o
+    0x0000034c   0x0000034c   0x0000003c   Code   RO          242    .text.SERCOM0_USART_InterruptHandler  plib_sercom0_usart.o
+    0x00000388   0x00000388   0x00000068   Code   RO          210    .text.SERCOM0_USART_Write  plib_sercom0_usart.o
+    0x000003f0   0x000003f0   0x0000000c   Code   RO          212    .text.SERCOM0_USART_WriteIsBusy  plib_sercom0_usart.o
+    0x000003fc   0x000003fc   0x0000000c   Code   RO           62    .text.SYSCTRL_Initialize  plib_clock.o
+    0x00000408   0x00000408   0x00000024   Code   RO           34    .text.SYS_Initialize  initialization.o
+    0x0000042c   0x0000042c   0x00000018   Code   RO           95    .text.__NVIC_EnableIRQ  plib_nvic.o
+    0x00000444   0x00000444   0x00000018   Code   RO           93    .text.__NVIC_SetPriority  plib_nvic.o
+    0x0000045c   0x0000045c   0x00000038   Code   RO            2    .text.main          main.o
+    0x00000494   0x00000494   0x0000000e   Code   RO          301    i.__scatterload_copy  mc_p.l(handlers.o)
+    0x000004a2   0x000004a2   0x00000002   Code   RO          302    i.__scatterload_null  mc_p.l(handlers.o)
+    0x000004a4   0x000004a4   0x0000000e   Code   RO          303    i.__scatterload_zeroinit  mc_p.l(handlers.o)
+    0x000004b2   0x000004b2   0x00000002   PAD
+    0x000004b4   0x000004b4   0x00000030   Data   RO          299    Region$$Table       anon$$obj.o
+
+
+    Execution Region RW_IRAM1 (Exec base: 0x20000000, Load base: 0x000004e4, Size: 0x0000004c, Max: 0x00008000, ABSOLUTE)
+
+    Exec Addr    Load Addr    Size         Type   Attr      Idx    E Section Name        Object
+
+    0x20000000   0x000004e4   0x00000017   Data   RW            8    .data.s_tx_message  main.o
+    0x20000017   0x000004fb   0x00000001   PAD
+    0x20000018        -       0x00000001   Zero   RW            7    .bss.g_uart_done    main.o
+    0x20000019        -       0x00000001   Zero   RW            6    .bss.g_uart_started  main.o
+    0x2000001a   0x000004fb   0x00000002   PAD
+    0x2000001c        -       0x00000030   Zero   RW          244    .bss.sercom0USARTObj  plib_sercom0_usart.o
+
+
+    Execution Region SP_ANCHOR (Exec base: 0x20008000, Load base: 0x000004fc, Size: 0x00000004, Max: 0x00000004, ABSOLUTE)
+
+    Exec Addr    Load Addr    Size         Type   Attr      Idx    E Section Name        Object
+
+    0x20008000        -       0x00000004   Zero   RW          258    .bss.__initial_sp   startup_samd21_keil.o
+
+
+==============================================================================
+
+Image component sizes
+
+
+      Code (inc. data)   RO Data    RW Data    ZI Data      Debug   Object Name
+
+         4          0          0          0          0        605   exceptions.o
+        36          4          0          0          0       1460   initialization.o
+         2          0        176          0          0       2150   interrupts.o
+        56         12          0         23          2       1078   main.o
+       172         44          0          0          0       3112   plib_clock.o
+        68          8          0          0          0       4282   plib_nvic.o
+         8          0          0          0          0       4288   plib_nvmctrl.o
+        20          4          0          0          0       4833   plib_port.o
+       544         32          0          0         48      10623   plib_sercom0_usart.o
+        24          8          0          0          4       1046   startup_samd21_keil.o
+
+    ----------------------------------------------------------------------
+       940        112        224         24         56      33477   Object Totals
+         0          0         48          0          0          0   (incl. Generated)
+         6          0          0          1          2          0   (incl. Padding)
+
+    ----------------------------------------------------------------------
+
+      Code (inc. data)   RO Data    RW Data    ZI Data      Debug   Library Member Name
+
+         0          0          0          0          0          0   entry.o
+         0          0          0          0          0          0   entry10a.o
+         0          0          0          0          0          0   entry11a.o
+         8          4          0          0          0          0   entry2.o
+         4          0          0          0          0          0   entry5.o
+         0          0          0          0          0          0   entry7b.o
+         0          0          0          0          0          0   entry8b.o
+         8          4          0          0          0          0   entry9a.o
+        30          0          0          0          0          0   handlers.o
+        36          8          0          0          0         68   init.o
+
+    ----------------------------------------------------------------------
+        88         16          0          0          0         68   Library Totals
+         2          0          0          0          0          0   (incl. Padding)
+
+    ----------------------------------------------------------------------
+
+      Code (inc. data)   RO Data    RW Data    ZI Data      Debug   Library Name
+
+        86         16          0          0          0         68   mc_p.l
+
+    ----------------------------------------------------------------------
+        88         16          0          0          0         68   Library Totals
+
+    ----------------------------------------------------------------------
+
+==============================================================================
+
+
+      Code (inc. data)   RO Data    RW Data    ZI Data      Debug   
+
+      1028        128        224         24         56      33605   Grand Totals
+      1028        128        224         24         56      33605   ELF Image Totals
+      1028        128        224         24          0          0   ROM Totals
+
+==============================================================================
+
+    Total RO  Size (Code + RO Data)                 1252 (   1.22kB)
+    Total RW  Size (RW Data + ZI Data)                80 (   0.08kB)
+    Total ROM Size (Code + RO Data + RW Data)       1276 (   1.25kB)
+
+==============================================================================
+

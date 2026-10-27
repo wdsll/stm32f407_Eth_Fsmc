@@ -1,0 +1,16 @@
+--cpu Cortex-M0+
+".\objects\main.o"
+".\objects\exceptions.o"
+".\objects\initialization.o"
+".\objects\interrupts.o"
+".\objects\plib_clock.o"
+".\objects\plib_evsys.o"
+".\objects\plib_nvic.o"
+".\objects\plib_nvmctrl.o"
+".\objects\plib_port.o"
+".\objects\plib_sercom0_usart.o"
+".\objects\startup_samd21_keil.o"
+--library_type=microlib --strict --scatter ".\ATSAMD21G18A.sct"
+--summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list ".\Listings\ATSAMD21G18A_Demo.map" -o .\Objects\ATSAMD21G18A_Demo.axf

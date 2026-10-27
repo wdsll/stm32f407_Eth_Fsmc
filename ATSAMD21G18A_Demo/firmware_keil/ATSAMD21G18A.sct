@@ -1,0 +1,26 @@
+; =============================================================================
+; ATSAMD21G18A scatter file (Keil MDK / armlink)
+; Flash: 256KB @ 0x00000000   SRAM: 32KB @ 0x20000000
+;
+; The Harmony vector table (interrupts.c, section ".vectors") MUST be the
+; first thing in flash: Cortex-M0+ fetches SP from offset 0 and the reset
+; vector from offset 4 after reset.
+; =============================================================================
+LR_IROM1 0x00000000 0x00040000  {
+
+  ER_IROM1 0x00000000 0x00040000  {
+   *(.vectors, +First)                    ; exception_table @ 0x00000000
+   .ANY(+RO)                              ; all other code / const data
+  }
+
+  RW_IRAM1 0x20000000 0x00008000  {       ; SRAM: .data + .bss
+   .ANY(+RW +ZI)
+  }
+
+  ; Initial-SP anchor: &__initial_sp MUST be 0x20008000 (top of SRAM).
+  ; Consumed by the vector table (.pvStack) and MicroLIB __main.
+  SP_ANCHOR 0x20008000 0x4  {
+   startup_samd21_keil.o (.bss.__initial_sp)
+  }
+
+}
