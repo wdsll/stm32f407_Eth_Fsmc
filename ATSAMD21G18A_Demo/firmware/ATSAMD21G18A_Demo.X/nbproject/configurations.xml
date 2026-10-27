@@ -8,6 +8,10 @@
         <logicalFolder name="samd21g18a" displayName="samd21g18a" projectFiles="true">
           <logicalFolder name="peripheral" displayName="peripheral" projectFiles="true">
             <logicalFolder name="sercom" displayName="sercom" projectFiles="true">
+              <logicalFolder name="i2c_master" displayName="i2c_master" projectFiles="true">
+                <itemPath>../src/config/samd21g18a/peripheral/sercom/i2c_master/plib_sercom_i2c_master_common.h</itemPath>
+                <itemPath>../src/config/samd21g18a/peripheral/sercom/i2c_master/plib_sercom1_i2c_master.h</itemPath>
+              </logicalFolder>
               <logicalFolder name="usart" displayName="usart" projectFiles="true">
                 <itemPath>../src/config/samd21g18a/peripheral/sercom/usart/plib_sercom0_usart.h</itemPath>
                 <itemPath>../src/config/samd21g18a/peripheral/sercom/usart/plib_sercom_usart_common.h</itemPath>
@@ -110,6 +114,7 @@
                      projectFiles="true">
         <logicalFolder name="components" displayName="components" projectFiles="true">
           <itemPath>ATSAMD21G18A_Demo_samd21g18a/components/sercom0.yml</itemPath>
+          <itemPath>ATSAMD21G18A_Demo_samd21g18a/components/sercom1.yml</itemPath>
           <itemPath>ATSAMD21G18A_Demo_samd21g18a/components/dfp.yml</itemPath>
           <itemPath>ATSAMD21G18A_Demo_samd21g18a/components/core.yml</itemPath>
           <itemPath>ATSAMD21G18A_Demo_samd21g18a/components/nvmctrl.yml</itemPath>
@@ -137,6 +142,9 @@
         <logicalFolder name="samd21g18a" displayName="samd21g18a" projectFiles="true">
           <logicalFolder name="peripheral" displayName="peripheral" projectFiles="true">
             <logicalFolder name="sercom" displayName="sercom" projectFiles="true">
+              <logicalFolder name="i2c_master" displayName="i2c_master" projectFiles="true">
+                <itemPath>../src/config/samd21g18a/peripheral/sercom/i2c_master/plib_sercom1_i2c_master.c</itemPath>
+              </logicalFolder>
               <logicalFolder name="usart" displayName="usart" projectFiles="true">
                 <itemPath>../src/config/samd21g18a/peripheral/sercom/usart/plib_sercom0_usart.c</itemPath>
               </logicalFolder>
@@ -171,7 +179,7 @@
         <targetPluginBoard></targetPluginBoard>
         <platformTool>AtmelIceTool</platformTool>
         <languageToolchain>XC32</languageToolchain>
-        <languageToolchainVersion>4.60</languageToolchainVersion>
+        <languageToolchainVersion>5.10</languageToolchainVersion>
         <platform>3</platform>
       </toolsSet>
       <packs>
@@ -862,6 +870,8 @@
         <property key="memories.programmemory.ranges" value="0-3ffff"/>
         <property key="memories.rww" value="true"/>
         <property key="poweroptions.powerenable" value="false"/>
+        <property key="programmerToGoFilePath"
+                  value="D:/ATSAMD21G18A_MPLABX_Demo/ATSAMD21G18A_Demo/firmware/ATSAMD21G18A_Demo.X/debug/samd21g18a/ATSAMD21G18A_Demo_ptg"/>
         <property key="programoptions.eraseb4program" value="true"/>
         <property key="programoptions.preservedataflash" value="false"/>
         <property key="programoptions.preservedataflash.ranges"

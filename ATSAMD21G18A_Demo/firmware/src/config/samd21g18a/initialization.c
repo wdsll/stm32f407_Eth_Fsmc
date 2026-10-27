@@ -143,8 +143,10 @@ void SYS_Initialize ( void* data )
 
     NVMCTRL_Initialize( );
 
+    SERCOM1_I2C_Initialize();
 
     SERCOM0_USART_Initialize();
+
 
 
     NVIC_Initialize();

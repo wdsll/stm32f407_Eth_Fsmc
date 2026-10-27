@@ -1,8 +1,8 @@
 Dependencies for Project 'ATSAMD21G18A_Demo', Target 'ATSAMD21G18A_Demo': (DO NOT MODIFY !)
-F (..\firmware\src\main.c)(0x6AE010EC)(-xc -std=c90 --target=arm-arm-none-eabi -mcpu=cortex-m0plus -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-3 -O1 -ffunction-sections -w -I ./include -I ../firmware/src -I ../firmware/src/config/samd21g18a -I ../firmware/src/packs/ATSAMD21G18A_DFP -I ../firmware/src/packs/CMSIS -I ../firmware/src/packs/CMSIS/CMSIS/Core/Include -Wno-unknown-attributes -std=gnu11-I./RTE/_ATSAMD21G18A_Demo-IC:/Users/huyan/AppData/Local/Arm/Packs/Microchip/SAMD21_DFP/3.6.144/samd21a/include-IC:/Keil_v5/ARM/CMSIS/Include-D__UVISION_VERSION="525" -D__SAMD21G18A__ -D_stack="__initial_sp"-o ./objects/main.o -MD)
+F (..\firmware\src\main.c)(0x6AE05EEA)(-xc -std=c90 --target=arm-arm-none-eabi -mcpu=cortex-m0plus -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-3 -O1 -ffunction-sections -w -I ./include -I ../firmware/src -I ../firmware/src/config/samd21g18a -I ../firmware/src/packs/ATSAMD21G18A_DFP -I ../firmware/src/packs/CMSIS -I ../firmware/src/packs/CMSIS/CMSIS/Core/Include -Wno-unknown-attributes -std=gnu11-I./RTE/_ATSAMD21G18A_Demo-IC:/Users/huyan/AppData/Local/Arm/Packs/Microchip/SAMD21_DFP/3.6.144/samd21a/include-IC:/Keil_v5/ARM/CMSIS/Include-D__UVISION_VERSION="525" -D__SAMD21G18A__ -D_stack="__initial_sp"-o ./objects/main.o -MD)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdint.h)(0x5AA6413A)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stddef.h)(0x5AA6413A)
-I (..\firmware\src\config\samd21g18a\definitions.h)(0x6ADEB7C7)
+I (..\firmware\src\config\samd21g18a\definitions.h)(0x6AE04771)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdbool.h)(0x5AA6413A)
 I (..\firmware\src\config\samd21g18a\peripheral\nvmctrl\plib_nvmctrl.h)(0x6ADB0C32)
 I (..\firmware\src\config\samd21g18a\device.h)(0x6ADB0F69)
@@ -74,18 +74,20 @@ I (..\firmware\src\packs\ATSAMD21G18A_DFP\pio\samd21g18a.h)(0x6ADB0C33)
 I (..\firmware\src\config\samd21g18a\device_cache.h)(0x6ADB0C32)
 I (..\firmware\src\config\samd21g18a\toolchain_specifics.h)(0x6ADB0C32)
 I (include\sys\types.h)(0x6AE00FD9)
-I (..\firmware\src\config\samd21g18a\peripheral\evsys\plib_evsys.h)(0x6ADB0C32)
+I (..\firmware\src\config\samd21g18a\peripheral\sercom\i2c_master\plib_sercom1_i2c_master.h)(0x6AE0473C)
+I (..\firmware\src\config\samd21g18a\peripheral\sercom\i2c_master\plib_sercom_i2c_master_common.h)(0x6AE0473C)
 I (..\firmware\src\config\samd21g18a\peripheral\sercom\usart\plib_sercom0_usart.h)(0x6ADE9980)
 I (..\firmware\src\config\samd21g18a\peripheral\sercom\usart\plib_sercom_usart_common.h)(0x6ADE9980)
-I (..\firmware\src\config\samd21g18a\peripheral\port\plib_port.h)(0x6ADEB7C7)
+I (..\firmware\src\config\samd21g18a\peripheral\evsys\plib_evsys.h)(0x6ADB0C32)
+I (..\firmware\src\config\samd21g18a\peripheral\port\plib_port.h)(0x6AE04771)
 I (..\firmware\src\config\samd21g18a\peripheral\clock\plib_clock.h)(0x6ADB0C32)
 I (..\firmware\src\config\samd21g18a\peripheral\nvic\plib_nvic.h)(0x6ADB0C32)
 I (..\firmware\src\board.h)(0x6ADB0C32)
 F (..\firmware\src\board.h)(0x6ADB0C32)()
 F (..\firmware\src\config\samd21g18a\exceptions.c)(0x6ADB0F69)(-xc -std=c90 --target=arm-arm-none-eabi -mcpu=cortex-m0plus -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-3 -O1 -ffunction-sections -w -I ./include -I ../firmware/src -I ../firmware/src/config/samd21g18a -I ../firmware/src/packs/ATSAMD21G18A_DFP -I ../firmware/src/packs/CMSIS -I ../firmware/src/packs/CMSIS/CMSIS/Core/Include -Wno-unknown-attributes -std=gnu11-I./RTE/_ATSAMD21G18A_Demo-IC:/Users/huyan/AppData/Local/Arm/Packs/Microchip/SAMD21_DFP/3.6.144/samd21a/include-IC:/Keil_v5/ARM/CMSIS/Include-D__UVISION_VERSION="525" -D__SAMD21G18A__ -D_stack="__initial_sp"-o ./objects/exceptions.o -MD)
-I (..\firmware\src\config\samd21g18a\interrupts.h)(0x6ADEB7C8)
+I (..\firmware\src\config\samd21g18a\interrupts.h)(0x6AE04771)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdint.h)(0x5AA6413A)
-I (..\firmware\src\config\samd21g18a\definitions.h)(0x6ADEB7C7)
+I (..\firmware\src\config\samd21g18a\definitions.h)(0x6AE04771)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stddef.h)(0x5AA6413A)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdbool.h)(0x5AA6413A)
 I (..\firmware\src\config\samd21g18a\peripheral\nvmctrl\plib_nvmctrl.h)(0x6ADB0C32)
@@ -158,14 +160,16 @@ I (..\firmware\src\packs\ATSAMD21G18A_DFP\pio\samd21g18a.h)(0x6ADB0C33)
 I (..\firmware\src\config\samd21g18a\device_cache.h)(0x6ADB0C32)
 I (..\firmware\src\config\samd21g18a\toolchain_specifics.h)(0x6ADB0C32)
 I (include\sys\types.h)(0x6AE00FD9)
-I (..\firmware\src\config\samd21g18a\peripheral\evsys\plib_evsys.h)(0x6ADB0C32)
+I (..\firmware\src\config\samd21g18a\peripheral\sercom\i2c_master\plib_sercom1_i2c_master.h)(0x6AE0473C)
+I (..\firmware\src\config\samd21g18a\peripheral\sercom\i2c_master\plib_sercom_i2c_master_common.h)(0x6AE0473C)
 I (..\firmware\src\config\samd21g18a\peripheral\sercom\usart\plib_sercom0_usart.h)(0x6ADE9980)
 I (..\firmware\src\config\samd21g18a\peripheral\sercom\usart\plib_sercom_usart_common.h)(0x6ADE9980)
-I (..\firmware\src\config\samd21g18a\peripheral\port\plib_port.h)(0x6ADEB7C7)
+I (..\firmware\src\config\samd21g18a\peripheral\evsys\plib_evsys.h)(0x6ADB0C32)
+I (..\firmware\src\config\samd21g18a\peripheral\port\plib_port.h)(0x6AE04771)
 I (..\firmware\src\config\samd21g18a\peripheral\clock\plib_clock.h)(0x6ADB0C32)
 I (..\firmware\src\config\samd21g18a\peripheral\nvic\plib_nvic.h)(0x6ADB0C32)
-F (..\firmware\src\config\samd21g18a\initialization.c)(0x6ADEB7C7)(-xc -std=c90 --target=arm-arm-none-eabi -mcpu=cortex-m0plus -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-3 -O1 -ffunction-sections -w -I ./include -I ../firmware/src -I ../firmware/src/config/samd21g18a -I ../firmware/src/packs/ATSAMD21G18A_DFP -I ../firmware/src/packs/CMSIS -I ../firmware/src/packs/CMSIS/CMSIS/Core/Include -Wno-unknown-attributes -std=gnu11-I./RTE/_ATSAMD21G18A_Demo-IC:/Users/huyan/AppData/Local/Arm/Packs/Microchip/SAMD21_DFP/3.6.144/samd21a/include-IC:/Keil_v5/ARM/CMSIS/Include-D__UVISION_VERSION="525" -D__SAMD21G18A__ -D_stack="__initial_sp"-o ./objects/initialization.o -MD)
-I (..\firmware\src\config\samd21g18a\definitions.h)(0x6ADEB7C7)
+F (..\firmware\src\config\samd21g18a\initialization.c)(0x6AE04771)(-xc -std=c90 --target=arm-arm-none-eabi -mcpu=cortex-m0plus -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-3 -O1 -ffunction-sections -w -I ./include -I ../firmware/src -I ../firmware/src/config/samd21g18a -I ../firmware/src/packs/ATSAMD21G18A_DFP -I ../firmware/src/packs/CMSIS -I ../firmware/src/packs/CMSIS/CMSIS/Core/Include -Wno-unknown-attributes -std=gnu11-I./RTE/_ATSAMD21G18A_Demo-IC:/Users/huyan/AppData/Local/Arm/Packs/Microchip/SAMD21_DFP/3.6.144/samd21a/include-IC:/Keil_v5/ARM/CMSIS/Include-D__UVISION_VERSION="525" -D__SAMD21G18A__ -D_stack="__initial_sp"-o ./objects/initialization.o -MD)
+I (..\firmware\src\config\samd21g18a\definitions.h)(0x6AE04771)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdint.h)(0x5AA6413A)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stddef.h)(0x5AA6413A)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdbool.h)(0x5AA6413A)
@@ -239,17 +243,19 @@ I (..\firmware\src\packs\ATSAMD21G18A_DFP\pio\samd21g18a.h)(0x6ADB0C33)
 I (..\firmware\src\config\samd21g18a\device_cache.h)(0x6ADB0C32)
 I (..\firmware\src\config\samd21g18a\toolchain_specifics.h)(0x6ADB0C32)
 I (include\sys\types.h)(0x6AE00FD9)
-I (..\firmware\src\config\samd21g18a\peripheral\evsys\plib_evsys.h)(0x6ADB0C32)
+I (..\firmware\src\config\samd21g18a\peripheral\sercom\i2c_master\plib_sercom1_i2c_master.h)(0x6AE0473C)
+I (..\firmware\src\config\samd21g18a\peripheral\sercom\i2c_master\plib_sercom_i2c_master_common.h)(0x6AE0473C)
 I (..\firmware\src\config\samd21g18a\peripheral\sercom\usart\plib_sercom0_usart.h)(0x6ADE9980)
 I (..\firmware\src\config\samd21g18a\peripheral\sercom\usart\plib_sercom_usart_common.h)(0x6ADE9980)
-I (..\firmware\src\config\samd21g18a\peripheral\port\plib_port.h)(0x6ADEB7C7)
+I (..\firmware\src\config\samd21g18a\peripheral\evsys\plib_evsys.h)(0x6ADB0C32)
+I (..\firmware\src\config\samd21g18a\peripheral\port\plib_port.h)(0x6AE04771)
 I (..\firmware\src\config\samd21g18a\peripheral\clock\plib_clock.h)(0x6ADB0C32)
 I (..\firmware\src\config\samd21g18a\peripheral\nvic\plib_nvic.h)(0x6ADB0C32)
-F (..\firmware\src\config\samd21g18a\interrupts.c)(0x6ADEB7C8)(-xc -std=c90 --target=arm-arm-none-eabi -mcpu=cortex-m0plus -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-3 -O1 -ffunction-sections -w -I ./include -I ../firmware/src -I ../firmware/src/config/samd21g18a -I ../firmware/src/packs/ATSAMD21G18A_DFP -I ../firmware/src/packs/CMSIS -I ../firmware/src/packs/CMSIS/CMSIS/Core/Include -Wno-unknown-attributes -std=gnu11-I./RTE/_ATSAMD21G18A_Demo-IC:/Users/huyan/AppData/Local/Arm/Packs/Microchip/SAMD21_DFP/3.6.144/samd21a/include-IC:/Keil_v5/ARM/CMSIS/Include-D__UVISION_VERSION="525" -D__SAMD21G18A__ -D_stack="__initial_sp"-o ./objects/interrupts.o -MD)
+F (..\firmware\src\config\samd21g18a\interrupts.c)(0x6AE04771)(-xc -std=c90 --target=arm-arm-none-eabi -mcpu=cortex-m0plus -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-3 -O1 -ffunction-sections -w -I ./include -I ../firmware/src -I ../firmware/src/config/samd21g18a -I ../firmware/src/packs/ATSAMD21G18A_DFP -I ../firmware/src/packs/CMSIS -I ../firmware/src/packs/CMSIS/CMSIS/Core/Include -Wno-unknown-attributes -std=gnu11-I./RTE/_ATSAMD21G18A_Demo-IC:/Users/huyan/AppData/Local/Arm/Packs/Microchip/SAMD21_DFP/3.6.144/samd21a/include-IC:/Keil_v5/ARM/CMSIS/Include-D__UVISION_VERSION="525" -D__SAMD21G18A__ -D_stack="__initial_sp"-o ./objects/interrupts.o -MD)
 I (..\firmware\src\config\samd21g18a\device_vectors.h)(0x6ADB0F69)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdint.h)(0x5AA6413A)
-I (..\firmware\src\config\samd21g18a\interrupts.h)(0x6ADEB7C8)
-I (..\firmware\src\config\samd21g18a\definitions.h)(0x6ADEB7C7)
+I (..\firmware\src\config\samd21g18a\interrupts.h)(0x6AE04771)
+I (..\firmware\src\config\samd21g18a\definitions.h)(0x6AE04771)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stddef.h)(0x5AA6413A)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdbool.h)(0x5AA6413A)
 I (..\firmware\src\config\samd21g18a\peripheral\nvmctrl\plib_nvmctrl.h)(0x6ADB0C32)
@@ -322,16 +328,18 @@ I (..\firmware\src\packs\ATSAMD21G18A_DFP\pio\samd21g18a.h)(0x6ADB0C33)
 I (..\firmware\src\config\samd21g18a\device_cache.h)(0x6ADB0C32)
 I (..\firmware\src\config\samd21g18a\toolchain_specifics.h)(0x6ADB0C32)
 I (include\sys\types.h)(0x6AE00FD9)
-I (..\firmware\src\config\samd21g18a\peripheral\evsys\plib_evsys.h)(0x6ADB0C32)
+I (..\firmware\src\config\samd21g18a\peripheral\sercom\i2c_master\plib_sercom1_i2c_master.h)(0x6AE0473C)
+I (..\firmware\src\config\samd21g18a\peripheral\sercom\i2c_master\plib_sercom_i2c_master_common.h)(0x6AE0473C)
 I (..\firmware\src\config\samd21g18a\peripheral\sercom\usart\plib_sercom0_usart.h)(0x6ADE9980)
 I (..\firmware\src\config\samd21g18a\peripheral\sercom\usart\plib_sercom_usart_common.h)(0x6ADE9980)
-I (..\firmware\src\config\samd21g18a\peripheral\port\plib_port.h)(0x6ADEB7C7)
+I (..\firmware\src\config\samd21g18a\peripheral\evsys\plib_evsys.h)(0x6ADB0C32)
+I (..\firmware\src\config\samd21g18a\peripheral\port\plib_port.h)(0x6AE04771)
 I (..\firmware\src\config\samd21g18a\peripheral\clock\plib_clock.h)(0x6ADB0C32)
 I (..\firmware\src\config\samd21g18a\peripheral\nvic\plib_nvic.h)(0x6ADB0C32)
-F (..\firmware\src\config\samd21g18a\definitions.h)(0x6ADEB7C7)()
+F (..\firmware\src\config\samd21g18a\definitions.h)(0x6AE04771)()
 F (..\firmware\src\config\samd21g18a\device_vectors.h)(0x6ADB0F69)()
-F (..\firmware\src\config\samd21g18a\interrupts.h)(0x6ADEB7C8)()
-F (..\firmware\src\config\samd21g18a\peripheral\clock\plib_clock.c)(0x6ADEB7C7)(-xc -std=c90 --target=arm-arm-none-eabi -mcpu=cortex-m0plus -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-3 -O1 -ffunction-sections -w -I ./include -I ../firmware/src -I ../firmware/src/config/samd21g18a -I ../firmware/src/packs/ATSAMD21G18A_DFP -I ../firmware/src/packs/CMSIS -I ../firmware/src/packs/CMSIS/CMSIS/Core/Include -Wno-unknown-attributes -std=gnu11-I./RTE/_ATSAMD21G18A_Demo-IC:/Users/huyan/AppData/Local/Arm/Packs/Microchip/SAMD21_DFP/3.6.144/samd21a/include-IC:/Keil_v5/ARM/CMSIS/Include-D__UVISION_VERSION="525" -D__SAMD21G18A__ -D_stack="__initial_sp"-o ./objects/plib_clock.o -MD)
+F (..\firmware\src\config\samd21g18a\interrupts.h)(0x6AE04771)()
+F (..\firmware\src\config\samd21g18a\peripheral\clock\plib_clock.c)(0x6AE04771)(-xc -std=c90 --target=arm-arm-none-eabi -mcpu=cortex-m0plus -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-3 -O1 -ffunction-sections -w -I ./include -I ../firmware/src -I ../firmware/src/config/samd21g18a -I ../firmware/src/packs/ATSAMD21G18A_DFP -I ../firmware/src/packs/CMSIS -I ../firmware/src/packs/CMSIS/CMSIS/Core/Include -Wno-unknown-attributes -std=gnu11-I./RTE/_ATSAMD21G18A_Demo-IC:/Users/huyan/AppData/Local/Arm/Packs/Microchip/SAMD21_DFP/3.6.144/samd21a/include-IC:/Keil_v5/ARM/CMSIS/Include-D__UVISION_VERSION="525" -D__SAMD21G18A__ -D_stack="__initial_sp"-o ./objects/plib_clock.o -MD)
 I (..\firmware\src\config\samd21g18a\peripheral\clock\plib_clock.h)(0x6ADB0C32)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdint.h)(0x5AA6413A)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdbool.h)(0x5AA6413A)
@@ -405,7 +413,7 @@ I (..\firmware\src\packs\ATSAMD21G18A_DFP\pio\samd21g18a.h)(0x6ADB0C33)
 I (..\firmware\src\config\samd21g18a\device_cache.h)(0x6ADB0C32)
 I (..\firmware\src\config\samd21g18a\toolchain_specifics.h)(0x6ADB0C32)
 I (include\sys\types.h)(0x6AE00FD9)
-I (..\firmware\src\config\samd21g18a\interrupts.h)(0x6ADEB7C8)
+I (..\firmware\src\config\samd21g18a\interrupts.h)(0x6AE04771)
 F (..\firmware\src\config\samd21g18a\peripheral\evsys\plib_evsys.c)(0x6ADB0C32)(-xc -std=c90 --target=arm-arm-none-eabi -mcpu=cortex-m0plus -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-3 -O1 -ffunction-sections -w -I ./include -I ../firmware/src -I ../firmware/src/config/samd21g18a -I ../firmware/src/packs/ATSAMD21G18A_DFP -I ../firmware/src/packs/CMSIS -I ../firmware/src/packs/CMSIS/CMSIS/Core/Include -Wno-unknown-attributes -std=gnu11-I./RTE/_ATSAMD21G18A_Demo-IC:/Users/huyan/AppData/Local/Arm/Packs/Microchip/SAMD21_DFP/3.6.144/samd21a/include-IC:/Keil_v5/ARM/CMSIS/Include-D__UVISION_VERSION="525" -D__SAMD21G18A__ -D_stack="__initial_sp"-o ./objects/plib_evsys.o -MD)
 I (..\firmware\src\config\samd21g18a\peripheral\evsys\plib_evsys.h)(0x6ADB0C32)
 I (..\firmware\src\config\samd21g18a\device.h)(0x6ADB0F69)
@@ -479,8 +487,8 @@ I (..\firmware\src\config\samd21g18a\device_cache.h)(0x6ADB0C32)
 I (..\firmware\src\config\samd21g18a\toolchain_specifics.h)(0x6ADB0C32)
 I (include\sys\types.h)(0x6AE00FD9)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stddef.h)(0x5AA6413A)
-I (..\firmware\src\config\samd21g18a\interrupts.h)(0x6ADEB7C8)
-F (..\firmware\src\config\samd21g18a\peripheral\nvic\plib_nvic.c)(0x6ADEB7C8)(-xc -std=c90 --target=arm-arm-none-eabi -mcpu=cortex-m0plus -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-3 -O1 -ffunction-sections -w -I ./include -I ../firmware/src -I ../firmware/src/config/samd21g18a -I ../firmware/src/packs/ATSAMD21G18A_DFP -I ../firmware/src/packs/CMSIS -I ../firmware/src/packs/CMSIS/CMSIS/Core/Include -Wno-unknown-attributes -std=gnu11-I./RTE/_ATSAMD21G18A_Demo-IC:/Users/huyan/AppData/Local/Arm/Packs/Microchip/SAMD21_DFP/3.6.144/samd21a/include-IC:/Keil_v5/ARM/CMSIS/Include-D__UVISION_VERSION="525" -D__SAMD21G18A__ -D_stack="__initial_sp"-o ./objects/plib_nvic.o -MD)
+I (..\firmware\src\config\samd21g18a\interrupts.h)(0x6AE04771)
+F (..\firmware\src\config\samd21g18a\peripheral\nvic\plib_nvic.c)(0x6AE04771)(-xc -std=c90 --target=arm-arm-none-eabi -mcpu=cortex-m0plus -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-3 -O1 -ffunction-sections -w -I ./include -I ../firmware/src -I ../firmware/src/config/samd21g18a -I ../firmware/src/packs/ATSAMD21G18A_DFP -I ../firmware/src/packs/CMSIS -I ../firmware/src/packs/CMSIS/CMSIS/Core/Include -Wno-unknown-attributes -std=gnu11-I./RTE/_ATSAMD21G18A_Demo-IC:/Users/huyan/AppData/Local/Arm/Packs/Microchip/SAMD21_DFP/3.6.144/samd21a/include-IC:/Keil_v5/ARM/CMSIS/Include-D__UVISION_VERSION="525" -D__SAMD21G18A__ -D_stack="__initial_sp"-o ./objects/plib_nvic.o -MD)
 I (..\firmware\src\config\samd21g18a\device.h)(0x6ADB0F69)
 I (..\firmware\src\packs\ATSAMD21G18A_DFP\samd21g18a.h)(0x6ADB0C32)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdint.h)(0x5AA6413A)
@@ -556,7 +564,7 @@ I (..\firmware\src\config\samd21g18a\peripheral\nvic\plib_nvic.h)(0x6ADB0C32)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdbool.h)(0x5AA6413A)
 F (..\firmware\src\config\samd21g18a\peripheral\nvmctrl\plib_nvmctrl.c)(0x6ADB0C32)(-xc -std=c90 --target=arm-arm-none-eabi -mcpu=cortex-m0plus -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-3 -O1 -ffunction-sections -w -I ./include -I ../firmware/src -I ../firmware/src/config/samd21g18a -I ../firmware/src/packs/ATSAMD21G18A_DFP -I ../firmware/src/packs/CMSIS -I ../firmware/src/packs/CMSIS/CMSIS/Core/Include -Wno-unknown-attributes -std=gnu11-I./RTE/_ATSAMD21G18A_Demo-IC:/Users/huyan/AppData/Local/Arm/Packs/Microchip/SAMD21_DFP/3.6.144/samd21a/include-IC:/Keil_v5/ARM/CMSIS/Include-D__UVISION_VERSION="525" -D__SAMD21G18A__ -D_stack="__initial_sp"-o ./objects/plib_nvmctrl.o -MD)
 I (C:\Keil_v5\ARM\ARMCLANG\include\string.h)(0x5AA6413A)
-I (..\firmware\src\config\samd21g18a\interrupts.h)(0x6ADEB7C8)
+I (..\firmware\src\config\samd21g18a\interrupts.h)(0x6AE04771)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdint.h)(0x5AA6413A)
 I (..\firmware\src\config\samd21g18a\peripheral\nvmctrl\plib_nvmctrl.h)(0x6ADB0C32)
 I (..\firmware\src\config\samd21g18a\device.h)(0x6ADB0F69)
@@ -630,8 +638,8 @@ I (..\firmware\src\config\samd21g18a\toolchain_specifics.h)(0x6ADB0C32)
 I (include\sys\types.h)(0x6AE00FD9)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stddef.h)(0x5AA6413A)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdbool.h)(0x5AA6413A)
-F (..\firmware\src\config\samd21g18a\peripheral\port\plib_port.c)(0x6ADEB7C7)(-xc -std=c90 --target=arm-arm-none-eabi -mcpu=cortex-m0plus -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-3 -O1 -ffunction-sections -w -I ./include -I ../firmware/src -I ../firmware/src/config/samd21g18a -I ../firmware/src/packs/ATSAMD21G18A_DFP -I ../firmware/src/packs/CMSIS -I ../firmware/src/packs/CMSIS/CMSIS/Core/Include -Wno-unknown-attributes -std=gnu11-I./RTE/_ATSAMD21G18A_Demo-IC:/Users/huyan/AppData/Local/Arm/Packs/Microchip/SAMD21_DFP/3.6.144/samd21a/include-IC:/Keil_v5/ARM/CMSIS/Include-D__UVISION_VERSION="525" -D__SAMD21G18A__ -D_stack="__initial_sp"-o ./objects/plib_port.o -MD)
-I (..\firmware\src\config\samd21g18a\peripheral\port\plib_port.h)(0x6ADEB7C7)
+F (..\firmware\src\config\samd21g18a\peripheral\port\plib_port.c)(0x6AE04771)(-xc -std=c90 --target=arm-arm-none-eabi -mcpu=cortex-m0plus -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-3 -O1 -ffunction-sections -w -I ./include -I ../firmware/src -I ../firmware/src/config/samd21g18a -I ../firmware/src/packs/ATSAMD21G18A_DFP -I ../firmware/src/packs/CMSIS -I ../firmware/src/packs/CMSIS/CMSIS/Core/Include -Wno-unknown-attributes -std=gnu11-I./RTE/_ATSAMD21G18A_Demo-IC:/Users/huyan/AppData/Local/Arm/Packs/Microchip/SAMD21_DFP/3.6.144/samd21a/include-IC:/Keil_v5/ARM/CMSIS/Include-D__UVISION_VERSION="525" -D__SAMD21G18A__ -D_stack="__initial_sp"-o ./objects/plib_port.o -MD)
+I (..\firmware\src\config\samd21g18a\peripheral\port\plib_port.h)(0x6AE04771)
 I (..\firmware\src\config\samd21g18a\device.h)(0x6ADB0F69)
 I (..\firmware\src\packs\ATSAMD21G18A_DFP\samd21g18a.h)(0x6ADB0C32)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdint.h)(0x5AA6413A)
@@ -704,11 +712,87 @@ I (..\firmware\src\config\samd21g18a\toolchain_specifics.h)(0x6ADB0C32)
 I (include\sys\types.h)(0x6AE00FD9)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stddef.h)(0x5AA6413A)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdbool.h)(0x5AA6413A)
-F (..\firmware\src\config\samd21g18a\peripheral\sercom\usart\plib_sercom0_usart.c)(0x6ADE9980)(-xc -std=c90 --target=arm-arm-none-eabi -mcpu=cortex-m0plus -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-3 -O1 -ffunction-sections -w -I ./include -I ../firmware/src -I ../firmware/src/config/samd21g18a -I ../firmware/src/packs/ATSAMD21G18A_DFP -I ../firmware/src/packs/CMSIS -I ../firmware/src/packs/CMSIS/CMSIS/Core/Include -Wno-unknown-attributes -std=gnu11-I./RTE/_ATSAMD21G18A_Demo-IC:/Users/huyan/AppData/Local/Arm/Packs/Microchip/SAMD21_DFP/3.6.144/samd21a/include-IC:/Keil_v5/ARM/CMSIS/Include-D__UVISION_VERSION="525" -D__SAMD21G18A__ -D_stack="__initial_sp"-o ./objects/plib_sercom0_usart.o -MD)
-I (..\firmware\src\config\samd21g18a\interrupts.h)(0x6ADEB7C8)
+F (..\firmware\src\config\samd21g18a\peripheral\sercom\usart\plib_sercom0_usart.c)(0x6AE04909)(-xc -std=c90 --target=arm-arm-none-eabi -mcpu=cortex-m0plus -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-3 -O1 -ffunction-sections -w -I ./include -I ../firmware/src -I ../firmware/src/config/samd21g18a -I ../firmware/src/packs/ATSAMD21G18A_DFP -I ../firmware/src/packs/CMSIS -I ../firmware/src/packs/CMSIS/CMSIS/Core/Include -Wno-unknown-attributes -std=gnu11-I./RTE/_ATSAMD21G18A_Demo-IC:/Users/huyan/AppData/Local/Arm/Packs/Microchip/SAMD21_DFP/3.6.144/samd21a/include-IC:/Keil_v5/ARM/CMSIS/Include-D__UVISION_VERSION="525" -D__SAMD21G18A__ -D_stack="__initial_sp"-o ./objects/plib_sercom0_usart.o -MD)
+I (..\firmware\src\config\samd21g18a\interrupts.h)(0x6AE04771)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdint.h)(0x5AA6413A)
 I (..\firmware\src\config\samd21g18a\peripheral\sercom\usart\plib_sercom0_usart.h)(0x6ADE9980)
 I (..\firmware\src\config\samd21g18a\peripheral\sercom\usart\plib_sercom_usart_common.h)(0x6ADE9980)
+I (C:\Keil_v5\ARM\ARMCLANG\include\stdbool.h)(0x5AA6413A)
+I (C:\Keil_v5\ARM\ARMCLANG\include\stddef.h)(0x5AA6413A)
+I (..\firmware\src\config\samd21g18a\device.h)(0x6ADB0F69)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\samd21g18a.h)(0x6ADB0C32)
+I (..\firmware\src\packs\CMSIS\CMSIS\Core\Include\core_cm0plus.h)(0x6ADB0C33)
+I (..\firmware\src\packs\CMSIS\CMSIS\Core\Include\cmsis_version.h)(0x6ADB0C33)
+I (..\firmware\src\packs\CMSIS\CMSIS\Core\Include\cmsis_compiler.h)(0x6ADB0C33)
+I (..\firmware\src\packs\CMSIS\CMSIS\Core\Include\cmsis_armclang_ltm.h)(0x6ADB0C33)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\component\ac.h)(0x6ADB0C32)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\component\adc.h)(0x6ADB0C32)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\component\dac.h)(0x6ADB0C32)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\component\dmac.h)(0x6ADB0C32)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\component\dsu.h)(0x6ADB0C32)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\component\eic.h)(0x6ADB0C32)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\component\evsys.h)(0x6ADB0C32)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\component\fuses.h)(0x6ADB0C32)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\component\gclk.h)(0x6ADB0C32)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\component\hmatrixb.h)(0x6ADB0C32)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\component\i2s.h)(0x6ADB0C32)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\component\mtb.h)(0x6ADB0C32)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\component\nvmctrl.h)(0x6ADB0C32)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\component\pac.h)(0x6ADB0C32)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\component\pm.h)(0x6ADB0C32)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\component\port.h)(0x6ADB0C32)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\component\ptc.h)(0x6ADB0C32)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\component\rtc.h)(0x6ADB0C32)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\component\sercom.h)(0x6ADB0C32)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\component\sysctrl.h)(0x6ADB0C32)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\component\tc.h)(0x6ADB0C32)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\component\tcc.h)(0x6ADB0C32)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\component\usb.h)(0x6ADB0C32)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\component\wdt.h)(0x6ADB0C32)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\ac.h)(0x6ADB0C32)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\adc.h)(0x6ADB0C32)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\dac.h)(0x6ADB0C32)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\dmac.h)(0x6ADB0C32)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\dsu.h)(0x6ADB0C33)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\eic.h)(0x6ADB0C33)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\evsys.h)(0x6ADB0C33)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\fuses.h)(0x6ADB0C33)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\gclk.h)(0x6ADB0C33)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\i2s.h)(0x6ADB0C33)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\mtb.h)(0x6ADB0C33)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\nvmctrl.h)(0x6ADB0C33)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\pac0.h)(0x6ADB0C33)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\pac1.h)(0x6ADB0C33)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\pac2.h)(0x6ADB0C33)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\pm.h)(0x6ADB0C33)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\port.h)(0x6ADB0C33)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\ptc.h)(0x6ADB0C33)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\rtc.h)(0x6ADB0C33)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\sbmatrix.h)(0x6ADB0C33)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\sercom0.h)(0x6ADB0C33)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\sercom1.h)(0x6ADB0C33)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\sercom2.h)(0x6ADB0C33)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\sercom3.h)(0x6ADB0C33)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\sercom4.h)(0x6ADB0C33)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\sercom5.h)(0x6ADB0C33)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\sysctrl.h)(0x6ADB0C33)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\tc3.h)(0x6ADB0C33)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\tc4.h)(0x6ADB0C33)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\tc5.h)(0x6ADB0C33)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\tcc0.h)(0x6ADB0C33)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\tcc1.h)(0x6ADB0C33)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\tcc2.h)(0x6ADB0C33)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\usb.h)(0x6ADB0C33)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\instance\wdt.h)(0x6ADB0C33)
+I (..\firmware\src\packs\ATSAMD21G18A_DFP\pio\samd21g18a.h)(0x6ADB0C33)
+I (..\firmware\src\config\samd21g18a\device_cache.h)(0x6ADB0C32)
+I (..\firmware\src\config\samd21g18a\toolchain_specifics.h)(0x6ADB0C32)
+I (include\sys\types.h)(0x6AE00FD9)
+F (..\firmware\src\config\samd21g18a\peripheral\sercom\i2c_master\plib_sercom1_i2c_master.c)(0x6AE0473C)(-xc -std=c90 --target=arm-arm-none-eabi -mcpu=cortex-m0plus -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-3 -O1 -ffunction-sections -w -I ./include -I ../firmware/src -I ../firmware/src/config/samd21g18a -I ../firmware/src/packs/ATSAMD21G18A_DFP -I ../firmware/src/packs/CMSIS -I ../firmware/src/packs/CMSIS/CMSIS/Core/Include -Wno-unknown-attributes -std=gnu11-I./RTE/_ATSAMD21G18A_Demo-IC:/Users/huyan/AppData/Local/Arm/Packs/Microchip/SAMD21_DFP/3.6.144/samd21a/include-IC:/Keil_v5/ARM/CMSIS/Include-D__UVISION_VERSION="525" -D__SAMD21G18A__ -D_stack="__initial_sp"-o ./objects/plib_sercom1_i2c_master.o -MD)
+I (..\firmware\src\config\samd21g18a\interrupts.h)(0x6AE04771)
+I (C:\Keil_v5\ARM\ARMCLANG\include\stdint.h)(0x5AA6413A)
+I (..\firmware\src\config\samd21g18a\peripheral\sercom\i2c_master\plib_sercom1_i2c_master.h)(0x6AE0473C)
+I (..\firmware\src\config\samd21g18a\peripheral\sercom\i2c_master\plib_sercom_i2c_master_common.h)(0x6AE0473C)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdbool.h)(0x5AA6413A)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stddef.h)(0x5AA6413A)
 I (..\firmware\src\config\samd21g18a\device.h)(0x6ADB0F69)

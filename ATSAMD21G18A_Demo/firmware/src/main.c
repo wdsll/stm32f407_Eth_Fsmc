@@ -7,26 +7,79 @@
 #include "definitions.h"
 #include "board.h"
 
-volatile uint32_t g_uptime_ms = 0U;
-volatile uint32_t g_heartbeat = 0U;
-/* é™æ€ç¼“å†²åŒºï¼Œå‘é€å®Œæˆå‰ä¿æŒæœ‰æ•ˆ */
+
 static uint8_t s_tx_message[] = "ATSAMD21G18A UART OK\r\n";
 
-/* å¯åœ¨è°ƒè¯•å™¨ Watch ä¸­è§‚å¯Ÿ */
 volatile bool g_uart_started = false;
 volatile bool g_uart_done = false;
+/* Watch ´°¿Ú¹Û²ìÕâĞ©±äÁ¿ */
+volatile bool g_i2c_test_started = false;
+volatile bool g_i2c_test_done = false;
+volatile bool g_i2c_test_ok = false;
+volatile uint32_t g_i2c_test_error = 0U;
+
+/*
+ * Ê¾ÀıÊı¾İ£º
+ * ±ØĞë°´Êµ¼Ê´ÓÉè±¸Ğ­Òéµ÷Õû¡£
+ * ÈôÁ¬½ÓÁíÒ»¸ö MCU ×÷Îª²âÊÔ´Ó»ú£¬¿ÉÒÔÖ±½Ó½ÓÊÕÕâËÄ×Ö½Ú¡£
+ */
+static uint8_t s_i2c_test_tx[] = {
+    0x55U, 0xAAU, 0x01U, 0x02U
+};
+
+/* I2C ´«ÊäÍê³É»ò·¢Éú´íÎóÊ±£¬ÓÉÇı¶¯ÔÚÖĞ¶ÏÖĞµ÷ÓÃ */
+static void I2C_TestCallback(uintptr_t context)
+{
+    (void)context;
+
+    g_i2c_test_error = (uint32_t)SERCOM1_I2C_ErrorGet();
+
+    g_i2c_test_ok =
+        (g_i2c_test_error == (uint32_t)SERCOM_I2C_ERROR_NONE);
+
+    /* ×îºóÖÃÍê³É±êÖ¾ */
+    g_i2c_test_done = true;
+}
+
+/*
+ * ¹¦ÄÜ£ºÏòÖ¸¶¨µÄ 7 Î»´Ó»úµØÖ·Ìá½»Ò»´Î·¢ËÍÇëÇó¡£
+ * ²ÎÊı£ºslave_addr ÎªÎ´×óÒÆµÄµØÖ·£¬ÀıÈç 0x50£¬¶ø²»ÊÇ 0xA0¡£
+ * ·µ»Ø£ºtrue ±íÊ¾ÇëÇó±»½ÓÊÜ£¬×îÖÕ½á¹û¿´»Øµ÷±äÁ¿¡£
+ *
+ * ×¢Òâ£º·¢ËÍÆÚ¼ä²»¿ÉĞŞ¸Ä s_i2c_test_tx¡£
+ */
+static bool I2C_MasterSendTest(uint16_t slave_addr)
+{
+	if((slave_addr<0x08U)||(slave_addr > 0x77U) ||SERCOM1_I2C_IsBusy())
+	{
+		return false;
+	}
+	g_i2c_test_started = false;
+	g_i2c_test_done = false;
+	g_i2c_test_ok = false;
+	g_i2c_test_error = 0U;
+	
+	SERCOM1_I2C_CallbackRegister(I2C_TestCallback, 0U);
+
+	g_i2c_test_started = SERCOM1_I2C_Write(
+			slave_addr,
+			s_i2c_test_tx,
+			sizeof(s_i2c_test_tx)
+	);
+	return g_i2c_test_started;
+}
 int main(void)
 {
     uint32_t elapsed = 0U;
     SYS_Initialize(NULL);
-
-    g_uart_started = SERCOM0_USART_Write(
-        s_tx_message,
-        sizeof(s_tx_message) - 1U
-    );
+/*
+ * 0x50 ½öÎªÊ¾Àı£¬±ØĞë»»³ÉÊµ¼Ê´Ó»úµÄ 7 Î»µØÖ·¡£
+ * ÈôÁ¬½Ó EEPROM¡¢´«¸ĞÆ÷µÈ£¬Ó¦ÏÈ°´ÆäĞ­ÒéĞŞ¸Ä·¢ËÍÊı¾İ¡£
+ */
+		(void)I2C_MasterSendTest(0x50U);
+    g_uart_started = SERCOM0_USART_Write(s_tx_message,sizeof(s_tx_message) - 1U);
     if (g_uart_started)
     {
-        /* åˆæ¬¡è”è°ƒï¼šç­‰å¾…ä¸²å£é©±åŠ¨å®Œæˆå‘é€ */
         while (SERCOM0_USART_WriteIsBusy())
         {
         }
@@ -34,6 +87,6 @@ int main(void)
     }
     while (true)
     {
-        /* åç»­ä¸šåŠ¡ä»£ç  */
+
     }
 }

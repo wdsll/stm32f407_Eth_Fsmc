@@ -74,9 +74,11 @@
   ../firmware/src/config/samd21g18a/device.h \
   ../firmware/src/config/samd21g18a/toolchain_specifics.h \
   include\sys/types.h \
-  ../firmware/src/config/samd21g18a/peripheral/evsys/plib_evsys.h \
+  ../firmware/src/config/samd21g18a/peripheral/sercom/i2c_master/plib_sercom1_i2c_master.h \
+  ../firmware/src/config/samd21g18a/peripheral/sercom/i2c_master/plib_sercom_i2c_master_common.h \
   ../firmware/src/config/samd21g18a/peripheral/sercom/usart/plib_sercom0_usart.h \
   ../firmware/src/config/samd21g18a/peripheral/sercom/usart/plib_sercom_usart_common.h \
+  ../firmware/src/config/samd21g18a/peripheral/evsys/plib_evsys.h \
   ../firmware/src/config/samd21g18a/peripheral/port/plib_port.h \
   ../firmware/src/config/samd21g18a/peripheral/clock/plib_clock.h \
   ../firmware/src/config/samd21g18a/peripheral/nvic/plib_nvic.h \

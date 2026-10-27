@@ -2,12 +2,12 @@
 
 manifest_file_version: 1.0.0
 project: ATSAMD21G18A_Demo
-creation_date: 2026-10-26T11:31:55.876+08:00[Asia/Shanghai]
+creation_date: 2026-10-27T14:41:27.893+08:00[Asia/Shanghai]
 operating_system: Windows 11
 mcc_mode: IDE
 mcc_mode_version: v6.35
 device_name: ATSAMD21G18A
-compiler: XC32 4.60
+compiler: XC32 5.10
 mcc_version: 5.7.0
 mcc_core_version: 5.9.0
 content_manager_version: 7.0.0

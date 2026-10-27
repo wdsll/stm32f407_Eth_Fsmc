@@ -9,6 +9,7 @@
 ".\objects\plib_nvmctrl.o"
 ".\objects\plib_port.o"
 ".\objects\plib_sercom0_usart.o"
+".\objects\plib_sercom1_i2c_master.o"
 ".\objects\startup_samd21_keil.o"
 --library_type=microlib --strict --scatter ".\ATSAMD21G18A.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols

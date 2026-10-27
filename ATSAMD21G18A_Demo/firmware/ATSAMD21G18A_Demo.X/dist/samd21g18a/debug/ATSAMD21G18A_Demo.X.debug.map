@@ -10,14 +10,28 @@ C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../
                               C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__libc_start_main.o) (__progname_full)
 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__environ.o)
                               C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__libc_start_main.o) (__environ)
+C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libm-fast-emfloat.a(__aeabi_fadd.o)
+                              build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o (__aeabi_fadd)
+C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libm-fast-emfloat.a(__aeabi_fsub.o)
+                              build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o (__aeabi_fsub)
+C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libm-fast-emfloat.a(__aeabi_fmul.o)
+                              build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o (__aeabi_fmul)
+C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libm-fast-emfloat.a(__aeabi_fdiv.o)
+                              build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o (__aeabi_fdiv)
+C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libm-fast-emfloat.a(__aeabi_f2uiz.o)
+                              build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o (__aeabi_f2uiz)
+C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libm-fast-emfloat.a(__aeabi_ui2f.o)
+                              build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o (__aeabi_ui2f)
+C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_udivsi3.o)
+                              build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o (__aeabi_uidiv)
+C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_dvmd_tls.o)
+                              C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_udivsi3.o) (__aeabi_idiv0)
 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_aeabi_uldivmod.o)
                               build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o (__aeabi_uldivmod)
 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_muldi3.o)
                               build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o (__aeabi_lmul)
 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_udivmoddi4.o)
                               C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_aeabi_uldivmod.o) (__udivmoddi4)
-C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_dvmd_tls.o)
-                              C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_aeabi_uldivmod.o) (__aeabi_ldiv0)
 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_lshrdi3.o)
                               C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_udivmoddi4.o) (__aeabi_llsr)
 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_ashldi3.o)
@@ -38,38 +52,41 @@ section                    address  length [bytes]      (dec)  Description
 -------                 ----------  -------------------------  -----------
 .vectors                         0           0xb0         176   
 .text                         0xb0           0x20          32  App's exec code 
-.text.CLOCK_Initialize        0xd0           0x8c         140   
-.text.SERCOM0_USART_ISR      0x15c           0x80         128   
-.dinit                       0x1dc           0x80         128   
-.text.SERCOM0_USART_Wri      0x25c           0x74         116   
-.text.SERCOM0_USART_ISR      0x2d0           0x70         112   
-.text.__libc_start_init      0x340           0x5c          92   
-.text.SERCOM0_USART_Ini      0x39c           0x58          88   
-.text.SERCOM0_USART_Int      0x3f4           0x58          88   
-.text                        0x44c           0x48          72  App's exec code 
-.text.Reset_Handler          0x494           0x48          72   
-.text.SERCOM0_USART_ISR      0x4dc           0x40          64   
-.text.main                   0x51c           0x38          56   
-.text.__pic32c_data_ini      0x554           0x38          56   
-.text.NVIC_Initialize        0x58c           0x2c          44   
-.text.SERCOM0_USART_Err      0x5b8           0x2c          44   
-.text.SYS_Initialize         0x5e4           0x24          36   
-.text.__dinit_copy           0x608           0x1e          30   
-.text.Dummy_Handler          0x626            0x2           2   
-.text.PORT_Initialize        0x628           0x1c          28   
-.rodata                      0x644           0x14          20  Read-only const 
-.text.__dinit_clear          0x658           0x12          18   
-.text.Dummy_App_Func         0x66a            0x2           2   
-.text.NVMCTRL_Initializ      0x66c            0xc          12   
-.text.SERCOM0_USART_Wri      0x678            0xc          12   
-.text.NonMaskableInt_Ha      0x684            0x4           4   
-.text.HardFault_Handler      0x688            0x4           4   
-.text.__dummy_decompres      0x68c            0x4           4   
-.text.__dummy_init_tls       0x690            0x2           2   
-.text.__dummy                0x692            0x2           2   
-      Total ROM used  :       0x694        1684  0.6% of 0x40000
+.text.SERCOM1_I2C_Inter       0xd0          0x1c0         448   
+.text.CLOCK_Initialize       0x290           0x94         148   
+.text.SERCOM0_USART_ISR      0x324           0x80         128   
+.dinit                       0x3a4           0x80         128   
+.text.SERCOM0_USART_Wri      0x424           0x74         116   
+.text.SERCOM0_USART_ISR      0x498           0x70         112   
+.text.SERCOM1_I2C_Initi      0x508           0x60          96   
+.text.__libc_start_init      0x568           0x5c          92   
+.text.SERCOM0_USART_Ini      0x5c4           0x58          88   
+.text.SERCOM0_USART_Int      0x61c           0x58          88   
+.text.SERCOM1_I2C_Initi      0x674           0x54          84   
+.text                        0x6c8           0x48          72  App's exec code 
+.text.Reset_Handler          0x710           0x48          72   
+.text.SERCOM0_USART_ISR      0x758           0x40          64   
+.text.NVIC_Initialize        0x798           0x40          64   
+.text.main                   0x7d8           0x38          56   
+.text.__pic32c_data_ini      0x810           0x38          56   
+.text.SERCOM0_USART_Err      0x848           0x2c          44   
+.text.PORT_Initialize        0x874           0x2c          44   
+.text.SYS_Initialize         0x8a0           0x28          40   
+.text.__dinit_copy           0x8c8           0x1e          30   
+.text.Dummy_Handler          0x8e6            0x2           2   
+.rodata                      0x8e8           0x14          20  Read-only const 
+.text.__dinit_clear          0x8fc           0x12          18   
+.text.Dummy_App_Func         0x90e            0x2           2   
+.text.SERCOM0_USART_Wri      0x910            0xc          12   
+.text.NVMCTRL_Initializ      0x91c            0xc          12   
+.text.NonMaskableInt_Ha      0x928            0x4           4   
+.text.HardFault_Handler      0x92c            0x4           4   
+.text.__dummy_decompres      0x930            0x4           4   
+.text.__dummy_init_tls       0x934            0x2           2   
+.text.__dummy                0x936            0x2           2   
+      Total ROM used  :       0x938        2360  0.9% of 0x40000
         --------------------------------------------------------------------------
-         Total Program Memory used  :       0x694        1684  0.6% of 0x40000
+         Total Program Memory used  :       0x938        2360  0.9% of 0x40000
         --------------------------------------------------------------------------
 
 
@@ -78,52 +95,54 @@ section                    address  length [bytes]      (dec)  Description
 -------                 ----------  -------------------------  -----------
 .bss                    0x20000000           0x50          80  Uninitialized data 
 .bss.sercom0USARTObj    0x20000050           0x30          48   
-.bss                    0x20000080           0x1c          28  Uninitialized data 
-.bss                    0x2000009c            0x4           4  Uninitialized data 
-.bss                    0x200000a0            0x4           4  Uninitialized data 
-.bss.g_uart_done        0x200000a4            0x1           1   
-.bss.g_uart_started     0x200000a5            0x1           1   
-.data.s_tx_message      0x200000a8           0x17          23   
-         Total RAM used  :        0xbd         189  0.6% of 0x8000
+.bss.sercom1I2CObj      0x20000080           0x2c          44   
+.bss                    0x200000ac           0x1c          28  Uninitialized data 
+.bss                    0x200000c8            0x4           4  Uninitialized data 
+.bss                    0x200000cc            0x4           4  Uninitialized data 
+.bss.g_uart_done        0x200000d0            0x1           1   
+.bss.g_uart_started     0x200000d1            0x1           1   
+.data.s_tx_message      0x200000d4           0x17          23   
+         Total RAM used  :        0xe9         233  0.7% of 0x8000
         --------------------------------------------------------------------------
-            Total Data Memory used  :        0xbd         189  0.6% of 0x8000
+            Total Data Memory used  :        0xe9         233  0.7% of 0x8000
         --------------------------------------------------------------------------
 
 
 Dynamic Data-Memory Reservation
 section                    address  length [bytes]      (dec)  Description
 -------                 ----------  -------------------------  -----------
-heap                    0x200000c0          0x200         512  Reserved for heap 
-stack                   0x200002d8         0x7d20       32032  Reserved for stack 
+heap                    0x200000f0          0x200         512  Reserved for heap 
+stack                   0x20000308         0x7cf0       31984  Reserved for stack 
 
         --------------------------------------------------------------------------
 
 Microchip PIC32 Memory-Usage Report By Module
 
-        text        data         bss         dec         hex    basename                   filename
+        text        data         bss         dec         hex    basename                     filename
 --------------------------------------------------------------------------------
-         652           0          48         700         2bc    plib_sercom0_usart.o   build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
-         178           0           0         178          b2    interrupts.o           build/samd21g18a/debug/_ext/1024713942/interrupts.o
-         140           0           0         140          8c    plib_clock.o           build/samd21g18a/debug/_ext/902838784/plib_clock.o
-         128           0           0         128          80    data_init              data_init
-          72           8          28         108          6c    crtbegin.o             C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp/crtbegin.o
-          94           0           0          94          5e    __libc_start_main.o    libg-musl.a
-          82           0           4          86          56    data_init.o            libpic32c.a
-          56          23           2          81          51    main.o                 build/samd21g18a/debug/_ext/1360937237/main.o
-           0           0          80          80          50    libc.o                 libg-musl.a
-          74           0           0          74          4a    startup_xc32.o         build/samd21g18a/debug/_ext/1024713942/startup_xc32.o
-          44           0           0          44          2c    initialization.o       build/samd21g18a/debug/_ext/1024713942/initialization.o
-          44           0           0          44          2c    plib_nvic.o            build/samd21g18a/debug/_ext/1356012368/plib_nvic.o
-          30           0           0          30          1e    pic32_data_init_copy.o libpic32c.a
-          28           0           0          28          1c    plib_port.o            build/samd21g18a/debug/_ext/1355959217/plib_port.o
-          18           0           0          18          12    pic32_data_init_clear.olibpic32c.a
-          16           0           0          16          10    crtn.o                 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp/crtn.o
-          12           0           0          12           c    plib_nvmctrl.o         build/samd21g18a/debug/_ext/1501740290/plib_nvmctrl.o
-           8           0           0           8           8    exceptions.o           build/samd21g18a/debug/_ext/1024713942/exceptions.o
-           8           0           0           8           8    crti.o                 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp/crti.o
-           0           0           4           4           4    __environ.o            libg-musl.a
+         652           0          48         700         2bc    plib_sercom0_usart.o     build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+         628           0          44         672         2a0    plib_sercom1_i2c_master.obuild/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o
+         178           0           0         178          b2    interrupts.o             build/samd21g18a/debug/_ext/1024713942/interrupts.o
+         148           0           0         148          94    plib_clock.o             build/samd21g18a/debug/_ext/902838784/plib_clock.o
+         128           0           0         128          80    data_init                data_init
+          72           8          28         108          6c    crtbegin.o               C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp/crtbegin.o
+          94           0           0          94          5e    __libc_start_main.o      libg-musl.a
+          82           0           4          86          56    data_init.o              libpic32c.a
+          56          23           2          81          51    main.o                   build/samd21g18a/debug/_ext/1360937237/main.o
+           0           0          80          80          50    libc.o                   libg-musl.a
+          74           0           0          74          4a    startup_xc32.o           build/samd21g18a/debug/_ext/1024713942/startup_xc32.o
+          64           0           0          64          40    plib_nvic.o              build/samd21g18a/debug/_ext/1356012368/plib_nvic.o
+          48           0           0          48          30    initialization.o         build/samd21g18a/debug/_ext/1024713942/initialization.o
+          44           0           0          44          2c    plib_port.o              build/samd21g18a/debug/_ext/1355959217/plib_port.o
+          30           0           0          30          1e    pic32_data_init_copy.o   libpic32c.a
+          18           0           0          18          12    pic32_data_init_clear.o  libpic32c.a
+          16           0           0          16          10    crtn.o                   C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp/crtn.o
+          12           0           0          12           c    plib_nvmctrl.o           build/samd21g18a/debug/_ext/1501740290/plib_nvmctrl.o
+           8           0           0           8           8    crti.o                   C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp/crti.o
+           8           0           0           8           8    exceptions.o             build/samd21g18a/debug/_ext/1024713942/exceptions.o
+           0           0           4           4           4    __environ.o              libg-musl.a
 --------------------------------------------------------------------------------
-        1684          31         166        1881         759    dist/samd21g18a/debug/ATSAMD21G18A_Demo.X.debug.elf
+        2360          31         210        2601         a29    dist/samd21g18a/debug/ATSAMD21G18A_Demo.X.debug.elf
 
 
 Discarded input sections
@@ -141,6 +160,43 @@ Discarded input sections
                 0x00000000       0x3c C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp/crtbegin.o
  .xc_stack_usage.hdr
                 0x00000000        0xe C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp/crtbegin.o
+ .text          0x00000000        0x0 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+ .data          0x00000000        0x0 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+ .bss           0x00000000        0x0 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+ .text.SERCOM0_USART_FrequencyGet
+                0x00000000        0x8 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+ .text.SERCOM0_USART_SerialSetup
+                0x00000000      0x110 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+ .text.SERCOM0_USART_ErrorGet
+                0x00000000       0x10 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+ .text.SERCOM0_USART_Enable
+                0x00000000       0x20 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+ .text.SERCOM0_USART_Disable
+                0x00000000       0x20 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+ .text.SERCOM0_USART_TransmitterEnable
+                0x00000000       0x18 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+ .text.SERCOM0_USART_TransmitterDisable
+                0x00000000       0x1c build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+ .text.SERCOM0_USART_WriteCountGet
+                0x00000000        0xc build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+ .text.SERCOM0_USART_WriteCallbackRegister
+                0x00000000        0xc build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+ .text.SERCOM0_USART_TransmitComplete
+                0x00000000       0x10 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+ .text.SERCOM0_USART_ReceiverEnable
+                0x00000000       0x18 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+ .text.SERCOM0_USART_ReceiverDisable
+                0x00000000       0x1c build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+ .text.SERCOM0_USART_Read
+                0x00000000       0x44 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+ .text.SERCOM0_USART_ReadIsBusy
+                0x00000000       0x10 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+ .text.SERCOM0_USART_ReadCountGet
+                0x00000000        0xc build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+ .text.SERCOM0_USART_ReadAbort
+                0x00000000       0x28 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+ .text.SERCOM0_USART_ReadCallbackRegister
+                0x00000000        0xc build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
  .text          0x00000000        0x0 build/samd21g18a/debug/_ext/1024713942/exceptions.o
  .data          0x00000000        0x0 build/samd21g18a/debug/_ext/1024713942/exceptions.o
  .bss           0x00000000        0x0 build/samd21g18a/debug/_ext/1024713942/exceptions.o
@@ -276,43 +332,27 @@ Discarded input sections
                 0x00000000        0x4 build/samd21g18a/debug/_ext/1360937237/main.o
  .bss.g_uptime_ms
                 0x00000000        0x4 build/samd21g18a/debug/_ext/1360937237/main.o
- .text          0x00000000        0x0 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
- .data          0x00000000        0x0 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
- .bss           0x00000000        0x0 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
- .text.SERCOM0_USART_FrequencyGet
-                0x00000000        0x8 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
- .text.SERCOM0_USART_SerialSetup
-                0x00000000      0x110 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
- .text.SERCOM0_USART_ErrorGet
-                0x00000000       0x10 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
- .text.SERCOM0_USART_Enable
-                0x00000000       0x20 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
- .text.SERCOM0_USART_Disable
-                0x00000000       0x20 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
- .text.SERCOM0_USART_TransmitterEnable
-                0x00000000       0x18 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
- .text.SERCOM0_USART_TransmitterDisable
-                0x00000000       0x1c build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
- .text.SERCOM0_USART_WriteCountGet
-                0x00000000        0xc build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
- .text.SERCOM0_USART_WriteCallbackRegister
-                0x00000000        0xc build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
- .text.SERCOM0_USART_TransmitComplete
-                0x00000000       0x10 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
- .text.SERCOM0_USART_ReceiverEnable
-                0x00000000       0x18 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
- .text.SERCOM0_USART_ReceiverDisable
-                0x00000000       0x1c build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
- .text.SERCOM0_USART_Read
-                0x00000000       0x44 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
- .text.SERCOM0_USART_ReadIsBusy
-                0x00000000       0x10 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
- .text.SERCOM0_USART_ReadCountGet
-                0x00000000        0xc build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
- .text.SERCOM0_USART_ReadAbort
-                0x00000000       0x28 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
- .text.SERCOM0_USART_ReadCallbackRegister
-                0x00000000        0xc build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+ .text          0x00000000        0x0 build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o
+ .data          0x00000000        0x0 build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o
+ .bss           0x00000000        0x0 build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o
+ .text.SERCOM1_I2C_TransferSetup
+                0x00000000      0x10c build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o
+ .text.SERCOM1_I2C_CallbackRegister
+                0x00000000        0xc build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o
+ .text.SERCOM1_I2C_Read
+                0x00000000       0x3c build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o
+ .text.SERCOM1_I2C_Write
+                0x00000000       0x38 build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o
+ .text.SERCOM1_I2C_WriteRead
+                0x00000000       0x3c build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o
+ .text.SERCOM1_I2C_BusScan
+                0x00000000       0x98 build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o
+ .text.SERCOM1_I2C_IsBusy
+                0x00000000       0x28 build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o
+ .text.SERCOM1_I2C_ErrorGet
+                0x00000000       0x10 build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o
+ .text.SERCOM1_I2C_TransferAbort
+                0x00000000       0x44 build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o
  .text          0x00000000        0x0 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(data_init.o)
  .data          0x00000000        0x0 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(data_init.o)
  .xc_stack_usage
@@ -356,6 +396,85 @@ Discarded input sections
  .data          0x00000000        0x0 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__environ.o)
  .xc_stack_usage.hdr
                 0x00000000        0xe C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__environ.o)
+ .ARM.attributes
+                0x00000000       0x1c C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libm-fast-emfloat.a(__aeabi_fadd.o)
+ .text.__aeabi_fadd
+                0x00000000      0x13a C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libm-fast-emfloat.a(__aeabi_fadd.o)
+ .xc_stack_usage.hdr
+                0x00000000        0xe C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libm-fast-emfloat.a(__aeabi_fadd.o)
+ .xc_stack_usage
+                0x00000000       0x41 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libm-fast-emfloat.a(__aeabi_fadd.o)
+ .ARM.attributes
+                0x00000000       0x1c C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libm-fast-emfloat.a(__aeabi_fsub.o)
+ .text.__aeabi_fsub
+                0x00000000       0x10 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libm-fast-emfloat.a(__aeabi_fsub.o)
+ .xc_stack_usage.hdr
+                0x00000000        0xe C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libm-fast-emfloat.a(__aeabi_fsub.o)
+ .xc_stack_usage
+                0x00000000       0x1a C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libm-fast-emfloat.a(__aeabi_fsub.o)
+ .ARM.attributes
+                0x00000000       0x1c C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libm-fast-emfloat.a(__aeabi_fmul.o)
+ .text.__aeabi_fmul
+                0x00000000       0xb6 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libm-fast-emfloat.a(__aeabi_fmul.o)
+ .xc_stack_usage.hdr
+                0x00000000        0xe C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libm-fast-emfloat.a(__aeabi_fmul.o)
+ .xc_stack_usage
+                0x00000000       0x1a C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libm-fast-emfloat.a(__aeabi_fmul.o)
+ .ARM.attributes
+                0x00000000       0x1c C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libm-fast-emfloat.a(__aeabi_fdiv.o)
+ .text.__aeabi_fdiv
+                0x00000000       0x94 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libm-fast-emfloat.a(__aeabi_fdiv.o)
+ .xc_stack_usage.hdr
+                0x00000000        0xe C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libm-fast-emfloat.a(__aeabi_fdiv.o)
+ .xc_stack_usage
+                0x00000000       0x1a C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libm-fast-emfloat.a(__aeabi_fdiv.o)
+ .ARM.attributes
+                0x00000000       0x1c C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libm-fast-emfloat.a(__aeabi_f2uiz.o)
+ .text.__aeabi_f2uiz
+                0x00000000       0x24 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libm-fast-emfloat.a(__aeabi_f2uiz.o)
+ .xc_stack_usage.hdr
+                0x00000000        0xe C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libm-fast-emfloat.a(__aeabi_f2uiz.o)
+ .xc_stack_usage
+                0x00000000       0x1b C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libm-fast-emfloat.a(__aeabi_f2uiz.o)
+ .ARM.attributes
+                0x00000000       0x1c C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libm-fast-emfloat.a(__aeabi_ui2f.o)
+ .text.__aeabi_ui2f
+                0x00000000       0x1e C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libm-fast-emfloat.a(__aeabi_ui2f.o)
+ .xc_stack_usage.hdr
+                0x00000000        0xe C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libm-fast-emfloat.a(__aeabi_ui2f.o)
+ .xc_stack_usage
+                0x00000000       0x1a C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libm-fast-emfloat.a(__aeabi_ui2f.o)
+ .text          0x00000000       0x8c C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_udivsi3.o)
+ .data          0x00000000        0x0 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_udivsi3.o)
+ .bss           0x00000000        0x0 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_udivsi3.o)
+ .debug_frame   0x00000000       0x20 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_udivsi3.o)
+ .xc_stack_usage.hdr
+                0x00000000        0xe C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_udivsi3.o)
+ .xc_stack_usage
+                0x00000000       0x35 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_udivsi3.o)
+ .debug_line    0x00000000       0x9c C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_udivsi3.o)
+ .debug_info    0x00000000       0x51 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_udivsi3.o)
+ .debug_abbrev  0x00000000       0x21 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_udivsi3.o)
+ .debug_aranges
+                0x00000000       0x20 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_udivsi3.o)
+ .debug_str     0x00000000       0xf6 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_udivsi3.o)
+ .ARM.attributes
+                0x00000000       0x1e C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_udivsi3.o)
+ .text          0x00000000        0x4 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_dvmd_tls.o)
+ .data          0x00000000        0x0 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_dvmd_tls.o)
+ .bss           0x00000000        0x0 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_dvmd_tls.o)
+ .xc_stack_usage.hdr
+                0x00000000        0xe C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_dvmd_tls.o)
+ .xc_stack_usage
+                0x00000000       0x36 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_dvmd_tls.o)
+ .debug_line    0x00000000       0x85 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_dvmd_tls.o)
+ .debug_info    0x00000000       0x41 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_dvmd_tls.o)
+ .debug_abbrev  0x00000000       0x1f C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_dvmd_tls.o)
+ .debug_aranges
+                0x00000000       0x20 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_dvmd_tls.o)
+ .debug_str     0x00000000       0xe9 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_dvmd_tls.o)
+ .ARM.attributes
+                0x00000000       0x1e C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_dvmd_tls.o)
  .text          0x00000000       0x40 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_aeabi_uldivmod.o)
  .data          0x00000000        0x0 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_aeabi_uldivmod.o)
  .bss           0x00000000        0x0 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_aeabi_uldivmod.o)
@@ -410,21 +529,6 @@ Discarded input sections
  .debug_frame   0x00000000       0x30 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_udivmoddi4.o)
  .ARM.attributes
                 0x00000000       0x2c C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_udivmoddi4.o)
- .text          0x00000000        0x4 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_dvmd_tls.o)
- .data          0x00000000        0x0 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_dvmd_tls.o)
- .bss           0x00000000        0x0 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_dvmd_tls.o)
- .xc_stack_usage.hdr
-                0x00000000        0xe C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_dvmd_tls.o)
- .xc_stack_usage
-                0x00000000       0x36 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_dvmd_tls.o)
- .debug_line    0x00000000       0x85 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_dvmd_tls.o)
- .debug_info    0x00000000       0x41 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_dvmd_tls.o)
- .debug_abbrev  0x00000000       0x1f C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_dvmd_tls.o)
- .debug_aranges
-                0x00000000       0x20 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_dvmd_tls.o)
- .debug_str     0x00000000       0xe9 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_dvmd_tls.o)
- .ARM.attributes
-                0x00000000       0x1e C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_dvmd_tls.o)
  .text          0x00000000       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_lshrdi3.o)
  .data          0x00000000        0x0 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_lshrdi3.o)
  .bss           0x00000000        0x0 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_lshrdi3.o)
@@ -528,6 +632,7 @@ Linker script and memory map
 
 LOAD C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp/crti.o
 LOAD C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp/crtbegin.o
+LOAD build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
 LOAD build/samd21g18a/debug/_ext/1024713942/exceptions.o
 LOAD build/samd21g18a/debug/_ext/1024713942/initialization.o
 LOAD build/samd21g18a/debug/_ext/1024713942/interrupts.o
@@ -540,7 +645,7 @@ LOAD build/samd21g18a/debug/_ext/1355959217/plib_port.o
 LOAD build/samd21g18a/debug/_ext/1024713942/startup_xc32.o
 LOAD build/samd21g18a/debug/_ext/783296356/xc32_monitor.o
 LOAD build/samd21g18a/debug/_ext/1360937237/main.o
-LOAD build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+LOAD build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o
                 0x00000001                        __MPLAB_BUILD = 0x1
                 0x00040000                        __rom_end = (ORIGIN (rom) + LENGTH (rom))
                 0x20008000                        __ram_end = (ORIGIN (ram) + LENGTH (ram))
@@ -655,84 +760,89 @@ OUTPUT(dist/samd21g18a/debug/ATSAMD21G18A_Demo.X.debug.elf elf32-littlearm)
 LOAD linker stubs
 LOAD data_init
 
-.note           0x00000000      0x360
+.note           0x00000000      0x390
  .note          0x00000000       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp/crti.o
  .note          0x00000018       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp/crtbegin.o
- .note          0x00000030       0x18 build/samd21g18a/debug/_ext/1024713942/exceptions.o
- .note          0x00000048       0x78 build/samd21g18a/debug/_ext/1024713942/initialization.o
- .note          0x000000c0       0x18 build/samd21g18a/debug/_ext/1024713942/interrupts.o
- .note          0x000000d8       0x18 build/samd21g18a/debug/_ext/1024713942/libc_syscalls.o
- .note          0x000000f0       0x18 build/samd21g18a/debug/_ext/902838784/plib_clock.o
- .note          0x00000108       0x18 build/samd21g18a/debug/_ext/904988270/plib_evsys.o
- .note          0x00000120       0x18 build/samd21g18a/debug/_ext/1356012368/plib_nvic.o
- .note          0x00000138       0x18 build/samd21g18a/debug/_ext/1501740290/plib_nvmctrl.o
- .note          0x00000150       0x18 build/samd21g18a/debug/_ext/1355959217/plib_port.o
- .note          0x00000168       0x18 build/samd21g18a/debug/_ext/1024713942/startup_xc32.o
- .note          0x00000180       0x18 build/samd21g18a/debug/_ext/783296356/xc32_monitor.o
- .note          0x00000198       0x18 build/samd21g18a/debug/_ext/1360937237/main.o
- .note          0x000001b0       0x18 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
- .note          0x000001c8       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(data_init.o)
- .note          0x000001e0       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libc-size-musl.a(memcpy.o)
- .note          0x000001f8       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__libc_start_main.o)
- .note          0x00000210       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(libc.o)
- .note          0x00000228       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__environ.o)
- .note          0x00000240       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_aeabi_uldivmod.o)
- .note          0x00000258       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_muldi3.o)
- .note          0x00000270       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_udivmoddi4.o)
- .note          0x00000288       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_dvmd_tls.o)
- .note          0x000002a0       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_lshrdi3.o)
- .note          0x000002b8       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_ashldi3.o)
- .note          0x000002d0       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_clzdi2.o)
- .note          0x000002e8       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_clzsi2.o)
- .note          0x00000300       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp/crtend.o
- .note          0x00000318       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp/crtn.o
- .note          0x00000330       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_clear.o)
- .note          0x00000348       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_copy.o)
+ .note          0x00000030       0x18 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+ .note          0x00000048       0x18 build/samd21g18a/debug/_ext/1024713942/exceptions.o
+ .note          0x00000060       0x78 build/samd21g18a/debug/_ext/1024713942/initialization.o
+ .note          0x000000d8       0x18 build/samd21g18a/debug/_ext/1024713942/interrupts.o
+ .note          0x000000f0       0x18 build/samd21g18a/debug/_ext/1024713942/libc_syscalls.o
+ .note          0x00000108       0x18 build/samd21g18a/debug/_ext/902838784/plib_clock.o
+ .note          0x00000120       0x18 build/samd21g18a/debug/_ext/904988270/plib_evsys.o
+ .note          0x00000138       0x18 build/samd21g18a/debug/_ext/1356012368/plib_nvic.o
+ .note          0x00000150       0x18 build/samd21g18a/debug/_ext/1501740290/plib_nvmctrl.o
+ .note          0x00000168       0x18 build/samd21g18a/debug/_ext/1355959217/plib_port.o
+ .note          0x00000180       0x18 build/samd21g18a/debug/_ext/1024713942/startup_xc32.o
+ .note          0x00000198       0x18 build/samd21g18a/debug/_ext/783296356/xc32_monitor.o
+ .note          0x000001b0       0x18 build/samd21g18a/debug/_ext/1360937237/main.o
+ .note          0x000001c8       0x18 build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o
+ .note          0x000001e0       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(data_init.o)
+ .note          0x000001f8       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libc-size-musl.a(memcpy.o)
+ .note          0x00000210       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__libc_start_main.o)
+ .note          0x00000228       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(libc.o)
+ .note          0x00000240       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__environ.o)
+ .note          0x00000258       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_udivsi3.o)
+ .note          0x00000270       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_dvmd_tls.o)
+ .note          0x00000288       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_aeabi_uldivmod.o)
+ .note          0x000002a0       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_muldi3.o)
+ .note          0x000002b8       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_udivmoddi4.o)
+ .note          0x000002d0       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_lshrdi3.o)
+ .note          0x000002e8       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_ashldi3.o)
+ .note          0x00000300       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_clzdi2.o)
+ .note          0x00000318       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp\libgcc.a(_clzsi2.o)
+ .note          0x00000330       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp/crtend.o
+ .note          0x00000348       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp/crtn.o
+ .note          0x00000360       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_clear.o)
+ .note          0x00000378       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_copy.o)
 
 .ARM.attributes
-                0x00000000       0x2c
+                0x00000000       0x2a
  .ARM.attributes
                 0x00000000       0x1e C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp/crti.o
  .ARM.attributes
                 0x0000001e       0x2c C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp/crtbegin.o
  .ARM.attributes
-                0x0000004a       0x2c build/samd21g18a/debug/_ext/1024713942/exceptions.o
+                0x0000004a       0x2c build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
  .ARM.attributes
-                0x00000076       0x2c build/samd21g18a/debug/_ext/1024713942/initialization.o
+                0x00000076       0x2c build/samd21g18a/debug/_ext/1024713942/exceptions.o
  .ARM.attributes
-                0x000000a2       0x2c build/samd21g18a/debug/_ext/1024713942/interrupts.o
+                0x000000a2       0x2c build/samd21g18a/debug/_ext/1024713942/initialization.o
  .ARM.attributes
-                0x000000ce       0x2c build/samd21g18a/debug/_ext/902838784/plib_clock.o
+                0x000000ce       0x2c build/samd21g18a/debug/_ext/1024713942/interrupts.o
  .ARM.attributes
-                0x000000fa       0x2c build/samd21g18a/debug/_ext/1356012368/plib_nvic.o
+                0x000000fa       0x2c build/samd21g18a/debug/_ext/902838784/plib_clock.o
  .ARM.attributes
-                0x00000126       0x2c build/samd21g18a/debug/_ext/1501740290/plib_nvmctrl.o
+                0x00000126       0x2c build/samd21g18a/debug/_ext/1356012368/plib_nvic.o
  .ARM.attributes
-                0x00000152       0x2c build/samd21g18a/debug/_ext/1355959217/plib_port.o
+                0x00000152       0x2c build/samd21g18a/debug/_ext/1501740290/plib_nvmctrl.o
  .ARM.attributes
-                0x0000017e       0x2c build/samd21g18a/debug/_ext/1024713942/startup_xc32.o
+                0x0000017e       0x2c build/samd21g18a/debug/_ext/1355959217/plib_port.o
  .ARM.attributes
-                0x000001aa       0x2c build/samd21g18a/debug/_ext/1360937237/main.o
+                0x000001aa       0x2c build/samd21g18a/debug/_ext/1024713942/startup_xc32.o
  .ARM.attributes
-                0x000001d6       0x2c build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+                0x000001d6       0x2c build/samd21g18a/debug/_ext/1360937237/main.o
  .ARM.attributes
-                0x00000202       0x2c C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(data_init.o)
+                0x00000202       0x2c build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o
  .ARM.attributes
-                0x0000022e       0x2e C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__libc_start_main.o)
+                0x0000022e       0x2c C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(data_init.o)
  .ARM.attributes
-                0x0000025c       0x2e C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(libc.o)
+                0x0000025a       0x2e C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__libc_start_main.o)
  .ARM.attributes
-                0x0000028a       0x2e C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__environ.o)
+                0x00000288       0x2e C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(libc.o)
  .ARM.attributes
-                0x000002b8       0x1e C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp/crtn.o
+                0x000002b6       0x2e C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__environ.o)
  .ARM.attributes
-                0x000002d6       0x2c C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_clear.o)
+                0x000002e4       0x1e C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp/crtn.o
  .ARM.attributes
-                0x00000302       0x2c C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_copy.o)
+                0x00000302       0x2c C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_clear.o)
+ .ARM.attributes
+                0x0000032e       0x2c C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_copy.o)
 
 .comment        0x00000000       0x35
  .comment       0x00000000       0x35 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp/crtbegin.o
                                  0x36 (size before relaxing)
+ .comment       0x00000035       0x36 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
  .comment       0x00000035       0x36 build/samd21g18a/debug/_ext/1024713942/exceptions.o
  .comment       0x00000035       0x36 build/samd21g18a/debug/_ext/1024713942/initialization.o
  .comment       0x00000035       0x36 build/samd21g18a/debug/_ext/1024713942/interrupts.o
@@ -742,7 +852,7 @@ LOAD data_init
  .comment       0x00000035       0x36 build/samd21g18a/debug/_ext/1355959217/plib_port.o
  .comment       0x00000035       0x36 build/samd21g18a/debug/_ext/1024713942/startup_xc32.o
  .comment       0x00000035       0x36 build/samd21g18a/debug/_ext/1360937237/main.o
- .comment       0x00000035       0x36 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+ .comment       0x00000035       0x36 build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o
  .comment       0x00000035       0x36 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(data_init.o)
  .comment       0x00000035       0x36 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__libc_start_main.o)
  .comment       0x00000035       0x36 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(libc.o)
@@ -750,158 +860,167 @@ LOAD data_init
  .comment       0x00000035       0x36 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_clear.o)
  .comment       0x00000035       0x36 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_copy.o)
 
-.debug_info     0x00000000     0x4098
- .debug_info    0x00000000       0xb3 build/samd21g18a/debug/_ext/1024713942/exceptions.o
- .debug_info    0x000000b3      0x284 build/samd21g18a/debug/_ext/1024713942/initialization.o
- .debug_info    0x00000337      0x3de build/samd21g18a/debug/_ext/1024713942/interrupts.o
- .debug_info    0x00000715      0x5a1 build/samd21g18a/debug/_ext/902838784/plib_clock.o
- .debug_info    0x00000cb6      0x758 build/samd21g18a/debug/_ext/1356012368/plib_nvic.o
- .debug_info    0x0000140e      0x5ed build/samd21g18a/debug/_ext/1501740290/plib_nvmctrl.o
- .debug_info    0x000019fb      0x6a0 build/samd21g18a/debug/_ext/1355959217/plib_port.o
- .debug_info    0x0000209b      0x200 build/samd21g18a/debug/_ext/1024713942/startup_xc32.o
- .debug_info    0x0000229b      0x1d3 build/samd21g18a/debug/_ext/1360937237/main.o
- .debug_info    0x0000246e     0x11cd build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
- .debug_info    0x0000363b      0x212 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(data_init.o)
- .debug_info    0x0000384d      0x2fb C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__libc_start_main.o)
- .debug_info    0x00003b48      0x276 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(libc.o)
- .debug_info    0x00003dbe       0x97 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__environ.o)
- .debug_info    0x00003e55      0x117 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_clear.o)
- .debug_info    0x00003f6c      0x12c C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_copy.o)
+.debug_info     0x00000000     0x54c6
+ .debug_info    0x00000000     0x11cd build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+ .debug_info    0x000011cd       0xba build/samd21g18a/debug/_ext/1024713942/exceptions.o
+ .debug_info    0x00001287      0x298 build/samd21g18a/debug/_ext/1024713942/initialization.o
+ .debug_info    0x0000151f      0x3e9 build/samd21g18a/debug/_ext/1024713942/interrupts.o
+ .debug_info    0x00001908      0x5a1 build/samd21g18a/debug/_ext/902838784/plib_clock.o
+ .debug_info    0x00001ea9      0x7b3 build/samd21g18a/debug/_ext/1356012368/plib_nvic.o
+ .debug_info    0x0000265c      0x5ed build/samd21g18a/debug/_ext/1501740290/plib_nvmctrl.o
+ .debug_info    0x00002c49      0x6a3 build/samd21g18a/debug/_ext/1355959217/plib_port.o
+ .debug_info    0x000032ec      0x200 build/samd21g18a/debug/_ext/1024713942/startup_xc32.o
+ .debug_info    0x000034ec      0x1d3 build/samd21g18a/debug/_ext/1360937237/main.o
+ .debug_info    0x000036bf     0x13aa build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o
+ .debug_info    0x00004a69      0x212 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(data_init.o)
+ .debug_info    0x00004c7b      0x2fb C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__libc_start_main.o)
+ .debug_info    0x00004f76      0x276 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(libc.o)
+ .debug_info    0x000051ec       0x97 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__environ.o)
+ .debug_info    0x00005283      0x117 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_clear.o)
+ .debug_info    0x0000539a      0x12c C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_copy.o)
 
-.debug_abbrev   0x00000000     0x13f4
- .debug_abbrev  0x00000000       0x49 build/samd21g18a/debug/_ext/1024713942/exceptions.o
- .debug_abbrev  0x00000049       0xf0 build/samd21g18a/debug/_ext/1024713942/initialization.o
- .debug_abbrev  0x00000139       0xd3 build/samd21g18a/debug/_ext/1024713942/interrupts.o
- .debug_abbrev  0x0000020c      0x138 build/samd21g18a/debug/_ext/902838784/plib_clock.o
- .debug_abbrev  0x00000344      0x24c build/samd21g18a/debug/_ext/1356012368/plib_nvic.o
- .debug_abbrev  0x00000590      0x1d2 build/samd21g18a/debug/_ext/1501740290/plib_nvmctrl.o
- .debug_abbrev  0x00000762      0x206 build/samd21g18a/debug/_ext/1355959217/plib_port.o
- .debug_abbrev  0x00000968      0x12c build/samd21g18a/debug/_ext/1024713942/startup_xc32.o
- .debug_abbrev  0x00000a94      0x12e build/samd21g18a/debug/_ext/1360937237/main.o
- .debug_abbrev  0x00000bc2      0x315 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
- .debug_abbrev  0x00000ed7      0x156 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(data_init.o)
- .debug_abbrev  0x0000102d      0x133 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__libc_start_main.o)
- .debug_abbrev  0x00001160       0xd4 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(libc.o)
- .debug_abbrev  0x00001234       0x62 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__environ.o)
- .debug_abbrev  0x00001296       0xa5 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_clear.o)
- .debug_abbrev  0x0000133b       0xb9 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_copy.o)
+.debug_abbrev   0x00000000     0x1789
+ .debug_abbrev  0x00000000      0x315 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+ .debug_abbrev  0x00000315       0x49 build/samd21g18a/debug/_ext/1024713942/exceptions.o
+ .debug_abbrev  0x0000035e       0xf0 build/samd21g18a/debug/_ext/1024713942/initialization.o
+ .debug_abbrev  0x0000044e       0xd3 build/samd21g18a/debug/_ext/1024713942/interrupts.o
+ .debug_abbrev  0x00000521      0x138 build/samd21g18a/debug/_ext/902838784/plib_clock.o
+ .debug_abbrev  0x00000659      0x24c build/samd21g18a/debug/_ext/1356012368/plib_nvic.o
+ .debug_abbrev  0x000008a5      0x1d2 build/samd21g18a/debug/_ext/1501740290/plib_nvmctrl.o
+ .debug_abbrev  0x00000a77      0x1ea build/samd21g18a/debug/_ext/1355959217/plib_port.o
+ .debug_abbrev  0x00000c61      0x12c build/samd21g18a/debug/_ext/1024713942/startup_xc32.o
+ .debug_abbrev  0x00000d8d      0x12e build/samd21g18a/debug/_ext/1360937237/main.o
+ .debug_abbrev  0x00000ebb      0x3b1 build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o
+ .debug_abbrev  0x0000126c      0x156 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(data_init.o)
+ .debug_abbrev  0x000013c2      0x133 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__libc_start_main.o)
+ .debug_abbrev  0x000014f5       0xd4 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(libc.o)
+ .debug_abbrev  0x000015c9       0x62 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__environ.o)
+ .debug_abbrev  0x0000162b       0xa5 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_clear.o)
+ .debug_abbrev  0x000016d0       0xb9 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_copy.o)
 
-.debug_aranges  0x00000000      0x3b8
- .debug_aranges
-                0x00000000       0x28 build/samd21g18a/debug/_ext/1024713942/exceptions.o
- .debug_aranges
-                0x00000028       0x20 build/samd21g18a/debug/_ext/1024713942/initialization.o
- .debug_aranges
-                0x00000048       0x20 build/samd21g18a/debug/_ext/1024713942/interrupts.o
- .debug_aranges
-                0x00000068       0x20 build/samd21g18a/debug/_ext/902838784/plib_clock.o
- .debug_aranges
-                0x00000088       0x48 build/samd21g18a/debug/_ext/1356012368/plib_nvic.o
- .debug_aranges
-                0x000000d0       0x88 build/samd21g18a/debug/_ext/1501740290/plib_nvmctrl.o
- .debug_aranges
-                0x00000158       0x70 build/samd21g18a/debug/_ext/1355959217/plib_port.o
- .debug_aranges
-                0x000001c8       0x28 build/samd21g18a/debug/_ext/1024713942/startup_xc32.o
- .debug_aranges
-                0x000001f0       0x20 build/samd21g18a/debug/_ext/1360937237/main.o
- .debug_aranges
-                0x00000210       0xe0 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
- .debug_aranges
-                0x000002f0       0x30 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(data_init.o)
- .debug_aranges
-                0x00000320       0x28 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__libc_start_main.o)
- .debug_aranges
-                0x00000348       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(libc.o)
- .debug_aranges
-                0x00000360       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__environ.o)
- .debug_aranges
-                0x00000378       0x20 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_clear.o)
- .debug_aranges
-                0x00000398       0x20 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_copy.o)
+.debug_loc      0x00000000     0x2209
+ .debug_loc     0x00000000      0x795 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+ .debug_loc     0x00000795       0x4b build/samd21g18a/debug/_ext/1024713942/initialization.o
+ .debug_loc     0x000007e0       0x31 build/samd21g18a/debug/_ext/902838784/plib_clock.o
+ .debug_loc     0x00000811      0x173 build/samd21g18a/debug/_ext/1356012368/plib_nvic.o
+ .debug_loc     0x00000984      0x4a8 build/samd21g18a/debug/_ext/1501740290/plib_nvmctrl.o
+ .debug_loc     0x00000e2c      0x2b8 build/samd21g18a/debug/_ext/1355959217/plib_port.o
+ .debug_loc     0x000010e4       0x20 build/samd21g18a/debug/_ext/1024713942/startup_xc32.o
+ .debug_loc     0x00001104       0x20 build/samd21g18a/debug/_ext/1360937237/main.o
+ .debug_loc     0x00001124      0xce6 build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o
+ .debug_loc     0x00001e0a      0x113 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(data_init.o)
+ .debug_loc     0x00001f1d       0x5e C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__libc_start_main.o)
+ .debug_loc     0x00001f7b       0xf7 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_clear.o)
+ .debug_loc     0x00002072      0x197 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_copy.o)
 
-.debug_ranges   0x00000000      0x340
- .debug_ranges  0x00000000       0x18 build/samd21g18a/debug/_ext/1024713942/exceptions.o
- .debug_ranges  0x00000018       0x10 build/samd21g18a/debug/_ext/1024713942/initialization.o
- .debug_ranges  0x00000028       0x10 build/samd21g18a/debug/_ext/1024713942/interrupts.o
- .debug_ranges  0x00000038       0x28 build/samd21g18a/debug/_ext/902838784/plib_clock.o
- .debug_ranges  0x00000060       0x50 build/samd21g18a/debug/_ext/1356012368/plib_nvic.o
- .debug_ranges  0x000000b0       0x78 build/samd21g18a/debug/_ext/1501740290/plib_nvmctrl.o
- .debug_ranges  0x00000128       0x60 build/samd21g18a/debug/_ext/1355959217/plib_port.o
- .debug_ranges  0x00000188       0x18 build/samd21g18a/debug/_ext/1024713942/startup_xc32.o
- .debug_ranges  0x000001a0       0x10 build/samd21g18a/debug/_ext/1360937237/main.o
- .debug_ranges  0x000001b0      0x120 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
- .debug_ranges  0x000002d0       0x20 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(data_init.o)
- .debug_ranges  0x000002f0       0x30 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__libc_start_main.o)
- .debug_ranges  0x00000320       0x10 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_clear.o)
- .debug_ranges  0x00000330       0x10 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_copy.o)
+.debug_aranges  0x00000000      0x430
+ .debug_aranges
+                0x00000000       0xe0 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+ .debug_aranges
+                0x000000e0       0x28 build/samd21g18a/debug/_ext/1024713942/exceptions.o
+ .debug_aranges
+                0x00000108       0x20 build/samd21g18a/debug/_ext/1024713942/initialization.o
+ .debug_aranges
+                0x00000128       0x20 build/samd21g18a/debug/_ext/1024713942/interrupts.o
+ .debug_aranges
+                0x00000148       0x20 build/samd21g18a/debug/_ext/902838784/plib_clock.o
+ .debug_aranges
+                0x00000168       0x48 build/samd21g18a/debug/_ext/1356012368/plib_nvic.o
+ .debug_aranges
+                0x000001b0       0x88 build/samd21g18a/debug/_ext/1501740290/plib_nvmctrl.o
+ .debug_aranges
+                0x00000238       0x70 build/samd21g18a/debug/_ext/1355959217/plib_port.o
+ .debug_aranges
+                0x000002a8       0x28 build/samd21g18a/debug/_ext/1024713942/startup_xc32.o
+ .debug_aranges
+                0x000002d0       0x20 build/samd21g18a/debug/_ext/1360937237/main.o
+ .debug_aranges
+                0x000002f0       0x78 build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o
+ .debug_aranges
+                0x00000368       0x30 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(data_init.o)
+ .debug_aranges
+                0x00000398       0x28 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__libc_start_main.o)
+ .debug_aranges
+                0x000003c0       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(libc.o)
+ .debug_aranges
+                0x000003d8       0x18 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__environ.o)
+ .debug_aranges
+                0x000003f0       0x20 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_clear.o)
+ .debug_aranges
+                0x00000410       0x20 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_copy.o)
 
-.debug_line     0x00000000     0x2563
- .debug_line    0x00000000       0x7a build/samd21g18a/debug/_ext/1024713942/exceptions.o
- .debug_line    0x0000007a      0x225 build/samd21g18a/debug/_ext/1024713942/initialization.o
- .debug_line    0x0000029f       0xd0 build/samd21g18a/debug/_ext/1024713942/interrupts.o
- .debug_line    0x0000036f      0x239 build/samd21g18a/debug/_ext/902838784/plib_clock.o
- .debug_line    0x000005a8      0x39b build/samd21g18a/debug/_ext/1356012368/plib_nvic.o
- .debug_line    0x00000943      0x431 build/samd21g18a/debug/_ext/1501740290/plib_nvmctrl.o
- .debug_line    0x00000d74      0x2db build/samd21g18a/debug/_ext/1355959217/plib_port.o
- .debug_line    0x0000104f      0x161 build/samd21g18a/debug/_ext/1024713942/startup_xc32.o
- .debug_line    0x000011b0      0x184 build/samd21g18a/debug/_ext/1360937237/main.o
- .debug_line    0x00001334      0xafb build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
- .debug_line    0x00001e2f      0x165 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(data_init.o)
- .debug_line    0x00001f94      0x1cb C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__libc_start_main.o)
- .debug_line    0x0000215f       0xb5 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(libc.o)
- .debug_line    0x00002214       0xfb C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__environ.o)
- .debug_line    0x0000230f      0x11e C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_clear.o)
- .debug_line    0x0000242d      0x136 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_copy.o)
+.debug_ranges   0x00000000      0x470
+ .debug_ranges  0x00000000      0x120 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+ .debug_ranges  0x00000120       0x18 build/samd21g18a/debug/_ext/1024713942/exceptions.o
+ .debug_ranges  0x00000138       0x10 build/samd21g18a/debug/_ext/1024713942/initialization.o
+ .debug_ranges  0x00000148       0x10 build/samd21g18a/debug/_ext/1024713942/interrupts.o
+ .debug_ranges  0x00000158       0x28 build/samd21g18a/debug/_ext/902838784/plib_clock.o
+ .debug_ranges  0x00000180       0x50 build/samd21g18a/debug/_ext/1356012368/plib_nvic.o
+ .debug_ranges  0x000001d0       0x78 build/samd21g18a/debug/_ext/1501740290/plib_nvmctrl.o
+ .debug_ranges  0x00000248       0x60 build/samd21g18a/debug/_ext/1355959217/plib_port.o
+ .debug_ranges  0x000002a8       0x18 build/samd21g18a/debug/_ext/1024713942/startup_xc32.o
+ .debug_ranges  0x000002c0       0x10 build/samd21g18a/debug/_ext/1360937237/main.o
+ .debug_ranges  0x000002d0      0x130 build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o
+ .debug_ranges  0x00000400       0x20 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(data_init.o)
+ .debug_ranges  0x00000420       0x30 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__libc_start_main.o)
+ .debug_ranges  0x00000450       0x10 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_clear.o)
+ .debug_ranges  0x00000460       0x10 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_copy.o)
 
-.debug_str      0x00000000     0x231e
- .debug_str     0x00000000     0x231e build/samd21g18a/debug/_ext/1024713942/exceptions.o
-                                0x2ce (size before relaxing)
- .debug_str     0x0000231e      0x405 build/samd21g18a/debug/_ext/1024713942/initialization.o
- .debug_str     0x0000231e      0x626 build/samd21g18a/debug/_ext/1024713942/interrupts.o
- .debug_str     0x0000231e      0x5b9 build/samd21g18a/debug/_ext/902838784/plib_clock.o
- .debug_str     0x0000231e      0x5f6 build/samd21g18a/debug/_ext/1356012368/plib_nvic.o
- .debug_str     0x0000231e      0x538 build/samd21g18a/debug/_ext/1501740290/plib_nvmctrl.o
- .debug_str     0x0000231e      0x79d build/samd21g18a/debug/_ext/1355959217/plib_port.o
- .debug_str     0x0000231e      0x340 build/samd21g18a/debug/_ext/1024713942/startup_xc32.o
- .debug_str     0x0000231e      0x335 build/samd21g18a/debug/_ext/1360937237/main.o
- .debug_str     0x0000231e      0xa88 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
- .debug_str     0x0000231e      0x2ef C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(data_init.o)
- .debug_str     0x0000231e      0x3dd C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__libc_start_main.o)
- .debug_str     0x0000231e      0x348 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(libc.o)
- .debug_str     0x0000231e      0x248 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__environ.o)
- .debug_str     0x0000231e      0x280 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_clear.o)
- .debug_str     0x0000231e      0x287 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_copy.o)
+.debug_line     0x00000000     0x317d
+ .debug_line    0x00000000      0xafb build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+ .debug_line    0x00000afb       0x7a build/samd21g18a/debug/_ext/1024713942/exceptions.o
+ .debug_line    0x00000b75      0x279 build/samd21g18a/debug/_ext/1024713942/initialization.o
+ .debug_line    0x00000dee       0xd0 build/samd21g18a/debug/_ext/1024713942/interrupts.o
+ .debug_line    0x00000ebe      0x240 build/samd21g18a/debug/_ext/902838784/plib_clock.o
+ .debug_line    0x000010fe      0x3e0 build/samd21g18a/debug/_ext/1356012368/plib_nvic.o
+ .debug_line    0x000014de      0x431 build/samd21g18a/debug/_ext/1501740290/plib_nvmctrl.o
+ .debug_line    0x0000190f      0x2f3 build/samd21g18a/debug/_ext/1355959217/plib_port.o
+ .debug_line    0x00001c02      0x161 build/samd21g18a/debug/_ext/1024713942/startup_xc32.o
+ .debug_line    0x00001d63      0x184 build/samd21g18a/debug/_ext/1360937237/main.o
+ .debug_line    0x00001ee7      0xb62 build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o
+ .debug_line    0x00002a49      0x165 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(data_init.o)
+ .debug_line    0x00002bae      0x1cb C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__libc_start_main.o)
+ .debug_line    0x00002d79       0xb5 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(libc.o)
+ .debug_line    0x00002e2e       0xfb C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__environ.o)
+ .debug_line    0x00002f29      0x11e C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_clear.o)
+ .debug_line    0x00003047      0x136 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_copy.o)
 
-.debug_frame    0x00000000      0x610
- .debug_frame   0x00000000       0x30 build/samd21g18a/debug/_ext/1024713942/exceptions.o
- .debug_frame   0x00000030       0x28 build/samd21g18a/debug/_ext/1024713942/initialization.o
- .debug_frame   0x00000058       0x20 build/samd21g18a/debug/_ext/1024713942/interrupts.o
- .debug_frame   0x00000078       0x20 build/samd21g18a/debug/_ext/902838784/plib_clock.o
- .debug_frame   0x00000098       0x7c build/samd21g18a/debug/_ext/1356012368/plib_nvic.o
- .debug_frame   0x00000114      0x110 build/samd21g18a/debug/_ext/1501740290/plib_nvmctrl.o
- .debug_frame   0x00000224       0xd8 build/samd21g18a/debug/_ext/1355959217/plib_port.o
- .debug_frame   0x000002fc       0x38 build/samd21g18a/debug/_ext/1024713942/startup_xc32.o
- .debug_frame   0x00000334       0x28 build/samd21g18a/debug/_ext/1360937237/main.o
- .debug_frame   0x0000035c      0x1ec build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
- .debug_frame   0x00000548       0x48 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(data_init.o)
- .debug_frame   0x00000590       0x38 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__libc_start_main.o)
- .debug_frame   0x000005c8       0x20 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_clear.o)
- .debug_frame   0x000005e8       0x28 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_copy.o)
+.debug_str      0x00000000     0x283c
+ .debug_str     0x00000000     0x283c build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+                                0xa88 (size before relaxing)
+ .debug_str     0x0000283c      0x2d4 build/samd21g18a/debug/_ext/1024713942/exceptions.o
+ .debug_str     0x0000283c      0x41c build/samd21g18a/debug/_ext/1024713942/initialization.o
+ .debug_str     0x0000283c      0x643 build/samd21g18a/debug/_ext/1024713942/interrupts.o
+ .debug_str     0x0000283c      0x5b9 build/samd21g18a/debug/_ext/902838784/plib_clock.o
+ .debug_str     0x0000283c      0x5f6 build/samd21g18a/debug/_ext/1356012368/plib_nvic.o
+ .debug_str     0x0000283c      0x538 build/samd21g18a/debug/_ext/1501740290/plib_nvmctrl.o
+ .debug_str     0x0000283c      0x79d build/samd21g18a/debug/_ext/1355959217/plib_port.o
+ .debug_str     0x0000283c      0x340 build/samd21g18a/debug/_ext/1024713942/startup_xc32.o
+ .debug_str     0x0000283c      0x335 build/samd21g18a/debug/_ext/1360937237/main.o
+ .debug_str     0x0000283c      0x9be build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o
+ .debug_str     0x0000283c      0x2ef C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(data_init.o)
+ .debug_str     0x0000283c      0x3dd C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__libc_start_main.o)
+ .debug_str     0x0000283c      0x348 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(libc.o)
+ .debug_str     0x0000283c      0x248 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__environ.o)
+ .debug_str     0x0000283c      0x280 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_clear.o)
+ .debug_str     0x0000283c      0x287 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_copy.o)
 
-.debug_loc      0x00000000     0x14e1
- .debug_loc     0x00000000       0x4b build/samd21g18a/debug/_ext/1024713942/initialization.o
- .debug_loc     0x0000004b       0x31 build/samd21g18a/debug/_ext/902838784/plib_clock.o
- .debug_loc     0x0000007c      0x131 build/samd21g18a/debug/_ext/1356012368/plib_nvic.o
- .debug_loc     0x000001ad      0x4a8 build/samd21g18a/debug/_ext/1501740290/plib_nvmctrl.o
- .debug_loc     0x00000655      0x2b8 build/samd21g18a/debug/_ext/1355959217/plib_port.o
- .debug_loc     0x0000090d       0x20 build/samd21g18a/debug/_ext/1024713942/startup_xc32.o
- .debug_loc     0x0000092d       0x20 build/samd21g18a/debug/_ext/1360937237/main.o
- .debug_loc     0x0000094d      0x795 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
- .debug_loc     0x000010e2      0x113 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(data_init.o)
- .debug_loc     0x000011f5       0x5e C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__libc_start_main.o)
- .debug_loc     0x00001253       0xf7 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_clear.o)
- .debug_loc     0x0000134a      0x197 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_copy.o)
+.debug_frame    0x00000000      0x72c
+ .debug_frame   0x00000000      0x1ec build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+ .debug_frame   0x000001ec       0x30 build/samd21g18a/debug/_ext/1024713942/exceptions.o
+ .debug_frame   0x0000021c       0x28 build/samd21g18a/debug/_ext/1024713942/initialization.o
+ .debug_frame   0x00000244       0x20 build/samd21g18a/debug/_ext/1024713942/interrupts.o
+ .debug_frame   0x00000264       0x20 build/samd21g18a/debug/_ext/902838784/plib_clock.o
+ .debug_frame   0x00000284       0x7c build/samd21g18a/debug/_ext/1356012368/plib_nvic.o
+ .debug_frame   0x00000300      0x110 build/samd21g18a/debug/_ext/1501740290/plib_nvmctrl.o
+ .debug_frame   0x00000410       0xd8 build/samd21g18a/debug/_ext/1355959217/plib_port.o
+ .debug_frame   0x000004e8       0x38 build/samd21g18a/debug/_ext/1024713942/startup_xc32.o
+ .debug_frame   0x00000520       0x28 build/samd21g18a/debug/_ext/1360937237/main.o
+ .debug_frame   0x00000548      0x11c build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o
+ .debug_frame   0x00000664       0x48 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(data_init.o)
+ .debug_frame   0x000006ac       0x38 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__libc_start_main.o)
+ .debug_frame   0x000006e4       0x20 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_clear.o)
+ .debug_frame   0x00000704       0x28 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_copy.o)
 
 .note.GNU-stack
                 0x00000000        0x0
@@ -937,231 +1056,252 @@ LOAD data_init
  .bss.sercom0USARTObj
                 0x20000050       0x30 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
 
-.bss%3          0x20000080       0x1c
- .bss           0x20000080       0x1c C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp/crtbegin.o
+.bss.sercom1I2CObj%3
+                0x20000080       0x2c
+ .bss.sercom1I2CObj
+                0x20000080       0x2c build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o
 
-.bss%4          0x2000009c        0x4
- .bss           0x2000009c        0x4 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(data_init.o)
+.bss%4          0x200000ac       0x1c
+ .bss           0x200000ac       0x1c C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp/crtbegin.o
 
-.bss%5          0x200000a0        0x4
- .bss           0x200000a0        0x4 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__environ.o)
-                0x200000a0                __environ
-                0x200000a0                environ
-                0x200000a0                ___environ
-                0x200000a0                _environ
+.bss%5          0x200000c8        0x4
+ .bss           0x200000c8        0x4 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(data_init.o)
 
-.bss.g_uart_done%6
-                0x200000a4        0x1
+.bss%6          0x200000cc        0x4
+ .bss           0x200000cc        0x4 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__environ.o)
+                0x200000cc                __environ
+                0x200000cc                environ
+                0x200000cc                ___environ
+                0x200000cc                _environ
+
+.bss.g_uart_done%7
+                0x200000d0        0x1
  .bss.g_uart_done
-                0x200000a4        0x1 build/samd21g18a/debug/_ext/1360937237/main.o
-                0x200000a4                g_uart_done
+                0x200000d0        0x1 build/samd21g18a/debug/_ext/1360937237/main.o
+                0x200000d0                g_uart_done
 
-.bss.g_uart_started%7
-                0x200000a5        0x1
+.bss.g_uart_started%8
+                0x200000d1        0x1
  .bss.g_uart_started
-                0x200000a5        0x1 build/samd21g18a/debug/_ext/1360937237/main.o
-                0x200000a5                g_uart_started
+                0x200000d1        0x1 build/samd21g18a/debug/_ext/1360937237/main.o
+                0x200000d1                g_uart_started
 
-.data.s_tx_message%8
-                0x200000a8       0x17
+.data.s_tx_message%9
+                0x200000d4       0x17
  .data.s_tx_message
-                0x200000a8       0x17 build/samd21g18a/debug/_ext/1360937237/main.o
+                0x200000d4       0x17 build/samd21g18a/debug/_ext/1360937237/main.o
 
 .eh_frame%z6    0x00000000        0x0
  .eh_frame      0x00000000        0x0 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp/crtbegin.o
 
-.text.CLOCK_Initialize%9
-                0x000000d0       0x8c
+.text.SERCOM1_I2C_InterruptHandler%10
+                0x000000d0      0x1c0
+ .text.SERCOM1_I2C_InterruptHandler
+                0x000000d0      0x1c0 build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o
+                0x000000d0                SERCOM1_I2C_InterruptHandler
+
+.text.CLOCK_Initialize%11
+                0x00000290       0x94
  .text.CLOCK_Initialize
-                0x000000d0       0x8c build/samd21g18a/debug/_ext/902838784/plib_clock.o
-                0x000000d0                CLOCK_Initialize
+                0x00000290       0x94 build/samd21g18a/debug/_ext/902838784/plib_clock.o
+                0x00000290                CLOCK_Initialize
 
-.text.SERCOM0_USART_ISR_TX_Handler%10
-                0x0000015c       0x80
+.text.SERCOM0_USART_ISR_TX_Handler%12
+                0x00000324       0x80
  .text.SERCOM0_USART_ISR_TX_Handler
-                0x0000015c       0x80 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+                0x00000324       0x80 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
 
-.dinit%11       0x000001dc       0x80
- .dinit         0x000001dc       0x80 data_init
+.dinit%13       0x000003a4       0x80
+ .dinit         0x000003a4       0x80 data_init
 
-.text.SERCOM0_USART_Write%12
-                0x0000025c       0x74
+.text.SERCOM0_USART_Write%14
+                0x00000424       0x74
  .text.SERCOM0_USART_Write
-                0x0000025c       0x74 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
-                0x0000025c                SERCOM0_USART_Write
+                0x00000424       0x74 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+                0x00000424                SERCOM0_USART_Write
 
-.text.SERCOM0_USART_ISR_RX_Handler%13
-                0x000002d0       0x70
+.text.SERCOM0_USART_ISR_RX_Handler%15
+                0x00000498       0x70
  .text.SERCOM0_USART_ISR_RX_Handler
-                0x000002d0       0x70 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+                0x00000498       0x70 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
 
-.text.__libc_start_init%14
-                0x00000340       0x5c
+.text.SERCOM1_I2C_Initialize%16
+                0x00000508       0x60
+ .text.SERCOM1_I2C_Initialize
+                0x00000508       0x60 build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o
+                0x00000508                SERCOM1_I2C_Initialize
+
+.text.__libc_start_init%17
+                0x00000568       0x5c
  .text.__libc_start_init
-                0x00000340       0x5c C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__libc_start_main.o)
-                0x00000340                __libc_init_array
+                0x00000568       0x5c C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__libc_start_main.o)
+                0x00000568                __libc_init_array
 
-.text.SERCOM0_USART_Initialize%15
-                0x0000039c       0x58
+.text.SERCOM0_USART_Initialize%18
+                0x000005c4       0x58
  .text.SERCOM0_USART_Initialize
-                0x0000039c       0x58 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
-                0x0000039c                SERCOM0_USART_Initialize
+                0x000005c4       0x58 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+                0x000005c4                SERCOM0_USART_Initialize
 
-.text.SERCOM0_USART_InterruptHandler%16
-                0x000003f4       0x58
+.text.SERCOM0_USART_InterruptHandler%19
+                0x0000061c       0x58
  .text.SERCOM0_USART_InterruptHandler
-                0x000003f4       0x58 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
-                0x000003f4                SERCOM0_USART_InterruptHandler
+                0x0000061c       0x58 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+                0x0000061c                SERCOM0_USART_InterruptHandler
 
-.text%17        0x0000044c       0x48
- .text          0x0000044c       0x48 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp/crtbegin.o
+.text.SERCOM1_I2C_InitiateTransfer%20
+                0x00000674       0x54
+ .text.SERCOM1_I2C_InitiateTransfer
+                0x00000674       0x54 build/samd21g18a/debug/_ext/1514720697/plib_sercom1_i2c_master.o
 
-.text.Reset_Handler%18
-                0x00000494       0x48
+.text%21        0x000006c8       0x48
+ .text          0x000006c8       0x48 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/thumb/v6-m/nofp/crtbegin.o
+
+.text.Reset_Handler%22
+                0x00000710       0x48
  .text.Reset_Handler
-                0x00000494       0x48 build/samd21g18a/debug/_ext/1024713942/startup_xc32.o
-                0x00000494                Reset_Handler
+                0x00000710       0x48 build/samd21g18a/debug/_ext/1024713942/startup_xc32.o
+                0x00000710                Reset_Handler
 
-.text.SERCOM0_USART_ISR_ERR_Handler%19
-                0x000004dc       0x40
+.text.SERCOM0_USART_ISR_ERR_Handler%23
+                0x00000758       0x40
  .text.SERCOM0_USART_ISR_ERR_Handler
-                0x000004dc       0x40 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+                0x00000758       0x40 build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
 
-.text.main%20   0x0000051c       0x38
- .text.main     0x0000051c       0x38 build/samd21g18a/debug/_ext/1360937237/main.o
-                0x0000051c                main
-
-.text.__pic32c_data_initialization%21
-                0x00000554       0x38
- .text.__pic32c_data_initialization
-                0x00000554       0x38 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(data_init.o)
-                0x00000554                __pic32c_data_initialization
-                0x00000554                __pic32_data_init
-
-.text.NVIC_Initialize%22
-                0x0000058c       0x2c
+.text.NVIC_Initialize%24
+                0x00000798       0x40
  .text.NVIC_Initialize
-                0x0000058c       0x2c build/samd21g18a/debug/_ext/1356012368/plib_nvic.o
-                0x0000058c                NVIC_Initialize
+                0x00000798       0x40 build/samd21g18a/debug/_ext/1356012368/plib_nvic.o
+                0x00000798                NVIC_Initialize
 
-.text.SERCOM0_USART_ErrorClear%23
-                0x000005b8       0x2c
+.text.main%25   0x000007d8       0x38
+ .text.main     0x000007d8       0x38 build/samd21g18a/debug/_ext/1360937237/main.o
+                0x000007d8                main
+
+.text.__pic32c_data_initialization%26
+                0x00000810       0x38
+ .text.__pic32c_data_initialization
+                0x00000810       0x38 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(data_init.o)
+                0x00000810                __pic32c_data_initialization
+                0x00000810                __pic32_data_init
+
+.text.SERCOM0_USART_ErrorClear%27
+                0x00000848       0x2c
  .text.SERCOM0_USART_ErrorClear
-                0x000005b8       0x2c build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+                0x00000848       0x2c build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
 
-.text.SYS_Initialize%24
-                0x000005e4       0x24
- .text.SYS_Initialize
-                0x000005e4       0x24 build/samd21g18a/debug/_ext/1024713942/initialization.o
-                0x000005e4                SYS_Initialize
-
-.text.__dinit_copy%25
-                0x00000608       0x1e
- .text.__dinit_copy
-                0x00000608       0x1e C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_copy.o)
-                0x00000608                __dinit_copy_needed
-                0x00000608                __dinit_copy
-
-.text.PORT_Initialize%26
-                0x00000628       0x1c
+.text.PORT_Initialize%28
+                0x00000874       0x2c
  .text.PORT_Initialize
-                0x00000628       0x1c build/samd21g18a/debug/_ext/1355959217/plib_port.o
-                0x00000628                PORT_Initialize
+                0x00000874       0x2c build/samd21g18a/debug/_ext/1355959217/plib_port.o
+                0x00000874                PORT_Initialize
 
-.rodata%27      0x00000644       0x14
- .rodata        0x00000644       0x14 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(data_init.o)
+.text.SYS_Initialize%29
+                0x000008a0       0x28
+ .text.SYS_Initialize
+                0x000008a0       0x28 build/samd21g18a/debug/_ext/1024713942/initialization.o
+                0x000008a0                SYS_Initialize
 
-.text.__dinit_clear%28
-                0x00000658       0x12
+.text.__dinit_copy%30
+                0x000008c8       0x1e
+ .text.__dinit_copy
+                0x000008c8       0x1e C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_copy.o)
+                0x000008c8                __dinit_copy_needed
+                0x000008c8                __dinit_copy
+
+.rodata%31      0x000008e8       0x14
+ .rodata        0x000008e8       0x14 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(data_init.o)
+
+.text.__dinit_clear%32
+                0x000008fc       0x12
  .text.__dinit_clear
-                0x00000658       0x12 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_clear.o)
-                0x00000658                __dinit_clear
-                0x00000658                __dinit_clear_needed
+                0x000008fc       0x12 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(pic32_data_init_clear.o)
+                0x000008fc                __dinit_clear
+                0x000008fc                __dinit_clear_needed
 
-.text.NVMCTRL_Initialize%29
-                0x0000066c        0xc
- .text.NVMCTRL_Initialize
-                0x0000066c        0xc build/samd21g18a/debug/_ext/1501740290/plib_nvmctrl.o
-                0x0000066c                NVMCTRL_Initialize
-
-.text.SERCOM0_USART_WriteIsBusy%30
-                0x00000678        0xc
+.text.SERCOM0_USART_WriteIsBusy%33
+                0x00000910        0xc
  .text.SERCOM0_USART_WriteIsBusy
-                0x00000678        0xc build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
-                0x00000678                SERCOM0_USART_WriteIsBusy
+                0x00000910        0xc build/samd21g18a/debug/_ext/1719041637/plib_sercom0_usart.o
+                0x00000910                SERCOM0_USART_WriteIsBusy
 
-.text.NonMaskableInt_Handler%31
-                0x00000684        0x4
+.text.NVMCTRL_Initialize%34
+                0x0000091c        0xc
+ .text.NVMCTRL_Initialize
+                0x0000091c        0xc build/samd21g18a/debug/_ext/1501740290/plib_nvmctrl.o
+                0x0000091c                NVMCTRL_Initialize
+
+.text.NonMaskableInt_Handler%35
+                0x00000928        0x4
  .text.NonMaskableInt_Handler
-                0x00000684        0x4 build/samd21g18a/debug/_ext/1024713942/exceptions.o
-                0x00000684                NonMaskableInt_Handler
+                0x00000928        0x4 build/samd21g18a/debug/_ext/1024713942/exceptions.o
+                0x00000928                NonMaskableInt_Handler
 
-.text.HardFault_Handler%32
-                0x00000688        0x4
+.text.HardFault_Handler%36
+                0x0000092c        0x4
  .text.HardFault_Handler
-                0x00000688        0x4 build/samd21g18a/debug/_ext/1024713942/exceptions.o
-                0x00000688                HardFault_Handler
+                0x0000092c        0x4 build/samd21g18a/debug/_ext/1024713942/exceptions.o
+                0x0000092c                HardFault_Handler
 
-.text.__dummy_decompress%33
-                0x0000068c        0x4
+.text.__dummy_decompress%37
+                0x00000930        0x4
  .text.__dummy_decompress
-                0x0000068c        0x4 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(data_init.o)
-                0x0000068c                __dinit_decompress
-                0x0000068c                __dinit_copy_val_data
-                0x0000068c                __dinit_copy_emb
+                0x00000930        0x4 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(data_init.o)
+                0x00000930                __dinit_decompress
+                0x00000930                __dinit_copy_val_data
+                0x00000930                __dinit_copy_emb
 
-.text.Dummy_Handler%34
-                0x00000626        0x2
+.text.Dummy_Handler%38
+                0x000008e6        0x2
  .text.Dummy_Handler
-                0x00000626        0x2 build/samd21g18a/debug/_ext/1024713942/interrupts.o
-                0x00000626                SVCall_Handler
-                0x00000626                DMAC_Handler
-                0x00000626                AC_Handler
-                0x00000626                SysTick_Handler
-                0x00000626                PendSV_Handler
-                0x00000626                SERCOM1_Handler
-                0x00000626                ADC_Handler
-                0x00000626                TCC1_Handler
-                0x00000626                SERCOM2_Handler
-                0x00000626                TCC0_Handler
-                0x00000626                RTC_Handler
-                0x00000626                EIC_Handler
-                0x00000626                WDT_Handler
-                0x00000626                TC4_Handler
-                0x00000626                USB_Handler
-                0x00000626                TC3_Handler
-                0x00000626                Dummy_Handler
-                0x00000626                PM_Handler
-                0x00000626                SERCOM5_Handler
-                0x00000626                TCC2_Handler
-                0x00000626                EVSYS_Handler
-                0x00000626                SERCOM3_Handler
-                0x00000626                SERCOM4_Handler
-                0x00000626                I2S_Handler
-                0x00000626                NVMCTRL_Handler
-                0x00000626                DAC_Handler
-                0x00000626                PTC_Handler
-                0x00000626                TC5_Handler
-                0x00000626                SYSCTRL_Handler
+                0x000008e6        0x2 build/samd21g18a/debug/_ext/1024713942/interrupts.o
+                0x000008e6                SVCall_Handler
+                0x000008e6                DMAC_Handler
+                0x000008e6                AC_Handler
+                0x000008e6                SysTick_Handler
+                0x000008e6                PendSV_Handler
+                0x000008e6                ADC_Handler
+                0x000008e6                TCC1_Handler
+                0x000008e6                SERCOM2_Handler
+                0x000008e6                TCC0_Handler
+                0x000008e6                RTC_Handler
+                0x000008e6                EIC_Handler
+                0x000008e6                WDT_Handler
+                0x000008e6                TC4_Handler
+                0x000008e6                USB_Handler
+                0x000008e6                TC3_Handler
+                0x000008e6                Dummy_Handler
+                0x000008e6                PM_Handler
+                0x000008e6                SERCOM5_Handler
+                0x000008e6                TCC2_Handler
+                0x000008e6                EVSYS_Handler
+                0x000008e6                SERCOM3_Handler
+                0x000008e6                SERCOM4_Handler
+                0x000008e6                I2S_Handler
+                0x000008e6                NVMCTRL_Handler
+                0x000008e6                DAC_Handler
+                0x000008e6                PTC_Handler
+                0x000008e6                TC5_Handler
+                0x000008e6                SYSCTRL_Handler
 
-.text.Dummy_App_Func%35
-                0x0000066a        0x2
+.text.Dummy_App_Func%39
+                0x0000090e        0x2
  .text.Dummy_App_Func
-                0x0000066a        0x2 build/samd21g18a/debug/_ext/1024713942/startup_xc32.o
-                0x0000066a                _on_reset
-                0x0000066a                _on_bootstrap
-                0x0000066a                __xc32_on_reset
-                0x0000066a                Dummy_App_Func
-                0x0000066a                __xc32_on_bootstrap
+                0x0000090e        0x2 build/samd21g18a/debug/_ext/1024713942/startup_xc32.o
+                0x0000090e                _on_reset
+                0x0000090e                _on_bootstrap
+                0x0000090e                __xc32_on_reset
+                0x0000090e                Dummy_App_Func
+                0x0000090e                __xc32_on_bootstrap
 
-.text.__dummy_init_tls%36
-                0x00000690        0x2
+.text.__dummy_init_tls%40
+                0x00000934        0x2
  .text.__dummy_init_tls
-                0x00000690        0x2 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(data_init.o)
-                0x00000690                xc32_init_tls
+                0x00000934        0x2 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libpic32c.a(data_init.o)
+                0x00000934                xc32_init_tls
 
-.text.__dummy%37
-                0x00000692        0x2
- .text.__dummy  0x00000692        0x2 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__libc_start_main.o)
-                0x00000692                __init_stdio
-                0x00000692                __init_host
+.text.__dummy%41
+                0x00000936        0x2
+ .text.__dummy  0x00000936        0x2 C:/Program Files/Microchip/xc32/v5.10/bin/bin/../../lib/gcc/pic32c/13.2.1/../../../../pic32c/lib/thumb/v6-m/nofp\libg-musl.a(__libc_start_main.o)
+                0x00000936                __init_stdio
+                0x00000936                __init_host

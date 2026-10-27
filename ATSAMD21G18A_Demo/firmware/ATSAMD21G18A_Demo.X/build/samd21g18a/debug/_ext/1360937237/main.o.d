@@ -71,9 +71,11 @@ build/samd21g18a/debug/_ext/1360937237/main.o: ../src/main.c \
  ../src/config/samd21g18a/device.h \
  ../src/config/samd21g18a/toolchain_specifics.h \
  ../src/packs/CMSIS/CMSIS/Core/Include/cmsis_compiler.h \
- ../src/config/samd21g18a/peripheral/evsys/plib_evsys.h \
+ ../src/config/samd21g18a/peripheral/sercom/i2c_master/plib_sercom1_i2c_master.h \
+ ../src/config/samd21g18a/peripheral/sercom/i2c_master/plib_sercom_i2c_master_common.h \
  ../src/config/samd21g18a/peripheral/sercom/usart/plib_sercom0_usart.h \
  ../src/config/samd21g18a/peripheral/sercom/usart/plib_sercom_usart_common.h \
+ ../src/config/samd21g18a/peripheral/evsys/plib_evsys.h \
  ../src/config/samd21g18a/peripheral/port/plib_port.h \
  ../src/config/samd21g18a/peripheral/clock/plib_clock.h \
  ../src/config/samd21g18a/peripheral/nvic/plib_nvic.h ../src/board.h
@@ -149,9 +151,11 @@ build/samd21g18a/debug/_ext/1360937237/main.o: ../src/main.c \
 ../src/config/samd21g18a/device.h:
 ../src/config/samd21g18a/toolchain_specifics.h:
 ../src/packs/CMSIS/CMSIS/Core/Include/cmsis_compiler.h:
-../src/config/samd21g18a/peripheral/evsys/plib_evsys.h:
+../src/config/samd21g18a/peripheral/sercom/i2c_master/plib_sercom1_i2c_master.h:
+../src/config/samd21g18a/peripheral/sercom/i2c_master/plib_sercom_i2c_master_common.h:
 ../src/config/samd21g18a/peripheral/sercom/usart/plib_sercom0_usart.h:
 ../src/config/samd21g18a/peripheral/sercom/usart/plib_sercom_usart_common.h:
+../src/config/samd21g18a/peripheral/evsys/plib_evsys.h:
 ../src/config/samd21g18a/peripheral/port/plib_port.h:
 ../src/config/samd21g18a/peripheral/clock/plib_clock.h:
 ../src/config/samd21g18a/peripheral/nvic/plib_nvic.h:

@@ -76,6 +76,14 @@
 #define UART_TX_Get()               (((PORT_REGS->GROUP[0].PORT_IN >> 10U)) & 0x01U)
 #define UART_TX_PIN                  PORT_PIN_PA10
 
+/*** Macros for I2C_SDA pin ***/
+#define I2C_SDA_Get()               (((PORT_REGS->GROUP[0].PORT_IN >> 16U)) & 0x01U)
+#define I2C_SDA_PIN                  PORT_PIN_PA16
+
+/*** Macros for I2C_SCL pin ***/
+#define I2C_SCL_Get()               (((PORT_REGS->GROUP[0].PORT_IN >> 17U)) & 0x01U)
+#define I2C_SCL_PIN                  PORT_PIN_PA17
+
 // *****************************************************************************
 /* PORT Group
 

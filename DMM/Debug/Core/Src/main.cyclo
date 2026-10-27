@@ -1,6 +1,0 @@
-../Core/Src/main.c:84:9:AD7190_Filter	5
-../Core/Src/main.c:108:5:main	6
-../Core/Src/main.c:193:6:HAL_SYSTICK_Callback	6
-../Core/Src/main.c:234:6:SystemClock_Config	3
-../Core/Src/main.c:290:6:PeriphCommonClock_Config	2
-../Core/Src/main.c:313:6:Error_Handler	1

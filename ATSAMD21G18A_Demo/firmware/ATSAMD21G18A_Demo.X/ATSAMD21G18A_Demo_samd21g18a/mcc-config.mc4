@@ -11,11 +11,12 @@ modules:
 - evsys
 - nvmctrl
 - sercom0
+- sercom1
 generatedFileHashHistoryMap:
 - file: ..\src\config\samd21g18a\ATSAMD21G18A.ld
   hash: a30bc1bf3b639f57c776a945882bda9f1eda24c35d1f1eb8bc22d870a820f38b
 - file: ..\src\config\samd21g18a\definitions.h
-  hash: 67af33ec447565c1a891b2dab8e309a80457b9051b9cadd10b95c20068d099da
+  hash: c69da244a7a1d531a00c4ead37945af21ade90e3991f07fa48922dff46476555
 - file: ..\src\config\samd21g18a\device.h
   hash: 24096f31262007748bd9650c7806fd7510084e4d7bffbd6780dff38eb858f048
 - file: ..\src\config\samd21g18a\device_cache.h
@@ -25,15 +26,15 @@ generatedFileHashHistoryMap:
 - file: ..\src\config\samd21g18a\exceptions.c
   hash: d1567a190561858cc1cb7e796cf1a29720e52b9799bbd88b087993d8539e137f
 - file: ..\src\config\samd21g18a\initialization.c
-  hash: 0be80dba6f1fc0b133f0b8b035143afc42079e0b61d3da0e734e8659f2057020
+  hash: 413433d98f098841b05708b445482afd299310eaf0d0a93e5f8e58b8d80a3157
 - file: ..\src\config\samd21g18a\interrupts.c
-  hash: b9a3d0931aa687f18e43dd24d77fb5b38b8cf8844563381a62ac6a08dcc44f2b
+  hash: 5872e5cc030a5ceb392e7a50a7ebf9cc2bd5030db02c5d31b47f917b5b131b36
 - file: ..\src\config\samd21g18a\interrupts.h
-  hash: 5fc09b2bdeb9d18e3133aca3a9398ea0a323c4646033e0306fe8b6d4b678307b
+  hash: 46d4eb895bf561e332d48c91dc50eb60ef5e7241327abb6cb052102313d37e94
 - file: ..\src\config\samd21g18a\libc_syscalls.c
   hash: c9afc1b1257829415a1a6746ce3744f0a768b339d59fff2ab3ca1fab58b2a916
 - file: ..\src\config\samd21g18a\peripheral\clock\plib_clock.c
-  hash: 4eee988e5bbb3648b3ed9f8dcfb1b097e6e64193584fe0633ed7ad7e4bfa3fe6
+  hash: 511595ab616bfe9b33ffdd07a465fd334bb30b7820e7f42d8309f008317e4033
 - file: ..\src\config\samd21g18a\peripheral\clock\plib_clock.h
   hash: 99bff84fe4a99e6423e2d28f881600300ece34a505bb89f3b4eb61154dbeeb10
 - file: ..\src\config\samd21g18a\peripheral\evsys\plib_evsys.c
@@ -41,7 +42,7 @@ generatedFileHashHistoryMap:
 - file: ..\src\config\samd21g18a\peripheral\evsys\plib_evsys.h
   hash: f7d08eb8162f271ce1db384c082586a6624e506aa7f502c64c4ab5a1aadac47d
 - file: ..\src\config\samd21g18a\peripheral\nvic\plib_nvic.c
-  hash: bf6fdc88745d9c1ba1cca3d82db5e1c353665c3d3ca15275b46d61cf5c3d4bde
+  hash: 659a54446e4980387b81c39b795d24c87874fd3823dfb8218ac63d26fdaeed55
 - file: ..\src\config\samd21g18a\peripheral\nvic\plib_nvic.h
   hash: 9936ac782115af41003255283fa2f603f4ff2212d16275b7c80ea8d067a9e208
 - file: ..\src\config\samd21g18a\peripheral\nvmctrl\plib_nvmctrl.c
@@ -49,9 +50,15 @@ generatedFileHashHistoryMap:
 - file: ..\src\config\samd21g18a\peripheral\nvmctrl\plib_nvmctrl.h
   hash: 5ed5f5c5b0892544d57303872afa61c7a560577850ce23de1af5f8113193f2dd
 - file: ..\src\config\samd21g18a\peripheral\port\plib_port.c
-  hash: d915608db4dac125a5fc11f1ad1b57942ea5c3eae99a9209e1b7bbbb053c4179
+  hash: 1282ace55f9e49338c4192d4d350233606726ec2e9371929b110f61354269843
 - file: ..\src\config\samd21g18a\peripheral\port\plib_port.h
-  hash: 91856848cea383182c33a4edd4ef35688c6fbca6b208ac79d57435897065ea61
+  hash: c0d21d5206b530abc96a7482568f694dec05b698fb1f9a74980ec383f056903d
+- file: ..\src\config\samd21g18a\peripheral\sercom\i2c_master\plib_sercom1_i2c_master.c
+  hash: 6fe1e95fa30325f4218020b8e22c6ae1f562b66717141cffe20c13d086108956
+- file: ..\src\config\samd21g18a\peripheral\sercom\i2c_master\plib_sercom1_i2c_master.h
+  hash: 989b307a02a3932781c3120222b4624c5536e6cda1a1d70259e230a8f60c5ed4
+- file: ..\src\config\samd21g18a\peripheral\sercom\i2c_master\plib_sercom_i2c_master_common.h
+  hash: f167b04b3c6a0f83fe41b7b6f810cbf0a48b8ca7d5a747b76463dd53d3c1a2a2
 - file: ..\src\config\samd21g18a\peripheral\sercom\usart\plib_sercom0_usart.c
   hash: b50e20c1fada721305e9e0ea981420fee129179e0b360ff25d92a4834c2c467f
 - file: ..\src\config\samd21g18a\peripheral\sercom\usart\plib_sercom0_usart.h
@@ -59,7 +66,7 @@ generatedFileHashHistoryMap:
 - file: ..\src\config\samd21g18a\peripheral\sercom\usart\plib_sercom_usart_common.h
   hash: 9f02e811b95f0470ca23f3546f3ddf4ccccb385b4d8b8c091899d0d20b0c56e1
 - file: ..\src\config\samd21g18a\pin_configurations.csv
-  hash: 4b6de815de52ba8cbe997c0193d1b72608bd5e10f377906a11f7de7dd017a987
+  hash: 7432b86f34e357829982be310353b08477a0a60b9f18a90f6e30e757b0807f3b
 - file: ..\src\config\samd21g18a\startup_xc32.c
   hash: 3aa1360f333b564211c35f641c7327c2111e11aa633bd02ec5a0be9466b1df04
 - file: ..\src\config\samd21g18a\stdio\xc32_monitor.c

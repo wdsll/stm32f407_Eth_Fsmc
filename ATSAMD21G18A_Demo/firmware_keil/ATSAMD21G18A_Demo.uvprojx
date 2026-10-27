@@ -10,7 +10,7 @@
       <TargetName>ATSAMD21G18A_Demo</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
-      <pCCUsed>6190000</pCCUsed>
+      <pCCUsed>6090000::V6.9::.\ARMCLANG</pCCUsed>
       <uAC6>1</uAC6>
       <TargetOption>
         <TargetCommonOption>
@@ -460,6 +460,11 @@
               <FileName>plib_sercom0_usart.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\firmware\src\config\samd21g18a\peripheral\sercom\usart\plib_sercom0_usart.c</FilePath>
+            </File>
+            <File>
+              <FileName>plib_sercom1_i2c_master.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\firmware\src\config\samd21g18a\peripheral\sercom\i2c_master\plib_sercom1_i2c_master.c</FilePath>
             </File>
           </Files>
         </Group>
