@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+  <executable name="dist/sam_d21_g18/debug/EVSE_1P.X.debug.elf">
+    <memory name="program">
+      <units>bytes</units>
+      <length>262144</length>
+      <used>28624</used>
+      <free>233520</free>
+    </memory>
+    <memory name="data">
+      <units>bytes</units>
+      <length>32768</length>
+      <used>2035</used>
+      <free>30733</free>
+    </memory>
+  </executable>
+</project>
